@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/ReliefApplications/oort-frontend/compare/v2.1.8...v2.2.0) (2023-11-23)
+
+
+### Features
+
+* user attributes now usable in form builder ([#2075](https://github.com/ReliefApplications/oort-frontend/issues/2075)) ([446b9b1](https://github.com/ReliefApplications/oort-frontend/commit/446b9b12e334bfff32f41866250154814aba148e))
+
 ## [2.1.8](https://github.com/ReliefApplications/oort-frontend/compare/v2.1.7...v2.1.8) (2023-11-12)
 
 
