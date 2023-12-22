@@ -5,7 +5,7 @@ import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { DataTemplateService } from '../../services/data-template/data-template.service';
 import { Dashboard } from '../../models/dashboard.model';
 import { ButtonActionT } from './button-action-type';
-import { firstValueFrom, takeUntil } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 /** Component for display action buttons */
 @Component({
