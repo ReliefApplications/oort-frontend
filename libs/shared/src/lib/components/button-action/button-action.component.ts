@@ -56,7 +56,10 @@ export class ButtonActionComponent {
       './components/edit-button-action/edit-button-action.component'
     );
     const dialogRef = this.dialog.open<ButtonActionT | undefined>(
-      EditButtonActionComponent
+      EditButtonActionComponent,
+      {
+        data: this.dashboard?.buttons?.[idx],
+      }
     );
 
     dialogRef.closed.subscribe(async (button) => {
