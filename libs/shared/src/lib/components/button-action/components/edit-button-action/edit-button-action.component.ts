@@ -29,7 +29,6 @@ import { DataTemplateService } from '../../../../services/data-template/data-tem
 import { INLINE_EDITOR_CONFIG } from '../../../../const/tinymce.const';
 import { EditorControlComponent } from '../../../../components/editor-control/editor-control.component';
 import { ButtonActionT } from '../../button-action-type';
-
 import { Router } from '@angular/router';
 
 /**
