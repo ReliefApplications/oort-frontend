@@ -40,6 +40,7 @@ import { SpinnerModule } from '@oort-front/ui';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
 import {
   FormHelpersService,
+  TemporaryFilesStorage,
   transformSurveyData,
 } from '../../services/form-helper/form-helper.service';
 import { DialogModule } from '@oort-front/ui';
@@ -97,7 +98,7 @@ export class FormModalComponent
   private storedMergedData: any;
 
   public survey!: SurveyModel;
-  protected temporaryFilesStorage: any = {};
+  protected temporaryFilesStorage: TemporaryFilesStorage = {};
 
   @ViewChild('formContainer') formContainer!: ElementRef;
 

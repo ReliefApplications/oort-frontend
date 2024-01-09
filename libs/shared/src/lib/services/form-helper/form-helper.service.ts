@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   IPanel,
   PageModel,
+  QuestionFileModel,
   QuestionPanelDynamicModel,
   SurveyModel,
 } from 'survey-core';
@@ -21,6 +22,15 @@ import { Question } from '../../survey/types';
 import { WorkflowService } from '../workflow/workflow.service';
 import { ApplicationService } from '../application/application.service';
 import { DomService } from '../dom/dom.service';
+
+/** Type definition for the temporary file storage object */
+export type TemporaryFilesStorage = Record<
+  string,
+  {
+    question: QuestionFileModel;
+    files: File[];
+  }[]
+>;
 
 /**
  * Applies custom logic to survey data values.
@@ -157,49 +167,59 @@ export class FormHelpersService {
    */
   async uploadFiles(
     survey: SurveyModel,
-    temporaryFilesStorage: any,
+    temporaryFilesStorage: TemporaryFilesStorage,
     formId: string | undefined
   ): Promise<void> {
     if (!formId) {
       throw new Error('Form id is not defined');
     }
-
-    const data = survey.data;
     const questionsToUpload = Object.keys(temporaryFilesStorage);
     for (const name of questionsToUpload) {
-      const files = temporaryFilesStorage[name];
-      for (const [index, file] of files.entries()) {
-        const path = await this.downloadService.uploadBlob(
-          file,
-          BlobType.RECORD_FILE,
-          formId
-        );
-        if (path) {
-          const fileContent = data[name][index].content;
-          data[name][index].content = path;
+      const cachedQuestions = temporaryFilesStorage[name];
 
-          // Check if any other question is using the same file
-          survey.getAllQuestions().forEach((question) => {
-            const questionType = question.getType();
-            if (
-              questionType !== 'file' ||
-              // Only change files that are not in the temporary storage
-              // meaning their values came from the default values
-              !!temporaryFilesStorage[question.name]
-            )
-              return;
+      if (!cachedQuestions) {
+        return;
+      }
 
-            const files = data[question.name] ?? [];
-            files.forEach((file: any) => {
-              if (file && file.content === fileContent) {
-                file.content = path;
+      for (const { files, question } of cachedQuestions) {
+        for (const [index, file] of files.entries()) {
+          const path = await this.downloadService.uploadBlob(
+            file,
+            BlobType.RECORD_FILE,
+            formId
+          );
+          if (path) {
+            const fileContent = question.value?.[index]?.content;
+            const value = cloneDeep(question.value);
+
+            if (question.value?.[index]?.content) {
+              value[index] = { ...value[index], content: path };
+              question.value = value;
+            }
+
+            // Check if any other question is using the same file
+            survey.getAllQuestions().forEach((question) => {
+              const questionType = question.getType();
+              if (
+                questionType !== 'file' ||
+                // Only change files that are not in the temporary storage
+                // meaning their values came from the default values
+                !!temporaryFilesStorage[question.name]
+              ) {
+                return;
               }
+
+              const files = survey.data[question.name] ?? [];
+              files.forEach((file: any) => {
+                if (file && file.content === fileContent) {
+                  file.content = path;
+                }
+              });
             });
-          });
+          }
         }
       }
     }
-    survey.data = cloneDeep(data);
   }
 
   /**
@@ -496,9 +516,7 @@ export class FormHelpersService {
    *
    * @param storage Storage to clear
    */
-  public clearTemporaryFilesStorage(
-    storage: Record<string, Array<File>>
-  ): void {
+  public clearTemporaryFilesStorage(storage: TemporaryFilesStorage): void {
     Object.keys(storage).forEach((key) => {
       delete storage[key];
     });
