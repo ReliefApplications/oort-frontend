@@ -321,12 +321,12 @@ export class FormBuilderService {
     options: any
   ): void {
     if (temporaryFilesStorage[options.name] !== undefined) {
-      // Find if there is files for the same question
+      // Find if there are files for the same question
       const cachedQuestion = temporaryFilesStorage[options.name].find(
         (c) => c.question === options.question
       );
 
-      // If there is, add the file to the existing array
+      // If there are, add the file to the existing array
       if (cachedQuestion) {
         cachedQuestion.files.concat(options.files);
       } else {
