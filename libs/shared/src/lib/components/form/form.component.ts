@@ -25,7 +25,10 @@ import { FormBuilderService } from '../../services/form-builder/form-builder.ser
 import { RecordHistoryComponent } from '../record-history/record-history.component';
 import { TranslateService } from '@ngx-translate/core';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
-import { FormHelpersService } from '../../services/form-helper/form-helper.service';
+import {
+  FormHelpersService,
+  TemporaryFilesStorage,
+} from '../../services/form-helper/form-helper.service';
 import { SnackbarService, UILayoutService } from '@oort-front/ui';
 import { cloneDeep } from 'lodash';
 
@@ -55,7 +58,7 @@ export class FormComponent
   /** Indicates whether the search is active */
   public surveyActive = true;
   /** Temporary storage for files */
-  public temporaryFilesStorage: Record<string, Array<File>> = {};
+  public temporaryFilesStorage: TemporaryFilesStorage = {};
   /** Reference to the form container element */
   @ViewChild('formContainer') formContainer!: ElementRef;
   /** Date when the form was last modified */

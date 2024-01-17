@@ -16,6 +16,7 @@ import { BehaviorSubject } from 'rxjs';
 import { SnackbarService } from '@oort-front/ui';
 import {
   FormHelpersService,
+  TemporaryFilesStorage,
   transformSurveyData,
 } from '../form-helper/form-helper.service';
 import { difference } from 'lodash';
@@ -263,7 +264,7 @@ export class FormBuilderService {
   public addEventsCallBacksToSurvey(
     survey: SurveyModel,
     selectedPageIndex: BehaviorSubject<number>,
-    temporaryFilesStorage: Record<string, Array<File>>
+    temporaryFilesStorage: TemporaryFilesStorage
   ) {
     survey.onAfterRenderSurvey.add(() => {
       // Open survey on a specific page (openOnQuestionValuesPage has priority over openOnPage)
@@ -320,11 +321,33 @@ export class FormBuilderService {
    * @param temporaryFilesStorage Temporary files saved while executing the survey
    * @param options Options regarding the upload
    */
-  private onUploadFiles(temporaryFilesStorage: any, options: any): void {
+  private onUploadFiles(
+    temporaryFilesStorage: TemporaryFilesStorage,
+    options: any
+  ): void {
     if (temporaryFilesStorage[options.name] !== undefined) {
-      temporaryFilesStorage[options.name].concat(options.files);
+      // Find if there are files for the same question
+      const cachedQuestion = temporaryFilesStorage[options.name].find(
+        (c) => c.question === options.question
+      );
+
+      // If there are, add the file to the existing array
+      if (cachedQuestion) {
+        cachedQuestion.files.concat(options.files);
+      } else {
+        // If not, create a new entry
+        temporaryFilesStorage[options.name].push({
+          files: options.files,
+          question: options.question,
+        });
+      }
     } else {
-      temporaryFilesStorage[options.name] = options.files;
+      temporaryFilesStorage[options.name] = [
+        {
+          files: options.files,
+          question: options.question,
+        },
+      ];
     }
     let content: any[] = [];
     options.files.forEach((file: any) => {
