@@ -26,6 +26,13 @@ export const routes: Routes = [
           import('@oort-front/shared').then((m) => m.ProfileViewModule),
       },
       {
+        path: 'conversion',
+        loadChildren: () =>
+          import('./pages/conversion/conversion.module').then(
+            (m) => m.ConversionModule
+          ),
+      },
+      {
         path: 'referencedata',
         children: [
           {

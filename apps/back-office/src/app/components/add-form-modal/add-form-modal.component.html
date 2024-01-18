@@ -71,10 +71,12 @@
                 {{ 'components.form.create.choice.template' | translate }}
                 <ui-icon
                   icon="info_outline"
+                  class="cursor-pointer ml-1"
                   variant="grey"
                   [size]="18"
+                  uiSuffix
                   [uiTooltip]="
-                    'components.form.create.tooltip.template' | translate
+                    'models.dashboard.tooltip.historicalDate' | translate
                   "
                 ></ui-icon>
               </ng-container>
@@ -84,9 +86,7 @@
                 <label>{{
                   'components.form.create.template.from' | translate
                 }}</label>
-                <ui-select-menu
-                  formControlName="template"
-                >
+                <ui-select-menu formControlName="template">
                   <ui-select-option
                     *ngFor="let template of templates"
                     [value]="template.id"
