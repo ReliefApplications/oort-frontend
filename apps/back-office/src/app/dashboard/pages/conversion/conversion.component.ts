@@ -283,6 +283,7 @@ export class ConversionComponent extends UnsubscribeComponent {
     resource: Resource,
     conversionForm: any
   ): Promise<void> {
+    console.log('conversionForm', conversionForm);
     const promises: Promise<any>[] = [];
     promises.push(
       firstValueFrom(
@@ -293,7 +294,7 @@ export class ConversionComponent extends UnsubscribeComponent {
             initialType: conversionForm['selectedType'],
             newType: conversionForm['selectedConvertibleType'],
             field: conversionForm['selectedField'],
-            selectedResource: conversionForm['selectedResources'],
+            selectedResource: conversionForm['selectedResourceAction'],
             popArray: conversionForm['selectedPopArrayAction'],
             failedAction: conversionForm['selectedFailedConversionAction'],
           },
