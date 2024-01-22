@@ -34,11 +34,12 @@ export class ConversionFieldsComponent {
   public popArrayActions = [
     { value: 'first', action: 'Keep first element' },
     { value: 'last', action: 'Keep last element' },
+    { value: 'all', action: 'Keep all elements, split by comma' },
   ];
 
   public failedConversionActions = [
-    { value: 'ignore', action: 'Ignore' },
-    { value: 'delete', action: 'Delete and proceed' },
+    { value: 'ignore', action: 'Ignore Record' },
+    { value: 'delete', action: 'Delete value and proceed' },
     { value: 'cancel', action: 'Cancel conversion' },
   ];
 

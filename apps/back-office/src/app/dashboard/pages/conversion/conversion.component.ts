@@ -22,6 +22,9 @@ import {
   ResourcesQueryResponse,
   SkeletonTableModule,
   UnsubscribeComponent,
+  Record,
+  ResourceRecordsNodesQueryResponse,
+  RecordQueryResponse,
 } from '@oort-front/shared';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FilterModule } from 'libs/shared/src/lib/components/filter/filter.module';
@@ -33,8 +36,13 @@ import {
   trigger,
 } from '@angular/animations';
 import { Apollo, QueryRef } from 'apollo-angular';
-import { takeUntil } from 'rxjs';
-import { GET_RESOURCE, GET_RESOURCES } from './graphql/queries';
+import { takeUntil, firstValueFrom } from 'rxjs';
+import {
+  GET_RESOURCE,
+  GET_RESOURCES,
+  GET_RESOURCE_RECORDS,
+} from './graphql/queries';
+import { CONVERT_RESOURCE_RECORDS } from './graphql/mutations';
 import { updateQueryUniqueValues } from '../../../utils/update-queries';
 import { ConversionModule } from './conversion.module';
 
@@ -44,6 +52,16 @@ const DEFAULT_PAGE_SIZE = 10;
 /** Interface of table elements */
 interface TableResourceElement {
   resource: Resource;
+}
+
+interface ConversionFormValues {
+  id: string;
+  initialType: string;
+  newType: string;
+  field: string;
+  selectedResources: string;
+  popArray: string;
+  failedAction: string;
 }
 
 @Component({
@@ -85,7 +103,15 @@ export class ConversionComponent extends UnsubscribeComponent {
   public resources = new Array<TableResourceElement>();
   public cachedResources: Resource[] = [];
 
-  private conversionFormValues: Object = {};
+  private conversionFormValues: ConversionFormValues = {
+    id: '',
+    initialType: '',
+    newType: '',
+    field: '',
+    selectedResources: '',
+    popArray: '',
+    failedAction: '',
+  };
 
   /**
    * Resource tab of Role Summary component.
@@ -248,8 +274,34 @@ export class ConversionComponent extends UnsubscribeComponent {
     this.filterLoading = false;
   }
 
-  getConversionFormValues(conversionFormValues: Object) {
+  public getConversionFormValues(conversionFormValues: any) {
     this.conversionFormValues = conversionFormValues;
-    console.log(this.conversionFormValues);
+    this.onConvert(this.openedResource as Resource, this.conversionFormValues);
+  }
+
+  public async onConvert(
+    resource: Resource,
+    conversionForm: any
+  ): Promise<void> {
+    const promises: Promise<any>[] = [];
+    promises.push(
+      firstValueFrom(
+        this.apollo.mutate<ResourceRecordsNodesQueryResponse>({
+          mutation: CONVERT_RESOURCE_RECORDS,
+          variables: {
+            id: resource.id,
+            initialType: conversionForm['selectedType'],
+            newType: conversionForm['selectedConvertibleType'],
+            field: conversionForm['selectedField'],
+            selectedResource: conversionForm['selectedResources'],
+            popArray: conversionForm['selectedPopArrayAction'],
+            failedAction: conversionForm['selectedFailedConversionAction'],
+          },
+        })
+      )
+    );
+    Promise.all(promises).then((results) => {
+      console.log('results', results);
+    });
   }
 }
