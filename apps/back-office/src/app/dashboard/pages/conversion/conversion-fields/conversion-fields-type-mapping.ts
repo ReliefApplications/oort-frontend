@@ -15,7 +15,6 @@ export const conversionMap: ConversionMap = {
       'dropdown',
       'boolean',
       'tagbox',
-      'resource',
       'owner',
       'users',
     ],

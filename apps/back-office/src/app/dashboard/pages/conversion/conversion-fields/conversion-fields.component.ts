@@ -38,7 +38,7 @@ export class ConversionFieldsComponent {
   ];
 
   public failedConversionActions = [
-    { value: 'ignore', action: 'Ignore Record' },
+    { value: 'ignore', action: 'Ignore record and proceed' },
     { value: 'delete', action: 'Delete value and proceed' },
     { value: 'cancel', action: 'Cancel conversion' },
   ];
@@ -62,12 +62,6 @@ export class ConversionFieldsComponent {
             'selectedPopArrayAction',
             value
           );
-          this.setActionsValidators(
-            'selectResource',
-            'selectedResourceAction',
-            value
-          );
-          this.checkIdRequirement(value);
         }
       });
   }
@@ -107,8 +101,6 @@ export class ConversionFieldsComponent {
       selectedConvertibleType: new FormControl('', Validators.required),
       selectedFailedConversionAction: new FormControl('', Validators.required),
       selectedPopArrayAction: new FormControl(''),
-      selectedResourceAction: new FormControl(''),
-      checkIdControl: new FormControl(''),
     });
   }
 
@@ -133,9 +125,6 @@ export class ConversionFieldsComponent {
   private resetActions() {
     this.conversionForm.get('selectedPopArrayAction')?.clearValidators();
     this.conversionForm.get('selectedPopArrayAction')?.updateValueAndValidity();
-
-    this.conversionForm.get('selectedResourceAction')?.clearValidators();
-    this.conversionForm.get('selectedResourceAction')?.updateValueAndValidity();
   }
 
   private setActionsValidators(
@@ -149,16 +138,6 @@ export class ConversionFieldsComponent {
       ).confirmation[action]?.includes(value)
     ) {
       this.conversionForm.get(formControl)?.setValidators(Validators.required);
-    }
-  }
-
-  private checkIdRequirement(value: string) {
-    if (
-      (
-        conversionMap[this.conversionForm.get('selectedType')?.value] as any
-      ).confirmation.checkId?.includes(value)
-    ) {
-      this.conversionForm.get('checkIdControl')?.setValue(value);
     }
   }
 }

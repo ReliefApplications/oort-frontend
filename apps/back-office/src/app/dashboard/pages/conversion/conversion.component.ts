@@ -37,11 +37,7 @@ import {
 } from '@angular/animations';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { takeUntil, firstValueFrom } from 'rxjs';
-import {
-  GET_RESOURCE,
-  GET_RESOURCES,
-  GET_RESOURCE_RECORDS,
-} from './graphql/queries';
+import { GET_RESOURCE, GET_RESOURCES } from './graphql/queries';
 import { CONVERT_RESOURCE_RECORDS } from './graphql/mutations';
 import { updateQueryUniqueValues } from '../../../utils/update-queries';
 import { ConversionModule } from './conversion.module';
@@ -59,7 +55,6 @@ interface ConversionFormValues {
   initialType: string;
   newType: string;
   field: string;
-  selectedResources: string;
   popArray: string;
   failedAction: string;
 }
@@ -108,7 +103,6 @@ export class ConversionComponent extends UnsubscribeComponent {
     initialType: '',
     newType: '',
     field: '',
-    selectedResources: '',
     popArray: '',
     failedAction: '',
   };
@@ -294,7 +288,6 @@ export class ConversionComponent extends UnsubscribeComponent {
             initialType: conversionForm['selectedType'],
             newType: conversionForm['selectedConvertibleType'],
             field: conversionForm['selectedField'],
-            selectedResource: conversionForm['selectedResourceAction'],
             popArray: conversionForm['selectedPopArrayAction'],
             failedAction: conversionForm['selectedFailedConversionAction'],
           },

@@ -7,7 +7,6 @@ export const CONVERT_RESOURCE_RECORDS = gql`
     $initialType: String!
     $newType: String!
     $field: String!
-    $selectedResource: String
     $popArray: String
     $failedAction: String!
   ) {
@@ -16,7 +15,6 @@ export const CONVERT_RESOURCE_RECORDS = gql`
       initialType: $initialType
       newType: $newType
       field: $field
-      selectedResource: $selectedResource
       popArray: $popArray
       failedAction: $failedAction
     ) {

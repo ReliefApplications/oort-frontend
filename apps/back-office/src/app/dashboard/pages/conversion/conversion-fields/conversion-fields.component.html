@@ -98,34 +98,6 @@
         </ui-select-option>
       </ui-select-menu>
     </div>
-
-    <div
-      uiFormFieldDirective
-      class="mt-4"
-      *ngIf="checkActionRequirement('selectResource')"
-    >
-      <label class="inline">{{
-        'components.conversion.selectResource.name' | translate
-      }}</label>
-      <ui-icon
-        class="ml-2 cursor-pointer"
-        [size]="16"
-        icon="info_outline"
-        variant="grey"
-        [uiTooltip]="'components.conversion.selectResource.tooltip' | translate"
-      ></ui-icon>
-      <ui-select-menu formControlName="selectedResourceAction">
-        <ui-select-option [value]="'None'" class="italic">
-          None
-        </ui-select-option>
-        <ui-select-option
-          *ngFor="let resource of resources"
-          [value]="resource.resource.id"
-        >
-          {{ resource.resource.name }}
-        </ui-select-option>
-      </ui-select-menu>
-    </div>
   </form>
   <div class="flex justify-end my-4">
     <ui-button
