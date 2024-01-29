@@ -655,6 +655,14 @@
 			"title": "Confirm"
 		},
 		"conversion": {
+			"actions": {
+				"all": "Keep all elements, split by comma",
+				"cancel": "Cancel conversion",
+				"delete": "Delete value and proceed",
+				"first": "Keep first element",
+				"ignore": "Ignore record and proceed",
+				"last": "Keep last element"
+			},
 			"convertButton": "Convert",
 			"failedAction": {
 				"name": "Action for records that fail to convert",

@@ -655,26 +655,34 @@
 			"title": "Confirmer"
 		},
 		"conversion": {
-			"convertButton": "Convert",
+			"actions": {
+				"all": "Conserver tous les éléments, séparés par une virgule",
+				"cancel": "Annuler la conversion",
+				"delete": "Supprimer la valeur et continuer",
+				"first": "Conserver le premier élément",
+				"ignore": "Ignorer l'enregistrement et poursuivre",
+				"last": "Conserver le dernier élément"
+			},
+			"convertButton": "Convertir",
 			"failedAction": {
-				"name": "Action for records that fail to convert",
-				"tooltip": "Select what will be done to records that fail to convert."
+				"name": "Mesures à prendre en cas d'échec de la conversion",
+				"tooltip": "Sélectionnez ce qui sera fait pour les enregistrements qui ne sont pas convertis."
 			},
 			"initialType": {
-				"name": "Initial field type",
-				"tooltip": "Initial type of the field to convert the records from."
+				"name": "Type de champ initial",
+				"tooltip": "Type initial du champ à partir duquel les enregistrements doivent être convertis."
 			},
 			"newType": {
-				"name": "New field type",
-				"tooltip": "New type of the field to convert the records to. Select an initial type to list its possible conversions."
+				"name": "Nouveau type de champ",
+				"tooltip": "Nouveau type de champ vers lequel convertir les enregistrements. Sélectionnez un type initial pour obtenir la liste des conversions possibles."
 			},
 			"popArray": {
-				"name": "Action for popArray",
-				"tooltip": "This conversion transforms a field that is stored as an array to a field that is not. Select which element of the array will be kept."
+				"name": "Action pour popArray",
+				"tooltip": "Cette conversion transforme un champ stocké sous forme de tableau en un champ qui ne l'est pas. Sélectionnez l'élément du tableau qui sera conservé."
 			},
 			"selectResource": {
-				"name": "Action for selectResource",
-				"tooltip": "Select a resource to enforce the record to be related to or None to get the resource from the record automatically."
+				"name": "Action pour selectResource",
+				"tooltip": "Sélectionnez une ressource à laquelle l'enregistrement doit être lié ou Aucune pour obtenir automatiquement la ressource à partir de l'enregistrement."
 			}
 		},
 		"customNotifications": {

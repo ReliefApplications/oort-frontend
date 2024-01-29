@@ -15,7 +15,6 @@ import {
 } from '@oort-front/ui';
 import { ListFilterComponent, SkeletonTableModule } from '@oort-front/shared';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FilterModule } from 'libs/shared/src/lib/components/filter/filter.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConversionRoutingModule } from './conversion-routing.module';
 import { ConversionFieldsComponent } from './conversion-fields/conversion-fields.component';
@@ -34,7 +33,6 @@ import { ConversionFieldsComponent } from './conversion-fields/conversion-fields
     SpinnerModule,
     FormWrapperModule,
     IconModule,
-    FilterModule,
     SelectMenuModule,
     ButtonModule,
     TableModule,

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Resource } from '@oort-front/shared';
 import { conversionMap } from './conversion-fields-type-mapping';
 import {
@@ -6,47 +6,73 @@ import {
   FormGroup,
   FormControl,
   Validators,
-  ValidationErrors,
 } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 
+/** Interface for the table element */
 interface TableResourceElement {
   resource: Resource;
 }
 
+/** Conversion fields component */
 @Component({
   selector: 'app-conversion-fields',
   templateUrl: './conversion-fields.component.html',
   styleUrls: ['./conversion-fields.component.scss'],
 })
-export class ConversionFieldsComponent {
+export class ConversionFieldsComponent implements OnInit {
   @Input() resource!: Resource;
   @Input() disabled = false;
-  @Input() resources!: Array<TableResourceElement>;
+  @Input() resources!: TableResourceElement[];
 
-  @Output() convertEvent = new EventEmitter<Object>();
+  @Output() convertEvent = new EventEmitter<object>();
 
   public fields = new Array<string>();
 
   public conversionForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {}
+  /**
+   * Constructor for the conversion fields component
+   *
+   * @param fb The form builder
+   * @param translate The translate service
+   */
+  constructor(private fb: FormBuilder, private translate: TranslateService) {}
 
   public popArrayActions = [
-    { value: 'first', action: 'Keep first element' },
-    { value: 'last', action: 'Keep last element' },
-    { value: 'all', action: 'Keep all elements, split by comma' },
+    {
+      value: 'first',
+      action: this.translate.instant('components.conversion.actions.first'),
+    },
+    {
+      value: 'last',
+      action: this.translate.instant('components.conversion.actions.last'),
+    },
+    {
+      value: 'all',
+      action: this.translate.instant('components.conversion.actions.all'),
+    },
   ];
 
   public failedConversionActions = [
-    { value: 'ignore', action: 'Ignore record and proceed' },
-    { value: 'delete', action: 'Delete value and proceed' },
-    { value: 'cancel', action: 'Cancel conversion' },
+    {
+      value: 'ignore',
+      action: this.translate.instant('components.conversion.actions.ignore'),
+    },
+    {
+      value: 'delete',
+      action: this.translate.instant('components.conversion.actions.delete'),
+    },
+    {
+      value: 'cancel',
+      action: this.translate.instant('components.conversion.actions.cancel'),
+    },
   ];
 
   ngOnInit() {
     this.fields = this.resource.fields.filter((field: any) => !field.generated);
     this.conversionForm = this.createConversionForm();
-    this.conversionForm.get('selectedType')?.valueChanges.subscribe((value) => {
+    this.conversionForm.get('selectedType')?.valueChanges.subscribe(() => {
       if (this.conversionForm.get('selectedConvertibleType')?.value) {
         this.conversionForm.get('selectedConvertibleType')?.reset();
         this.resetActions();
@@ -66,14 +92,29 @@ export class ConversionFieldsComponent {
       });
   }
 
+  /**
+   * Get the fields names
+   *
+   * @returns the fields names
+   */
   public getFieldsNames(): string[] {
     return this.fields.map((field: any) => field.name);
   }
 
+  /**
+   * Get all the types
+   *
+   * @returns the types
+   */
   public getAllTypes(): string[] {
     return Object.keys(conversionMap);
   }
 
+  /**
+   * Get the convertible types
+   *
+   * @returns the convertible types
+   */
   public getConvertibleTypes(): string[] {
     if (!conversionMap[this.conversionForm.value.selectedType]) {
       return [];
@@ -82,6 +123,12 @@ export class ConversionFieldsComponent {
       .convertibleTypes;
   }
 
+  /**
+   * Get the display name in the conversion map
+   *
+   * @param type The type
+   * @returns The type display name
+   */
   public getDisplayName(type: string): string {
     if (!conversionMap[type]) {
       return type;
@@ -89,10 +136,18 @@ export class ConversionFieldsComponent {
     return conversionMap[type].displayName;
   }
 
+  /**
+   * onClick event for the button
+   */
   public onClick() {
     this.convertEvent.emit(this.conversionForm.value);
   }
 
+  /**
+   * Create the conversion form
+   *
+   * @returns the conversion form
+   */
   private createConversionForm() {
     return this.fb.group({
       currentResource: new FormControl(this.resource.id),
@@ -104,6 +159,12 @@ export class ConversionFieldsComponent {
     });
   }
 
+  /**
+   * Check if the action is required
+   *
+   * @param action The action
+   * @returns True or false accordingly
+   */
   public checkActionRequirement(action: string): boolean {
     if (
       this.conversionForm.get('selectedConvertibleType')?.value &&
@@ -122,11 +183,21 @@ export class ConversionFieldsComponent {
     return false;
   }
 
+  /**
+   * Reset the actions validators
+   */
   private resetActions() {
     this.conversionForm.get('selectedPopArrayAction')?.clearValidators();
     this.conversionForm.get('selectedPopArrayAction')?.updateValueAndValidity();
   }
 
+  /**
+   * Set the actions validators when they are needed
+   *
+   * @param action Action to validate
+   * @param formControl The form control
+   * @param value The value
+   */
   private setActionsValidators(
     action: string,
     formControl: string,

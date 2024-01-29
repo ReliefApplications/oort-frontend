@@ -1,33 +1,12 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { Component, OnInit } from '@angular/core';
+import { UIPageChangeEvent, handleTablePageEvent } from '@oort-front/ui';
 import {
-  ButtonModule,
-  DateModule,
-  FormWrapperModule,
-  IconModule,
-  PaginatorModule,
-  SelectMenuModule,
-  SnackbarService,
-  SpinnerModule,
-  TableModule,
-  TooltipModule,
-  UIPageChangeEvent,
-  handleTablePageEvent,
-} from '@oort-front/ui';
-import {
-  ListFilterComponent,
   Resource,
   ResourceQueryResponse,
   ResourcesQueryResponse,
-  SkeletonTableModule,
   UnsubscribeComponent,
-  Record,
   ResourceRecordsNodesQueryResponse,
-  RecordQueryResponse,
 } from '@oort-front/shared';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FilterModule } from 'libs/shared/src/lib/components/filter/filter.module';
 import {
   animate,
   state,
@@ -40,7 +19,6 @@ import { takeUntil, firstValueFrom } from 'rxjs';
 import { GET_RESOURCE, GET_RESOURCES } from './graphql/queries';
 import { CONVERT_RESOURCE_RECORDS } from './graphql/mutations';
 import { updateQueryUniqueValues } from '../../../utils/update-queries';
-import { ConversionModule } from './conversion.module';
 
 /** Default page size  */
 const DEFAULT_PAGE_SIZE = 10;
@@ -50,6 +28,7 @@ interface TableResourceElement {
   resource: Resource;
 }
 
+/** Interface of conversion form */
 interface ConversionFormValues {
   id: string;
   initialType: string;
@@ -59,6 +38,9 @@ interface ConversionFormValues {
   failedAction: string;
 }
 
+/**
+ * Data conversion component
+ */
 @Component({
   selector: 'app-conversion',
   templateUrl: './conversion.component.html',
@@ -74,7 +56,10 @@ interface ConversionFormValues {
     ]),
   ],
 })
-export class ConversionComponent extends UnsubscribeComponent {
+export class ConversionComponent
+  extends UnsubscribeComponent
+  implements OnInit
+{
   // === PAGINATION ===
   public loading = true; // First load && pagination
   public pageInfo = {
@@ -111,9 +96,8 @@ export class ConversionComponent extends UnsubscribeComponent {
    * Resource tab of Role Summary component.
    *
    * @param apollo Apollo client service
-   * @param snackBar shared snackbar service
    */
-  constructor(private apollo: Apollo, private snackBar: SnackbarService) {
+  constructor(private apollo: Apollo) {
     super();
   }
 
@@ -268,11 +252,22 @@ export class ConversionComponent extends UnsubscribeComponent {
     this.filterLoading = false;
   }
 
+  /**
+   * Get the values from the conversion form
+   *
+   * @param conversionFormValues conversion form values
+   */
   public getConversionFormValues(conversionFormValues: any) {
     this.conversionFormValues = conversionFormValues;
     this.onConvert(this.openedResource as Resource, this.conversionFormValues);
   }
 
+  /**
+   * Convert the resource records
+   *
+   * @param resource resource the records are from
+   * @param conversionForm conversion form
+   */
   public async onConvert(
     resource: Resource,
     conversionForm: any

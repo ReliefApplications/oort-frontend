@@ -2,7 +2,7 @@ interface ConversionMap {
   [key: string]: {
     displayName: string;
     convertibleTypes: string[];
-    confirmation: Object;
+    confirmation: object;
   };
 }
 

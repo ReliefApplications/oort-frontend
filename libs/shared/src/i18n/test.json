@@ -655,6 +655,14 @@
 			"title": "******"
 		},
 		"conversion": {
+			"actions": {
+				"all": "******",
+				"cancel": "******",
+				"delete": "******",
+				"first": "******",
+				"ignore": "******",
+				"last": "******"
+			},
 			"convertButton": "******",
 			"failedAction": {
 				"name": "******",
