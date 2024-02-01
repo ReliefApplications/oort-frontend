@@ -2084,6 +2084,11 @@
 			"deactivateFiltering": "Désactiver le filtre",
 			"historicalDate": "Récupérer les données historiques",
 			"share": "Partager le tableau de bord",
+			"states": {
+				"create": "Créer un état",
+				"none": "Aucun état",
+				"title": "États"
+			},
 			"tooltip": {
 				"dashboardFilter": "Vous pouvez utiliser les champs du filtre du tableau de bord, ou utiliser des valeurs statiques.",
 				"historicalDate": "Vous pouvez récupérer les données à une date spécifique en utilisant un champ du filtre du tableau de board.\nVeuillez alors utiliser cette syntaxe : {{filter.<nom>}}.",

@@ -1,0 +1,27 @@
+<ng-container *ngIf="states.length">
+  <div class="flex justify-end">
+    <ng-container *ngTemplateOutlet="newState"></ng-container>
+  </div>
+</ng-container>
+<ng-container *ngIf="states.length; else emptyTmpl">
+  Test
+</ng-container>
+
+<ng-template #newState>
+  <ui-button
+    icon="add"
+    category="secondary"
+    variant="primary"
+    (click)="onAdd()"
+  >
+    {{ 'models.dashboard.states.create' | translate }}
+  </ui-button>
+</ng-template>
+
+<!-- Empty indicator -->
+<ng-template #emptyTmpl>
+  <shared-empty
+    [title]="'models.dashboard.states.none' | translate"
+    [footerTemplate]="newState"
+  ></shared-empty>
+</ng-template>

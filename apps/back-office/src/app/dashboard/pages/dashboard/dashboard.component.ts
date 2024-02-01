@@ -795,6 +795,7 @@ export class DashboardComponent
     const dialogRef = this.dialog.open(ViewSettingsModalComponent, {
       data: {
         type: this.isStep ? 'step' : 'page',
+        isDashboard: true,
         applicationId: this.applicationId,
         page: this.isStep ? undefined : this.dashboard?.page,
         step: this.isStep ? this.dashboard?.step : undefined,

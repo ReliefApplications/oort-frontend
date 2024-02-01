@@ -19,6 +19,23 @@ import {
 import get from 'lodash/get';
 import { ActivatedRoute } from '@angular/router';
 
+/** States types enum */
+export enum StateType {
+  GRID = 'gridRows',
+  VARIABLE = ' variable',
+  // FIELD_TO_STATE = 'fieldToState',
+  // STATE_TO_FIELD = 'stateToField',
+}
+
+/** DashboardState interface */
+export interface DashboardState {
+  name: string;
+  value: any;
+  type?: StateType;
+  // form?: string;
+  // field?: string;
+}
+
 /**
  * Shared dashboard service. Handles dashboard events.
  * TODO: rename all tiles into widgets
@@ -31,6 +48,13 @@ export class DashboardService {
   public availableWidgets = WIDGET_TYPES;
   /** Current dashboard */
   private dashboard = new BehaviorSubject<Dashboard | null>(null);
+  /** Current dashboard states */
+  private states = new BehaviorSubject<DashboardState[]>([]);
+
+  /** @returns Current dashboard states as observable */
+  get states$(): Observable<DashboardState[]> {
+    return this.states.asObservable();
+  }
 
   /** @returns Current dashboard as observable */
   get dashboard$(): Observable<Dashboard | null> {
@@ -197,5 +221,24 @@ export class DashboardService {
           buttons,
         });
       });
+  }
+
+  /**
+   * Add new state to dashboard.
+   *
+   * @param type state type
+   * @param name state name
+   * @param value state value
+   */
+  public addDashboardState(type: StateType, name: string, value: any): void {
+    console.log(type, name, value);
+    const states = this.states.getValue();
+    const newState: DashboardState = {
+      name,
+      value,
+      type,
+    };
+    states.push(newState);
+    this.states.next(states);
   }
 }

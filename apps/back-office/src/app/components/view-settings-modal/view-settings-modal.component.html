@@ -92,6 +92,21 @@
             </ng-container> 
           </div>
         </ui-tab>
+        <!-- Dashboard states -->
+        <ui-tab *ngIf="isDashboard">
+          <ng-container ngProjectAs="label">
+            <ui-icon
+              icon="list"
+              [size]="18"
+              uiTooltip="{{ 'models.dashboard.states.title' | translate }}"
+            ></ui-icon>
+            <span>{{ 'models.dashboard.states.title' | translate }}</span>
+          </ng-container>
+          <!-- Tab content -->
+          <div class="flex flex-col">
+            <app-dashboard-states></app-dashboard-states>
+          </div>
+        </ui-tab>
         <!-- Access (visibility) settings -->
         <ui-tab *ngIf="data.canUpdate">
           <ng-container ngProjectAs="label">

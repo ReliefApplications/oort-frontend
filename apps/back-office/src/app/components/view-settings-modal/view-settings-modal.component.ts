@@ -32,6 +32,7 @@ import {
 import { takeUntil } from 'rxjs';
 import { isNil } from 'lodash';
 import { AbilityModule } from '@casl/angular';
+import { DashboardStatesModule } from '../dashboard-states/dashboard-states.module';
 
 /** Settings Dialog Data */
 interface DialogData {
@@ -43,6 +44,7 @@ interface DialogData {
   visible?: boolean;
   accessData: AccessData;
   canUpdate: boolean;
+  isDashboard?: boolean;
 }
 
 /**
@@ -71,6 +73,7 @@ interface DialogData {
     SearchMenuModule,
     AlertModule,
     AbilityModule,
+    DashboardStatesModule,
   ],
   templateUrl: './view-settings-modal.component.html',
   styleUrls: ['./view-settings-modal.component.scss'],
@@ -85,6 +88,8 @@ export class ViewSettingsModalComponent
   public onUpdate = new EventEmitter();
   /** Show duplicate menu */
   public showDuplicateMenu = false;
+  /** If page/step is of type dashboard */
+  public isDashboard = false;
   /** List of available applications */
   public applications: Application[] = [];
   /** Step object */
@@ -111,9 +116,11 @@ export class ViewSettingsModalComponent
     private authService: AuthService
   ) {
     super();
+    console.log('this.data', data);
     if (this.data) {
       this.page = this.data?.page;
       this.step = this.data?.step;
+      this.isDashboard = this.data.isDashboard ?? false;
     }
   }
 

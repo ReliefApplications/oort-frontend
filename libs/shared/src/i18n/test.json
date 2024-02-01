@@ -2077,6 +2077,11 @@
 			"deactivateFiltering": "******",
 			"historicalDate": "******",
 			"share": "******",
+			"states": {
+				"create": "******",
+				"none": "******",
+				"title": "******"
+			},
 			"tooltip": {
 				"dashboardFilter": "******",
 				"historicalDate": "****** {{filter.<name>}} ******",
