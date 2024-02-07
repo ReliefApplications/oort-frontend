@@ -50,6 +50,10 @@ export class DashboardService {
   private dashboard = new BehaviorSubject<Dashboard | null>(null);
   /** Current dashboard states */
   private states = new BehaviorSubject<DashboardState[]>([]);
+  /** Automatically map selected grid widget rows to a context */
+  public automaticallyMapSelected = false;
+  /** Automatically map selected grid widget rows to a context */
+  public automaticallyMapView = false;
 
   /** @returns Current dashboard states as observable */
   get states$(): Observable<DashboardState[]> {
@@ -91,6 +95,10 @@ export class DashboardService {
    */
   openDashboard(dashboard: Dashboard): void {
     this.dashboard.next(dashboard);
+    // Reset dashboard states
+    this.automaticallyMapSelected = false;
+    this.automaticallyMapView = false;
+    this.states.next([]);
   }
 
   /**

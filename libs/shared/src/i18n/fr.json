@@ -2085,9 +2085,12 @@
 			"historicalDate": "Récupérer les données historiques",
 			"share": "Partager le tableau de bord",
 			"states": {
+				"automaticallyMapSelectedRows": "Mapper automatiquement les lignes du widget de grille sélectionnées à un contexte",
+				"automaticallyMapViewRows": "Mapper automatiquement les lignes du widget de grille en vue d'un contexte",
 				"create": "Créer un état",
+				"few": "États",
 				"none": "Aucun état",
-				"title": "États"
+				"one": "État"
 			},
 			"tooltip": {
 				"dashboardFilter": "Vous pouvez utiliser les champs du filtre du tableau de bord, ou utiliser des valeurs statiques.",

@@ -2078,9 +2078,12 @@
 			"historicalDate": "Get dataset at",
 			"share": "Share Dashboard",
 			"states": {
+				"automaticallyMapSelectedRows": "Automatically map selected grid widget rows to a context",
+				"automaticallyMapViewRows": "Automatically map grid widget rows in view to a context",
 				"create": "Create a state",
+				"few": "States",
 				"none": "No states",
-				"title": "States"
+				"one": "State"
 			},
 			"tooltip": {
 				"dashboardFilter": "You can use fields from the dashboard filter as well as static values to filter the dataset.",

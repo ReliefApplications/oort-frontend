@@ -4,7 +4,55 @@
   </div>
 </ng-container>
 <ng-container *ngIf="states.length; else emptyTmpl">
-  Test
+  <!-- Table with the states container -->
+  <div class="overflow-x-hidden mt-4 shadow-2lg">
+    <!-- Table scroll container -->
+    <div class="overflow-x-auto">
+      <table cdk-table uiTableWrapper [dataSource]="statesElements">
+        <ng-container cdkColumnDef="name">
+          <th uiCellHeader *cdkHeaderCellDef scope="col">
+            {{ 'models.dashboard.states.one' | translate }}
+          </th>
+          <td
+            uiCell
+            *cdkCellDef="let element"
+            class="!text-gray-900 !font-medium max-w-[30vw]"
+          >
+            {{ element.state.name }}
+          </td>
+        </ng-container>
+
+        <ng-container cdkColumnDef="value">
+          <th uiCellHeader *cdkHeaderCellDef scope="col">
+            {{ 'common.value.one' | translate }}
+          </th>
+          <td
+            uiCell
+            *cdkCellDef="let element"
+            class="!text-gray-900 !font-medium max-w-[30vw]"
+          >
+            {{ element.state.value }}
+          </td>
+        </ng-container>
+
+        <ng-container cdkColumnDef="type">
+          <th uiCellHeader *cdkHeaderCellDef scope="col">
+            {{ 'common.type.one' | translate }}
+          </th>
+          <td
+            uiCell
+            *cdkCellDef="let element"
+            class="!text-gray-900 !font-medium max-w-[30vw]"
+          >
+            {{ element.state.type }}
+          </td>
+        </ng-container>
+
+        <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
+        <tr *cdkRowDef="let row; columns: displayedColumns" cdk-row></tr>
+      </table>
+    </div>
+  </div>
 </ng-container>
 
 <ng-template #newState>
@@ -25,3 +73,19 @@
     [footerTemplate]="newState"
   ></shared-empty>
 </ng-template>
+
+<form [formGroup]="form" *ngIf="form" class="mt-4">
+  <!-- To enable automatically map selected grid widget rows to a context -->
+  <ui-toggle formControlName="automaticallyMapSelected" class="mb-2">
+    <ng-container ngProjectAs="label">
+      {{ 'models.dashboard.states.automaticallyMapSelectedRows' | translate }}
+    </ng-container>
+  </ui-toggle>
+  
+  <!-- To enable automatically map grid widget rows in view to a context -->
+  <ui-toggle formControlName="automaticallyMapView" class="mb-2">
+    <ng-container ngProjectAs="label">
+      {{ 'models.dashboard.states.automaticallyMapViewRows' | translate }}
+    </ng-container>
+  </ui-toggle>
+</form>

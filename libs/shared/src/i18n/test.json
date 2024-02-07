@@ -2078,9 +2078,12 @@
 			"historicalDate": "******",
 			"share": "******",
 			"states": {
+				"automaticallyMapSelectedRows": "******",
+				"automaticallyMapViewRows": "******",
 				"create": "******",
+				"few": "******",
 				"none": "******",
-				"title": "******"
+				"one": "******"
 			},
 			"tooltip": {
 				"dashboardFilter": "******",
