@@ -33,6 +33,7 @@
     *ngSwitchCase="'grid'"
     #widgetContent
     [header]="header"
+    [id]="id"
     [settings]="widget.settings"
     (changeStep)="changeStep.emit($event)"
     (edit)="edit.emit($event)"

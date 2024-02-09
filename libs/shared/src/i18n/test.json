@@ -2083,7 +2083,11 @@
 				"create": "******",
 				"few": "******",
 				"none": "******",
-				"one": "******"
+				"one": "******",
+				"types": {
+					"grid": "******",
+					"variable": "******"
+				}
 			},
 			"tooltip": {
 				"dashboardFilter": "******",

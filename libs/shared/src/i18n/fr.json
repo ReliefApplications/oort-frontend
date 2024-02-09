@@ -2090,7 +2090,11 @@
 				"create": "Créer un état",
 				"few": "États",
 				"none": "Aucun état",
-				"one": "État"
+				"one": "État",
+				"types": {
+					"grid": "À partir de la ligne de la grille",
+					"variable": "Variable"
+				}
 			},
 			"tooltip": {
 				"dashboardFilter": "Vous pouvez utiliser les champs du filtre du tableau de bord, ou utiliser des valeurs statiques.",

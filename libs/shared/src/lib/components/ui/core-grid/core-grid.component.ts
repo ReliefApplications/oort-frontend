@@ -56,6 +56,7 @@ import { ConfirmService } from '../../../services/confirm/confirm.service';
 import { ContextService } from '../../../services/context/context.service';
 import { ResourceQueryResponse } from '../../../models/resource.model';
 import { Router } from '@angular/router';
+import { DashboardService } from '../../../services/dashboard/dashboard.service';
 
 /**
  * Default file name when exporting grid data.
@@ -87,6 +88,7 @@ export class CoreGridComponent
   @Input() settings: GridSettings | any = {};
   /** Default grid layout */
   @Input() defaultLayout: GridLayout = {};
+  @Input() id = '';
 
   /** @returns current grid layout */
   get layout(): any {
@@ -307,6 +309,7 @@ export class CoreGridComponent
    * @param applicationService Shared application service
    * @param contextService Shared context service
    * @param router Angular Router
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     @Inject('environment') environment: any,
@@ -323,7 +326,8 @@ export class CoreGridComponent
     private dateTranslate: DateTranslateService,
     private applicationService: ApplicationService,
     private contextService: ContextService,
-    private router: Router
+    private router: Router,
+    private dashboardService: DashboardService
   ) {
     super();
     this.environment = environment;
@@ -339,6 +343,17 @@ export class CoreGridComponent
     this.translate.onLangChange.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.configureGrid();
     });
+    console.log('widget', this.widget, this.id);
+    // Check if visible rows must be mapped into dashboard state
+    this.dashboardService.automaticallyMapView$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((allow: boolean) => {
+        console.log(
+          'dashboardService.automaticallyMapView$',
+          allow,
+          this.items
+        );
+      });
   }
 
   /**
@@ -825,6 +840,7 @@ export class CoreGridComponent
       data: this.items,
       total: this.totalCount,
     };
+    console.log('this.items', this.items);
   }
 
   /**

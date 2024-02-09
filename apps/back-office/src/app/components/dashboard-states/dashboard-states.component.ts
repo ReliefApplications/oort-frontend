@@ -60,18 +60,18 @@ export class DashboardStatesComponent
     // Listen to automaticallyMapSelected control updates
     this.form?.controls.automaticallyMapSelected.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe((value: boolean | null) => {
+      .subscribe((value: any) => {
         if (!isNil(value)) {
-          this.dashboardService.automaticallyMapSelected = value;
+          this.dashboardService.automaticallyMapSelected.next(value);
         }
       });
 
     // Listen to automaticallyMapView control updates
     this.form?.controls.automaticallyMapView.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe((value: boolean | null) => {
+      .subscribe((value: any) => {
         if (!isNil(value)) {
-          this.dashboardService.automaticallyMapView = value;
+          this.dashboardService.automaticallyMapView.next(value);
         }
       });
   }
@@ -95,10 +95,10 @@ export class DashboardStatesComponent
   private createForm() {
     return this.fb.group({
       automaticallyMapSelected: this.fb.control(
-        this.dashboardService.automaticallyMapSelected
+        this.dashboardService.automaticallyMapSelected.getValue()
       ),
       automaticallyMapView: this.fb.control(
-        this.dashboardService.automaticallyMapView
+        this.dashboardService.automaticallyMapView.getValue()
       ),
     });
   }

@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
 
 /** States types enum */
 export enum StateType {
-  GRID = 'gridRows',
+  GRID = 'grid',
   VARIABLE = ' variable',
   // FIELD_TO_STATE = 'fieldToState',
   // STATE_TO_FIELD = 'stateToField',
@@ -32,8 +32,7 @@ export interface DashboardState {
   name: string;
   value: any;
   type?: StateType;
-  // form?: string;
-  // field?: string;
+  gridId?: string;
 }
 
 /**
@@ -51,9 +50,19 @@ export class DashboardService {
   /** Current dashboard states */
   private states = new BehaviorSubject<DashboardState[]>([]);
   /** Automatically map selected grid widget rows to a context */
-  public automaticallyMapSelected = false;
+  public automaticallyMapSelected = new BehaviorSubject<boolean>(false);
   /** Automatically map selected grid widget rows to a context */
-  public automaticallyMapView = false;
+  public automaticallyMapView = new BehaviorSubject<boolean>(false);
+
+  /** @returns Current automaticallyMapSelected as observable */
+  get automaticallyMapSelected$(): Observable<boolean> {
+    return this.automaticallyMapSelected.asObservable();
+  }
+
+  /** @returns Current automaticallyMapView as observable */
+  get automaticallyMapView$(): Observable<boolean> {
+    return this.automaticallyMapView.asObservable();
+  }
 
   /** @returns Current dashboard states as observable */
   get states$(): Observable<DashboardState[]> {
@@ -96,8 +105,8 @@ export class DashboardService {
   openDashboard(dashboard: Dashboard): void {
     this.dashboard.next(dashboard);
     // Reset dashboard states
-    this.automaticallyMapSelected = false;
-    this.automaticallyMapView = false;
+    this.automaticallyMapSelected.next(false);
+    this.automaticallyMapView.next(false);
     this.states.next([]);
   }
 
@@ -106,6 +115,11 @@ export class DashboardService {
    */
   closeDashboard(): void {
     this.dashboard.next(null);
+    console.log('closeDashboard');
+    // Reset dashboard states
+    this.automaticallyMapSelected.next(false);
+    this.automaticallyMapView.next(false);
+    this.states.next([]);
   }
 
   /**

@@ -44,7 +44,7 @@
             *cdkCellDef="let element"
             class="!text-gray-900 !font-medium max-w-[30vw]"
           >
-            {{ element.state.type }}
+            {{ 'models.dashboard.states.types.' + element.state.type | translate }}
           </td>
         </ng-container>
 
