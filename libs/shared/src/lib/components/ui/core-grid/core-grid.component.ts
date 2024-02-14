@@ -56,7 +56,10 @@ import { ConfirmService } from '../../../services/confirm/confirm.service';
 import { ContextService } from '../../../services/context/context.service';
 import { ResourceQueryResponse } from '../../../models/resource.model';
 import { Router } from '@angular/router';
-import { DashboardService } from '../../../services/dashboard/dashboard.service';
+import {
+  DashboardService,
+  StateType,
+} from '../../../services/dashboard/dashboard.service';
 
 /**
  * Default file name when exporting grid data.
@@ -351,8 +354,17 @@ export class CoreGridComponent
         console.log(
           'dashboardService.automaticallyMapView$',
           allow,
+          this.id,
           this.items
         );
+        if (allow && this.items.length) {
+          this.dashboardService.setDashboardState(
+            StateType.GRID,
+            this.id,
+            this.items.map((item: any) => item.id),
+            this.id
+          );
+        }
       });
   }
 
@@ -840,7 +852,18 @@ export class CoreGridComponent
       data: this.items,
       total: this.totalCount,
     };
-    console.log('this.items', this.items);
+    console.log('this.items', this.id, this.items);
+    if (
+      this.dashboardService.automaticallyMapView.getValue() &&
+      this.items.length
+    ) {
+      this.dashboardService.setDashboardState(
+        StateType.GRID,
+        this.id,
+        this.items.map((item: any) => item.id),
+        this.id
+      );
+    }
   }
 
   /**

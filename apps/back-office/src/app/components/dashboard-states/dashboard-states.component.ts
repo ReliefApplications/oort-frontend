@@ -84,7 +84,7 @@ export class DashboardStatesComponent
    */
   public onAdd(name?: string, value?: any): void {
     console.log('onAdd', name, value);
-    this.dashboardService.addDashboardState(StateType.VARIABLE, 'state1', 30);
+    this.dashboardService.setDashboardState(StateType.VARIABLE, 'state1', 30);
   }
 
   /**

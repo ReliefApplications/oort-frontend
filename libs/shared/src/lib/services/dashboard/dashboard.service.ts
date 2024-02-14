@@ -16,22 +16,20 @@ import {
   UPDATE_PAGE_CONTEXT,
   CREATE_DASHBOARD_WITH_CONTEXT,
 } from './graphql/mutations';
-import get from 'lodash/get';
 import { ActivatedRoute } from '@angular/router';
+import { get } from 'lodash';
 
 /** States types enum */
 export enum StateType {
   GRID = 'grid',
   VARIABLE = ' variable',
-  // FIELD_TO_STATE = 'fieldToState',
-  // STATE_TO_FIELD = 'stateToField',
 }
 
 /** DashboardState interface */
 export interface DashboardState {
   name: string;
   value: any;
-  type?: StateType;
+  type: StateType;
   gridId?: string;
 }
 
@@ -246,20 +244,42 @@ export class DashboardService {
   }
 
   /**
-   * Add new state to dashboard.
+   * Add or update a dashboard state .
    *
    * @param type state type
    * @param name state name
-   * @param value state value
+   * @param value state value, only necessary if creating a new state
+   * @param gridId grid id to identify grid rows state
    */
-  public addDashboardState(type: StateType, name: string, value: any): void {
-    console.log(type, name, value);
+  public setDashboardState(
+    type: StateType,
+    name: string,
+    value: any,
+    gridId?: string
+  ): void {
+    console.log('setDashboardState', type, name, value);
     const states = this.states.getValue();
+    if (gridId) {
+      const oldStateIndex = states.findIndex(
+        (state: DashboardState) => state.gridId === gridId
+      );
+      if (oldStateIndex !== -1) {
+        states[oldStateIndex] = {
+          ...states[oldStateIndex],
+          value,
+        };
+        this.states.next(states);
+        console.log('this.states', this.states.getValue);
+        return;
+      }
+    }
     const newState: DashboardState = {
       name,
       value,
       type,
+      ...(gridId && { gridId }),
     };
+    console.log('newState', newState);
     states.push(newState);
     this.states.next(states);
   }
