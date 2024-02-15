@@ -2083,11 +2083,7 @@
 				"create": "Create a state",
 				"few": "States",
 				"none": "No states",
-				"one": "State",
-				"types": {
-					"grid": "From grid row",
-					"variable": "Variable"
-				}
+				"one": "State"
 			},
 			"tooltip": {
 				"dashboardFilter": "You can use fields from the dashboard filter as well as static values to filter the dataset.",

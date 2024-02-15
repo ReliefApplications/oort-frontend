@@ -3,7 +3,6 @@ import { FormBuilder } from '@angular/forms';
 import {
   DashboardService,
   DashboardState,
-  StateType,
   UnsubscribeComponent,
 } from '@oort-front/shared';
 import { takeUntil } from 'rxjs';
@@ -30,7 +29,7 @@ export class DashboardStatesComponent
   public states: DashboardState[] = [];
   public statesElements: DashboardStateElement[] = [];
   /** Columns to display on table */
-  public displayedColumns = ['name', 'value', 'type'];
+  public displayedColumns = ['name', 'value'];
   // TODO: check if need 'actions' columns to allow rename states
   /** Reactive Form */
   public form!: ReturnType<typeof this.createForm>;
@@ -84,7 +83,7 @@ export class DashboardStatesComponent
    */
   public onAdd(name?: string, value?: any): void {
     console.log('onAdd', name, value);
-    this.dashboardService.setDashboardState(StateType.VARIABLE, 'state1', 30);
+    this.dashboardService.setDashboardState('state1', 30);
   }
 
   /**

@@ -56,10 +56,7 @@ import { ConfirmService } from '../../../services/confirm/confirm.service';
 import { ContextService } from '../../../services/context/context.service';
 import { ResourceQueryResponse } from '../../../models/resource.model';
 import { Router } from '@angular/router';
-import {
-  DashboardService,
-  StateType,
-} from '../../../services/dashboard/dashboard.service';
+import { DashboardService } from '../../../services/dashboard/dashboard.service';
 
 /**
  * Default file name when exporting grid data.
@@ -359,7 +356,6 @@ export class CoreGridComponent
         );
         if (allow && this.items.length) {
           this.dashboardService.setDashboardState(
-            StateType.GRID,
             this.id,
             this.items.map((item: any) => item.id),
             this.id
@@ -858,7 +854,6 @@ export class CoreGridComponent
       this.items.length
     ) {
       this.dashboardService.setDashboardState(
-        StateType.GRID,
         this.id,
         this.items.map((item: any) => item.id),
         this.id

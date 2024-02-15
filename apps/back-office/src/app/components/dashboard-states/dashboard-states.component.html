@@ -36,19 +36,6 @@
           </td>
         </ng-container>
 
-        <ng-container cdkColumnDef="type">
-          <th uiCellHeader *cdkHeaderCellDef scope="col">
-            {{ 'common.type.one' | translate }}
-          </th>
-          <td
-            uiCell
-            *cdkCellDef="let element"
-            class="!text-gray-900 !font-medium max-w-[30vw]"
-          >
-            {{ 'models.dashboard.states.types.' + element.state.type | translate }}
-          </td>
-        </ng-container>
-
         <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
         <tr *cdkRowDef="let row; columns: displayedColumns" cdk-row></tr>
       </table>
