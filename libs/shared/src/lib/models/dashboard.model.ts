@@ -227,6 +227,7 @@ export interface Dashboard {
   page?: Page;
   step?: Step;
   showFilter?: boolean;
+  states?: DashboardState[];
   buttons?: {
     text: string;
     href: string;
@@ -264,4 +265,11 @@ export interface DashboardsQueryResponse {
 /** Model for create dashboard with context mutation response */
 export interface CreateDashboardWithContextMutationResponse {
   addDashboardWithContext: Pick<Dashboard, 'id' | 'structure' | 'page'>;
+}
+
+/** DashboardState interface */
+export interface DashboardState {
+  name: string;
+  value: any;
+  id: string;
 }

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import {
   CreateDashboardWithContextMutationResponse,
   Dashboard,
+  DashboardState,
   EditDashboardMutationResponse,
   WIDGET_TYPES,
 } from '../../models/dashboard.model';
@@ -18,13 +19,7 @@ import {
 } from './graphql/mutations';
 import { ActivatedRoute } from '@angular/router';
 import { get } from 'lodash';
-
-/** DashboardState interface */
-export interface DashboardState {
-  name: string;
-  value: any;
-  gridId?: string;
-}
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Shared dashboard service. Handles dashboard events.
@@ -86,6 +81,10 @@ export class DashboardService {
     this.availableWidgets = WIDGET_TYPES.filter((widget) =>
       get(environment, 'availableWidgets', []).includes(widget.id)
     );
+
+    this.states$.subscribe((states: DashboardState[]) => {
+      console.log('DashboardService states$.subscribe', states);
+    });
   }
 
   /**
@@ -95,10 +94,9 @@ export class DashboardService {
    */
   openDashboard(dashboard: Dashboard): void {
     this.dashboard.next(dashboard);
-    // Reset dashboard states
-    this.automaticallyMapSelected.next(false);
-    this.automaticallyMapView.next(false);
-    this.states.next([]);
+    // Load dashboard states, if any
+    console.log('dashboard.states', dashboard.states);
+    this.states.next(dashboard.states ?? []);
   }
 
   /**
@@ -108,8 +106,6 @@ export class DashboardService {
     this.dashboard.next(null);
     console.log('closeDashboard');
     // Reset dashboard states
-    this.automaticallyMapSelected.next(false);
-    this.automaticallyMapView.next(false);
     this.states.next([]);
   }
 
@@ -241,14 +237,14 @@ export class DashboardService {
    *
    * @param name state name
    * @param value state value, only necessary if creating a new state
-   * @param gridId grid id to identify grid rows state
+   * @param id state id to identify existing state
    */
-  public setDashboardState(name: string, value: any, gridId?: string): void {
-    console.log('setDashboardState', name, value);
+  public setDashboardState(name: string, value: any, id?: string): void {
+    console.log('setDashboardState', name, value, id);
     const states = this.states.getValue();
-    if (gridId) {
+    if (id) {
       const oldStateIndex = states.findIndex(
-        (state: DashboardState) => state.gridId === gridId
+        (state: DashboardState) => state.id === id
       );
       if (oldStateIndex !== -1) {
         states[oldStateIndex] = {
@@ -260,13 +256,16 @@ export class DashboardService {
         return;
       }
     }
+    // Create id to the new state
+    id = `state-${uuidv4()}`;
     const newState: DashboardState = {
       name,
       value,
-      ...(gridId && { gridId }),
+      id,
     };
     console.log('newState', newState);
     states.push(newState);
     this.states.next(states);
+    // TODO: call update dashboard states mutation
   }
 }

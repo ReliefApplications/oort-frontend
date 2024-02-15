@@ -1424,6 +1424,8 @@
 				"grid": {
 					"actions": {
 						"add": "Add new records",
+						"automaticallyMapSelected": "Automatically map selected rows",
+						"automaticallyMapView": "Automatically map visible rows",
 						"convert": "Convert records",
 						"delete": "Delete records",
 						"export": "Export records",
@@ -1440,6 +1442,7 @@
 						"remove": "Remove",
 						"show": "Show history",
 						"showDetails": "Show record details",
+						"state": "Select dashboard state",
 						"title": "Enabled actions",
 						"update": "Update records",
 						"useRecordId": "Pass id as query parameter"
@@ -1498,6 +1501,8 @@
 					"hint": {
 						"actions": {
 							"add": "If authorized, user can add new records using selected template",
+							"automaticallyMapSelectedRows": "Automatically map the selected grid widget rows to a dashboard state",
+							"automaticallyMapViewRows": "Automatically map grid widget rows in view to a dashboard state",
 							"convert": "If authorized, user can convert record using another template of selected resource",
 							"delete": "If authorized, user can delete visible records",
 							"export": "User can export selected columns of visible records",
@@ -1505,6 +1510,7 @@
 							"navigateToPage": "User can go to specified page on click",
 							"show": "User can see full history of visible records",
 							"showDetails": "User can see full details of visible records",
+							"state": "Select the dashboard state to use to map and save the rows ID's",
 							"update": "If authorized, user can update visible records"
 						},
 						"attachToRecord": "If the selected records are not attached to any records, the action will be canceled",
@@ -2078,8 +2084,6 @@
 			"historicalDate": "Get dataset at",
 			"share": "Share Dashboard",
 			"states": {
-				"automaticallyMapSelectedRows": "Automatically map selected grid widget rows to a context",
-				"automaticallyMapViewRows": "Automatically map grid widget rows in view to a context",
 				"create": "Create a state",
 				"few": "States",
 				"none": "No states",

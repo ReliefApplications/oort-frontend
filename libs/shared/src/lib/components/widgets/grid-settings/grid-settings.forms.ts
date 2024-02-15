@@ -175,6 +175,13 @@ export const createGridActionsFormGroup = (configuration: any) => {
     inlineEdition: [get(configuration, 'actions.inlineEdition', true)],
     addRecord: [get(configuration, 'actions.addRecord', false)],
     export: [get(configuration, 'actions.export', true)],
+    state: [get(configuration, 'actions.state', '')],
+    automaticallyMapSelected: [
+      get(configuration, 'actions.automaticallyMapSelected', false),
+    ],
+    automaticallyMapView: [
+      get(configuration, 'actions.automaticallyMapView', false),
+    ],
     showDetails: [get(configuration, 'actions.showDetails', true)],
     navigateToPage: [get(configuration, 'actions.navigateToPage', false)],
     navigateSettings: fb.group({

@@ -32,7 +32,7 @@ export class DashboardStatesComponent
   public displayedColumns = ['name', 'value'];
   // TODO: check if need 'actions' columns to allow rename states
   /** Reactive Form */
-  public form!: ReturnType<typeof this.createForm>;
+  // public form!: ReturnType<typeof this.createForm>;
 
   /**
    * Dashboard states component.
@@ -45,34 +45,37 @@ export class DashboardStatesComponent
     private fb: FormBuilder
   ) {
     super();
-    this.dashboardService.states$.subscribe((states: DashboardState[]) => {
-      console.log('states$.subscribe', states);
-      this.states = states;
-      this.statesElements = this.setTableElements(states);
-      console.log('this.statesElements', this.statesElements);
-    });
+    this.dashboardService.states$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((states: DashboardState[]) => {
+        console.log('DashboardStatesComponent states$.subscribe', states);
+        this.states = states;
+        this.statesElements = this.setTableElements(states);
+        console.log('this.statesElements', this.statesElements);
+      });
   }
 
   ngOnInit(): void {
-    this.form = this.createForm();
+    console.log('');
+    // this.form = this.createForm();
 
     // Listen to automaticallyMapSelected control updates
-    this.form?.controls.automaticallyMapSelected.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((value: any) => {
-        if (!isNil(value)) {
-          this.dashboardService.automaticallyMapSelected.next(value);
-        }
-      });
+    // this.form?.controls.automaticallyMapSelected.valueChanges
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe((value: any) => {
+    //     if (!isNil(value)) {
+    //       this.dashboardService.automaticallyMapSelected.next(value);
+    //     }
+    //   });
 
-    // Listen to automaticallyMapView control updates
-    this.form?.controls.automaticallyMapView.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((value: any) => {
-        if (!isNil(value)) {
-          this.dashboardService.automaticallyMapView.next(value);
-        }
-      });
+    // // Listen to automaticallyMapView control updates
+    // this.form?.controls.automaticallyMapView.valueChanges
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe((value: any) => {
+    //     if (!isNil(value)) {
+    //       this.dashboardService.automaticallyMapView.next(value);
+    //     }
+    //   });
   }
 
   /**
@@ -91,16 +94,16 @@ export class DashboardStatesComponent
    *
    * @returns Form group
    */
-  private createForm() {
-    return this.fb.group({
-      automaticallyMapSelected: this.fb.control(
-        this.dashboardService.automaticallyMapSelected.getValue()
-      ),
-      automaticallyMapView: this.fb.control(
-        this.dashboardService.automaticallyMapView.getValue()
-      ),
-    });
-  }
+  // private createForm() {
+  //   return this.fb.group({
+  //     automaticallyMapSelected: this.fb.control(
+  //       this.dashboardService.automaticallyMapSelected.getValue()
+  //     ),
+  //     automaticallyMapView: this.fb.control(
+  //       this.dashboardService.automaticallyMapView.getValue()
+  //     ),
+  //   });
+  // }
 
   /**
    * Serialize single table element from states

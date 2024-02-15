@@ -1424,6 +1424,8 @@
 				"grid": {
 					"actions": {
 						"add": "******",
+						"automaticallyMapSelected": "******",
+						"automaticallyMapView": "******",
 						"convert": "******",
 						"delete": "******",
 						"export": "******",
@@ -1440,6 +1442,7 @@
 						"remove": "******",
 						"show": "******",
 						"showDetails": "******",
+						"state": "******",
 						"title": "******",
 						"update": "******",
 						"useRecordId": "******"
@@ -1498,6 +1501,8 @@
 					"hint": {
 						"actions": {
 							"add": "******",
+							"automaticallyMapSelectedRows": "******",
+							"automaticallyMapViewRows": "******",
 							"convert": "******",
 							"delete": "******",
 							"export": "******",
@@ -1505,6 +1510,7 @@
 							"navigateToPage": "******",
 							"show": "******",
 							"showDetails": "******",
+							"state": "******",
 							"update": "******"
 						},
 						"attachToRecord": "******",
@@ -2078,8 +2084,6 @@
 			"historicalDate": "******",
 			"share": "******",
 			"states": {
-				"automaticallyMapSelectedRows": "******",
-				"automaticallyMapViewRows": "******",
 				"create": "******",
 				"few": "******",
 				"none": "******",

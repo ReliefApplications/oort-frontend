@@ -19,6 +19,7 @@ export const EDIT_DASHBOARD = gql`
       id
       name
       structure
+      states
       modifiedAt
       permissions {
         canSee {

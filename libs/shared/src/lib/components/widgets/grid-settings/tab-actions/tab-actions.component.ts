@@ -1,9 +1,11 @@
 import { Component, Input, OnInit, Inject } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { ApplicationService } from '../../../../services/application/application.service';
+import { DashboardService } from '../../../../services/dashboard/dashboard.service';
 import { Application } from '../../../../models/application.model';
 import { ContentType, Page } from '../../../../models/page.model';
-import { takeUntil } from 'rxjs';
+import { DashboardState } from '../../../../models/dashboard.model';
+import { firstValueFrom, takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../../../utils/unsubscribe/unsubscribe.component';
 
 /**
@@ -24,6 +26,10 @@ export class TabActionsComponent
   public showSelectPage = false;
   /** Available pages from the application */
   public pages: any[] = [];
+  /** Show select dashboard state */
+  public showSelectState = false;
+  /** Available dashboard states */
+  public states: DashboardState[] = [];
   /** Current environment */
   private environment: any;
   /** Grid actions */
@@ -69,6 +75,18 @@ export class TabActionsComponent
       tooltip: 'components.widget.settings.grid.hint.actions.showDetails',
     },
     {
+      name: 'automaticallyMapSelected',
+      text: 'components.widget.settings.grid.actions.automaticallyMapSelected',
+      tooltip:
+        'components.widget.settings.grid.hint.actions.automaticallyMapSelectedRows',
+    },
+    {
+      name: 'automaticallyMapView',
+      text: 'components.widget.settings.grid.actions.automaticallyMapView',
+      tooltip:
+        'components.widget.settings.grid.hint.actions.automaticallyMapViewRows',
+    },
+    {
       name: 'navigateToPage',
       text: 'components.widget.settings.grid.actions.navigateToPage',
       tooltip: 'components.widget.settings.grid.hint.actions.navigateToPage',
@@ -80,21 +98,24 @@ export class TabActionsComponent
    *
    * @param applicationService Application service,
    * @param environment environment
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     public applicationService: ApplicationService,
-    @Inject('environment') environment: any
+    @Inject('environment') environment: any,
+    private dashboardService: DashboardService
   ) {
     super();
     this.environment = environment;
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.showSelectPage =
       this.formGroup.controls.actions.get('navigateToPage')?.value;
     // Add available pages to the list of available keys
     const application = this.applicationService.application.getValue();
     this.pages = this.getPages(application);
+    this.states = (await firstValueFrom(this.dashboardService.states$)) || [];
     this.formGroup.controls.actions
       .get('navigateToPage')
       ?.valueChanges.pipe(takeUntil(this.destroy$))

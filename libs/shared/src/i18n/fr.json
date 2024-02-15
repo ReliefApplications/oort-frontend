@@ -1431,6 +1431,8 @@
 				"grid": {
 					"actions": {
 						"add": "Ajouter de nouveaux enregistrements",
+						"automaticallyMapSelected": "Mapper automatiquement les lignes sélectionnées",
+						"automaticallyMapView": "Mapper automatiquement les lignes visibles",
 						"convert": "Convertir des enregistrements",
 						"delete": "Supprimer les enregistrements",
 						"export": "Exporter les enregistrements",
@@ -1447,6 +1449,7 @@
 						"remove": "Retirer",
 						"show": "Voir l'historique",
 						"showDetails": "Afficher les détails des enregistrements",
+						"state": "Sélectionner l'état du tableau de bord",
 						"title": "Actions activées",
 						"update": "Modifier les enregistrements",
 						"useRecordId": "Injecter l'identifiant comme paramètre de navigation"
@@ -1505,6 +1508,8 @@
 					"hint": {
 						"actions": {
 							"add": "L'utilisateur peut ajouter de nouveaux enregistrements avec le modèle choisi, s'il en a la permission",
+							"automaticallyMapSelectedRows": "Mappez automatiquement les lignes du widget de grille sélectionnées à un état du tableau de bord",
+							"automaticallyMapViewRows": "Mapper automatiquement les lignes du widget de grille en vue d'un état de tableau de bord",
 							"convert": "L'utilisateur peut convertir les enregistrements avec les autres modèles de la ressource sélectionnée, s'il en a la permission",
 							"delete": "L'utilisateur peut supprimer les enregistrements affichés, s'il en a la permission",
 							"export": "L'utilisateur peut exporter les enregistrements affichés",
@@ -1512,6 +1517,7 @@
 							"navigateToPage": "L'utilisateur peut accéder au tableau de bord d'enregistrement",
 							"show": "L'utilisateur peut afficher l'historique complet des enregistrements affichés",
 							"showDetails": "L'utilisateur peut afficher les informations des enregistrements affichés",
+							"state": "Sélectionnez l'état du tableau de bord à utiliser pour mapper et enregistrer les ID de lignes",
 							"update": "L'utilisateur peut mettre à jour les enregistrements affichés"
 						},
 						"attachToRecord": "Si les enregistrements sélectionnés ne sont joints à aucun enregistrement, l'action sera annulée",
@@ -2085,8 +2091,6 @@
 			"historicalDate": "Récupérer les données historiques",
 			"share": "Partager le tableau de bord",
 			"states": {
-				"automaticallyMapSelectedRows": "Mapper automatiquement les lignes du widget de grille sélectionnées à un contexte",
-				"automaticallyMapViewRows": "Mapper automatiquement les lignes du widget de grille en vue d'un contexte",
 				"create": "Créer un état",
 				"few": "États",
 				"none": "Aucun état",

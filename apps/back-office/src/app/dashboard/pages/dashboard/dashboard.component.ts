@@ -413,6 +413,7 @@ export class DashboardComponent
    * @param e widget to save.
    */
   onEditTile(e: any): void {
+    console.log('onEditTile', e);
     // make sure that we save the default layout.
     const index = this.widgets.findIndex((v: any) => v.id === e.id);
     const options = this.widgets[index]?.settings?.defaultLayout
@@ -421,6 +422,7 @@ export class DashboardComponent
           defaultLayout: this.widgets[index].settings.defaultLayout,
         }
       : e.options;
+    console.log('onEditTile options', options);
     if (options) {
       switch (e.type) {
         case 'display': {
@@ -494,6 +496,7 @@ export class DashboardComponent
 
   /** Save the dashboard changes in the database. */
   private autoSaveChanges(): void {
+    console.log('autoSaveChanges');
     this.apollo
       .mutate<EditDashboardMutationResponse>({
         mutation: EDIT_DASHBOARD,
