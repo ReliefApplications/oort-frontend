@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import {
   DashboardService,
@@ -6,7 +6,6 @@ import {
   UnsubscribeComponent,
 } from '@oort-front/shared';
 import { takeUntil } from 'rxjs';
-import { isNil } from 'lodash';
 
 /** Interface for the table element */
 interface DashboardStateElement {
@@ -21,18 +20,13 @@ interface DashboardStateElement {
   templateUrl: './dashboard-states.component.html',
   styleUrls: ['./dashboard-states.component.scss'],
 })
-export class DashboardStatesComponent
-  extends UnsubscribeComponent
-  implements OnInit
-{
+export class DashboardStatesComponent extends UnsubscribeComponent {
   /** List of states */
   public states: DashboardState[] = [];
   public statesElements: DashboardStateElement[] = [];
   /** Columns to display on table */
   public displayedColumns = ['name', 'value'];
   // TODO: check if need 'actions' columns to allow rename states
-  /** Reactive Form */
-  // public form!: ReturnType<typeof this.createForm>;
 
   /**
    * Dashboard states component.
@@ -55,29 +49,6 @@ export class DashboardStatesComponent
       });
   }
 
-  ngOnInit(): void {
-    console.log('');
-    // this.form = this.createForm();
-
-    // Listen to automaticallyMapSelected control updates
-    // this.form?.controls.automaticallyMapSelected.valueChanges
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe((value: any) => {
-    //     if (!isNil(value)) {
-    //       this.dashboardService.automaticallyMapSelected.next(value);
-    //     }
-    //   });
-
-    // // Listen to automaticallyMapView control updates
-    // this.form?.controls.automaticallyMapView.valueChanges
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe((value: any) => {
-    //     if (!isNil(value)) {
-    //       this.dashboardService.automaticallyMapView.next(value);
-    //     }
-    //   });
-  }
-
   /**
    * Add new variables state (can be used on the forms fields).
    *
@@ -88,22 +59,6 @@ export class DashboardStatesComponent
     console.log('onAdd', name, value);
     this.dashboardService.setDashboardState('state1', 30);
   }
-
-  /**
-   * Create the form group
-   *
-   * @returns Form group
-   */
-  // private createForm() {
-  //   return this.fb.group({
-  //     automaticallyMapSelected: this.fb.control(
-  //       this.dashboardService.automaticallyMapSelected.getValue()
-  //     ),
-  //     automaticallyMapView: this.fb.control(
-  //       this.dashboardService.automaticallyMapView.getValue()
-  //     ),
-  //   });
-  // }
 
   /**
    * Serialize single table element from states

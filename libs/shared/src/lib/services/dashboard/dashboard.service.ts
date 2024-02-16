@@ -20,6 +20,8 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { get } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
+import { TranslateService } from '@ngx-translate/core';
+import { ApplicationService } from '../application/application.service';
 
 /**
  * Shared dashboard service. Handles dashboard events.
@@ -41,11 +43,13 @@ export class DashboardService {
   public automaticallyMapView = new BehaviorSubject<boolean>(false);
 
   /** @returns Current automaticallyMapSelected as observable */
+  // TODO: be removed
   get automaticallyMapSelected$(): Observable<boolean> {
     return this.automaticallyMapSelected.asObservable();
   }
 
   /** @returns Current automaticallyMapView as observable */
+  // TODO: be removed
   get automaticallyMapView$(): Observable<boolean> {
     return this.automaticallyMapView.asObservable();
   }
@@ -72,11 +76,15 @@ export class DashboardService {
    * @param environment environment in which we run the application
    * @param apollo Apollo client
    * @param route Angular route
+   *  @param applicationService Shared application service
+   * @param translate Angular translate service
    */
   constructor(
     @Inject('environment') environment: any,
     private apollo: Apollo,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private applicationService: ApplicationService,
+    private translate: TranslateService
   ) {
     this.availableWidgets = WIDGET_TYPES.filter((widget) =>
       get(environment, 'availableWidgets', []).includes(widget.id)
@@ -95,7 +103,7 @@ export class DashboardService {
   openDashboard(dashboard: Dashboard): void {
     this.dashboard.next(dashboard);
     // Load dashboard states, if any
-    console.log('dashboard.states', dashboard.states);
+    console.log('---> dashboard.states', dashboard.states);
     this.states.next(dashboard.states ?? []);
   }
 
@@ -106,7 +114,7 @@ export class DashboardService {
     this.dashboard.next(null);
     console.log('closeDashboard');
     // Reset dashboard states
-    this.states.next([]);
+    this.states.next([]); // unnecessary ?
   }
 
   /**
@@ -233,6 +241,37 @@ export class DashboardService {
   }
 
   /**
+   * Save the dashboard states changes in the database.
+   *
+   * @param id dashboard id
+   * @param states dashboard states
+   */
+  private saveDashboardStates(id: string, states: any): void {
+    this.apollo
+      .mutate<EditDashboardMutationResponse>({
+        mutation: EDIT_DASHBOARD,
+        variables: {
+          id,
+          states,
+        },
+      })
+      .subscribe({
+        next: ({ errors }) => {
+          this.applicationService.handleEditionMutationResponse(
+            errors,
+            this.translate.instant('common.dashboard.one')
+          );
+          if (!errors) {
+            this.openDashboard({
+              ...this.dashboard.getValue(),
+              states,
+            });
+          }
+        },
+      });
+  }
+
+  /**
    * Add or update a dashboard state .
    *
    * @param name state name
@@ -240,7 +279,9 @@ export class DashboardService {
    * @param id state id to identify existing state
    */
   public setDashboardState(name: string, value: any, id?: string): void {
-    console.log('setDashboardState', name, value, id);
+    const dashboard = this.dashboard.getValue();
+    if (!dashboard?.id) return;
+
     const states = this.states.getValue();
     if (id) {
       const oldStateIndex = states.findIndex(
@@ -253,6 +294,7 @@ export class DashboardService {
         };
         this.states.next(states);
         console.log('this.states', this.states.getValue);
+        this.saveDashboardStates(dashboard?.id, states);
         return;
       }
     }
@@ -266,6 +308,6 @@ export class DashboardService {
     console.log('newState', newState);
     states.push(newState);
     this.states.next(states);
-    // TODO: call update dashboard states mutation
+    this.saveDashboardStates(dashboard?.id, states);
   }
 }

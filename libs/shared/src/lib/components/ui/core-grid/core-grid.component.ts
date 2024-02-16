@@ -343,8 +343,6 @@ export class CoreGridComponent
     this.translate.onLangChange.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.configureGrid();
     });
-    console.log('widget', this.widget, this.id);
-    // check if widget config (automaticallyMapView etc) is available here
     // Check if visible rows must be mapped into dashboard state
     this.dashboardService.automaticallyMapView$
       .pipe(takeUntil(this.destroy$))
@@ -860,6 +858,9 @@ export class CoreGridComponent
         this.id
       );
     }
+
+    console.log('widget', this.widget, this.id);
+    // we have  available here the settings - actions info
   }
 
   /**

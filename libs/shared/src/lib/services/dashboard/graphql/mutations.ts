@@ -9,12 +9,14 @@ export const EDIT_DASHBOARD = gql`
     $structure: JSON
     $name: String
     $buttons: [ButtonActionInputType]
+    $states: [StateInputType]
   ) {
     editDashboard(
       id: $id
       structure: $structure
       name: $name
       buttons: $buttons
+      states: $states
     ) {
       id
       name

@@ -1517,7 +1517,7 @@
 							"navigateToPage": "L'utilisateur peut accéder au tableau de bord d'enregistrement",
 							"show": "L'utilisateur peut afficher l'historique complet des enregistrements affichés",
 							"showDetails": "L'utilisateur peut afficher les informations des enregistrements affichés",
-							"state": "Sélectionnez l'état du tableau de bord à utiliser pour mapper et enregistrer les ID de lignes",
+							"state": "Sélectionnez l'état du tableau de bord à utiliser pour mapper et enregistrer les ID de lignes. Si aucun état n'est sélectionné, un nouveau sera créé pour le widget.",
 							"update": "L'utilisateur peut mettre à jour les enregistrements affichés"
 						},
 						"attachToRecord": "Si les enregistrements sélectionnés ne sont joints à aucun enregistrement, l'action sera annulée",
