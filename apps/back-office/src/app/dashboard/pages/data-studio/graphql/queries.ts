@@ -80,3 +80,33 @@ export const GET_RESOURCE = gql`
   }
   ${RESOURCE_FIELDS}
 `;
+
+/** Graphql query for getting form names */
+export const GET_FORM_NAMES = gql`
+  query GetFormNames(
+    $first: Int
+    $afterCursor: ID
+    $sortField: String
+    $filter: JSON
+  ) {
+    forms(
+      first: $first
+      afterCursor: $afterCursor
+      sortField: $sortField
+      filter: $filter
+    ) {
+      edges {
+        node {
+          id
+          name
+        }
+        cursor
+      }
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`;

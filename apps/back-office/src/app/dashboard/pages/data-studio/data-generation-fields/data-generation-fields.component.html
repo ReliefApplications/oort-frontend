@@ -1,0 +1,138 @@
+<ui-spinner *ngIf="loading"></ui-spinner>
+<div *ngIf="formId && fields.length > 0 && !loading">
+  <div class="flex items-center mb-2">
+    <h2 class="ml-2 my-1">Fields</h2>
+    <ui-icon
+      icon="info_outline"
+      variant="grey"
+      [size]="18"
+      [uiTooltip]="
+        'List of the fields from the form to generate data for. Select the fields you want to include by marking the checkboxes. You can also see the field type and the generation source and choose between multiple generation sources in some cases.'
+      "
+      class="mx-2 my-1"
+    ></ui-icon>
+    <ui-checkbox
+      (click)="$event.stopPropagation()"
+      class="ml-auto mr-2"
+      [(ngModel)]="isChecked"
+      (change)="selectAll()"
+    >
+      <ng-container ngProjectAs="label" class="ml-auto">
+        Select all
+      </ng-container>
+    </ui-checkbox>
+  </div>
+  <!-- Content -->
+  <cdk-accordion>
+    <form [formGroup]="dataGenerationForm">
+      <div formArrayName="fieldsForm">
+        <ui-expansion-panel
+          *ngFor="let field of fields; let index = index"
+          [index]="index"
+          (openPanel)="
+            onAccordionItemOpen(index); accordionItemExpanded = index
+          "
+        >
+          <ng-container ngProjectAs="title" formGroupName="{{ index }}">
+            {{ field.name }}
+            <ui-checkbox
+              (click)="$event.stopPropagation()"
+              class="ml-auto"
+              formControlName="include"
+            >
+            </ui-checkbox>
+          </ng-container>
+          <div
+            formGroupName="{{ index }}"
+            *ngIf="
+              field.type != 'file' &&
+                field.type != 'image' &&
+                field.type != 'html' &&
+                field.type != 'expression';
+              else invalidFields
+            "
+          >
+            <div class="flex my-2">
+              <div class="px-3 field-type whitespace-nowrap">
+                <b>Field type: </b>{{ getDisplayName(field.type) }}
+              </div>
+              <div class="px-3 flex whitespace-nowrap w-3/4">
+                <b>Generation source: </b>
+                <div class="ml-2">
+                  {{ getGenerationSource(field.type) }}
+                </div>
+                <ui-select-menu
+                  class="ml-4"
+                  *ngIf="field.type === 'text'"
+                  formControlName="option"
+                >
+                  <ui-select-option
+                    *ngFor="let option of getGenerationOptions(field.type)"
+                    [value]="option.action"
+                  >
+                    {{ option.desc }}
+                  </ui-select-option>
+                </ui-select-menu>
+              </div>
+            </div>
+
+            <div class="flex m-3">
+              <ui-toggle formControlName="setDefault" class="mt-1.5">
+                <ng-container ngProjectAs="label"> Set default </ng-container>
+              </ui-toggle>
+              <ui-icon
+                icon="info_outline"
+                variant="grey"
+                [size]="14"
+                [uiTooltip]="
+                  'Leave this option off to generate random data for the field. If you want to set a default value for the field, turn this option on and fill in the survey.'
+                "
+                class="m-1"
+              ></ui-icon>
+            </div>
+            <div class="my-4 mx-8">
+              <survey
+                *ngIf="
+                  fieldsForm.value[index].setDefault &&
+                  accordionItemExpanded === index
+                "
+                [model]="survey"
+              ></survey>
+            </div>
+          </div>
+          <ng-template #invalidFields>
+            <div class="px-3">
+              <b>Field type: </b>{{ getDisplayName(field.type) }}
+            </div>
+            <div class="m-2">
+              <i>Values for this field type cannot be generated.</i>
+            </div>
+          </ng-template>
+        </ui-expansion-panel>
+      </div>
+      <div class="flex justify-end my-4">
+        <div uiFormFieldDirective class="w-64">
+          <input
+            type="number"
+            min="1"
+            max="50"
+            formControlName="recordsNumber"
+            [placeholder]="'Number of records (max: 50)'"
+          />
+        </div>
+
+        <ui-button
+          category="secondary"
+          variant="primary"
+          icon="autorenew"
+          (click)="onClick()"
+          [disabled]="!dataGenerationForm.valid || loading"
+          class="mx-4"
+        >
+          Generate
+        </ui-button>
+      </div>
+    </form>
+  </cdk-accordion>
+  <pre>{{ dataGenerationForm.value | json }}</pre>
+</div>

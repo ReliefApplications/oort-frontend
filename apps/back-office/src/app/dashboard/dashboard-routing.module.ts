@@ -26,10 +26,10 @@ export const routes: Routes = [
           import('@oort-front/shared').then((m) => m.ProfileViewModule),
       },
       {
-        path: 'conversion',
+        path: 'datastudio',
         loadChildren: () =>
-          import('./pages/conversion/conversion.module').then(
-            (m) => m.ConversionModule
+          import('./pages/data-studio/data-studio.module').then(
+            (m) => m.DataStudioModule
           ),
       },
       {

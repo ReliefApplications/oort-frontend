@@ -1,0 +1,23 @@
+<h1>Data Studio</h1>
+<ui-tabs>
+  <ui-tab>
+    <ng-container ngProjectAs="label">Data Generation</ng-container>
+    <div class="flex">
+      <h3 class="m-2 whitespace-nowrap">Select a form:</h3>
+      <form [formGroup]="selectedForm" class="w-full ml-4 mt-1">
+        <div uiFormFieldDirective>
+          <ui-graphql-select
+            formControlName="form"
+            valueField="id"
+            textField="name"
+            [query]="formsQuery"
+            (searchChange)="onSearchChange($event)"
+            [filterable]="true"
+            (selectionChange)="onSelectionChange($event)"
+          ></ui-graphql-select>
+        </div>
+      </form>
+    </div>
+    <app-data-generation-fields [formId]="formId"> </app-data-generation-fields>
+  </ui-tab>
+</ui-tabs>

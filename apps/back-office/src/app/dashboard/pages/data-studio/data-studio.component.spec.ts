@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ConversionComponent } from './conversion.component';
+import { DataStudioComponent } from './data-studio.component';
 
-describe('ConversionComponent', () => {
-  let component: ConversionComponent;
-  let fixture: ComponentFixture<ConversionComponent>;
+describe('DataStudioComponent', () => {
+  let component: DataStudioComponent;
+  let fixture: ComponentFixture<DataStudioComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ConversionComponent],
+      imports: [DataStudioComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ConversionComponent);
+    fixture = TestBed.createComponent(DataStudioComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

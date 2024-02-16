@@ -1,8 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ConversionComponent } from './conversion.component';
+import { DataStudioComponent } from '../data-studio/data-studio.component';
 import {
   ButtonModule,
+  CheckboxModule,
   DateModule,
   FormWrapperModule,
   IconModule,
@@ -11,16 +12,22 @@ import {
   SelectOptionModule,
   SpinnerModule,
   TableModule,
+  TabsModule,
   TooltipModule,
+  ExpansionPanelModule,
+  GraphQLSelectModule,
+  RadioModule,
+  ToggleModule,
 } from '@oort-front/ui';
 import { ListFilterComponent, SkeletonTableModule } from '@oort-front/shared';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { ConversionRoutingModule } from './conversion-routing.module';
-import { ConversionFieldsComponent } from './conversion-fields/conversion-fields.component';
+import { DataStudioRoutingModule } from './data-studio-routing.module';
+import { DataGenerationFieldsComponent } from './data-generation-fields/data-generation-fields.component';
+import { SurveyModule } from 'survey-angular-ui';
 
 @NgModule({
-  declarations: [ConversionComponent, ConversionFieldsComponent],
+  declarations: [DataStudioComponent, DataGenerationFieldsComponent],
   imports: [
     CommonModule,
     TooltipModule,
@@ -38,8 +45,15 @@ import { ConversionFieldsComponent } from './conversion-fields/conversion-fields
     TableModule,
     DateModule,
     ListFilterComponent,
-    ConversionRoutingModule,
+    DataStudioRoutingModule,
     SelectOptionModule,
+    TabsModule,
+    CheckboxModule,
+    ExpansionPanelModule,
+    GraphQLSelectModule,
+    RadioModule,
+    ToggleModule,
+    SurveyModule,
   ],
 })
-export class ConversionModule {}
+export class DataStudioModule {}

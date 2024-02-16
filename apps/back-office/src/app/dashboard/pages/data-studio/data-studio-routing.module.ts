@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ConversionComponent } from './conversion.component';
+import { DataStudioComponent } from './data-studio.component';
 
 /**
  * Routes of conversion module.
@@ -8,15 +8,15 @@ import { ConversionComponent } from './conversion.component';
 const routes: Routes = [
   {
     path: '',
-    component: ConversionComponent,
+    component: DataStudioComponent,
   },
 ];
 
 /**
- * Conversion routing module.
+ * DataStudio routing module.
  */
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class ConversionRoutingModule {}
+export class DataStudioRoutingModule {}
