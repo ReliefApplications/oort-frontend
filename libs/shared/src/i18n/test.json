@@ -77,11 +77,6 @@
 			"one": "******"
 		},
 		"comma": "******",
-		"conversion": {
-			"few": "******",
-			"none": "******",
-			"one": "******"
-		},
 		"copy": "******",
 		"create": "******",
 		"createdOn": "******",
@@ -156,6 +151,51 @@
 			"few": "******",
 			"none": "******",
 			"one": "******"
+		},
+		"dataStudio": {
+			"dataGeneration": {
+				"few": "******",
+				"fieldType": "******",
+				"fieldsTooltip": "******",
+				"generate": "******",
+				"generationNotPossible": "******",
+				"generationSource": "******",
+				"map": {
+					"boolean": "******",
+					"checkbox": "******",
+					"color": "******",
+					"date": "******",
+					"datetimelocal": "******",
+					"dropdown": "******",
+					"email": "******",
+					"expression": "******",
+					"geospatial": "******",
+					"matrix": "******",
+					"matrixdropdown": "******",
+					"matrixdynamic": "******",
+					"month": "******",
+					"multipletext": "******",
+					"numeric": "******",
+					"owner": "******",
+					"password": "******",
+					"radiogroup": "******",
+					"range": "******",
+					"resource": "******",
+					"resources": "******",
+					"sentence": "******",
+					"tagbox": "******",
+					"tel": "******",
+					"time": "******",
+					"url": "******",
+					"users": "******",
+					"week": "******"
+				},
+				"recordsNumber": "******",
+				"selectAll": "******",
+				"setDefault": "******",
+				"setDefaultTooltip": "******"
+			},
+			"few": "******"
 		},
 		"delete": "******",
 		"deleteObject": "****** {{name}}",
@@ -234,6 +274,7 @@
 			"accessNotProvided": "****** {{type}} ****** {{error}}",
 			"alreadyExists": "****** {{type}} ****** {{value}} ******",
 			"copiedToClipboard": "******",
+			"dataGenerated": "******",
 			"dataNotRecovered": "******",
 			"dataRecovered": "******",
 			"email": {
@@ -530,6 +571,7 @@
 			},
 			"customStyling": "******",
 			"dashboard": {
+				"clearFields": "******",
 				"editFilter": "******",
 				"empty": "******",
 				"filter": {
@@ -653,37 +695,6 @@
 			"confirm": "******",
 			"delete": "******",
 			"title": "******"
-		},
-		"conversion": {
-			"actions": {
-				"all": "******",
-				"cancel": "******",
-				"delete": "******",
-				"first": "******",
-				"ignore": "******",
-				"last": "******"
-			},
-			"convertButton": "******",
-			"failedAction": {
-				"name": "******",
-				"tooltip": "******"
-			},
-			"initialType": {
-				"name": "******",
-				"tooltip": "******"
-			},
-			"newType": {
-				"name": "******",
-				"tooltip": "******"
-			},
-			"popArray": {
-				"name": "******",
-				"tooltip": "******"
-			},
-			"selectResource": {
-				"name": "******",
-				"tooltip": "******"
-			}
 		},
 		"customNotifications": {
 			"edit": {

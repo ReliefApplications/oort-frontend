@@ -77,11 +77,6 @@
 			"one": "Column"
 		},
 		"comma": "comma",
-		"conversion": {
-			"few": "Data Conversion",
-			"none": "No conversion",
-			"one": "Conversion"
-		},
 		"copy": "Copy",
 		"create": "Create",
 		"createdOn": "Created on",
@@ -156,6 +151,51 @@
 			"few": "Dashboards",
 			"none": "No dashboard",
 			"one": "Dashboard"
+		},
+		"dataStudio": {
+			"dataGeneration": {
+				"few": "Data Generation",
+				"fieldType": "Field type: ",
+				"fieldsTooltip": "List of the fields from the form to generate data for. Select the fields you want to include by marking the checkboxes. You can also see the field type and the generation source and choose between multiple generation sources in some cases.",
+				"generate": "Generate",
+				"generationNotPossible": "Values for this field type cannot be generated.",
+				"generationSource": "Generation source: ",
+				"map": {
+					"boolean": "Randomly true or false",
+					"checkbox": "Random choices of question choices",
+					"color": "Random color",
+					"date": "Random date",
+					"datetimelocal": "Random date and time",
+					"dropdown": "Random choice of question choices",
+					"email": "Random email",
+					"expression": "Solved expression value",
+					"geospatial": "Random location",
+					"matrix": "Random selection for each row",
+					"matrixdropdown": "Random generation for each column type for each row",
+					"matrixdynamic": "Random generation for each column type for each row",
+					"month": "Random month",
+					"multipletext": "Random line for each text field",
+					"numeric": "Random number",
+					"owner": "Random roles from the preselected application",
+					"password": "Random password",
+					"radiogroup": "Random choice of question choices",
+					"range": "Random range (0 to 100)",
+					"resource": "Random record from the resource",
+					"resources": "Random records from the resource",
+					"sentence": "Random sentence",
+					"tagbox": "Random choices of question choices",
+					"tel": "Random phone number",
+					"time": "Random time",
+					"url": "Random URL",
+					"users": "Random users",
+					"week": "Random week"
+				},
+				"recordsNumber": "Number of records (max: 50)",
+				"selectAll": "Select All",
+				"setDefault": "Set default",
+				"setDefaultTooltip": "Leave this option off to generate random data for the field. If you want to set a default value for the field, turn this option on and fill in the survey."
+			},
+			"few": "Data Studio"
 		},
 		"delete": "Delete",
 		"deleteObject": "Delete {{name}}",
@@ -234,6 +274,7 @@
 			"accessNotProvided": "No access provided to this {{type}}. {{error}}",
 			"alreadyExists": "The {{type}} {{value}} already exists on this application.",
 			"copiedToClipboard": "Dashboard link copied!",
+			"dataGenerated": "new record(s) successfully generated.",
 			"dataNotRecovered": "Failure on data recovery",
 			"dataRecovered": "The data has been recovered",
 			"email": {
@@ -530,6 +571,7 @@
 			},
 			"customStyling": "Custom Styling",
 			"dashboard": {
+				"clearFields": "Clear fields",
 				"editFilter": "Edit filter",
 				"empty": "No content available. Wait for your administrator to build some.",
 				"filter": {
@@ -653,37 +695,6 @@
 			"confirm": "Confirm",
 			"delete": "Delete",
 			"title": "Confirm"
-		},
-		"conversion": {
-			"actions": {
-				"all": "Keep all elements, split by comma",
-				"cancel": "Cancel conversion",
-				"delete": "Delete value and proceed",
-				"first": "Keep first element",
-				"ignore": "Ignore record and proceed",
-				"last": "Keep last element"
-			},
-			"convertButton": "Convert",
-			"failedAction": {
-				"name": "Action for records that fail to convert",
-				"tooltip": "Select what will be done to records that fail to convert."
-			},
-			"initialType": {
-				"name": "Initial field type",
-				"tooltip": "Initial type of the field to convert the records from."
-			},
-			"newType": {
-				"name": "New field type",
-				"tooltip": "New type of the field to convert the records to. Select an initial type to list its possible conversions."
-			},
-			"popArray": {
-				"name": "Action for popArray",
-				"tooltip": "This conversion transforms a field that is stored as an array to a field that is not. Select which element of the array will be kept."
-			},
-			"selectResource": {
-				"name": "Action for selectResource",
-				"tooltip": "Select a resource to enforce the record to be related to or None to get the resource from the record automatically."
-			}
 		},
 		"customNotifications": {
 			"edit": {

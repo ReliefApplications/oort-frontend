@@ -1,18 +1,5 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-} from '@angular/core';
-import {
-  Form,
-  FormQueryResponse,
-  UnsubscribeComponent,
-} from '@oort-front/shared';
+import { Component, Input, OnChanges } from '@angular/core';
+import { FormQueryResponse, UnsubscribeComponent } from '@oort-front/shared';
 import { dataGenerationMap } from './data-generation-fields-type-mapping';
 import {
   FormBuilder,
@@ -25,14 +12,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { GET_FORM_STRUCTURE } from './graphql/queries';
 import { GENERATE_RECORDS } from './graphql/mutations';
-import { Model, SurveyModel } from 'survey-core';
+import { Model } from 'survey-core';
 import { FormBuilderService } from './../../../../../../../../libs/shared/src/lib/services/form-builder/form-builder.service';
-
 import { takeUntil, firstValueFrom } from 'rxjs';
-import { get, indexOf, set } from 'lodash';
-import { F, V } from '@angular/cdk/keycodes';
+import { indexOf } from 'lodash';
 import { GenerateRecordsMutationResponse } from './../../../../../../../../libs/shared/src/lib/models/record.model';
-import { setTime } from '@progress/kendo-angular-dateinputs/util';
 import { SnackbarService } from '@oort-front/ui';
 
 /** Conversion fields component */
@@ -41,36 +25,30 @@ import { SnackbarService } from '@oort-front/ui';
   templateUrl: './data-generation-fields.component.html',
   styleUrls: ['./data-generation-fields.component.scss'],
 })
+/** Data generation class component */
 export class DataGenerationFieldsComponent
   extends UnsubscribeComponent
-  implements AfterViewInit, OnChanges
+  implements OnChanges
 {
+  /** Form id input */
   @Input() formId!: string;
-  @Input() disabled = false;
 
-  @Output() generateEvent = new EventEmitter<object>();
-
-  public fields: any[] = [];
-
+  /** Form */
   private formStructureQuery!: QueryRef<FormQueryResponse>;
   private formStructure: any = {};
-
   public dataGenerationForm!: FormGroup;
-
   public survey: Model = new Model();
 
+  /** Form fields */
+  public fields: any[] = [];
+
+  /** Flags */
+  public loading = false;
+  public isChecked = false;
   public accordionItemExpanded: number = -1;
 
-  public loading = false;
-
-  public isChecked = false;
-
-  /** Emit changes applied to the settings */
-  // eslint-disable-next-line @angular-eslint/no-output-native
-  @Output() change: EventEmitter<any> = new EventEmitter();
-
   /**
-   * Data studio component
+   * Data generation component constructor
    *
    * @param apollo Apollo client service
    */
@@ -84,10 +62,7 @@ export class DataGenerationFieldsComponent
     super();
   }
 
-  ngAfterViewInit() {
-    this.loading = false;
-  }
-
+  /** On changes hook */
   ngOnChanges() {
     this.loading = true;
     if (this.formId) {
@@ -112,8 +87,8 @@ export class DataGenerationFieldsComponent
               include: false,
               option: dataGenerationMap[field.type].options?.[0].action,
             });
-            this.formStructure = data.form.structure;
           });
+          this.formStructure = data.form.fields;
           this.loading = loading;
         });
     } else {
@@ -124,7 +99,7 @@ export class DataGenerationFieldsComponent
   /**
    * Get the display name in the conversion map
    *
-   * @param type The type
+   * @param type Field type
    * @returns The type display name
    */
   public getDisplayName(type: string): string {
@@ -135,29 +110,26 @@ export class DataGenerationFieldsComponent
   }
 
   /**
-   * Get the display name in the conversion map
+   * Get generation method to display
    *
-   * @param type The type
-   * @returns The type display name
+   * @param type Field type
+   * @returns Generation source for the type
    */
   public getGenerationSource(type: string): string {
     if (!dataGenerationMap[type]) {
       return '';
     }
-    return dataGenerationMap[type].source;
+    return this.translate.instant(dataGenerationMap[type].source ?? ' ');
   }
 
   /**
-   * Get the display name in the conversion map
+   * Get options for text type fields
    *
-   * @param type The type
-   * @returns The type display name
+   * @param type Field type
+   * @returns Options
    */
-  public getGenerationOptions(type: string): any {
-    if (!dataGenerationMap[type]) {
-      return '';
-    }
-    return dataGenerationMap[type].options;
+  public getTextGenerationOptions(): any {
+    return dataGenerationMap['text'].options;
   }
 
   /**
@@ -167,6 +139,11 @@ export class DataGenerationFieldsComponent
     this.generateData();
   }
 
+  /**
+   * Accordion item open handler
+   *
+   * @param index Item index
+   */
   public onAccordionItemOpen(index: number) {
     this.survey = this.formBuilderService.createSurvey(
       this.getSingleFieldSurveyStructure(this.fields[index].name)
@@ -198,7 +175,11 @@ export class DataGenerationFieldsComponent
     });
   }
 
-  // Helper function to create a field FormGroup
+  /**
+   * Create field form which is going to be a formArray
+   *
+   * @returns the fieldForm
+   */
   private createFieldForm() {
     return this.fb.group({
       field: new FormControl(null, Validators.required),
@@ -209,25 +190,16 @@ export class DataGenerationFieldsComponent
     });
   }
 
+  /**
+   * Function to get a survey structure with 1 field given it's name
+   *
+   * @param fieldName Field name
+   * @returns The survey structure
+   */
   private getSingleFieldSurveyStructure(fieldName: string): any {
-    let resultStructure: any = {};
-
-    function traverse(structure: any) {
-      if (structure && typeof structure === 'object') {
-        if (structure.hasOwnProperty('name') && structure.name === fieldName) {
-          resultStructure = structure;
-        }
-
-        for (const key in structure) {
-          if (structure.hasOwnProperty(key)) {
-            traverse(structure[key]);
-          }
-        }
-      }
-    }
-
-    traverse(JSON.parse(this.formStructure ?? ''));
-
+    const resultStructure = this.formStructure.find(
+      (obj: any) => obj.name === fieldName
+    );
     return {
       pages: [
         {
@@ -239,6 +211,9 @@ export class DataGenerationFieldsComponent
     };
   }
 
+  /**
+   *  Generate new record data
+   */
   private async generateData(): Promise<void> {
     this.loading = true;
     const promises: Promise<any>[] = [];
@@ -263,10 +238,14 @@ export class DataGenerationFieldsComponent
     });
   }
 
+  /** Getter for the fieldsForm */
   get fieldsForm() {
     return this.dataGenerationForm.get('fieldsForm') as FormArray;
   }
 
+  /**
+   *  Function to handle Select all checkbox
+   */
   public selectAll() {
     if (this.isChecked) {
       this.fieldsForm.controls.forEach((control) => {

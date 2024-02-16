@@ -1,3 +1,4 @@
+/** Interface for the data generation map */
 interface DataGenerationMap {
   [key: string]: {
     displayName: string;
@@ -6,120 +7,127 @@ interface DataGenerationMap {
   };
 }
 
+/** Data generation map */
 export const dataGenerationMap: DataGenerationMap = {
   text: {
     displayName: 'Text/Long Text/Month/Password/Range/Week',
-    source: '',
+    source: ' ',
     options: [
-      { action: 'sentence', desc: 'Random sentence' },
-      { action: 'month', desc: 'Random month' },
-      { action: 'password', desc: 'Random password' },
-      { action: 'range', desc: 'Random range (0 to 100)' },
-      { action: 'week', desc: 'Random week' },
+      {
+        action: 'sentence',
+        desc: 'common.dataStudio.dataGeneration.map.sentence',
+      },
+      { action: 'month', desc: 'common.dataStudio.dataGeneration.map.month' },
+      {
+        action: 'password',
+        desc: 'common.dataStudio.dataGeneration.map.password',
+      },
+      { action: 'range', desc: 'common.dataStudio.dataGeneration.map.range' },
+      { action: 'week', desc: 'common.dataStudio.dataGeneration.map.week' },
     ],
   },
   radiogroup: {
     displayName: 'Radio Button Group',
-    source: 'Random choice of question choices',
+    source: 'common.dataStudio.dataGeneration.map.radiogroup',
   },
   checkbox: {
     displayName: 'Checkboxes',
-    source: 'Random choice of question choices',
+    source: 'common.dataStudio.dataGeneration.map.checkbox',
   },
   dropdown: {
     displayName: 'Dropdown',
-    source: 'Random choice of question choices',
+    source: 'common.dataStudio.dataGeneration.map.dropdown',
   },
   boolean: {
     displayName: 'Yes/No (Boolean)',
-    source: 'Randomly true or false',
+    source: 'common.dataStudio.dataGeneration.map.boolean',
   },
   file: {
     displayName: 'File Upload',
-    source: '',
+    source: ' ',
   },
   tagbox: {
     displayName: 'Multi-Select Dropdown',
-    source: 'Random choice of question choices',
+    source: 'common.dataStudio.dataGeneration.map.tagbox',
   },
   multipletext: {
     displayName: 'Multiple Text',
-    source: 'Random line for each text field',
+    source: 'common.dataStudio.dataGeneration.map.multipletext',
   },
   matrix: {
     displayName: 'Single-Select Matrix',
-    source: 'Random selection for each row',
+    source: 'common.dataStudio.dataGeneration.map.matrix',
   },
   matrixdropdown: {
     displayName: 'Multi-Select Matrix',
-    source: 'Random generation for each column type for each row',
+    source: 'common.dataStudio.dataGeneration.map.matrixdropdown',
   },
   matrixdynamic: {
     displayName: 'Dynamic Matrix',
-    source: 'Random generation for each column type for each row',
+    source: 'common.dataStudio.dataGeneration.map.matrixdynamic',
   },
   expression: {
     displayName: 'Expression (read-only)',
-    source: '',
+    source: 'common.dataStudio.dataGeneration.map.expression',
   },
   resource: {
     displayName: 'Resource',
-    source: 'Random record from the resource',
+    source: 'common.dataStudio.dataGeneration.map.resource',
   },
   resources: {
     displayName: 'Resources',
-    source: 'Random records from the resource',
+    source: 'common.dataStudio.dataGeneration.map.resources',
   },
   owner: {
     displayName: 'Owner',
-    source: 'Random roles',
+    source: 'common.dataStudio.dataGeneration.map.owner',
   },
   users: {
     displayName: 'Users',
-    source: 'Random users',
+    source: 'common.dataStudio.dataGeneration.map.users',
   },
   geospatial: {
     displayName: 'Geospatial',
-    source: 'Random location',
+    source: 'common.dataStudio.dataGeneration.map.geospatial',
   },
   html: {
     displayName: 'HTML',
-    source: '',
+    source: ' ',
   },
   image: {
     displayName: 'Image',
-    source: '',
+    source: ' ',
   },
   color: {
     displayName: 'Color',
-    source: 'Random color',
+    source: 'common.dataStudio.dataGeneration.map.color',
   },
   date: {
     displayName: 'Date',
-    source: 'Random date',
+    source: 'common.dataStudio.dataGeneration.map.date',
   },
   'datetime-local': {
     displayName: 'Date and Time',
-    source: 'Random date and time',
+    source: 'common.dataStudio.dataGeneration.map.datetimelocal',
   },
   email: {
     displayName: 'Email',
-    source: 'Random email',
+    source: 'common.dataStudio.dataGeneration.map.email',
   },
   numeric: {
     displayName: 'Number',
-    source: 'Random number',
+    source: 'common.dataStudio.dataGeneration.map.numeric',
   },
   tel: {
     displayName: 'Phone Number',
-    source: 'Random phone number',
+    source: 'common.dataStudio.dataGeneration.map.tel',
   },
   time: {
     displayName: 'Time',
-    source: 'Random time',
+    source: 'common.dataStudio.dataGeneration.map.time',
   },
   url: {
     displayName: 'URL',
-    source: 'Random URL',
+    source: 'common.dataStudio.dataGeneration.map.url',
   },
 };

@@ -80,7 +80,7 @@ export class DashboardComponent extends UnsubscribeComponent {
     }
     if (this.ability.can('read', 'Resource')) {
       dataItems.push({
-        name: this.translate.instant('common.datastudio.few'),
+        name: this.translate.instant('common.dataStudio.few'),
         path: '/datastudio',
         icon: 'build_circle',
       });

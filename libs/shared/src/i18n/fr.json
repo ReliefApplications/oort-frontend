@@ -77,11 +77,6 @@
 			"one": "Colonne"
 		},
 		"comma": "virgule",
-		"conversion": {
-			"few": "Data Conversion",
-			"none": "No conversion",
-			"one": "Conversion"
-		},
 		"copy": "Copier",
 		"create": "Créer",
 		"createdOn": "Date de création",
@@ -156,6 +151,51 @@
 			"few": "Tableaux de bord",
 			"none": "Aucun tableau de bord",
 			"one": "Tableau de bord"
+		},
+		"dataStudio": {
+			"dataGeneration": {
+				"few": "Génération de données",
+				"fieldType": "Type de champ : ",
+				"fieldsTooltip": "Liste des champs du formulaire pour lesquels des données doivent être générées. Sélectionnez les champs que vous souhaitez inclure en cochant les cases correspondantes. Vous pouvez également voir le type de champ et la source de génération et choisir entre plusieurs sources de génération dans certains cas.",
+				"generate": "Générer",
+				"generationNotPossible": "Les valeurs de ce type de champ ne peuvent pas être générées.",
+				"generationSource": "Source de génération : ",
+				"map": {
+					"boolean": "Vrai ou faux au hasard",
+					"checkbox": "Choix aléatoire des questions",
+					"color": "Couleur aléatoire",
+					"date": "Date aléatoire",
+					"datetimelocal": "Date et heure aléatoires",
+					"dropdown": "Choix aléatoire des questions",
+					"email": "Courriel aléatoire",
+					"expression": "Valeur de l'expression résolue",
+					"geospatial": "Emplacement aléatoire",
+					"matrix": "Sélection aléatoire pour chaque ligne",
+					"matrixdropdown": "Génération aléatoire pour chaque type de colonne pour chaque ligne",
+					"matrixdynamic": "Génération aléatoire pour chaque type de colonne pour chaque ligne",
+					"month": "Mois aléatoire",
+					"multipletext": "Ligne aléatoire pour chaque champ de texte",
+					"numeric": "Nombre aléatoire",
+					"owner": "Rôles aléatoires à partir de l'application présélectionnée",
+					"password": "Mot de passe aléatoire",
+					"radiogroup": "Choix aléatoire des questions",
+					"range": "Plage aléatoire (0 à 100)",
+					"resource": "Enregistrement aléatoire de la ressource",
+					"resources": "Enregistrements aléatoires de la ressource",
+					"sentence": "Phrase aléatoire",
+					"tagbox": "Choix aléatoire des questions",
+					"tel": "Numéro de téléphone aléatoire",
+					"time": "Temps aléatoire",
+					"url": "URL aléatoire",
+					"users": "Utilisateurs aléatoires",
+					"week": "Semaine aléatoire"
+				},
+				"recordsNumber": "Nombre d'enregistrements (max : 50)",
+				"selectAll": "Sélectionner tout",
+				"setDefault": "Définir la valeur par défaut",
+				"setDefaultTooltip": "Laissez cette option désactivée pour générer des données aléatoires pour le champ. Si vous souhaitez définir une valeur par défaut pour le champ, activez cette option et remplissez le questionnaire."
+			},
+			"few": "Data Studio"
 		},
 		"delete": "Supprimer",
 		"deleteObject": "Supprimer {{name}}",
@@ -234,6 +274,7 @@
 			"accessNotProvided": "Pas d'accès fourni à cet objet de type {{type}}. {{error}}",
 			"alreadyExists": "Cet objet {{type}} {{value}} existe déjà dans cette application.",
 			"copiedToClipboard": "Lien du tableau de bord copié !",
+			"dataGenerated": "le(s) nouvel(aux) enregistrement(s) a (ont) été généré(s) avec succès.",
 			"dataNotRecovered": "Échec de la récupération des données",
 			"dataRecovered": "Les données ont été récupérées !",
 			"email": {
@@ -530,6 +571,7 @@
 			},
 			"customStyling": "Style personnalisé",
 			"dashboard": {
+				"clearFields": "Supprimer les champs",
 				"editFilter": "Modifier le filtre",
 				"empty": "Aucun contenu n'est disponible. Veuillez attendre que votre administrateur en crée.",
 				"filter": {
@@ -653,37 +695,6 @@
 			"confirm": "Confirmer",
 			"delete": "Supprimer",
 			"title": "Confirmer"
-		},
-		"conversion": {
-			"actions": {
-				"all": "Conserver tous les éléments, séparés par une virgule",
-				"cancel": "Annuler la conversion",
-				"delete": "Supprimer la valeur et continuer",
-				"first": "Conserver le premier élément",
-				"ignore": "Ignorer l'enregistrement et poursuivre",
-				"last": "Conserver le dernier élément"
-			},
-			"convertButton": "Convertir",
-			"failedAction": {
-				"name": "Mesures à prendre en cas d'échec de la conversion",
-				"tooltip": "Sélectionnez ce qui sera fait pour les enregistrements qui ne sont pas convertis."
-			},
-			"initialType": {
-				"name": "Type de champ initial",
-				"tooltip": "Type initial du champ à partir duquel les enregistrements doivent être convertis."
-			},
-			"newType": {
-				"name": "Nouveau type de champ",
-				"tooltip": "Nouveau type de champ vers lequel convertir les enregistrements. Sélectionnez un type initial pour obtenir la liste des conversions possibles."
-			},
-			"popArray": {
-				"name": "Action pour popArray",
-				"tooltip": "Cette conversion transforme un champ stocké sous forme de tableau en un champ qui ne l'est pas. Sélectionnez l'élément du tableau qui sera conservé."
-			},
-			"selectResource": {
-				"name": "Action pour selectResource",
-				"tooltip": "Sélectionnez une ressource à laquelle l'enregistrement doit être lié ou Aucune pour obtenir automatiquement la ressource à partir de l'enregistrement."
-			}
 		},
 		"customNotifications": {
 			"edit": {
