@@ -18,7 +18,6 @@ import { takeUntil, firstValueFrom } from 'rxjs';
 import { indexOf } from 'lodash';
 import { GenerateRecordsMutationResponse } from './../../../../../../../../libs/shared/src/lib/models/record.model';
 import { SnackbarService } from '@oort-front/ui';
-
 /** Conversion fields component */
 @Component({
   selector: 'app-data-generation-fields',
@@ -35,7 +34,7 @@ export class DataGenerationFieldsComponent
 
   /** Form */
   private formStructureQuery!: QueryRef<FormQueryResponse>;
-  private formStructure: any = {};
+  private form: any = {};
   public dataGenerationForm!: FormGroup;
   public survey: Model = new Model();
 
@@ -77,18 +76,29 @@ export class DataGenerationFieldsComponent
         .subscribe(({ data, loading }) => {
           this.dataGenerationForm = this.createDataGenerationForm();
           this.isChecked = false;
+          console.log(
+            JSON.parse(data.form.structure ?? '').pages.reduce(
+              (acc: any, page: any) => acc.concat(page.elements),
+              []
+            )
+          );
           this.fields =
-            data.form.fields?.filter((field: any) => !field.generated) ?? [];
+            JSON.parse(data.form.structure ?? '')
+              .pages.reduce(
+                (acc: any, page: any) => acc.concat(page.elements),
+                []
+              )
+              ?.filter((field: any) => !field.generated) ?? [];
           this.fields.forEach((field: any) => {
             this.fieldsForm.push(this.createFieldForm());
             this.fieldsForm.controls[indexOf(this.fields, field)].patchValue({
               field: field.name,
               setDefault: false,
               include: false,
-              option: dataGenerationMap[field.type].options?.[0].action,
+              //option: dataGenerationMap[field.type].options?.[0].action,
             });
           });
-          this.formStructure = data.form.fields;
+          this.form = data.form;
           this.loading = loading;
         });
     } else {
@@ -99,37 +109,35 @@ export class DataGenerationFieldsComponent
   /**
    * Get the display name in the conversion map
    *
-   * @param type Field type
+   * @param field the Field
    * @returns The type display name
    */
-  public getDisplayName(type: string): string {
-    if (!dataGenerationMap[type]) {
-      return type;
+  public getDisplayName(field: any): string {
+    if (!dataGenerationMap[field.type] && !dataGenerationMap[field.inputType]) {
+      return field.type;
     }
-    return dataGenerationMap[type].displayName;
+    if (dataGenerationMap[field.inputType]) {
+      return dataGenerationMap[field.inputType].displayName;
+    }
+    return dataGenerationMap[field.type].displayName;
   }
 
   /**
    * Get generation method to display
    *
-   * @param type Field type
+   * @param field the Field
    * @returns Generation source for the type
    */
-  public getGenerationSource(type: string): string {
-    if (!dataGenerationMap[type]) {
+  public getGenerationSource(field: any): string {
+    if (!dataGenerationMap[field.type] && !dataGenerationMap[field.inputType]) {
       return '';
     }
-    return this.translate.instant(dataGenerationMap[type].source ?? ' ');
-  }
-
-  /**
-   * Get options for text type fields
-   *
-   * @param type Field type
-   * @returns Options
-   */
-  public getTextGenerationOptions(): any {
-    return dataGenerationMap['text'].options;
+    if (dataGenerationMap[field.inputType]) {
+      return (
+        this.translate.instant(dataGenerationMap[field.inputType].source) ?? ''
+      );
+    }
+    return this.translate.instant(dataGenerationMap[field.type].source) ?? '';
   }
 
   /**
@@ -191,15 +199,18 @@ export class DataGenerationFieldsComponent
   }
 
   /**
-   * Function to get a survey structure with 1 field given it's name
+   * Recursive function to get a field structure from a nested JSON and return a single field survey structure
    *
    * @param fieldName Field name
    * @returns The survey structure
    */
   private getSingleFieldSurveyStructure(fieldName: string): any {
-    const resultStructure = this.formStructure.find(
-      (obj: any) => obj.name === fieldName
-    );
+    // Parses the structure, concatenates all fields from "elements" from all pages and finds the field by name
+    const resultStructure = JSON.parse(this.form.structure)
+      .pages.reduce((acc: any, page: any) => acc.concat(page.elements), [])
+      .find((obj: any) => obj.name === fieldName);
+
+    // Returns a simple survey structure with one field
     return {
       pages: [
         {

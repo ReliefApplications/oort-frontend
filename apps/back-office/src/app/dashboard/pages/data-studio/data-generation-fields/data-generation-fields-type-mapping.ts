@@ -10,21 +10,28 @@ interface DataGenerationMap {
 /** Data generation map */
 export const dataGenerationMap: DataGenerationMap = {
   text: {
-    displayName: 'Text/Long Text/Month/Password/Range/Week',
-    source: ' ',
-    options: [
-      {
-        action: 'sentence',
-        desc: 'common.dataStudio.dataGeneration.map.sentence',
-      },
-      { action: 'month', desc: 'common.dataStudio.dataGeneration.map.month' },
-      {
-        action: 'password',
-        desc: 'common.dataStudio.dataGeneration.map.password',
-      },
-      { action: 'range', desc: 'common.dataStudio.dataGeneration.map.range' },
-      { action: 'week', desc: 'common.dataStudio.dataGeneration.map.week' },
-    ],
+    displayName: 'Text',
+    source: 'common.dataStudio.dataGeneration.map.text',
+  },
+  comment: {
+    displayName: 'Comment',
+    source: 'common.dataStudio.dataGeneration.map.text',
+  },
+  month: {
+    displayName: 'Month',
+    source: 'common.dataStudio.dataGeneration.map.month',
+  },
+  password: {
+    displayName: 'Password',
+    source: 'common.dataStudio.dataGeneration.map.password',
+  },
+  range: {
+    displayName: 'Range',
+    source: 'common.dataStudio.dataGeneration.map.range',
+  },
+  week: {
+    displayName: 'Week',
+    source: 'common.dataStudio.dataGeneration.map.week',
   },
   radiogroup: {
     displayName: 'Radio Button Group',
@@ -114,7 +121,7 @@ export const dataGenerationMap: DataGenerationMap = {
     displayName: 'Email',
     source: 'common.dataStudio.dataGeneration.map.email',
   },
-  numeric: {
+  number: {
     displayName: 'Number',
     source: 'common.dataStudio.dataGeneration.map.numeric',
   },
@@ -129,5 +136,9 @@ export const dataGenerationMap: DataGenerationMap = {
   url: {
     displayName: 'URL',
     source: 'common.dataStudio.dataGeneration.map.url',
+  },
+  paneldynamic: {
+    displayName: 'Panel Dynamic',
+    source: 'common.dataStudio.dataGeneration.map.paneldynamic',
   },
 };

@@ -55,7 +55,7 @@
                 <b>{{
                   'common.dataStudio.dataGeneration.fieldType' | translate
                 }}</b
-                >{{ getDisplayName(field.type) }}
+                >{{ getDisplayName(field) }}
               </div>
               <div class="px-3 flex whitespace-nowrap w-3/4">
                 <b>{{
@@ -63,20 +63,8 @@
                     | translate
                 }}</b>
                 <div class="ml-2">
-                  {{ getGenerationSource(field.type) }}
+                  {{ getGenerationSource(field) }}
                 </div>
-                <ui-select-menu
-                  class="ml-4"
-                  *ngIf="field.type === 'text'"
-                  formControlName="option"
-                >
-                  <ui-select-option
-                    *ngFor="let option of getTextGenerationOptions()"
-                    [value]="option.action"
-                  >
-                    {{ option.desc | translate }}
-                  </ui-select-option>
-                </ui-select-menu>
               </div>
             </div>
 
