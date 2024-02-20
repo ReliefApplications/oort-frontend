@@ -37,14 +37,6 @@ export class DashboardService {
   private dashboard = new BehaviorSubject<Dashboard | null>(null);
   /** Current dashboard states */
   private states = new BehaviorSubject<DashboardState[]>([]);
-  /** Automatically map selected grid widget rows to a context */
-  public automaticallyMapView = new BehaviorSubject<boolean>(false);
-
-  /** @returns Current automaticallyMapView as observable */
-  // TODO: be removed
-  get automaticallyMapView$(): Observable<boolean> {
-    return this.automaticallyMapView.asObservable();
-  }
 
   /** @returns Current dashboard states as observable */
   get states$(): Observable<DashboardState[]> {
