@@ -207,6 +207,14 @@ export class RecordsTabComponent
   }
 
   /**
+   * Toggles the archive view.
+   */
+  public onArchiveRecords(): void {
+    // this.showDeletedRecords = !this.showDeletedRecords;
+    // this.fetchRecords(true);
+  }
+
+  /**
    * Restores an archived record.
    *
    * @param id Id of record to restore.

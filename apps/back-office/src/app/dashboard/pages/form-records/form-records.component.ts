@@ -378,6 +378,16 @@ export class FormRecordsComponent
   }
 
   /**
+   * Toggle archive / active view.
+   **/
+  onArchiveRecords(): void {
+    //remove records from the form
+    this.dataSource = [];
+    this.showDeletedRecords = !this.showDeletedRecords;
+    this.getFormData();
+  }
+
+  /**
    * Take file from upload event and call upload method.
    *
    * @param event Upload event.

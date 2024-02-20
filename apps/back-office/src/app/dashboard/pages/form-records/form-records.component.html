@@ -59,6 +59,15 @@
             | translate : { name: 'common.record.few' | translate }
         }}
       </ui-button>
+      <ui-button
+        *ngIf="form.canUpdate && !showDeletedRecords"
+        icon="archive"
+        category="secondary"
+        variant="danger"
+        (click)="onArchiveRecords()"
+      >
+        {{ 'components.records.archive' | translate }}
+      </ui-button>      
       <ng-template
         cdkConnectedOverlay
         [cdkConnectedOverlayOrigin]="uploadTrigger"
