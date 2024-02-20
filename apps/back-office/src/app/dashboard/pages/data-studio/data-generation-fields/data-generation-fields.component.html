@@ -86,6 +86,81 @@
                 "
                 class="m-1"
               ></ui-icon>
+              <div
+                *ngIf="
+                  (field.inputType === 'date' ||
+                    field.inputType === 'datetime-local') &&
+                  !fieldsForm.value[index].setDefault
+                "
+                class="flex whitespace-nowrap ml-6"
+                [uiDateWrapper]="calendar"
+              >
+                <input
+                  [uiDatePicker]
+                  formControlName="minDate"
+                  [label]="
+                    'common.dataStudio.dataGeneration.minDate' | translate
+                  "
+                />
+                <input
+                  [uiDatePicker]
+                  formControlName="maxDate"
+                  [label]="
+                    'common.dataStudio.dataGeneration.maxDate' | translate
+                  "
+                />
+                <ui-date-range #calendar> </ui-date-range>
+              </div>
+              <div
+                *ngIf="
+                  field.inputType === 'time' &&
+                  !fieldsForm.value[index].setDefault
+                "
+                class="flex whitespace-nowrap ml-6 gap-x-2"
+              >
+                <kendo-timepicker
+                  formControlName="minTime"
+                  [placeholder]="
+                    'common.dataStudio.dataGeneration.minTime' | translate
+                  "
+                  format="HH:mm"
+                ></kendo-timepicker>
+                <kendo-timepicker
+                  formControlName="maxTime"
+                  [placeholder]="
+                    'common.dataStudio.dataGeneration.maxTime' | translate
+                  "
+                  format="HH:mm"
+                  [min]="fieldsForm.value[index].minTime"
+                ></kendo-timepicker>
+              </div>
+              <div
+                *ngIf="
+                  field.inputType === 'number' &&
+                  !fieldsForm.value[index].setDefault
+                "
+                class="flex whitespace-nowrap ml-6 gap-x-2"
+              >
+                <div uiFormFieldDirective class="w-52">
+                  <input
+                    type="number"
+                    formControlName="minNumber"
+                    [placeholder]="
+                      'common.dataStudio.dataGeneration.minNumber' | translate
+                    "
+                  />
+                </div>
+                <div uiFormFieldDirective class="w-52">
+                  <input
+                    type="number"
+                    formControlName="maxNumber"
+                    [placeholder]="
+                      'common.dataStudio.dataGeneration.maxNumber' | translate
+                    "
+                    [min]="fieldsForm.value[index].minNumber"
+                  />
+                </div>
+              </div>
             </div>
             <div class="my-4 mx-8">
               <survey
@@ -139,5 +214,4 @@
       </div>
     </form>
   </cdk-accordion>
-  <pre>{{ dataGenerationForm.value | json }}</pre>
 </div>

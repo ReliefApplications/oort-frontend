@@ -4,7 +4,7 @@ import { DataStudioComponent } from '../data-studio/data-studio.component';
 import {
   ButtonModule,
   CheckboxModule,
-  DateModule,
+  DateModule as UiDateModule,
   FormWrapperModule,
   IconModule,
   PaginatorModule,
@@ -25,7 +25,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import { DataStudioRoutingModule } from './data-studio-routing.module';
 import { DataGenerationFieldsComponent } from './data-generation-fields/data-generation-fields.component';
 import { SurveyModule } from 'survey-angular-ui';
-
+import { DateModule } from './../../../../../../../libs/shared/src/lib/pipes/date/date.module';
+import { InputsModule } from '@progress/kendo-angular-inputs';
+import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 @NgModule({
   declarations: [DataStudioComponent, DataGenerationFieldsComponent],
   imports: [
@@ -33,7 +35,7 @@ import { SurveyModule } from 'survey-angular-ui';
     TooltipModule,
     PaginatorModule,
     TranslateModule,
-    DateModule,
+    UiDateModule,
     SkeletonTableModule,
     FormsModule,
     ReactiveFormsModule,
@@ -54,6 +56,9 @@ import { SurveyModule } from 'survey-angular-ui';
     RadioModule,
     ToggleModule,
     SurveyModule,
+    DateModule,
+    InputsModule,
+    DateInputsModule,
   ],
 })
 export class DataStudioModule {}

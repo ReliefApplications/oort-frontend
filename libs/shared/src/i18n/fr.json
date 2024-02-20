@@ -192,6 +192,12 @@
 					"users": "Utilisateurs aléatoires",
 					"week": "Semaine aléatoire"
 				},
+				"maxDate": "Date maximale (facultatif)",
+				"maxNumber": "Nombre maximal (facultatif)",
+				"maxTime": "Heure maximale (facultatif)",
+				"minDate": "Date minimale (facultatif)",
+				"minNumber": "Nombre minimal (facultatif)",
+				"minTime": "Heure minimale (facultatif)",
 				"recordsNumber": "Nombre d'enregistrements (max : 50)",
 				"selectAll": "Sélectionner tout",
 				"setDefault": "Définir la valeur par défaut",

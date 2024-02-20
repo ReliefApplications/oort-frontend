@@ -192,6 +192,12 @@
 					"users": "******",
 					"week": "******"
 				},
+				"maxDate": "******",
+				"maxNumber": "******",
+				"maxTime": "******",
+				"minDate": "******",
+				"minNumber": "******",
+				"minTime": "******",
 				"recordsNumber": "******",
 				"selectAll": "******",
 				"setDefault": "******",

@@ -9,89 +9,45 @@ interface DataGenerationMap {
 
 /** Data generation map */
 export const dataGenerationMap: DataGenerationMap = {
-  text: {
-    displayName: 'Text',
-    source: 'common.dataStudio.dataGeneration.map.text',
-  },
-  comment: {
-    displayName: 'Comment',
-    source: 'common.dataStudio.dataGeneration.map.text',
-  },
-  month: {
-    displayName: 'Month',
-    source: 'common.dataStudio.dataGeneration.map.month',
-  },
-  password: {
-    displayName: 'Password',
-    source: 'common.dataStudio.dataGeneration.map.password',
-  },
-  range: {
-    displayName: 'Range',
-    source: 'common.dataStudio.dataGeneration.map.range',
-  },
-  week: {
-    displayName: 'Week',
-    source: 'common.dataStudio.dataGeneration.map.week',
-  },
-  radiogroup: {
-    displayName: 'Radio Button Group',
-    source: 'common.dataStudio.dataGeneration.map.radiogroup',
+  boolean: {
+    displayName: 'Yes/No (Boolean)',
+    source: 'common.dataStudio.dataGeneration.map.boolean',
   },
   checkbox: {
     displayName: 'Checkboxes',
     source: 'common.dataStudio.dataGeneration.map.checkbox',
   },
+  color: {
+    displayName: 'Color',
+    source: 'common.dataStudio.dataGeneration.map.color',
+  },
+  comment: {
+    displayName: 'Comment',
+    source: 'common.dataStudio.dataGeneration.map.text',
+  },
+  date: {
+    displayName: 'Date',
+    source: 'common.dataStudio.dataGeneration.map.date',
+  },
+  'datetime-local': {
+    displayName: 'Date and Time',
+    source: 'common.dataStudio.dataGeneration.map.datetimelocal',
+  },
   dropdown: {
     displayName: 'Dropdown',
     source: 'common.dataStudio.dataGeneration.map.dropdown',
   },
-  boolean: {
-    displayName: 'Yes/No (Boolean)',
-    source: 'common.dataStudio.dataGeneration.map.boolean',
-  },
-  file: {
-    displayName: 'File Upload',
-    source: ' ',
-  },
-  tagbox: {
-    displayName: 'Multi-Select Dropdown',
-    source: 'common.dataStudio.dataGeneration.map.tagbox',
-  },
-  multipletext: {
-    displayName: 'Multiple Text',
-    source: 'common.dataStudio.dataGeneration.map.multipletext',
-  },
-  matrix: {
-    displayName: 'Single-Select Matrix',
-    source: 'common.dataStudio.dataGeneration.map.matrix',
-  },
-  matrixdropdown: {
-    displayName: 'Multi-Select Matrix',
-    source: 'common.dataStudio.dataGeneration.map.matrixdropdown',
-  },
-  matrixdynamic: {
-    displayName: 'Dynamic Matrix',
-    source: 'common.dataStudio.dataGeneration.map.matrixdynamic',
+  email: {
+    displayName: 'Email',
+    source: 'common.dataStudio.dataGeneration.map.email',
   },
   expression: {
     displayName: 'Expression (read-only)',
     source: 'common.dataStudio.dataGeneration.map.expression',
   },
-  resource: {
-    displayName: 'Resource',
-    source: 'common.dataStudio.dataGeneration.map.resource',
-  },
-  resources: {
-    displayName: 'Resources',
-    source: 'common.dataStudio.dataGeneration.map.resources',
-  },
-  owner: {
-    displayName: 'Owner',
-    source: 'common.dataStudio.dataGeneration.map.owner',
-  },
-  users: {
-    displayName: 'Users',
-    source: 'common.dataStudio.dataGeneration.map.users',
+  file: {
+    displayName: 'File Upload',
+    source: ' ',
   },
   geospatial: {
     displayName: 'Geospatial',
@@ -105,29 +61,69 @@ export const dataGenerationMap: DataGenerationMap = {
     displayName: 'Image',
     source: ' ',
   },
-  color: {
-    displayName: 'Color',
-    source: 'common.dataStudio.dataGeneration.map.color',
+  matrix: {
+    displayName: 'Single-Select Matrix',
+    source: 'common.dataStudio.dataGeneration.map.matrix',
   },
-  date: {
-    displayName: 'Date',
-    source: 'common.dataStudio.dataGeneration.map.date',
+  matrixdynamic: {
+    displayName: 'Dynamic Matrix',
+    source: 'common.dataStudio.dataGeneration.map.matrixdynamic',
   },
-  'datetime-local': {
-    displayName: 'Date and Time',
-    source: 'common.dataStudio.dataGeneration.map.datetimelocal',
+  matrixdropdown: {
+    displayName: 'Multi-Select Matrix',
+    source: 'common.dataStudio.dataGeneration.map.matrixdropdown',
   },
-  email: {
-    displayName: 'Email',
-    source: 'common.dataStudio.dataGeneration.map.email',
+  month: {
+    displayName: 'Month',
+    source: 'common.dataStudio.dataGeneration.map.month',
+  },
+  multipletext: {
+    displayName: 'Multiple Text',
+    source: 'common.dataStudio.dataGeneration.map.multipletext',
   },
   number: {
     displayName: 'Number',
     source: 'common.dataStudio.dataGeneration.map.numeric',
   },
+  owner: {
+    displayName: 'Owner',
+    source: 'common.dataStudio.dataGeneration.map.owner',
+  },
+  paneldynamic: {
+    displayName: 'Panel Dynamic',
+    source: 'common.dataStudio.dataGeneration.map.paneldynamic',
+  },
+  password: {
+    displayName: 'Password',
+    source: 'common.dataStudio.dataGeneration.map.password',
+  },
+  radiogroup: {
+    displayName: 'Radio Button Group',
+    source: 'common.dataStudio.dataGeneration.map.radiogroup',
+  },
+  range: {
+    displayName: 'Range',
+    source: 'common.dataStudio.dataGeneration.map.range',
+  },
+  resource: {
+    displayName: 'Resource',
+    source: 'common.dataStudio.dataGeneration.map.resource',
+  },
+  resources: {
+    displayName: 'Resources',
+    source: 'common.dataStudio.dataGeneration.map.resources',
+  },
+  tagbox: {
+    displayName: 'Multi-Select Dropdown',
+    source: 'common.dataStudio.dataGeneration.map.tagbox',
+  },
   tel: {
     displayName: 'Phone Number',
     source: 'common.dataStudio.dataGeneration.map.tel',
+  },
+  text: {
+    displayName: 'Text',
+    source: 'common.dataStudio.dataGeneration.map.text',
   },
   time: {
     displayName: 'Time',
@@ -137,8 +133,12 @@ export const dataGenerationMap: DataGenerationMap = {
     displayName: 'URL',
     source: 'common.dataStudio.dataGeneration.map.url',
   },
-  paneldynamic: {
-    displayName: 'Panel Dynamic',
-    source: 'common.dataStudio.dataGeneration.map.paneldynamic',
+  users: {
+    displayName: 'Users',
+    source: 'common.dataStudio.dataGeneration.map.users',
+  },
+  week: {
+    displayName: 'Week',
+    source: 'common.dataStudio.dataGeneration.map.week',
   },
 };

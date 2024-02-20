@@ -11,13 +11,17 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { GET_FORM_STRUCTURE } from './graphql/queries';
-import { GENERATE_RECORDS } from './graphql/mutations';
+import { GENERATE_RECORDS, EDIT_RECORD } from './graphql/mutations';
 import { Model } from 'survey-core';
 import { FormBuilderService } from './../../../../../../../../libs/shared/src/lib/services/form-builder/form-builder.service';
 import { takeUntil, firstValueFrom } from 'rxjs';
 import { indexOf } from 'lodash';
-import { GenerateRecordsMutationResponse } from './../../../../../../../../libs/shared/src/lib/models/record.model';
+import {
+  EditRecordMutationResponse,
+  GenerateRecordsMutationResponse,
+} from './../../../../../../../../libs/shared/src/lib/models/record.model';
 import { SnackbarService } from '@oort-front/ui';
+const TIMEOUT_DURATION = 1000;
 /** Conversion fields component */
 @Component({
   selector: 'app-data-generation-fields',
@@ -194,7 +198,12 @@ export class DataGenerationFieldsComponent
       include: new FormControl(false, Validators.required),
       setDefault: new FormControl(false, Validators.required),
       default: new FormControl(),
-      option: new FormControl(),
+      minDate: new FormControl(),
+      maxDate: new FormControl(),
+      minNumber: new FormControl(),
+      maxNumber: new FormControl(),
+      minTime: new FormControl(),
+      maxTime: new FormControl(),
     });
   }
 
@@ -227,26 +236,38 @@ export class DataGenerationFieldsComponent
    */
   private async generateData(): Promise<void> {
     this.loading = true;
-    const promises: Promise<any>[] = [];
-    promises.push(
-      firstValueFrom(
-        this.apollo.mutate<GenerateRecordsMutationResponse>({
-          mutation: GENERATE_RECORDS,
+    const res = await firstValueFrom(
+      this.apollo.mutate<GenerateRecordsMutationResponse>({
+        mutation: GENERATE_RECORDS,
+        variables: {
+          form: this.formId,
+          data: this.dataGenerationForm.value,
+        },
+      })
+    );
+    const expressionSurvey = this.formBuilderService.createSurvey(
+      this.form.structure
+    );
+    for (const record of res.data?.generateRecords ?? []) {
+      expressionSurvey.data = record.data;
+      await new Promise((resolve) => setTimeout(resolve, TIMEOUT_DURATION));
+      await firstValueFrom(
+        this.apollo.mutate<EditRecordMutationResponse>({
+          mutation: EDIT_RECORD,
           variables: {
-            form: this.formId,
-            data: this.dataGenerationForm.value,
+            id: record.id,
+            data: expressionSurvey.data,
           },
         })
-      )
-    );
-    Promise.all(promises).then(() => {
-      this.loading = false;
-      this.snackBar.openSnackBar(
-        this.dataGenerationForm.value.recordsNumber +
-          ' ' +
-          this.translate.instant('common.notifications.dataGenerated')
       );
-    });
+      console.log(expressionSurvey.data);
+    }
+    this.loading = false;
+    this.snackBar.openSnackBar(
+      this.dataGenerationForm.value.recordsNumber +
+        ' ' +
+        this.translate.instant('common.notifications.dataGenerated')
+    );
   }
 
   /** Getter for the fieldsForm */
