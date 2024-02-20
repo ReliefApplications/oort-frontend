@@ -159,6 +159,8 @@ export class GridComponent
       title: '',
     },
     remove: false,
+    mapSelected: false,
+    mapView: false,
   };
   /** Input decorator */
   @Input() hasDetails = true;

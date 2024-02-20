@@ -21,6 +21,7 @@ export class GridToolbarComponent {
     history: false,
     convert: false,
     remove: false,
+    mapSelected: false,
   };
   @Output() action = new EventEmitter();
 
@@ -34,7 +35,8 @@ export class GridToolbarComponent {
       this.actions.delete ||
       this.actions.update ||
       this.actions.convert ||
-      this.actions.remove
+      this.actions.remove ||
+      this.actions.mapSelected
     );
   }
 

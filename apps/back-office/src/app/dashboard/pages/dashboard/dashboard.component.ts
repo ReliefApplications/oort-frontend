@@ -422,7 +422,6 @@ export class DashboardComponent
           defaultLayout: this.widgets[index].settings.defaultLayout,
         }
       : e.options;
-    console.log('onEditTile options', options);
     if (options) {
       switch (e.type) {
         case 'display': {

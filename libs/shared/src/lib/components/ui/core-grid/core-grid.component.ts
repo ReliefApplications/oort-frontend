@@ -88,7 +88,6 @@ export class CoreGridComponent
   @Input() settings: GridSettings | any = {};
   /** Default grid layout */
   @Input() defaultLayout: GridLayout = {};
-  @Input() id = '';
 
   /** @returns current grid layout */
   get layout(): any {
@@ -283,6 +282,8 @@ export class CoreGridComponent
       title: '',
     },
     remove: false,
+    mapSelected: false,
+    mapView: false,
   };
 
   public editable = false;
@@ -343,24 +344,6 @@ export class CoreGridComponent
     this.translate.onLangChange.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.configureGrid();
     });
-    // Check if visible rows must be mapped into dashboard state
-    this.dashboardService.automaticallyMapView$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((allow: boolean) => {
-        console.log(
-          'dashboardService.automaticallyMapView$',
-          allow,
-          this.id,
-          this.items
-        );
-        if (allow && this.items.length) {
-          this.dashboardService.setDashboardState(
-            this.id,
-            this.items.map((item: any) => item.id),
-            this.id
-          );
-        }
-      });
   }
 
   /**
@@ -407,6 +390,8 @@ export class CoreGridComponent
         title: get(this.settings, 'actions.navigateSettings.title', ''),
       },
       remove: get(this.settings, 'actions.remove', false),
+      mapSelected: get(this.settings, 'actions.mapSelected', false),
+      mapView: get(this.settings, 'actions.mapView', false),
     };
     this.editable = this.settings.actions?.inlineEdition;
     // this.selectableSettings = { ...this.selectableSettings, mode: this.multiSelect ? 'multiple' : 'single' };
@@ -847,20 +832,16 @@ export class CoreGridComponent
       data: this.items,
       total: this.totalCount,
     };
-    console.log('this.items', this.id, this.items);
+    console.log('this.items', this.items);
+
+    // Check if should automatically map visible rows into state automatically
     if (
-      this.dashboardService.automaticallyMapView.getValue() &&
+      this.widget.settings.actions.automaticallyMapView &&
       this.items.length
     ) {
-      this.dashboardService.setDashboardState(
-        this.id,
-        this.items.map((item: any) => item.id),
-        this.id
-      );
+      this.setState(this.items.map((item: any) => item.id));
     }
-
-    console.log('widget', this.widget, this.id);
-    // we have  available here the settings - actions info
+    console.log('widget', this.widget);
   }
 
   /**
@@ -897,6 +878,14 @@ export class CoreGridComponent
       );
     }
     this.selectionChange.emit(selection);
+
+    // Check if should automatically map selected rows into state automatically
+    if (
+      this.widget.settings.actions.automaticallyMapSelected &&
+      this.selectedRows.length
+    ) {
+      this.setState(this.selectedRows);
+    }
   }
 
   // === GRID ACTIONS ===
@@ -1030,6 +1019,14 @@ export class CoreGridComponent
           }
         );
 
+        break;
+      }
+      case 'mapView': {
+        this.setState(this.items);
+        break;
+      }
+      case 'mapSelected': {
+        this.setState(this.selectedRows);
         break;
       }
       default: {
@@ -1581,6 +1578,26 @@ export class CoreGridComponent
         const day = date.getDate();
         filter.value = new Date(Date.UTC(year, month, day)).toISOString();
       }
+    }
+  }
+
+  /**
+   * Create / update widget dashboard state.
+   *
+   * @param items items that will be state value
+   */
+  private setState(items: any): void {
+    const stateId = this.dashboardService.setDashboardState(
+      items,
+      this.widget.settings.actions.state
+    );
+    if (stateId) {
+      this.widget.settings.actions.state = stateId;
+      this.edit.emit({
+        type: 'data',
+        id: this.widget.id,
+        options: this.widget.settings,
+      });
     }
   }
 }

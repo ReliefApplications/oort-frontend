@@ -108,7 +108,15 @@
           {{ 'components.widget.grid.layout.reset' | translate }}
         </button>
       </span>
-    <!-- TODO: add here button to on click map visible rows to state -->
+      <span kendotooltip *ngIf="actions.mapView">
+        <button
+          kendoButton
+          [title]="'components.widget.settings.grid.hint.actions.automaticallyMapViewRows' | translate "
+          (click)="action.emit({ action: 'mapView' })"
+        >
+          {{ 'components.widget.settings.grid.actions.mapView' | translate }}
+        </button>
+      </span>
     </ng-container>
     <shared-grid-toolbar
       [actions]="actions"

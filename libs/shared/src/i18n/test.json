@@ -1430,6 +1430,8 @@
 						"delete": "******",
 						"export": "******",
 						"inline": "******",
+						"mapSelected": "******",
+						"mapView": "******",
 						"navigateToPage": "******",
 						"pageUrl": {
 							"label": "******",
@@ -1507,6 +1509,8 @@
 							"delete": "******",
 							"export": "******",
 							"inline": "******",
+							"mapSelectedRows": "******",
+							"mapViewRows": "******",
 							"navigateToPage": "******",
 							"show": "******",
 							"showDetails": "******",

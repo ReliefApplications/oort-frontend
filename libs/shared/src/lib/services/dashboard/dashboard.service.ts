@@ -38,15 +38,7 @@ export class DashboardService {
   /** Current dashboard states */
   private states = new BehaviorSubject<DashboardState[]>([]);
   /** Automatically map selected grid widget rows to a context */
-  public automaticallyMapSelected = new BehaviorSubject<boolean>(false);
-  /** Automatically map selected grid widget rows to a context */
   public automaticallyMapView = new BehaviorSubject<boolean>(false);
-
-  /** @returns Current automaticallyMapSelected as observable */
-  // TODO: be removed
-  get automaticallyMapSelected$(): Observable<boolean> {
-    return this.automaticallyMapSelected.asObservable();
-  }
 
   /** @returns Current automaticallyMapView as observable */
   // TODO: be removed
@@ -274,11 +266,12 @@ export class DashboardService {
   /**
    * Add or update a dashboard state .
    *
-   * @param name state name
    * @param value state value, only necessary if creating a new state
    * @param id state id to identify existing state
+   * @returns the new state id, or nothing if updating an existing state
    */
-  public setDashboardState(name: string, value: any, id?: string): void {
+  public setDashboardState(value: any, id?: string): void | string {
+    console.log('setDashboardState', value, id);
     const dashboard = this.dashboard.getValue();
     if (!dashboard?.id) return;
 
@@ -300,6 +293,7 @@ export class DashboardService {
     }
     // Create id to the new state
     id = `state-${uuidv4()}`;
+    const name = 'STATE-' + (states.length + 1);
     const newState: DashboardState = {
       name,
       value,
@@ -309,5 +303,6 @@ export class DashboardService {
     states.push(newState);
     this.states.next(states);
     this.saveDashboardStates(dashboard?.id, states);
+    return id;
   }
 }

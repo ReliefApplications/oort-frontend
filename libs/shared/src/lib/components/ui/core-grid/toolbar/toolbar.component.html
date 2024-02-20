@@ -2,7 +2,13 @@
   <!-- <button *ngIf="actions.update && canUpdate" kendoButton (click)="action.emit({ action: 'update', items: items })">
         Update
     </button> -->
-    <!-- TODO: add here button to on click map selected rows to state -->
+  <button
+    *ngIf="actions.mapSelected && canUpdate"
+    kendoButton
+    (click)="action.emit({ action: 'mapSelected' })"
+  >
+    {{ 'components.widget.settings.grid.actions.mapSelected' | translate }}
+  </button>
   <button
     *ngIf="actions.convert && canUpdate"
     kendoButton

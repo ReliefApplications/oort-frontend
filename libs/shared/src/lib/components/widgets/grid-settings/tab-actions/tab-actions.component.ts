@@ -75,6 +75,16 @@ export class TabActionsComponent
       tooltip: 'components.widget.settings.grid.hint.actions.showDetails',
     },
     {
+      name: 'mapSelected',
+      text: 'components.widget.settings.grid.actions.mapSelected',
+      tooltip: 'components.widget.settings.grid.hint.actions.mapSelectedRows',
+    },
+    {
+      name: 'mapView',
+      text: 'components.widget.settings.grid.actions.mapView',
+      tooltip: 'components.widget.settings.grid.hint.actions.mapViewRows',
+    },
+    {
       name: 'automaticallyMapSelected',
       text: 'components.widget.settings.grid.actions.automaticallyMapSelected',
       tooltip:

@@ -175,7 +175,9 @@ export const createGridActionsFormGroup = (configuration: any) => {
     inlineEdition: [get(configuration, 'actions.inlineEdition', true)],
     addRecord: [get(configuration, 'actions.addRecord', false)],
     export: [get(configuration, 'actions.export', true)],
-    state: [get(configuration, 'actions.state', '')],
+    state: [get(configuration, 'actions.state', null)],
+    mapSelected: [get(configuration, 'actions.mapSelected', false)],
+    mapView: [get(configuration, 'actions.mapView', false)],
     automaticallyMapSelected: [
       get(configuration, 'actions.automaticallyMapSelected', false),
     ],
