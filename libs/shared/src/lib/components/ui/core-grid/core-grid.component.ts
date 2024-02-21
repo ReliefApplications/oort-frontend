@@ -4,6 +4,7 @@ import {
   Inject,
   Input,
   OnChanges,
+  OnInit,
   Output,
   SimpleChanges,
   ViewChild,
@@ -82,7 +83,7 @@ const cloneData = (data: any[]) => data.map((item) => Object.assign({}, item));
 })
 export class CoreGridComponent
   extends UnsubscribeComponent
-  implements OnChanges
+  implements OnChanges, OnInit
 {
   // === INPUTS ===
   @Input() settings: GridSettings | any = {};
@@ -344,6 +345,19 @@ export class CoreGridComponent
     this.translate.onLangChange.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.configureGrid();
     });
+  }
+
+  ngOnInit(): void {
+    if (
+      this.contextService.dashboardStateRegex.test(this.settings.contextFilters)
+    ) {
+      // Listen to dashboard states changes
+      this.dashboardService.states$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (this.dataQuery) this.reloadData();
+        });
+    }
   }
 
   /**

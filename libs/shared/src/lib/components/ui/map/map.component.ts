@@ -63,6 +63,8 @@ import { MapPopupService } from './map-popup/map-popup.service';
 import { Platform } from '@angular/cdk/platform';
 import { ContextService } from '../../../services/context/context.service';
 import { DOCUMENT } from '@angular/common';
+import { DashboardService } from '../../../services/dashboard/dashboard.service';
+import { DashboardState } from '../../../models/dashboard.model';
 
 /** Component for the map widget */
 @Component({
@@ -149,6 +151,7 @@ export class MapComponent
   // === QUERY UPDATE INFO ===
   public lastUpdate = '';
   private appliedDashboardFilters: Record<string, any>;
+  private appliedDashboardStates: DashboardState[] = [];
 
   // === LAYERS ===
   layers: Layer[] = [];
@@ -178,6 +181,7 @@ export class MapComponent
    * @param platform Platform
    * @param injector Injector containing all needed providers
    * @param document document
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     @Inject('environment') environment: any,
@@ -189,7 +193,8 @@ export class MapComponent
     private contextService: ContextService,
     private platform: Platform,
     public injector: Injector,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private dashboardService: DashboardService
   ) {
     super();
     this.esriApiKey = environment.esriApiKey;
@@ -247,6 +252,27 @@ export class MapComponent
       });
   }
 
+  /**
+   * Keep checking until filters are applied in order to apply next one
+   */
+  private loadNextFilters(): Promise<void> {
+    let filterCheckTimeoutListener: NodeJS.Timeout;
+    const checkAgain = (resolve: () => void) => {
+      if (this.refreshingLayers.getValue()) {
+        if (filterCheckTimeoutListener) {
+          clearTimeout(filterCheckTimeoutListener);
+        }
+        resolve();
+      } else {
+        if (filterCheckTimeoutListener) {
+          clearTimeout(filterCheckTimeoutListener);
+        }
+        filterCheckTimeoutListener = setTimeout(() => checkAgain(resolve), 100);
+      }
+    };
+    return new Promise(checkAgain);
+  }
+
   /** Once template is ready, build the map. */
   ngAfterViewInit(): void {
     // Creates the map and adds all the controls we use.
@@ -270,30 +296,6 @@ export class MapComponent
       //}
     }, 1000);
 
-    /**
-     * Keep checking until filters are applied in order to apply next one
-     */
-    let filterCheckTimeoutListener: NodeJS.Timeout;
-    const loadNextFilters = (): Promise<void> => {
-      const checkAgain = (resolve: () => void) => {
-        if (this.refreshingLayers.getValue()) {
-          if (filterCheckTimeoutListener) {
-            clearTimeout(filterCheckTimeoutListener);
-          }
-          resolve();
-        } else {
-          if (filterCheckTimeoutListener) {
-            clearTimeout(filterCheckTimeoutListener);
-          }
-          filterCheckTimeoutListener = setTimeout(
-            () => checkAgain(resolve),
-            100
-          );
-        }
-      };
-      return new Promise(checkAgain);
-    };
-
     // Listen to dashboard filters changes
     this.contextService.filter$
       .pipe(
@@ -302,7 +304,7 @@ export class MapComponent
           const filters = this.contextService.filter.getValue();
           return !isEqual(filters, this.appliedDashboardFilters);
         }),
-        concatMap(() => loadNextFilters()),
+        concatMap(() => this.loadNextFilters()),
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
@@ -536,6 +538,30 @@ export class MapComponent
           if (this.layerControlButtons) {
             this.layerControlButtons.remove();
           }
+        }
+        // Gather all context filters in a single text value to check for states
+        const dashboardStateFilters = this.layers
+          .map((layer: any) => JSON.stringify(layer.contextFilters))
+          .join('');
+        console.log('dashboardStateFilters', dashboardStateFilters);
+        if (
+          this.contextService.dashboardStateRegex.test(dashboardStateFilters)
+        ) {
+          // Listen to dashboard states changes
+          this.dashboardService.states$
+            .pipe(
+              debounceTime(500),
+              filter(() => {
+                const states = this.dashboardService.states.getValue();
+                return !isEqual(states, this.appliedDashboardStates);
+              }),
+              concatMap(() => this.loadNextFilters()),
+              takeUntil(this.destroy$)
+            )
+            .subscribe(() => {
+              console.log('map states$ subs');
+              this.filterLayers();
+            });
         }
       });
     } else {
@@ -994,6 +1020,7 @@ export class MapComponent
     const filters = this.contextService.filter.getValue();
     this.refreshingLayers.next(false);
     this.appliedDashboardFilters = filters;
+    this.appliedDashboardStates = [...this.dashboardService.states.getValue()];
     const { layers: layersToGet, controls } = this.extractSettings();
 
     const shouldDisplayStatuses: Record<string, boolean> = {};

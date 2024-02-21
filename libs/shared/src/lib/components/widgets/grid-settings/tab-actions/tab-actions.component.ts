@@ -5,7 +5,7 @@ import { DashboardService } from '../../../../services/dashboard/dashboard.servi
 import { Application } from '../../../../models/application.model';
 import { ContentType, Page } from '../../../../models/page.model';
 import { DashboardState } from '../../../../models/dashboard.model';
-import { firstValueFrom, takeUntil } from 'rxjs';
+import { takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../../../utils/unsubscribe/unsubscribe.component';
 
 /**
@@ -119,13 +119,13 @@ export class TabActionsComponent
     this.environment = environment;
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.showSelectPage =
       this.formGroup.controls.actions.get('navigateToPage')?.value;
     // Add available pages to the list of available keys
     const application = this.applicationService.application.getValue();
     this.pages = this.getPages(application);
-    this.states = (await firstValueFrom(this.dashboardService.states$)) || [];
+    this.states = this.dashboardService.states.getValue() || [];
     this.formGroup.controls.actions
       .get('navigateToPage')
       ?.valueChanges.pipe(takeUntil(this.destroy$))

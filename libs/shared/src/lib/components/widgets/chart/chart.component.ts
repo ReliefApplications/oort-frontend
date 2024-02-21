@@ -19,6 +19,7 @@ import { BehaviorSubject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { ContextService } from '../../../services/context/context.service';
 import { DOCUMENT } from '@angular/common';
+import { DashboardService } from '../../../services/dashboard/dashboard.service';
 
 /**
  * Default file name for chart exports
@@ -84,12 +85,14 @@ export class ChartComponent
    * @param translate Angular translate service
    * @param contextService Shared context service
    * @param document document
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     private aggregationService: AggregationService,
     private translate: TranslateService,
     private contextService: ContextService,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private dashboardService: DashboardService
   ) {
     super();
   }
@@ -100,6 +103,19 @@ export class ChartComponent
       this.loadChart();
       this.getOptions();
     });
+
+    if (
+      this.contextService.dashboardStateRegex.test(this.settings.contextFilters)
+    ) {
+      // Listen to dashboard states changes
+      this.dashboardService.states$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.series.next([]);
+          this.loadChart();
+          this.getOptions();
+        });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {

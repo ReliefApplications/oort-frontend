@@ -10,6 +10,7 @@ import {
 import { cloneDeep } from '@apollo/client/utilities';
 import { isNil, isEmpty, get, isEqual, isObject } from 'lodash';
 import { DashboardService } from '../dashboard/dashboard.service';
+import { DashboardState } from '../../models/dashboard.model';
 
 /**
  * Application context service
@@ -31,6 +32,8 @@ export class ContextService {
   public filterStructure = new BehaviorSubject<any>(null);
   /** To update/keep the current filter position  */
   public filterPosition = new BehaviorSubject<any>(null);
+  /** Dashboard state regex */
+  public dashboardStateRegex = /(?<={{dashboard\.)(.*?)(?=}})/gim;
   /** The current application id */
   private currentApplicationId: string | null = null;
   /** The description of the current application */
@@ -134,7 +137,8 @@ export class ContextService {
       !this.isFilterEnabled.getValue() &&
       'filters' in filter &&
       // Filtering by context record happens even if filter is disabled
-      !this.dashboardService.templateRecord
+      !this.dashboardService.templateRecord &&
+      !this.dashboardStateRegex.test(JSON.stringify(filter))
     ) {
       filter.filters = [];
       return filter;
@@ -145,6 +149,9 @@ export class ContextService {
     if ('field' in filter && filter.field) {
       // If it's a filter descriptor, replace value ( if string )
       if (filter.value && typeof filter.value === 'string') {
+        console.log('test', this.dashboardStateRegex.test(filter.value));
+        console.log('match', filter.value?.match(this.dashboardStateRegex));
+        const stateName = filter.value?.match(this.dashboardStateRegex)?.[0];
         const filterName = filter.value?.match(regex)?.[0];
         if (filterName) {
           filter.value = get(this.availableFilterFieldsValue, filterName);
@@ -154,6 +161,11 @@ export class ContextService {
           filter.value = this.currentApplicationId;
         } else if (filter.value === '{{context.record}}') {
           filter.value = this.dashboardService.templateRecord;
+        } else if (stateName) {
+          const states = this.dashboardService.states.getValue();
+          filter.value = states.find(
+            (state: DashboardState) => state.name === stateName
+          )?.value;
         }
       }
     } else if ('filters' in filter && filter.filters) {

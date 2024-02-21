@@ -177,6 +177,8 @@ export class Layer implements LayerModel {
   public geojson: GeoJSON | null = null;
   // private properties: any | null = null;
   private filter: LayerFilter | null = null;
+  public contextFilters: any = [];
+
   // private styling: any | null = null;
   // private label: LayerLabel | null = null;
 
@@ -258,6 +260,7 @@ export class Layer implements LayerModel {
   public async setConfig(options: any) {
     this.id = get(options, 'id', '');
     this.name = get(options, 'name', '');
+    this.contextFilters = get(options, 'contextFilters', []);
     this.type = get<LayerType>(options, 'type', 'FeatureLayer');
     this.opacity = get(options, 'opacity', 1);
     this.visibility = get(options, 'visibility', true);

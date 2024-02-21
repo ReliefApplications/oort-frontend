@@ -43,6 +43,7 @@ import { ContextService } from '../../../services/context/context.service';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
 import { GridWidgetComponent } from '../grid/grid.component';
 import { GridService } from '../../../services/grid/grid.service';
+import { DashboardService } from '../../../services/dashboard/dashboard.service';
 
 /** Maximum width of the widget in column units */
 const MAX_COL_SPAN = 8;
@@ -180,6 +181,7 @@ export class SummaryCardComponent
    * @param contextService ContextService
    * @param elementRef Element Ref
    * @param gridService grid service
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     private apollo: Apollo,
@@ -191,7 +193,8 @@ export class SummaryCardComponent
     private aggregationService: AggregationService,
     private contextService: ContextService,
     private elementRef: ElementRef,
-    private gridService: GridService
+    private gridService: GridService,
+    private dashboardService: DashboardService
   ) {
     super();
   }
@@ -210,19 +213,7 @@ export class SummaryCardComponent
       takeUntil(this.destroy$)
     );
 
-    this.contextService.filter$
-      .pipe(debounceTime(500), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.onPage({
-          pageSize: DEFAULT_PAGE_SIZE,
-          skip: 0,
-          previousPageIndex: 0,
-          pageIndex: 0,
-          totalItems: 0,
-        });
-      });
     this.contextService.isFilterEnabled$
-
       .pipe(debounceTime(500), takeUntil(this.destroy$))
       .subscribe(() => {
         this.onPage({
@@ -245,6 +236,25 @@ export class SummaryCardComponent
           totalItems: 0,
         });
       });
+
+    if (
+      this.contextService.dashboardStateRegex.test(
+        this.widget.settings.contextFilters
+      )
+    ) {
+      // Listen to dashboard states changes
+      this.dashboardService.states$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.onPage({
+            pageSize: DEFAULT_PAGE_SIZE,
+            skip: 0,
+            previousPageIndex: 0,
+            pageIndex: 0,
+            totalItems: 0,
+          });
+        });
+    }
   }
 
   ngAfterViewInit(): void {
@@ -640,7 +650,7 @@ export class SummaryCardComponent
         .refetch({
           first: this.pageInfo.pageSize,
           skip: event.skip,
-          contextFilters: this.queryFilter,
+          filter: this.queryFilter,
           sortField: this.sortOptions.field,
           sortOrder: this.sortOptions.order,
           styles: layoutQuery?.style || null,
@@ -701,7 +711,6 @@ export class SummaryCardComponent
       this.dataQuery
         .refetch({
           first: this.pageInfo.pageSize,
-          contextFilters: this.queryFilter,
           filter: this.queryFilter,
           sortField: this.sortOptions.field,
           sortOrder: this.sortOptions.order,

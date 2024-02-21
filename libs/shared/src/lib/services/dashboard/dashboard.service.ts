@@ -36,7 +36,7 @@ export class DashboardService {
   /** Current dashboard */
   private dashboard = new BehaviorSubject<Dashboard | null>(null);
   /** Current dashboard states */
-  private states = new BehaviorSubject<DashboardState[]>([]);
+  public states = new BehaviorSubject<DashboardState[]>([]);
 
   /** @returns Current dashboard states as observable */
   get states$(): Observable<DashboardState[]> {
@@ -73,10 +73,6 @@ export class DashboardService {
     this.availableWidgets = WIDGET_TYPES.filter((widget) =>
       get(environment, 'availableWidgets', []).includes(widget.id)
     );
-
-    this.states$.subscribe((states: DashboardState[]) => {
-      console.log('DashboardService states$.subscribe', states);
-    });
   }
 
   /**
@@ -87,7 +83,6 @@ export class DashboardService {
   openDashboard(dashboard: Dashboard): void {
     this.dashboard.next(dashboard);
     // Load dashboard states, if any
-    console.log('---> dashboard.states', dashboard.states);
     this.states.next(dashboard.states ?? []);
   }
 
@@ -96,9 +91,8 @@ export class DashboardService {
    */
   closeDashboard(): void {
     this.dashboard.next(null);
-    console.log('closeDashboard');
     // Reset dashboard states
-    this.states.next([]); // unnecessary ?
+    this.states.next([]);
   }
 
   /**
@@ -278,7 +272,6 @@ export class DashboardService {
           value,
         };
         this.states.next(states);
-        console.log('this.states', this.states.getValue);
         this.saveDashboardStates(dashboard?.id, states);
         return;
       }
@@ -291,7 +284,6 @@ export class DashboardService {
       value,
       id,
     };
-    console.log('newState', newState);
     states.push(newState);
     this.states.next(states);
     this.saveDashboardStates(dashboard?.id, states);
