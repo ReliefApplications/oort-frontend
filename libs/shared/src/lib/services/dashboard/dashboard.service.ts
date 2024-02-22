@@ -272,7 +272,6 @@ export class DashboardService {
           value,
         };
         this.states.next(states);
-        this.saveDashboardStates(dashboard?.id, states);
         return;
       }
     }
@@ -286,6 +285,7 @@ export class DashboardService {
     };
     states.push(newState);
     this.states.next(states);
+    // To save new dashboards
     this.saveDashboardStates(dashboard?.id, states);
     return id;
   }

@@ -21,6 +21,7 @@ import { ContextService } from '../../../services/context/context.service';
 import { UnsubscribeComponent } from '../../utils/unsubscribe/unsubscribe.component';
 import { ResourceQueryResponse } from '../../../models/resource.model';
 import { SortDescriptor } from '@progress/kendo-data-query';
+import { DashboardService } from '../../../services/dashboard/dashboard.service';
 
 /**
  * Shared aggregation grid component.
@@ -86,6 +87,7 @@ export class AggregationGridComponent
    * @param apollo Apollo service
    * @param translate Angular translate service
    * @param contextService Shared context service
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     private aggregationService: AggregationService,
@@ -94,17 +96,31 @@ export class AggregationGridComponent
     private gridService: GridService,
     private apollo: Apollo,
     private translate: TranslateService,
-    private contextService: ContextService
+    private contextService: ContextService,
+    private dashboardService: DashboardService
   ) {
     super();
   }
 
   ngOnInit(): void {
+    console.log('AggregationGridComponent');
     this.contextService.filter$
       .pipe(debounceTime(500), takeUntil(this.destroy$))
       .subscribe(() => {
         this.getAggregationData();
       });
+
+    if (
+      this.contextService.dashboardStateRegex.test(this.contextFilters ?? '')
+    ) {
+      // Listen to dashboard states changes
+      this.dashboardService.states$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.getAggregationData();
+        });
+    }
+
     this.getAggregationFields();
   }
 

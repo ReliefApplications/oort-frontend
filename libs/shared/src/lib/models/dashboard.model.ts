@@ -270,6 +270,6 @@ export interface CreateDashboardWithContextMutationResponse {
 /** DashboardState interface */
 export interface DashboardState {
   name: string;
-  value: any;
+  value?: any;
   id: string;
 }
