@@ -227,7 +227,10 @@ export class DashboardService {
         mutation: EDIT_DASHBOARD,
         variables: {
           id,
-          states,
+          states: states.map(
+            (state: DashboardState) =>
+              (state = { id: state.id, name: state.name })
+          ),
         },
       })
       .subscribe({

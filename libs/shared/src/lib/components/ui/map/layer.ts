@@ -281,7 +281,6 @@ export class Layer implements LayerModel {
   public async setConfig(options: any) {
     this.id = get(options, 'id', '');
     this.name = get(options, 'name', '');
-    this.contextFilters = get(options, 'contextFilters', []);
     this.type = get<LayerType>(options, 'type', 'FeatureLayer');
     this.opacity = get(options, 'opacity', 1);
     this.visibility = get(options, 'visibility', true);

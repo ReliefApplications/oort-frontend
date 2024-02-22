@@ -380,13 +380,14 @@ export class QueryBuilderService {
    */
   public graphqlQuery(name: string, fields: string[] | string) {
     return gql<QueryResponse, QueryVariables>`
-    query GetCustomQuery($first: Int, $skip: Int, $filter: JSON, $sortField: String, $sortOrder: String, $display: Boolean, $styles: JSON, $at: Date) {
+    query GetCustomQuery($first: Int, $skip: Int, $filter: JSON, $contextFilters: JSON, $sortField: String, $sortOrder: String, $display: Boolean, $styles: JSON, $at: Date) {
       ${name}(
       first: $first
       skip: $skip
       sortField: $sortField
       sortOrder: $sortOrder
       filter: $filter
+      contextFilters: $contextFilters
       display: $display
       styles: $styles
       at: $at
