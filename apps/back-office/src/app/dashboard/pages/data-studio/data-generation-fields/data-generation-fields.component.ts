@@ -80,12 +80,6 @@ export class DataGenerationFieldsComponent
         .subscribe(({ data, loading }) => {
           this.dataGenerationForm = this.createDataGenerationForm();
           this.isChecked = false;
-          console.log(
-            JSON.parse(data.form.structure ?? '').pages.reduce(
-              (acc: any, page: any) => acc.concat(page.elements),
-              []
-            )
-          );
           this.fields =
             JSON.parse(data.form.structure ?? '')
               .pages.reduce(
@@ -260,7 +254,6 @@ export class DataGenerationFieldsComponent
           },
         })
       );
-      console.log(expressionSurvey.data);
     }
     this.loading = false;
     this.snackBar.openSnackBar(
