@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { SnackbarService } from '@oort-front/ui';
 import {
-  CreateDashboardWithContextMutationResponse,
   Dashboard,
   DashboardState,
   EditDashboardMutationResponse,
@@ -10,22 +11,15 @@ import {
   EditPageContextMutationResponse,
   PageContextT,
 } from '../../models/page.model';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { Apollo } from 'apollo-angular';
-import {
-  EDIT_DASHBOARD,
-  UPDATE_PAGE_CONTEXT,
-  CREATE_DASHBOARD_WITH_CONTEXT,
-} from './graphql/mutations';
-import { ActivatedRoute } from '@angular/router';
+import { EDIT_DASHBOARD, UPDATE_PAGE_CONTEXT } from './graphql/mutations';
+import { GraphQLError } from 'graphql';
 import { get } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
-import { TranslateService } from '@ngx-translate/core';
-import { ApplicationService } from '../application/application.service';
 
 /**
  * Shared dashboard service. Handles dashboard events.
- * TODO: rename all tiles into widgets
  */
 @Injectable({
   providedIn: 'root',
@@ -34,7 +28,7 @@ export class DashboardService {
   /** List of available widgets */
   public availableWidgets = WIDGET_TYPES;
   /** Current dashboard */
-  private dashboard = new BehaviorSubject<Dashboard | null>(null);
+  private dashboard?: Dashboard = undefined;
   /** Current dashboard states */
   public states = new BehaviorSubject<DashboardState[]>([]);
 
@@ -43,31 +37,18 @@ export class DashboardService {
     return this.states.asObservable();
   }
 
-  /** @returns Current dashboard as observable */
-  get dashboard$(): Observable<Dashboard | null> {
-    return this.dashboard.asObservable();
-  }
-
-  /** @returns The id of the currently loaded template record, if any */
-  get templateRecord() {
-    return this.route.snapshot.queryParamMap.get('id');
-  }
-
   /**
    * Shared dashboard service. Handles dashboard events.
-   * TODO: rename all tiles into widgets
    *
    * @param environment environment in which we run the application
    * @param apollo Apollo client
-   * @param route Angular route
-   *  @param applicationService Shared application service
+   * @param snackBar Shared snackbar service
    * @param translate Angular translate service
    */
   constructor(
     @Inject('environment') environment: any,
     private apollo: Apollo,
-    private route: ActivatedRoute,
-    private applicationService: ApplicationService,
+    private snackBar: SnackbarService,
     private translate: TranslateService
   ) {
     this.availableWidgets = WIDGET_TYPES.filter((widget) =>
@@ -81,90 +62,72 @@ export class DashboardService {
    * @param dashboard dashboard to open.
    */
   openDashboard(dashboard: Dashboard): void {
-    this.dashboard.next(dashboard);
+    this.dashboard = dashboard;
     // Load dashboard states, if any
     this.states.next(dashboard.states ?? []);
   }
 
   /**
-   * Closes the dashboard.
+   * Handle mutations messages response from the application, pages and steps
+   *
+   * @param errors errors from the access mutation response if any
+   * @param type content type
+   * @param value value of the content edited
    */
-  closeDashboard(): void {
-    this.dashboard.next(null);
-    // Reset dashboard states
-    this.states.next([]);
+  handleEditionMutationResponse(
+    errors: readonly GraphQLError[] | undefined,
+    type: string,
+    value?: string
+  ) {
+    if (errors) {
+      this.snackBar.openSnackBar(
+        this.translate.instant('common.notifications.objectNotUpdated', {
+          type,
+          error: errors ? errors[0].message : '',
+        }),
+        { error: true }
+      );
+    } else {
+      this.snackBar.openSnackBar(
+        this.translate.instant('common.notifications.objectUpdated', {
+          type,
+          value: value ?? '',
+        })
+      );
+    }
   }
 
   /**
-   * Finds the settings component from the widget passed as 'tile'.
+   * Finds the settings component from the widget.
    *
-   * @param tile tile to get settings of.
-   * @returns Tile settings template.
+   * @param widget widget to get settings of.
+   * @returns Widget settings template.
    */
-  public findSettingsTemplate(tile: any): any {
-    const availableTile = this.availableWidgets.find(
-      (x) => x.component === tile.component
+  public findSettingsTemplate(widget: any): any {
+    const availableWidget = this.availableWidgets.find(
+      (x) => x.component === widget.component
     );
-    return availableTile && availableTile.settingsTemplate
-      ? availableTile.settingsTemplate
+    return availableWidget && availableWidget.settingsTemplate
+      ? availableWidget.settingsTemplate
       : null;
   }
 
   /**
    * Updates the context of the page.
    *
+   * @param pageId id of the page to update context from
    * @param context The new context of the page
    * @returns promise the mutation result
    */
-  public updateContext(context: PageContextT) {
-    const dashboard = this.dashboard.getValue();
-    if (!dashboard?.page?.id) return;
+  public updateContext(pageId: string | undefined, context: PageContextT) {
+    if (!pageId) return;
 
-    const res = firstValueFrom(
+    return firstValueFrom(
       this.apollo.mutate<EditPageContextMutationResponse>({
         mutation: UPDATE_PAGE_CONTEXT,
         variables: {
-          id: dashboard.page.id,
+          id: pageId,
           context,
-        },
-      })
-    );
-
-    res.then(({ data }) => {
-      if (data) {
-        this.dashboard.next({
-          ...dashboard,
-          page: {
-            ...dashboard.page,
-            context,
-            contentWithContext: data.editPageContext.contentWithContext,
-          },
-        });
-      }
-    });
-
-    return res;
-  }
-
-  /**
-   * Duplicates a dashboard and adds context to it.
-   *
-   * @param page Page to copy content from
-   * @param context The type of context to be added to the dashboard
-   * @param id The id of the context to be added to the dashboard
-   * @returns The newly created dashboard
-   */
-  public createDashboardWithContext(
-    page: string,
-    context: 'element' | 'record',
-    id: string | number
-  ) {
-    return firstValueFrom(
-      this.apollo.mutate<CreateDashboardWithContextMutationResponse>({
-        mutation: CREATE_DASHBOARD_WITH_CONTEXT,
-        variables: {
-          page,
-          [context]: id,
         },
       })
     );
@@ -173,17 +136,21 @@ export class DashboardService {
   /**
    * Edit dashboard name
    *
+   * @param dashboardId id of the dashboard
    * @param name new name
    * @param callback callback method
    */
-  public editName(name: string, callback?: any): void {
-    const dashboard = this.dashboard.getValue();
-    if (!dashboard?.id) return;
+  public editName(
+    dashboardId: string | undefined,
+    name: string,
+    callback?: any
+  ): void {
+    if (dashboardId) return;
     this.apollo
       .mutate<EditDashboardMutationResponse>({
         mutation: EDIT_DASHBOARD,
         variables: {
-          id: dashboard.id,
+          id: dashboardId,
           name,
         },
       })
@@ -195,26 +162,56 @@ export class DashboardService {
   /**
    * Saves the buttons of the dashboard.
    *
+   * @param dashboardId id of the dashboard
    * @param buttons Button actions to save
+   * @returns apollo mutation
    */
-  public saveDashboardButtons(buttons: Dashboard['buttons']) {
-    const dashboard = this.dashboard.getValue();
-    if (!dashboard?.id) return;
+  public saveDashboardButtons(
+    dashboardId: string | undefined,
+    buttons: Dashboard['buttons']
+  ) {
+    if (!dashboardId) return;
     buttons = buttons || [];
 
-    this.apollo
+    return this.apollo.mutate<EditDashboardMutationResponse>({
+      mutation: EDIT_DASHBOARD,
+      variables: {
+        id: dashboardId,
+        buttons,
+      },
+    });
+  }
+
+  /**
+   * Edit the dashboard's grid options.
+   *
+   * @param dashboardId id of the dashboard
+   * @param gridOptions new grid options
+   * @param callback callback method
+   * @returns mutation
+   */
+  editGridOptions(
+    dashboardId: string | undefined,
+    gridOptions: any,
+    callback?: any
+  ) {
+    if (!dashboardId) return;
+    return this.apollo
       .mutate<EditDashboardMutationResponse>({
         mutation: EDIT_DASHBOARD,
         variables: {
-          id: dashboard.id,
-          buttons,
+          id: dashboardId,
+          gridOptions,
         },
       })
-      .subscribe(() => {
-        this.dashboard.next({
-          ...dashboard,
-          buttons,
-        });
+      .subscribe(({ errors, data }) => {
+        this.handleEditionMutationResponse(
+          errors,
+          this.translate.instant('common.page.one')
+        );
+        if (!errors && data) {
+          if (callback) callback();
+        }
       });
   }
 
@@ -235,15 +232,15 @@ export class DashboardService {
       })
       .subscribe({
         next: ({ errors }) => {
-          this.applicationService.handleEditionMutationResponse(
+          this.handleEditionMutationResponse(
             errors,
             this.translate.instant('common.dashboard.one')
           );
           if (!errors) {
-            this.openDashboard({
-              ...this.dashboard.getValue(),
+            this.dashboard = {
+              ...this.dashboard,
               states,
-            });
+            };
           }
         },
       });
@@ -258,8 +255,7 @@ export class DashboardService {
    */
   public setDashboardState(value: any, id?: string): void | string {
     console.log('setDashboardState', value, id);
-    const dashboard = this.dashboard.getValue();
-    if (!dashboard?.id) return;
+    if (!this.dashboard?.id) return;
 
     const states = this.states.getValue();
     if (id) {
@@ -286,7 +282,7 @@ export class DashboardService {
     states.push(newState);
     this.states.next(states);
     // To save new dashboards
-    this.saveDashboardStates(dashboard?.id, states);
+    this.saveDashboardStates(this.dashboard.id, states);
     return id;
   }
 }

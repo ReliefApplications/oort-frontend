@@ -9,6 +9,7 @@ export const EDIT_DASHBOARD = gql`
     $structure: JSON
     $name: String
     $buttons: [ButtonActionInputType]
+    $gridOptions: JSON
     $states: [StateInputType]
   ) {
     editDashboard(
@@ -16,6 +17,7 @@ export const EDIT_DASHBOARD = gql`
       structure: $structure
       name: $name
       buttons: $buttons
+      gridOptions: $gridOptions
       states: $states
     ) {
       id
@@ -38,6 +40,7 @@ export const EDIT_DASHBOARD = gql`
         }
       }
       buttons
+      gridOptions
       canSee
       canUpdate
       page {
@@ -58,20 +61,6 @@ export const UPDATE_PAGE_CONTEXT = gql`
       id
       context
       contentWithContext
-    }
-  }
-`;
-
-/** GraphQL mutation for creating a dashboard with context */
-export const CREATE_DASHBOARD_WITH_CONTEXT = gql`
-  mutation createDashboardWithContext($page: ID!, $element: JSON, $record: ID) {
-    addDashboardWithContext(page: $page, element: $element, record: $record) {
-      id
-      structure
-      page {
-        id
-        context
-      }
     }
   }
 `;

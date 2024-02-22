@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { GridActions } from '../models/grid-settings.model';
 
 /** Component for the grid toolbar */
 @Component({
@@ -12,10 +13,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
  */
 export class GridToolbarComponent {
   // === DATA ===
+  /** Items */
   @Input() items: any[] = [];
 
   // === ACTIONS ===
-  @Input() actions = {
+  /** Actions */
+  @Input() actions: GridActions = {
     update: false,
     delete: false,
     history: false,
@@ -23,6 +26,7 @@ export class GridToolbarComponent {
     remove: false,
     mapSelected: false,
   };
+  /** Event emitter for the action event */
   @Output() action = new EventEmitter();
 
   /**
@@ -36,7 +40,7 @@ export class GridToolbarComponent {
       this.actions.update ||
       this.actions.convert ||
       this.actions.remove ||
-      this.actions.mapSelected
+      (this.actions.mapSelected ?? false)
     );
   }
 
