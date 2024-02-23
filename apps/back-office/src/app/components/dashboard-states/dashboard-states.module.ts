@@ -5,12 +5,13 @@ import { EmptyModule } from '@oort-front/shared';
 import { ButtonModule, TableModule, ToggleModule } from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { StateModalComponent } from './state-modal/state-modal.component';
 
 /**
  * Module for the DashboardStatesComponent
  */
 @NgModule({
-  declarations: [DashboardStatesComponent],
+  declarations: [DashboardStatesComponent, StateModalComponent],
   imports: [
     CommonModule,
     EmptyModule,

@@ -57,7 +57,7 @@ export class DashboardStatesComponent extends UnsubscribeComponent {
    */
   public onAdd(name?: string, value?: any): void {
     console.log('onAdd', name, value);
-    this.dashboardService.setDashboardState(30);
+    this.dashboardService.setDashboardState(['aaa']);
   }
 
   /**
