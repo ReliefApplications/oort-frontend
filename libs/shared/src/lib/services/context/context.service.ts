@@ -508,6 +508,7 @@ export class ContextService {
         relativeTo: route,
         queryParams: {
           id: value,
+          createIfMissing: true,
         },
       });
       // const urlArr = this.router.url.split('/');

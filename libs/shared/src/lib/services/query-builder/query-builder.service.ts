@@ -389,6 +389,7 @@ export class QueryBuilderService {
       filter: $filter
       contextFilters: $contextFilters
       display: $display
+      contextFilters: $contextFilters
       styles: $styles
       at: $at
       ) {
