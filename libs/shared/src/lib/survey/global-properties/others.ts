@@ -3,6 +3,7 @@ import {
   JsonMetadata,
   QuestionFileModel,
   QuestionPanelDynamicModel,
+  QuestionSelectBase,
   Serializer,
   matrixDropdownColumnTypes,
   settings,
@@ -10,6 +11,7 @@ import {
 import { Question } from '../types';
 import { SurveyModel, PageModel, surveyLocalization } from 'survey-core';
 import { MatrixManager } from '../controllers/matrixManager';
+import { isNil } from 'lodash';
 
 /**
  * Parse the ID expression and return an example of the expression
@@ -393,6 +395,35 @@ export const init = (environment: any): void => {
   // Add a property that allows copying columns from another matrix
   serializer.addProperty('matrixdropdown', copyColumnsOtherMatrixProp);
   serializer.addProperty('matrixdynamic', copyColumnsOtherMatrixProp);
+
+  // add HTML title property
+  serializer.addProperty('html', {
+    name: 'htmlTitle:text',
+    visibleIndex: 1,
+    category: 'general',
+    onSetValue: (obj: QuestionSelectBase, value: string) => {
+      if (isNil(value)) return;
+
+      const createUniqueName = (
+        survey: any,
+        name: string,
+        index: number = 1
+      ): string => {
+        let newName = index === 1 ? name : name + index;
+        const question = survey.getQuestionByName(newName);
+        if (!isNil(question) && question !== obj) {
+          newName = createUniqueName(survey, name, index + 1);
+        }
+        return newName;
+      };
+
+      const name = value?.trim().replace(/\s+/g, '_').toLowerCase();
+      const uniqueName = createUniqueName(obj.survey, name);
+      obj.setPropertyValue('name', uniqueName);
+      obj.setPropertyValue('valueName', uniqueName);
+      obj.setPropertyValue('htmlTitle', value);
+    },
+  });
 };
 
 /**
