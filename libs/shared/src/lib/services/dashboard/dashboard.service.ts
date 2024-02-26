@@ -235,15 +235,68 @@ export class DashboardService {
       })
       .subscribe({
         next: ({ errors }) => {
-          this.handleEditionMutationResponse(
-            errors,
-            this.translate.instant('common.dashboard.one')
-          );
-          if (!errors) {
+          if (errors) {
+            this.handleEditionMutationResponse(
+              errors,
+              this.translate.instant('models.dashboard.states.few')
+            );
+          } else {
             this.dashboard = {
               ...this.dashboard,
               states,
             };
+            this.states.next(states);
+            this.snackBar.openSnackBar(
+              this.translate.instant(
+                'models.dashboard.states.update.confirmationMessage'
+              )
+            );
+          }
+        },
+      });
+  }
+
+  /**
+   * Delete a dashboard state.
+   *
+   * @param id state id
+   */
+  public deleteDashboardState(id: string): void {
+    if (!this.dashboard?.id) return;
+
+    const states = this.states
+      .getValue()
+      .filter((state: DashboardState) => state.id !== id);
+
+    this.apollo
+      .mutate<EditDashboardMutationResponse>({
+        mutation: EDIT_DASHBOARD,
+        variables: {
+          id: this.dashboard?.id,
+          states: states.map(
+            (state: DashboardState) =>
+              (state = { id: state.id, name: state.name })
+          ),
+        },
+      })
+      .subscribe({
+        next: ({ errors }) => {
+          if (errors) {
+            this.handleEditionMutationResponse(
+              errors,
+              this.translate.instant('models.dashboard.states.few')
+            );
+          } else {
+            this.dashboard = {
+              ...this.dashboard,
+              states,
+            };
+            this.states.next(states);
+            this.snackBar.openSnackBar(
+              this.translate.instant(
+                'models.dashboard.states.update.confirmationMessage'
+              )
+            );
           }
         },
       });
@@ -254,10 +307,14 @@ export class DashboardService {
    *
    * @param value state value, only necessary if creating a new state
    * @param id state id to identify existing state
+   * @param name state name
    * @returns the new state id, or nothing if updating an existing state
    */
-  public setDashboardState(value: any, id?: string): void | string {
-    console.log('setDashboardState', value, id);
+  public setDashboardState(
+    value: any,
+    id?: string,
+    name?: string
+  ): void | string {
     if (!this.dashboard?.id) return;
 
     const states = this.states.getValue();
@@ -269,14 +326,25 @@ export class DashboardService {
         states[oldStateIndex] = {
           ...states[oldStateIndex],
           value,
+          ...(name && { name }),
         };
         this.states.next(states);
+        if (name) {
+          // On updating state, we only want to save when updating the name, no the values
+          this.saveDashboardStates(this.dashboard.id, states);
+        } else {
+          this.snackBar.openSnackBar(
+            this.translate.instant(
+              'models.dashboard.states.update.confirmationMessage'
+            )
+          );
+        }
         return;
       }
     }
     // Create id to the new state
     id = `state-${uuidv4()}`;
-    const name = 'STATE-' + (states.length + 1);
+    name = name ?? 'STATE-' + (states.length + 1);
     const newState: DashboardState = {
       name,
       value,

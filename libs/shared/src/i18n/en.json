@@ -2254,9 +2254,18 @@
 			"share": "Share Dashboard",
 			"states": {
 				"create": "Create a state",
+				"delete": {
+					"confirmationMessage": "Do you confirm the deletion of the state {{state}}?",
+					"title": "Delete state"
+				},
 				"few": "States",
+				"new": "New state",
 				"none": "No states",
-				"one": "State"
+				"one": "State",
+				"update": {
+					"confirmationMessage": "States updated successfully",
+					"title": "Update state"
+				}
 			},
 			"tooltip": {
 				"filter": {

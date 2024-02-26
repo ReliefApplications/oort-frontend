@@ -2,7 +2,16 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardStatesComponent } from './dashboard-states.component';
 import { EmptyModule } from '@oort-front/shared';
-import { ButtonModule, TableModule, ToggleModule } from '@oort-front/ui';
+import {
+  ButtonModule,
+  DialogModule,
+  FormWrapperModule,
+  IconModule,
+  MenuModule,
+  TableModule,
+  ToggleModule,
+  TooltipModule,
+} from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { StateModalComponent } from './state-modal/state-modal.component';
@@ -21,6 +30,11 @@ import { StateModalComponent } from './state-modal/state-modal.component';
     FormsModule,
     ReactiveFormsModule,
     TableModule,
+    DialogModule,
+    FormWrapperModule,
+    MenuModule,
+    TooltipModule,
+    IconModule,
   ],
   exports: [DashboardStatesComponent],
 })

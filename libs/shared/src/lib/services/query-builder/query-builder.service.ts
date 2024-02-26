@@ -387,7 +387,6 @@ export class QueryBuilderService {
       sortField: $sortField
       sortOrder: $sortOrder
       filter: $filter
-      contextFilters: $contextFilters
       display: $display
       contextFilters: $contextFilters
       styles: $styles

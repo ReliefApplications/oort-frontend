@@ -2254,9 +2254,18 @@
 			"share": "******",
 			"states": {
 				"create": "******",
+				"delete": {
+					"confirmationMessage": "****** {{state}} ******",
+					"title": "******"
+				},
 				"few": "******",
+				"new": "******",
 				"none": "******",
-				"one": "******"
+				"one": "******",
+				"update": {
+					"confirmationMessage": "******",
+					"title": "******"
+				}
 			},
 			"tooltip": {
 				"filter": {

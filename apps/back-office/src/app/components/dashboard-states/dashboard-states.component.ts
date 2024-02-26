@@ -1,10 +1,13 @@
+import { Dialog } from '@angular/cdk/dialog';
 import { Component } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import {
+  ConfirmService,
   DashboardService,
   DashboardState,
   UnsubscribeComponent,
 } from '@oort-front/shared';
+import { isArray } from 'lodash';
 import { takeUntil } from 'rxjs';
 
 /** Interface for the table element */
@@ -23,41 +26,107 @@ interface DashboardStateElement {
 export class DashboardStatesComponent extends UnsubscribeComponent {
   /** List of states */
   public states: DashboardState[] = [];
+  /** State elements for table */
   public statesElements: DashboardStateElement[] = [];
   /** Columns to display on table */
-  public displayedColumns = ['name', 'value'];
-  // TODO: check if need 'actions' columns to allow rename states
+  public displayedColumns = ['name', 'value', 'actions'];
 
   /**
    * Dashboard states component.
    *
    * @param dashboardService Shared dashboard service
-   * @param fb This is the service that will be used to build forms.
+   * @param dialog Dialog service
+   * @param confirmService Shared confirm service
+   * @param translate Angular translate service
    */
   constructor(
     private dashboardService: DashboardService,
-    private fb: FormBuilder
+    public dialog: Dialog,
+    private confirmService: ConfirmService,
+    private translate: TranslateService
   ) {
     super();
     this.dashboardService.states$
       .pipe(takeUntil(this.destroy$))
       .subscribe((states: DashboardState[]) => {
-        console.log('DashboardStatesComponent states$.subscribe', states);
         this.states = states;
         this.statesElements = this.setTableElements(states);
-        console.log('this.statesElements', this.statesElements);
       });
   }
 
   /**
-   * Add new variables state (can be used on the forms fields).
-   *
-   * @param name state name
-   * @param value state value
+   * Open modal to add a new state
    */
-  public onAdd(name?: string, value?: any): void {
-    console.log('onAdd', name, value);
-    this.dashboardService.setDashboardState(['aaa']);
+  public async onAdd(): Promise<void> {
+    const { StateModalComponent } = await import(
+      './state-modal/state-modal.component'
+    );
+    const dialogRef = this.dialog.open(StateModalComponent);
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((data: any) => {
+      this.dashboardService.setDashboardState(data.value, undefined, data.name);
+    });
+  }
+
+  /**
+   * Open modal to update selected state
+   *
+   * @param element element state from the table
+   */
+  public async onUpdate(element: DashboardStateElement): Promise<void> {
+    const state = element.state;
+    const { StateModalComponent } = await import(
+      './state-modal/state-modal.component'
+    );
+    const dialogRef = this.dialog.open(StateModalComponent, {
+      data: {
+        name: state.name,
+        value: state.value,
+        id: state.id,
+      },
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((data: any) => {
+      if (data) {
+        this.dashboardService.setDashboardState(
+          data.value,
+          state.id,
+          data.name
+        );
+      }
+    });
+  }
+
+  /**
+   * Delete selected state
+   *
+   * @param element element state from the table
+   */
+  public async onDelete(element: DashboardStateElement): Promise<void> {
+    const dialogRef = this.confirmService.openConfirmModal({
+      title: this.translate.instant('models.dashboard.states.delete.title'),
+      content: this.translate.instant(
+        'models.dashboard.states.delete.confirmationMessage',
+        {
+          state: element.state.name,
+        }
+      ),
+      confirmText: this.translate.instant('components.confirmModal.delete'),
+      confirmVariant: 'danger',
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
+      if (value) {
+        this.dashboardService.deleteDashboardState(element.state.id);
+      }
+    });
+  }
+
+  /**
+   * Check if state value on table is a array
+   *
+   * @param value state value
+   * @returns if value is boolean
+   */
+  public isArray(value: any): boolean {
+    return isArray(value);
   }
 
   /**

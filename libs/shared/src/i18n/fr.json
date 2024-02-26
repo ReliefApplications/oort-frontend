@@ -2268,9 +2268,18 @@
 			"share": "Partager le tableau de bord",
 			"states": {
 				"create": "Créer un état",
+				"delete": {
+					"confirmationMessage": "Confirmez-vous la suppression de l'état {{state}}?",
+					"title": "Supprimer l'état"
+				},
 				"few": "États",
+				"new": "Nouvel état",
 				"none": "Aucun état",
-				"one": "État"
+				"one": "État",
+				"update": {
+					"confirmationMessage": "États mis à jour avec succès",
+					"title": "État de mise à jour"
+				}
 			},
 			"tooltip": {
 				"filter": {
