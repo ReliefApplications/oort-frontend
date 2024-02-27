@@ -3,7 +3,6 @@ import {
   JsonMetadata,
   QuestionFileModel,
   QuestionPanelDynamicModel,
-  QuestionSelectBase,
   Serializer,
   matrixDropdownColumnTypes,
   settings,
@@ -396,32 +395,39 @@ export const init = (environment: any): void => {
   serializer.addProperty('matrixdropdown', copyColumnsOtherMatrixProp);
   serializer.addProperty('matrixdynamic', copyColumnsOtherMatrixProp);
 
-  // add HTML title property
+  // Add an HTML title property that allows changing the question name
   serializer.addProperty('html', {
     name: 'htmlTitle:text',
     visibleIndex: 1,
     category: 'general',
-    onSetValue: (obj: QuestionSelectBase, value: string) => {
+    onSetValue: (question: Question, value: string) => {
+      question.setPropertyValue('htmlTitle', value);
       if (isNil(value)) return;
 
-      const createUniqueName = (
+      // Generate a unique name
+      const getUniqueName = (
         survey: any,
         name: string,
         index: number = 1
       ): string => {
         let newName = index === 1 ? name : name + index;
-        const question = survey.getQuestionByName(newName);
-        if (!isNil(question) && question !== obj) {
-          newName = createUniqueName(survey, name, index + 1);
+        const questionByName = survey.getQuestionByName(newName);
+
+        if (!isNil(questionByName) && questionByName !== question) {
+          newName = getUniqueName(survey, name, index + 1);
         }
         return newName;
       };
 
-      const name = value?.trim().replace(/\s+/g, '_').toLowerCase();
-      const uniqueName = createUniqueName(obj.survey, name);
-      obj.setPropertyValue('name', uniqueName);
-      obj.setPropertyValue('valueName', uniqueName);
-      obj.setPropertyValue('htmlTitle', value);
+      // Add a timer to limit the number of calls
+      const timer = setTimeout(() => {
+        // Transform the value into the name format
+        const name = value.trim().replace(/\s+/g, '_').toLowerCase();
+        const uniqueName = getUniqueName(question.survey, name);
+        question.setPropertyValue('valueName', uniqueName);
+      }, 500);
+      question.timerId = clearTimeout(question.timerId);
+      question.timerId = timer;
     },
   });
 };
