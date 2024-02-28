@@ -48,6 +48,11 @@ export interface LayerFormData {
     description: string;
     popupElements: PopupElement[];
     fieldsInfo?: Fields[];
+    navigateToPage?: boolean;
+    navigateSettings?: {
+      field: string;
+      pageUrl: string;
+    };
   };
   datasource?: {
     origin?: 'resource' | 'refData';

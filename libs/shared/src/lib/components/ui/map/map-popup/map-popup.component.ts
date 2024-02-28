@@ -2,6 +2,7 @@ import {
   AfterContentInit,
   Component,
   EventEmitter,
+  Inject,
   Input,
   Output,
 } from '@angular/core';
@@ -15,6 +16,8 @@ import { ButtonModule, DividerModule, TooltipModule } from '@oort-front/ui';
 import { LatLng } from 'leaflet';
 import get from 'lodash/get';
 import { isNil } from 'lodash';
+import { ButtonModule as KendoButtonModule } from '@progress/kendo-angular-buttons';
+import { Router } from '@angular/router';
 
 /** Component for a popup that has information on multiple points */
 @Component({
@@ -23,9 +26,10 @@ import { isNil } from 'lodash';
   imports: [
     CommonModule,
     TranslateModule,
-    ButtonModule,
     DividerModule,
     TooltipModule,
+    ButtonModule,
+    KendoButtonModule,
   ],
   templateUrl: './map-popup.component.html',
   styleUrls: ['./map-popup.component.scss'],
@@ -52,6 +56,16 @@ export class MapPopupComponent
   /** Current point */
   public current = new BehaviorSubject<number>(0);
 
+  /** Current environment */
+  private environment: any;
+
+  // TODO initialize
+  public navigateToPage = true;
+  public navigateSettings = {
+    field: '',
+    pageUrl: '',
+  };
+
   /** @returns current as an observable */
   get current$() {
     return this.current.asObservable();
@@ -67,8 +81,13 @@ export class MapPopupComponent
    *
    * @param sanitizer The dom sanitizer, to sanitize the template
    */
-  constructor(private sanitizer: DomSanitizer) {
+  constructor(
+    @Inject('environment') environment: any,
+    private router: Router,
+    private sanitizer: DomSanitizer
+  ) {
     super();
+    this.environment = environment.module || 'frontoffice';
   }
 
   ngAfterContentInit(): void {
@@ -108,5 +127,27 @@ export class MapPopupComponent
    */
   public zoomToCurrentFeature() {
     this.zoomTo.emit(this.coordinates);
+  }
+
+  public navigate(event: any) {
+    let fullUrl = this.getPageUrl(event.pageUrl as string);
+    if (event.field) {
+      const field = get(event, 'field', '');
+      const value = get(event, `item.${field}`);
+      fullUrl = `${fullUrl}?id=${value}`;
+    }
+    this.router.navigateByUrl(fullUrl);
+  }
+
+  /**
+   * Get page url full link taking into account the environment.
+   *
+   * @param pageUrlParams page url params
+   * @returns url of the page
+   */
+  private getPageUrl(pageUrlParams: string): string {
+    return this.environment.module === 'backoffice'
+      ? `applications/${pageUrlParams}`
+      : `${pageUrlParams}`;
   }
 }
