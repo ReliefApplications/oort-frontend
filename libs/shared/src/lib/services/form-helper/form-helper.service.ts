@@ -702,7 +702,7 @@ export class FormHelpersService {
    *
    * @param survey Survey instance
    */
-  public addQueryParamsVariables = (survey: SurveyModel) => {
+  public addQueryParamsVariables = () => {
     const queryParams = this.router.parseUrl(this.router.url).queryParams;
     console.log('queryParams', queryParams);
   };
