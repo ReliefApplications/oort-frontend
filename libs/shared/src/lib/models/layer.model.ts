@@ -120,6 +120,11 @@ export interface PopupInfo {
   description?: string;
   popupElements?: PopupElement[];
   fieldsInfo?: Fields[];
+  navigateToPage?: boolean;
+  navigateSettings?: {
+    field: string;
+    pageUrl: string;
+  };
 }
 
 export type LayerDatasourceType = 'Point' | 'Polygon';

@@ -34,15 +34,9 @@
         *ngIf="navigateToPage"
         size="small"
         [isIcon]="true"
-        icon="hyperlink-open-sm"
+        icon="launch"
         variant="light"
-        (click)="
-          navigate({
-            action: 'goTo',
-            pageUrl: navigateSettings.pageUrl,
-            field: navigateSettings.field
-          })
-        "
+        (click)="navigate(navigateSettings)"
         [uiTooltip]="'components.widget.grid.actions.goTo' | translate"
       ></ui-button>
       <!-- Close popup -->

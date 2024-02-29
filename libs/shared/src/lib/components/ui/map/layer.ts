@@ -170,6 +170,11 @@ export class Layer implements LayerModel {
     title: '',
     description: '',
     popupElements: [],
+    navigateToPage: false,
+    navigateSettings: {
+      field: '',
+      pageUrl: '',
+    },
   };
   /** Created at */
   public createdAt!: Date;

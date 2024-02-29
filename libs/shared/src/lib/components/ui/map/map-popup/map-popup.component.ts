@@ -59,8 +59,8 @@ export class MapPopupComponent
   /** Current environment */
   private environment: any;
 
-  // TODO initialize
-  public navigateToPage = true;
+  /** Navigation info */
+  public navigateToPage = false;
   public navigateSettings = {
     field: '',
     pageUrl: '',
@@ -79,6 +79,8 @@ export class MapPopupComponent
   /**
    * Component for a popup that has information on multiple points
    *
+   * @param environment platform environment
+   * @param router Angular Router
    * @param sanitizer The dom sanitizer, to sanitize the template
    */
   constructor(
@@ -87,7 +89,7 @@ export class MapPopupComponent
     private sanitizer: DomSanitizer
   ) {
     super();
-    this.environment = environment.module || 'frontoffice';
+    this.environment = environment;
   }
 
   ngAfterContentInit(): void {
@@ -129,11 +131,17 @@ export class MapPopupComponent
     this.zoomTo.emit(this.coordinates);
   }
 
-  public navigate(event: any) {
-    let fullUrl = this.getPageUrl(event.pageUrl as string);
-    if (event.field) {
-      const field = get(event, 'field', '');
-      const value = get(event, `item.${field}`);
+  /**
+   * Create and navigate to the specified url
+   * @param navigateSettings navigation settings
+   */
+  public navigate(navigateSettings: any) {
+    // Closing the popup manually, otherwise, the tooltip isn't destroyed properly
+    this.closePopup.emit();
+    let fullUrl = this.getPageUrl(navigateSettings.pageUrl as string);
+    if (navigateSettings.field) {
+      const field = get(navigateSettings, 'field', '');
+      const value = get(this.feature[this.currValue].properties, field);
       fullUrl = `${fullUrl}?id=${value}`;
     }
     this.router.navigateByUrl(fullUrl);

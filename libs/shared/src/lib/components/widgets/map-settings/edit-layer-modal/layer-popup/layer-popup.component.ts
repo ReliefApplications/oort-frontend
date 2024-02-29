@@ -37,7 +37,6 @@ export class LayerPopupComponent
   public fields: any[] = [];
   /** Editor configuration */
   public editorConfig = INLINE_EDITOR_CONFIG;
-
   /** Available pages from the application */
   public pages: any[] = [];
   /** Grid actions */
@@ -57,7 +56,8 @@ export class LayerPopupComponent
   /**
    * Creates an instance of LayerPopupComponent.
    *
-   * @param editorService Shared tinymce editor service.
+   * @param editorService Shared tinymce editor service
+   * @param applicationService Shared application service
    */
   constructor(
     private editorService: EditorService,

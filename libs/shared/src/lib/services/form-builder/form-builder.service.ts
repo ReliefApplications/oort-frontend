@@ -294,7 +294,7 @@ export class FormBuilderService {
     }
 
     // Set query params as variables
-    this.formHelpersService.addQueryParamsVariables(survey);
+    this.formHelpersService.addQueryParamsVariables();
 
     survey.showNavigationButtons = 'none';
     survey.showProgressBar = 'off';
