@@ -261,6 +261,7 @@
 					"ready": "Fichier importé"
 				}
 			},
+			"formStatus": "Le statut actuel du formulaire ne permet pas son affichage.",
 			"formatInvalid": "Veuillez importer un fichier de format .{{format}}.",
 			"groups": {
 				"error": "Une erreur s'est produite lors de la tentative d'obtenir des groupes du service",
