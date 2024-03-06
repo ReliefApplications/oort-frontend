@@ -261,6 +261,7 @@
 					"ready": "******"
 				}
 			},
+			"formStatus": "******",
 			"formatInvalid": "****** {{format}} ******",
 			"groups": {
 				"error": "******",

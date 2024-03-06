@@ -261,6 +261,7 @@
 					"ready": "File uploaded"
 				}
 			},
+			"formStatus": "The current status of the form does not allow it to be displayed.",
 			"formatInvalid": "Please upload a valid .{{format}} file.",
 			"groups": {
 				"error": "Something went wrong trying to get groups from service",
