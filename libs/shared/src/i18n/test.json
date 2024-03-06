@@ -944,6 +944,16 @@
 						"all": "******",
 						"current": "******"
 					}
+				},
+				"timeline": {
+					"show": "******",
+					"time": {
+						"dateFormat": "******",
+						"startField": "******",
+						"stopField": "******",
+						"tooltip": "******"
+					},
+					"title": "******"
 				}
 			}
 		},
@@ -1516,6 +1526,7 @@
 				},
 				"grid": {
 					"actions": {
+						"actionsAsIcons": "******",
 						"add": "******",
 						"convert": "******",
 						"delete": "******",
@@ -1608,6 +1619,7 @@
 					},
 					"hint": {
 						"actions": {
+							"actionsAsIcons": "******",
 							"add": "******",
 							"convert": "******",
 							"delete": "******",

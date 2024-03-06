@@ -957,15 +957,15 @@
 					}
 				},
 				"timeline": {
-          "title": "Timeline",
-          "show": "Afficher la chronologie",
-          "time": {
-            "tooltip": "Lorsqu'elle est activée, une chronologie sera affichée sur la carte. Il vous permettra de visualiser l’évolution de vos données dans le temps.",
-            "startField": "Commencez à afficher à",
-            "stopField": "Arrêter de s'afficher à",
-            "dateFormat": "Affichage des dates"
-          }
-        }
+					"show": "Afficher la chronologie",
+					"time": {
+						"dateFormat": "Affichage des dates",
+						"startField": "Commencez à afficher à",
+						"stopField": "Arrêter de s'afficher à",
+						"tooltip": "Lorsqu'elle est activée, une chronologie sera affichée sur la carte. Il vous permettra de visualiser l’évolution de vos données dans le temps."
+					},
+					"title": "Timeline"
+				}
 			}
 		},
 		"mapping": {
@@ -1539,6 +1539,7 @@
 				},
 				"grid": {
 					"actions": {
+						"actionsAsIcons": "Afficher les actions sous forme d'icônes",
 						"add": "Ajouter de nouveaux enregistrements",
 						"convert": "Convertir des enregistrements",
 						"delete": "Supprimer les enregistrements",
@@ -1631,6 +1632,7 @@
 					},
 					"hint": {
 						"actions": {
+							"actionsAsIcons": "Si autorisé, au lieu d'afficher le menu à trois points, toutes les actions seront affichées sous forme d'icônes côte à côte",
 							"add": "L'utilisateur peut ajouter de nouveaux enregistrements avec le modèle choisi, s'il en a la permission",
 							"convert": "L'utilisateur peut convertir les enregistrements avec les autres modèles de la ressource sélectionnée, s'il en a la permission",
 							"delete": "L'utilisateur peut supprimer les enregistrements affichés, s'il en a la permission",

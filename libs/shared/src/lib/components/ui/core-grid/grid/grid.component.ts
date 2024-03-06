@@ -137,6 +137,7 @@ export class GridComponent
       title: '',
     },
     remove: false,
+    actionsAsIcons: false,
   };
   /** Input decorator */
   @Input() hasDetails = true;

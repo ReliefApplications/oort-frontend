@@ -318,6 +318,7 @@ export class CoreGridComponent
       title: '',
     },
     remove: false,
+    actionsAsIcons: false,
   };
 
   /** Whether the grid is editable */
@@ -428,6 +429,7 @@ export class CoreGridComponent
         title: get(this.settings, 'actions.navigateSettings.title', ''),
       },
       remove: get(this.settings, 'actions.remove', false),
+      actionsAsIcons: get(this.settings, 'actions.actionsAsIcons', false),
     };
     this.editable = this.settings.actions?.inlineEdition;
     if (!isNil(this.settings.actions?.search)) {

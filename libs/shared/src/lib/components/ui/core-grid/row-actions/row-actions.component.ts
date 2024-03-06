@@ -33,6 +33,9 @@ export class GridRowActionsComponent {
   /** Tells if only one action is enabled, if it should be displayed as a single button */
   @Input() singleActionAsButton = false;
 
+  /** Tells if should be used instead of the menu the actions as icons side by side */
+  @Input() actionsAsIcons = false;
+
   /** Event emitter for the action event */
   @Output() action = new EventEmitter();
 
