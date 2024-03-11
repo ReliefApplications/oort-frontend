@@ -911,6 +911,7 @@ export class SummaryCardComponent
         update: get(this.settings, 'actions.update', true),
         navigateToPage: get(this.settings, 'actions.navigateToPage', false),
         actionsAsIcons: get(this.settings, 'actions.actionsAsIcons', false),
+        copyField: get(this.settings, 'actions.copyField', ''),
         navigateSettings: {
           pageUrl: get(this.settings, 'actions.navigateSettings.pageUrl', ''),
           field: get(this.settings, 'actions.navigateSettings.field', ''),

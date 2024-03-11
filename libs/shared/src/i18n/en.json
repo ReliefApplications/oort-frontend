@@ -78,6 +78,7 @@
 		},
 		"comma": "comma",
 		"copy": "Copy",
+		"copyField": "Copy field",
 		"create": "Create",
 		"createdOn": "Created on",
 		"cronEditor": {
@@ -1530,6 +1531,8 @@
 						"actionsAsIcons": "Display actions as icons",
 						"add": "Add new records",
 						"convert": "Convert records",
+						"copyField": "Copy field value to clipboard",
+						"copyFieldDone": "Field value copied!",
 						"delete": "Delete records",
 						"export": "Export records",
 						"goTo": {
@@ -1623,6 +1626,7 @@
 							"actionsAsIcons": "If authorized, instead of displaying the three dots menu, all the actions will be displayed as icons side by side",
 							"add": "If authorized, user can add new records using selected template",
 							"convert": "If authorized, user can convert record using another template of selected resource",
+							"copyField": "Value of selected field can be copied to clipboard with action button",
 							"delete": "If authorized, user can delete visible records",
 							"export": "User can export selected columns of visible records",
 							"goTo": "User can go to specified page on click",

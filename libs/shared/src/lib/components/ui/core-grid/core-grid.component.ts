@@ -56,6 +56,7 @@ import { ConfirmService } from '../../../services/confirm/confirm.service';
 import { ContextService } from '../../../services/context/context.service';
 import { ResourceQueryResponse } from '../../../models/resource.model';
 import { Router } from '@angular/router';
+import { Clipboard } from '@angular/cdk/clipboard';
 
 /**
  * Default file name when exporting grid data.
@@ -319,6 +320,7 @@ export class CoreGridComponent
     },
     remove: false,
     actionsAsIcons: false,
+    copyField: '',
   };
 
   /** Whether the grid is editable */
@@ -351,6 +353,7 @@ export class CoreGridComponent
    * @param contextService Shared context service
    * @param router Angular Router
    * @param el Element reference
+   * @param clipboard Angular clipboard service
    */
   constructor(
     @Inject('environment') environment: any,
@@ -367,7 +370,8 @@ export class CoreGridComponent
     private applicationService: ApplicationService,
     private contextService: ContextService,
     private router: Router,
-    private el: ElementRef
+    private el: ElementRef,
+    private clipboard: Clipboard
   ) {
     super();
     this.environment = environment;
@@ -430,6 +434,7 @@ export class CoreGridComponent
       },
       remove: get(this.settings, 'actions.remove', false),
       actionsAsIcons: get(this.settings, 'actions.actionsAsIcons', false),
+      copyField: get(this.settings, 'actions.copyField', ''),
     };
     this.editable = this.settings.actions?.inlineEdition;
     if (!isNil(this.settings.actions?.search)) {
@@ -1052,6 +1057,17 @@ export class CoreGridComponent
           }
         );
 
+        break;
+      }
+      case 'copyField': {
+        if (event.item) {
+          this.clipboard.copy(event.item[this.settings.actions.copyField]);
+          this.snackBar.openSnackBar(
+            this.translate.instant(
+              'components.widget.settings.grid.actions.copyFieldDone'
+            )
+          );
+        }
         break;
       }
       default: {

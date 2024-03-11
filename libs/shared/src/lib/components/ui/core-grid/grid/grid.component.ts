@@ -138,6 +138,7 @@ export class GridComponent
     },
     remove: false,
     actionsAsIcons: false,
+    copyField: '',
   };
   /** Input decorator */
   @Input() hasDetails = true;

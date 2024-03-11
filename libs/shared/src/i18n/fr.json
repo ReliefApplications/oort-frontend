@@ -78,6 +78,7 @@
 		},
 		"comma": "virgule",
 		"copy": "Copier",
+		"copyField": "Copier le champ",
 		"create": "Créer",
 		"createdOn": "Date de création",
 		"cronEditor": {
@@ -1543,6 +1544,8 @@
 						"actionsAsIcons": "Afficher les actions sous forme d'icônes",
 						"add": "Ajouter de nouveaux enregistrements",
 						"convert": "Convertir des enregistrements",
+						"copyField": "Copier la valeur du champ dans le presse-papiers",
+						"copyFieldDone": "Valeur du champ copiée!",
 						"delete": "Supprimer les enregistrements",
 						"export": "Exporter les enregistrements",
 						"goTo": {
@@ -1636,6 +1639,7 @@
 							"actionsAsIcons": "Si autorisé, au lieu d'afficher le menu à trois points, toutes les actions seront affichées sous forme d'icônes côte à côte",
 							"add": "L'utilisateur peut ajouter de nouveaux enregistrements avec le modèle choisi, s'il en a la permission",
 							"convert": "L'utilisateur peut convertir les enregistrements avec les autres modèles de la ressource sélectionnée, s'il en a la permission",
+							"copyField": "La valeur du champ sélectionné peut être copiée dans le presse-papiers avec le bouton d'action",
 							"delete": "L'utilisateur peut supprimer les enregistrements affichés, s'il en a la permission",
 							"export": "L'utilisateur peut exporter les enregistrements affichés",
 							"goTo": "L'utilisateur peut accéder au tableau de bord d'enregistrement",

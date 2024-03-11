@@ -78,6 +78,7 @@
 		},
 		"comma": "******",
 		"copy": "******",
+		"copyField": "******",
 		"create": "******",
 		"createdOn": "******",
 		"cronEditor": {
@@ -1530,6 +1531,8 @@
 						"actionsAsIcons": "******",
 						"add": "******",
 						"convert": "******",
+						"copyField": "******",
+						"copyFieldDone": "******",
 						"delete": "******",
 						"export": "******",
 						"goTo": {
@@ -1623,6 +1626,7 @@
 							"actionsAsIcons": "******",
 							"add": "******",
 							"convert": "******",
+							"copyField": "******",
 							"delete": "******",
 							"export": "******",
 							"goTo": "******",

@@ -28,6 +28,7 @@ export class GridRowActionsComponent {
     history: false,
     convert: false,
     remove: false,
+    copyField: null,
   };
 
   /** Tells if only one action is enabled, if it should be displayed as a single button */

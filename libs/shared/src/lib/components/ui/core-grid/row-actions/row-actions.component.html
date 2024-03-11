@@ -45,6 +45,15 @@
       (click)="action.emit({ action: 'remove', item: item })"
       [uiTooltip]="'components.widget.settings.grid.actions.remove' | translate"
     ></button>
+
+    <button
+      *ngIf="actions.copyField"
+      kendoButton
+      icon="copy"
+      [look]="'flat'"
+      (click)="action.emit({ action: 'copyField', item: item })"
+      [uiTooltip]="'components.widget.settings.grid.actions.copyField' | translate"
+    ></button>
   </div>
 </ng-container>
 
@@ -113,6 +122,15 @@
     >
       {{ 'components.widget.settings.grid.actions.remove' | translate }}
       <div id="remove-action-label"></div>
+    </button>
+    <button
+      *ngIf="actions.copyField"
+      id="copy-field-action-button"
+      uiMenuItem
+      (click)="action.emit({ action: 'copyField', item: item })"
+    >
+      {{ 'common.copyField' | translate }}
+      <div id="copy-field-action-label"></div>
     </button>
   </ui-menu>
 </ng-container>

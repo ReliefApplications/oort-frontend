@@ -41,4 +41,5 @@ export interface GridActions {
   search?: boolean;
   inlineEdition?: boolean;
   actionsAsIcons?: boolean;
+  copyField?: string;
 }

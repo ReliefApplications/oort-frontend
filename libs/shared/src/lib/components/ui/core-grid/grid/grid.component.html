@@ -1077,7 +1077,7 @@
           [singleActionAsButton]="
             !!widget?.settings?.widgetDisplay?.showSingleActionAsButton
           "
-          [actions]="actions"
+          [actions]="$any(actions)"
           [actionsAsIcons]="actions.actionsAsIcons ?? false"
           (action)="action.emit($event)"
         >

@@ -247,6 +247,7 @@ export const createGridActionsFormGroup = (configuration: any) => {
     showDetails: [get(configuration, 'actions.showDetails', true)],
     navigateToPage: [get(configuration, 'actions.navigateToPage', false)],
     actionsAsIcons: [get(configuration, 'actions.actionsAsIcons', false)],
+    copyField: [get(configuration, 'actions.copyField', '')],
     navigateSettings: fb.group({
       pageUrl: [get(configuration, 'actions.navigateSettings.pageUrl', '')],
       field: [get(configuration, 'actions.navigateSettings.field', '')],
