@@ -383,4 +383,13 @@ export class ResourcesComponent extends UnsubscribeComponent implements OnInit {
     );
     this.filterLoading = false;
   }
+
+  /**
+   * Open modal to update resource incremental Id Shape.
+   *
+   * @param resource Resource to update.
+   */
+  onUpdateIncrementalIdShape(resource: Resource): void {
+    console.log('onUpdateIncrementalIdShape', resource);
+  }
 }

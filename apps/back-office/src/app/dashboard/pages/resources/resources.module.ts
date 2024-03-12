@@ -21,12 +21,13 @@ import {
   DateModule,
   TooltipModule,
 } from '@oort-front/ui';
+import { IdShapeModalComponent } from './id-shape-modal/id-shape-modal.component';
 
 /**
  * Resources page module.
  */
 @NgModule({
-  declarations: [ResourcesComponent, FilterComponent],
+  declarations: [ResourcesComponent, FilterComponent, IdShapeModalComponent],
   imports: [
     CommonModule,
     ResourcesRoutingModule,

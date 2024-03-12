@@ -87,6 +87,11 @@
               {{ 'common.duplicate' | translate }}
             </button>
 
+            <button uiMenuItem (click)="onUpdateIncrementalIdShape(element)">
+              <ui-icon icon="edit" variant="grey"></ui-icon>
+              {{ 'components.resource.incrementalIdShape' | translate }}
+            </button>
+
             <button uiMenuItem (click)="onDelete(element)">
               <ui-icon icon="delete" variant="danger"></ui-icon>
               {{ 'common.delete' | translate }}

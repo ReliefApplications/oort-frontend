@@ -1178,6 +1178,7 @@
 				"layouts": "******",
 				"records": "******"
 			},
+			"incrementalIdShape": "******",
 			"paginator": {
 				"ariaLabel": "******"
 			}
@@ -2520,6 +2521,9 @@
 			"notifications": {
 				"notUpdated": "******",
 				"updated": "******"
+			},
+			"password": {
+				"change": "******"
 			},
 			"title": "******"
 		},
