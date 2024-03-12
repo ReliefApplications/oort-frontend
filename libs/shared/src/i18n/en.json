@@ -2521,6 +2521,9 @@
 				"notUpdated": "Error on saving preferences.",
 				"updated": "Preferences saved."
 			},
+			"password": {
+				"change": "Change password"
+			},
 			"title": "Your profile"
 		},
 		"pullJobs": {

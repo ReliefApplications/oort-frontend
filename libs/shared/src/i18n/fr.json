@@ -2535,6 +2535,9 @@
 				"notUpdated": "Erreur lors de l'enregistrement des préférences.",
 				"updated": "Préférences sauvegardées."
 			},
+			"password": {
+				"change": "Changer le mot de passe"
+			},
 			"title": "Votre profil"
 		},
 		"pullJobs": {
