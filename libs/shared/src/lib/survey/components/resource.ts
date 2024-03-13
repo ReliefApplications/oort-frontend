@@ -265,8 +265,8 @@ export const init = (
         onSetValue: (question: QuestionResource, value: boolean) => {
           if (value) {
             question.setPropertyValue('canOnlyCreateRecords', false);
-            question.setPropertyValue('canSearch', true);
           }
+          question.setPropertyValue('canSearch', value);
         },
       });
 
@@ -626,8 +626,9 @@ export const init = (
         document,
         ngZone
       );
-      // Hide search button by default
-      searchBtn.style.display = 'none';
+      const addBtn = buildAddButton(question, false, dialog, ngZone, document);
+      actionsButtons.appendChild(searchBtn);
+      actionsButtons.appendChild(addBtn);
       // support the placeholder field
       if (question.placeholder) {
         question.contentQuestion.optionsCaption = get(
@@ -636,21 +637,8 @@ export const init = (
           ''
         );
       }
-      if (
-        (question.survey as SurveyModel).mode !== 'display' &&
-        question.resource
-      ) {
-        searchBtn.style.display = 'block';
-        const addBtn = buildAddButton(
-          question,
-          false,
-          dialog,
-          ngZone,
-          document
-        );
-        actionsButtons.appendChild(searchBtn);
-        actionsButtons.appendChild(addBtn);
-
+      searchBtn.style.display = question.resource ? 'block' : 'none';
+      if ((question.survey as SurveyModel).mode !== 'display') {
         // actionsButtons.style.display = ((!question.addRecord || !question.addTemplate) && !question.gridFieldsSettings) ? 'none' : '';
         question.registerFunctionOnPropertyValueChanged('canSearch', () => {
           searchBtn.style.display = question.canSearch ? 'block' : 'none';
@@ -673,7 +661,15 @@ export const init = (
           addRecordToSurveyContext(options.question, options.value);
         });
       }
-      actionsButtons.appendChild(searchBtn);
+      question.registerFunctionOnPropertyValueChanged('resource', () => {
+        if (question.resource) {
+          question.canSearch = true;
+          searchBtn.style.display = 'block';
+        } else {
+          question.canSearch = false;
+          searchBtn.style.display = 'none';
+        }
+      });
       const header = el.querySelector('.sd-question__header') as HTMLDivElement;
       // make header flex to align buttons
       if (header) {
@@ -684,11 +680,6 @@ export const init = (
       } else if (parentElement) {
         parentElement.insertBefore(actionsButtons, parentElement.firstChild);
       }
-      question.registerFunctionOnPropertyValueChanged('resource', () => {
-        if (question.resource && question.canSearch) {
-          searchBtn.style.display = 'block';
-        }
-      });
     },
   };
   componentCollectionInstance.add(component);
