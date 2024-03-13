@@ -1,4 +1,17 @@
-import { Component } from '@angular/core';
+import { DIALOG_DATA } from '@angular/cdk/dialog';
+import { Component, Inject } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { UnsubscribeComponent } from '@oort-front/shared';
+import { isNil } from 'lodash';
+import { takeUntil } from 'rxjs';
+
+/**
+ * Interface with the resource id shape data
+ */
+interface DialogData {
+  shape: string;
+  padding: number;
+}
 
 /**
  * Modal to update resource incremental id shape.
@@ -8,25 +21,55 @@ import { Component } from '@angular/core';
   templateUrl: './id-shape-modal.component.html',
   styleUrls: ['./id-shape-modal.component.scss'],
 })
-export class IdShapeModalComponent {
+export class IdShapeModalComponent extends UnsubscribeComponent {
+  /** Id shape form group */
+  public idShapeForm = this.fb.group({
+    shape: [this.data?.shape, Validators.required],
+    padding: [this.data?.padding, Validators.required],
+  });
+  /** If shape input is valid */
+  public validShape = false;
+  /** Example of incremental id using the shape input */
+  public incrementalIdExample?: string;
+
+  /**
+   * Channel component, act as modal.
+   * Used for both edition and addition of channels.
+   *
+   * @param fb Angular form builder
+   * @param data Injected dialog data
+   */
+  constructor(
+    private fb: FormBuilder,
+    @Inject(DIALOG_DATA) public data: DialogData
+  ) {
+    super();
+    if (this.data) {
+      this.parseIDExpression(this.data.shape);
+    }
+
+    // Listen to changes on the form to check the expression validity
+    this.idShapeForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() =>
+        this.parseIDExpression(this.idShapeForm.controls.shape.value ?? '')
+      );
+  }
+
   /**
    * Parse the ID expression and return an example of the expression
    *
    * @param expression The expression to parse
-   * @param padding Padding for the incremental id
-   * @returns An object with the validity of the expression and an example of the expression
    */
-  public parseIDExpression(
-    expression: string,
-    padding: number
-  ): { valid: boolean; example: string | null } {
+  public parseIDExpression(expression: string): void {
+    // Padding for the incremental id
+    const padding = this.idShapeForm.controls.padding.value;
     expression = expression.trim();
     // The expression must include {incremental}
-    if (!expression.includes('{incremental}')) {
-      return {
-        valid: false,
-        example: null,
-      };
+    if (!expression.includes('{incremental}') || isNil(padding)) {
+      this.validShape = false;
+      this.incrementalIdExample = undefined;
+      return;
     }
     let res = expression;
 
@@ -38,7 +81,7 @@ export class IdShapeModalComponent {
     // Replace all instances of {incremental} with the randomId padded with 0s
     res = res.replace(
       /{incremental}/g,
-      randomId.toString().padStart(padding, '0')
+      randomId.toString().padStart(padding as number, '0')
     );
 
     // Replace all instances of {year} with the current year
@@ -50,9 +93,7 @@ export class IdShapeModalComponent {
     // Replace all instances of {formName} with the form name
     res = res.replace(/{formName}/g, formName);
 
-    return {
-      valid: true,
-      example: res,
-    };
+    this.validShape = true;
+    this.incrementalIdExample = res;
   }
 }

@@ -20,6 +20,8 @@ import {
   PaginatorModule,
   DateModule,
   TooltipModule,
+  DialogModule,
+  ErrorMessageModule,
 } from '@oort-front/ui';
 import { IdShapeModalComponent } from './id-shape-modal/id-shape-modal.component';
 
@@ -46,6 +48,8 @@ import { IdShapeModalComponent } from './id-shape-modal/id-shape-modal.component
     DateModule,
     TooltipModule,
     ListFilterComponent,
+    DialogModule,
+    ErrorMessageModule,
   ],
   exports: [ResourcesComponent],
 })

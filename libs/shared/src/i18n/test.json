@@ -1178,7 +1178,15 @@
 				"layouts": "******",
 				"records": "******"
 			},
-			"incrementalIdShape": "******",
+			"incrementalIdShape": {
+				"example": "******",
+				"invalidExpression": "******",
+				"padding": "******",
+				"shape": "******",
+				"title": "******",
+				"updateError": "****** {{error}}",
+				"updateSuccess": "****** {{resource}} ******"
+			},
 			"paginator": {
 				"ariaLabel": "******"
 			}
