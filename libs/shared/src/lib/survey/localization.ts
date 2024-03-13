@@ -10,6 +10,13 @@ const SURVEY_LOCALIZABLE_STRINGS = [
     },
   },
   {
+    key: 'updateRecord',
+    locales: {
+      en: 'Update a record',
+      fr: 'Modifier un enregistrement',
+    },
+  },
+  {
     key: 'search',
     locales: {
       en: 'Search',
