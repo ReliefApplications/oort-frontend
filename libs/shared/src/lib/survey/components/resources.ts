@@ -670,39 +670,34 @@ export const init = (
         document,
         ngZone
       );
-      searchBtn.style.display = 'none';
-      if (question.resource) {
-        searchBtn.style.display = 'block';
-        if (parentElement) {
-          gridComponentRef = buildGridDisplay(question, parentElement);
-          if ((question.survey as SurveyModel).mode !== 'display') {
-            searchBtn.style.display = 'block';
-            const addBtn = buildAddButton(
-              question,
-              true,
-              dialog,
-              ngZone,
-              document
-            );
-            actionsButtons.appendChild(addBtn);
-
-            // actionsButtons.style.display = ((!question.addRecord || !question.addTemplate) && !question.gridFieldsSettings) ? 'none' : '';
-            question.registerFunctionOnPropertyValueChanged(
-              'addTemplate',
-              () => {
-                addBtn.style.display =
-                  question.addRecord && question.addTemplate ? '' : 'none';
-              }
-            );
-            question.registerFunctionOnPropertyValueChanged('addRecord', () => {
-              addBtn.style.display =
-                question.addRecord &&
-                question.addTemplate &&
-                !question.isReadOnly
-                  ? ''
-                  : 'none';
-            });
-          }
+      const addBtn = buildAddButton(question, true, dialog, ngZone, document);
+      actionsButtons.appendChild(searchBtn);
+      actionsButtons.appendChild(addBtn);
+      searchBtn.style.display =
+        question.resource && question.canSearch && !question.displayAsGrid
+          ? 'block'
+          : 'none';
+      if (parentElement) {
+        gridComponentRef = buildGridDisplay(question, parentElement);
+        if ((question.survey as SurveyModel).mode !== 'display') {
+          // actionsButtons.style.display = ((!question.addRecord || !question.addTemplate) && !question.gridFieldsSettings) ? 'none' : '';
+          question.registerFunctionOnPropertyValueChanged('canSearch', () => {
+            if (question.displayAsGrid) {
+              setGridInputs(gridComponentRef.instance, question);
+            } else {
+              searchBtn.style.display = question.canSearch ? 'block' : 'none';
+            }
+          });
+          question.registerFunctionOnPropertyValueChanged('addTemplate', () => {
+            addBtn.style.display =
+              question.addRecord && question.addTemplate ? '' : 'none';
+          });
+          question.registerFunctionOnPropertyValueChanged('addRecord', () => {
+            addBtn.style.display =
+              question.addRecord && question.addTemplate && !question.isReadOnly
+                ? ''
+                : 'none';
+          });
         }
 
         const survey = question.survey as SurveyModel;
@@ -727,7 +722,6 @@ export const init = (
           });
         }
       }
-      actionsButtons.appendChild(searchBtn);
 
       const header = el.querySelector('.sd-question__header') as HTMLDivElement;
       // make header flex to align buttons
@@ -740,15 +734,12 @@ export const init = (
         parentElement.insertBefore(actionsButtons, parentElement.firstChild);
       }
       question.registerFunctionOnPropertyValueChanged('resource', () => {
-        if (question.resource && question.canSearch) {
+        if (question.resource) {
+          question.canSearch = true;
           searchBtn.style.display = 'block';
-        }
-      });
-      question.registerFunctionOnPropertyValueChanged('canSearch', () => {
-        if (question.displayAsGrid) {
-          setGridInputs(gridComponentRef.instance, question);
         } else {
-          searchBtn.style.display = question.canSearch ? 'block' : 'none';
+          question.canSearch = false;
+          searchBtn.style.display = 'none';
         }
       });
       question.registerFunctionOnPropertyValueChanged(

@@ -637,7 +637,8 @@ export const init = (
           ''
         );
       }
-      searchBtn.style.display = question.resource ? 'block' : 'none';
+      searchBtn.style.display =
+        question.resource && question.canSearch ? 'block' : 'none';
       if ((question.survey as SurveyModel).mode !== 'display') {
         // actionsButtons.style.display = ((!question.addRecord || !question.addTemplate) && !question.gridFieldsSettings) ? 'none' : '';
         question.registerFunctionOnPropertyValueChanged('canSearch', () => {
