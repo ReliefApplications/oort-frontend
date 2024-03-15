@@ -302,21 +302,24 @@ export class SummaryCardComponent
       });
 
     // Listen to dashboard filters changes if it is necessary
-    this.contextService.filter$
-      .pipe(debounceTime(500), takeUntil(this.destroy$))
-      .subscribe(({ previous, current, resourceId }) => {
-        const hasFilter =
-          (this.contextService.filterRegex.test(
-            this.widget.settings.contextFilters
-          ) ||
-            this.contextService.filterRegex.test(
-              this.widget?.settings?.card?.referenceDataVariableMapping
-            )) &&
-          this.contextService.shouldRefresh(this.widget, previous, current);
-        if (resourceId === this.settings.card?.resource || hasFilter) {
-          this.refresh();
-        }
-      });
+    if (
+      this.contextService.filterRegex.test(
+        this.widget.settings.contextFilters
+      ) ||
+      this.contextService.filterRegex.test(
+        this.widget?.settings?.card?.referenceDataVariableMapping
+      )
+    ) {
+      this.contextService.filter$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(({ previous, current }) => {
+          if (
+            this.contextService.shouldRefresh(this.widget, previous, current)
+          ) {
+            this.refresh();
+          }
+        });
+    }
   }
 
   ngAfterViewInit(): void {

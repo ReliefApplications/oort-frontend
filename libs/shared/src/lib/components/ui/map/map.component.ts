@@ -55,7 +55,7 @@ import {
   pick,
   clone,
 } from 'lodash';
-import { Subject, debounceTime, filter, from, merge, takeUntil } from 'rxjs';
+import { Subject, filter, from, merge, takeUntil } from 'rxjs';
 import { MapPopupService } from './map-popup/map-popup.service';
 import { Platform } from '@angular/cdk/platform';
 import { ContextService } from '../../../services/context/context.service';
@@ -242,28 +242,28 @@ export class MapComponent
       (layer: any) => get(layer, 'datasource.resource') || ''
     );
     // Listen to dashboard filters changes to apply layers filter, if it is necessary
-    this.contextService.filter$
-      .pipe(
-        debounceTime(500),
-        filter(
-          ({ previous, current, resourceId }) =>
-            allResources.includes(resourceId) ||
-            (this.contextService.filterRegex.test(
-              allContextFilters + allGraphQLVariables
-            ) &&
-              this.contextService.shouldRefresh(
-                this.layers.map((layer) => {
-                  return pick(layer, ['datasource', 'contextFilters', 'at']);
-                }),
-                previous,
-                current
-              ))
-        ),
-        takeUntil(this.destroy$)
+    if (
+      this.contextService.filterRegex.test(
+        allContextFilters + allGraphQLVariables
       )
-      .subscribe(() => {
-        this.filterLayers();
-      });
+    ) {
+      this.contextService.filter$
+        .pipe(
+          filter(({ previous, current }) =>
+            this.contextService.shouldRefresh(
+              this.layers.map((layer) => {
+                return pick(layer, ['datasource', 'contextFilters', 'at']);
+              }),
+              previous,
+              current
+            )
+          ),
+          takeUntil(this.destroy$)
+        )
+        .subscribe(() => {
+          this.filterLayers();
+        });
+    }
   }
 
   override ngOnDestroy(): void {
@@ -478,7 +478,7 @@ export class MapComponent
     if (fieldValue) {
       // Listen to dashboard filters changes to apply getGeographicExtentValue values changes
       this.contextService.filter$
-        .pipe(debounceTime(500), takeUntil(this.destroy$))
+        .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
           this.zoomOn();
         });

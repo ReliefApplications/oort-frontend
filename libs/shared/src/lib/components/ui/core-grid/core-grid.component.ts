@@ -371,7 +371,7 @@ export class CoreGridComponent
     super();
     this.environment = environment;
     contextService.filter$
-      .pipe(debounceTime(500), takeUntil(this.destroy$))
+      .pipe(takeUntil(this.destroy$))
       .subscribe(({ previous, current, resourceId }) => {
         if (
           resourceId === this.settings.resource ||

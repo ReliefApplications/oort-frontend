@@ -9,7 +9,7 @@ import { AggregationBuilderService } from '../../../services/aggregation-builder
 import { AggregationService } from '../../../services/aggregation/aggregation.service';
 import { PAGER_SETTINGS } from './aggregation-grid.constants';
 import { GET_RESOURCE } from './graphql/queries';
-import { Subject, debounceTime, from, merge, takeUntil } from 'rxjs';
+import { Subject, from, merge, takeUntil } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { QueryBuilderService } from '../../../services/query-builder/query-builder.service';
 import { GridService } from '../../../services/grid/grid.service';
@@ -114,16 +114,17 @@ export class AggregationGridComponent
 
   ngOnInit(): void {
     // Listen to dashboard filters changes if it is necessary
-    this.contextService.filter$
-      .pipe(debounceTime(500), takeUntil(this.destroy$))
-      .subscribe(({ previous, current, resourceId }) => {
-        const hasFilter =
-          this.contextService.filterRegex.test(this.contextFilters as string) &&
-          this.contextService.shouldRefresh(this.widget, previous, current);
-        if (this.resourceId === resourceId || hasFilter) {
-          this.getAggregationData();
-        }
-      });
+    if (this.contextService.filterRegex.test(this.contextFilters as string)) {
+      this.contextService.filter$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(({ previous, current }) => {
+          if (
+            this.contextService.shouldRefresh(this.widget, previous, current)
+          ) {
+            this.getAggregationData();
+          }
+        });
+    }
     this.queryBuilder.isDoneLoading$.subscribe((doneLoading) => {
       if (doneLoading) {
         this.getAggregationFields();
