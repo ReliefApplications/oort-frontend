@@ -212,6 +212,8 @@ export class Layer implements LayerModel {
   private listeners: any[] = [];
   /** Timeline control */
   private timelineControl: any = null;
+  /** Index in the legend panel */
+  public legendIndex!: number;
 
   /**
    * Get layer children. Await for sub-layers to be loaded first.
@@ -918,6 +920,7 @@ export class Layer implements LayerModel {
    * @param layer leaflet layer
    */
   onAddLayer(map: L.Map, layer: L.Layer) {
+    if (isNil(this.legendIndex)) return;
     // Ensure that we do not subscribe multiple times to zoom event
     if (this.zoomListener) {
       map.off('zoomend', this.zoomListener);
@@ -949,7 +952,7 @@ export class Layer implements LayerModel {
       if (this.visibility) {
         const legendControl = (map as any).legendControl;
         if (legendControl) {
-          legendControl.addLayer(layer, this.legend);
+          legendControl.addLayer(layer, this.legend, this.legendIndex);
         }
       } else {
         map.removeLayer(layer);
@@ -965,7 +968,7 @@ export class Layer implements LayerModel {
         if (this.visibility) {
           const legendControl = (map as any).legendControl;
           if (legendControl) {
-            legendControl.addLayer(layer, this.legend);
+            legendControl.addLayer(layer, this.legend, this.legendIndex);
           }
         } else {
           map.removeLayer(layer);
@@ -1015,7 +1018,7 @@ export class Layer implements LayerModel {
   onRemoveLayer(map: L.Map, layer: L.Layer) {
     const legendControl = (map as any).legendControl;
     if (legendControl) {
-      legendControl.removeLayer(layer);
+      legendControl.removeLayer(layer, this.legendIndex);
     }
 
     // If timeline is enabled, remove the control from the map
