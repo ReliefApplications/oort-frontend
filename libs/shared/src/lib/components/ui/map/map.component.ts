@@ -237,31 +237,33 @@ export class MapComponent
           get(layer, 'datasource.referenceDataVariableMapping') || ''
       )
       .join('');
-
+    // Get layers data source resources in a single list
+    const allResources = this.layers.map(
+      (layer: any) => get(layer, 'datasource.resource') || ''
+    );
     // Listen to dashboard filters changes to apply layers filter, if it is necessary
-    if (
-      this.contextService.filterRegex.test(
-        allContextFilters + allGraphQLVariables
+    this.contextService.filter$
+      .pipe(
+        debounceTime(500),
+        filter(
+          ({ previous, current, resourceId }) =>
+            allResources.includes(resourceId) ||
+            (this.contextService.filterRegex.test(
+              allContextFilters + allGraphQLVariables
+            ) &&
+              this.contextService.shouldRefresh(
+                this.layers.map((layer) => {
+                  return pick(layer, ['datasource', 'contextFilters', 'at']);
+                }),
+                previous,
+                current
+              ))
+        ),
+        takeUntil(this.destroy$)
       )
-    ) {
-      this.contextService.filter$
-        .pipe(
-          debounceTime(500),
-          filter(({ previous, current }) =>
-            this.contextService.shouldRefresh(
-              this.layers.map((layer) => {
-                return pick(layer, ['datasource', 'contextFilters', 'at']);
-              }),
-              previous,
-              current
-            )
-          ),
-          takeUntil(this.destroy$)
-        )
-        .subscribe(() => {
-          this.filterLayers();
-        });
-    }
+      .subscribe(() => {
+        this.filterLayers();
+      });
   }
 
   override ngOnDestroy(): void {

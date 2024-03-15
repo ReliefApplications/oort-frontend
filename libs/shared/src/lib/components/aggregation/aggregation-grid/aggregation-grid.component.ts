@@ -114,17 +114,16 @@ export class AggregationGridComponent
 
   ngOnInit(): void {
     // Listen to dashboard filters changes if it is necessary
-    if (this.contextService.filterRegex.test(this.contextFilters as string)) {
-      this.contextService.filter$
-        .pipe(debounceTime(500), takeUntil(this.destroy$))
-        .subscribe(({ previous, current }) => {
-          if (
-            this.contextService.shouldRefresh(this.widget, previous, current)
-          ) {
-            this.getAggregationData();
-          }
-        });
-    }
+    this.contextService.filter$
+      .pipe(debounceTime(500), takeUntil(this.destroy$))
+      .subscribe(({ previous, current, resourceId }) => {
+        const hasFilter =
+          this.contextService.filterRegex.test(this.contextFilters as string) &&
+          this.contextService.shouldRefresh(this.widget, previous, current);
+        if (this.resourceId === resourceId || hasFilter) {
+          this.getAggregationData();
+        }
+      });
     this.queryBuilder.isDoneLoading$.subscribe((doneLoading) => {
       if (doneLoading) {
         this.getAggregationFields();

@@ -2521,6 +2521,9 @@
 				"notUpdated": "******",
 				"updated": "******"
 			},
+			"password": {
+				"change": "******"
+			},
 			"title": "******"
 		},
 		"pullJobs": {

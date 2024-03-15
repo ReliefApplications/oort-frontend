@@ -33,6 +33,7 @@ import { ApplicationService } from '../application/application.service';
 import { DomService } from '../dom/dom.service';
 import { TemporaryFilesStorage } from '../form-builder/form-builder.service';
 import { Router } from '@angular/router';
+import { DashboardService } from '../dashboard/dashboard.service';
 
 /**
  * Applies custom logic to survey data values.
@@ -96,6 +97,7 @@ export class FormHelpersService {
    * @param applicationService Shared application service
    * @param domService Shared dom service
    * @param router Angular router service.
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     @Inject('environment') private environment: any,
@@ -108,7 +110,8 @@ export class FormHelpersService {
     private workflowService: WorkflowService,
     private applicationService: ApplicationService,
     private domService: DomService,
-    private router: Router
+    private router: Router,
+    private dashboardService: DashboardService
   ) {}
 
   /**
@@ -711,4 +714,32 @@ export class FormHelpersService {
       survey.setVariable(`param.${key}`, queryParams[key]);
     });
   };
+
+  /**
+   * Checks if record were created/updated from a resource/s question
+   * on a dashboard filter and dashboard widgets needs to refresh.
+   *
+   * @param resourceId id of the resource
+   * @param filterStructure id of the resource
+   *
+   * @returns list of widgets id that needs to be refreshed
+   */
+  public async checkResourceOnFilter(
+    resourceId: string,
+    filterStructure: any
+  ): Promise<string | undefined> {
+    if (filterStructure) {
+      for await (const widget of this.dashboardService.widgets) {
+        if (
+          widget.settings.resource === resourceId ||
+          widget.settings.card?.resource === resourceId
+        ) {
+          return resourceId;
+        }
+      }
+      return;
+    } else {
+      return;
+    }
+  }
 }

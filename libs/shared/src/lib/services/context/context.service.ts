@@ -84,20 +84,24 @@ export class ContextService {
     [FilterPosition.RIGHT]:
       'components.application.dashboard.filter.filterPosition.right',
   };
+  /** Resource update to trigger widgets refresh if necessary */
+  public resourceId?: string;
 
   /** @returns filter value as observable */
   get filter$() {
     return this.filter.pipe(
       pairwise(),
       // We only emit a filter value if filter value changes and we send back the actual(curr) value
+      // ot if exists a resourceId update that should trigger widgets that use it refresh
       filter(
         ([prev, curr]: [Record<string, any>, Record<string, any>]) =>
-          !isEqual(prev, curr)
+          !isEqual(prev, curr) || !this.resourceId
       ),
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       map(([prev, curr]: [Record<string, any>, Record<string, any>]) => ({
         previous: prev,
         current: curr,
+        resourceId: this.resourceId,
       }))
     );
   }
@@ -680,5 +684,20 @@ export class ContextService {
       });
     };
     return transformFilter(obj);
+  }
+
+  /**
+   * Set resource id list and trigger filter change to update widgets, if necessary.
+   *
+   * @param resourceId resource updated
+   */
+  public setWidgets(resourceId?: string): void {
+    this.resourceId = resourceId;
+    if (this.resourceId) {
+      this.filter.next(this.filter.getValue());
+      setTimeout(() => {
+        this.resourceId = undefined; // clear resource
+      }, 500);
+    }
   }
 }
