@@ -49,7 +49,7 @@ import { GridComponent } from './grid/grid.component';
 import { DateTranslateService } from '../../../services/date-translate/date-translate.service';
 import { ApplicationService } from '../../../services/application/application.service';
 import { UnsubscribeComponent } from '../../utils/unsubscribe/unsubscribe.component';
-import { debounceTime, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { firstValueFrom, from, merge, Subject } from 'rxjs';
 import { SnackbarService, UILayoutService } from '@oort-front/ui';
 import { ConfirmService } from '../../../services/confirm/confirm.service';
@@ -409,7 +409,6 @@ export class CoreGridComponent
     this.contextFilters = this.settings.contextFilters
       ? JSON.parse(this.settings.contextFilters)
       : this.contextFilters;
-    console.log('this.settings', this.settings);
 
     // define row actions
     this.actions = {
