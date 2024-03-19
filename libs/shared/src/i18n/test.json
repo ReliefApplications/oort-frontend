@@ -1527,8 +1527,11 @@
 				},
 				"grid": {
 					"actions": {
+						"actionsAsIcons": "******",
 						"add": "******",
 						"convert": "******",
+						"copyLink": "******",
+						"copyLinkDone": "******",
 						"delete": "******",
 						"export": "******",
 						"goTo": {
@@ -1623,8 +1626,10 @@
 					},
 					"hint": {
 						"actions": {
+							"actionsAsIcons": "******",
 							"add": "******",
 							"convert": "******",
+							"copyLink": "******",
 							"delete": "******",
 							"export": "******",
 							"goTo": "******",
