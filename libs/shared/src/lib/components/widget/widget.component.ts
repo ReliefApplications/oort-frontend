@@ -121,8 +121,7 @@ export class WidgetComponent implements OnInit, OnDestroy, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.id = `widget-${uuidv4()}`;
-    this.widget.id = this.id;
+    this.id = this.widget.id ?? `widget-${uuidv4()}`;
     // Initialize style
     this.widgetService
       .createCustomStyle(this.id, this.widget)

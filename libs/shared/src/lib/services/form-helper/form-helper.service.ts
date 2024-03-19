@@ -13,7 +13,7 @@ import { ADD_RECORD } from '../../components/form/graphql/mutations';
 import { DialogRef } from '@angular/cdk/dialog';
 import { IconComponent, SnackbarService } from '@oort-front/ui';
 import localForage from 'localforage';
-import { snakeCase, cloneDeep, set, get, isNil } from 'lodash';
+import { snakeCase, cloneDeep, set, get, isNil, flattenDeep } from 'lodash';
 import { AuthService } from '../auth/auth.service';
 import { BlobType, DownloadService } from '../download/download.service';
 import {
@@ -729,7 +729,17 @@ export class FormHelpersService {
     filterStructure: any
   ): Promise<string | undefined> {
     if (filterStructure) {
-      for await (const widget of this.dashboardService.widgets) {
+      const widgets = flattenDeep(
+        this.dashboardService.widgets.map((widget: any) => {
+          if (widget.component === 'tabs') {
+            const tabs = widget.settings.tabs.map((tab: any) => tab.structure);
+            return tabs;
+          } else {
+            return widget;
+          }
+        })
+      );
+      for await (const widget of widgets) {
         if (
           widget.settings.resource === resourceId ||
           widget.settings.card?.resource === resourceId
