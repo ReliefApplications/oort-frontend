@@ -24,6 +24,7 @@ import {
 import { set } from 'lodash';
 import { DEFAULT_MARKER_ICON_OPTIONS } from '../../ui/map/utils/create-div-icon';
 import { FaIconName, faV4toV6Mapper } from '@oort-front/ui';
+import { mutuallyExclusive } from '../../../utils/validators/mutuallyExclusive.validator';
 
 type Nullable<T> = { [P in keyof T]: T[P] | null };
 
@@ -46,6 +47,7 @@ const DEFAULT_MAP: Nullable<MapConstructorSettings> = {
   layers: [],
   controls: DefaultMapControls,
   arcGisWebMap: null,
+  geographicExtents: [],
 };
 
 /** Default gradient for heatmap */
@@ -84,6 +86,7 @@ export const createLayerForm = (value?: LayerModel) => {
       Validators.required
     ),
     opacity: new FormControl(get(value, 'opacity', 1), Validators.required),
+    timelineInfo: createTimelineForm(get(value, 'timelineInfo')),
     layerDefinition: createLayerDefinitionForm(
       get(value, 'datasource.type') || 'Point',
       type,
@@ -135,49 +138,64 @@ const createLayerDataSourceForm = (value?: any): FormGroup => {
     );
   };
   const canSeeFields = getCanSeeFields(value);
-  const formGroup = fb.group({
-    resource: [get(value, 'resource', null)],
-    layout: [get(value, 'layout', null)],
-    aggregation: [get(value, 'aggregation', null)],
-    refData: [get(value, 'refData', null)],
-    geoField: [
-      {
-        value: get(value, 'geoField', null),
-        disabled:
-          !canSeeFields ||
-          get(value, 'latitudeField') ||
-          get(value, 'longitudeField'),
-      },
-    ],
-    adminField: [
-      {
-        value: get(value, 'adminField', null),
-        disabled:
-          !canSeeFields ||
-          get(value, 'latitudeField') ||
-          get(value, 'longitudeField'),
-      },
-    ],
-    latitudeField: [
-      {
-        value: get(value, 'latitudeField', null),
-        disabled:
-          !canSeeFields ||
-          get(value, 'geoField') ||
-          get(value, 'type') === 'Polygon',
-      },
-    ],
-    longitudeField: [
-      {
-        value: get(value, 'longitudeField', null),
-        disabled:
-          !canSeeFields ||
-          get(value, 'geoField') ||
-          get(value, 'type') === 'Polygon',
-      },
-    ],
-    type: [get(value, 'type', 'Point')],
-  });
+  const formGroup = fb.group(
+    {
+      resource: [get(value, 'resource', null)],
+      layout: [get(value, 'layout', null)],
+      aggregation: [get(value, 'aggregation', null)],
+      refData: [get(value, 'refData', null)],
+      referenceDataVariableMapping: get<string | null>(
+        value,
+        'referenceDataVariableMapping',
+        null
+      ),
+      geoField: [
+        {
+          value: get(value, 'geoField', null),
+          disabled:
+            !canSeeFields ||
+            get(value, 'latitudeField') ||
+            get(value, 'longitudeField'),
+        },
+      ],
+      adminField: [
+        {
+          value: get(value, 'adminField', null),
+          disabled:
+            !canSeeFields ||
+            get(value, 'latitudeField') ||
+            get(value, 'longitudeField'),
+        },
+      ],
+      latitudeField: [
+        {
+          value: get(value, 'latitudeField', null),
+          disabled:
+            !canSeeFields ||
+            get(value, 'geoField') ||
+            get(value, 'type') === 'Polygon',
+        },
+      ],
+      longitudeField: [
+        {
+          value: get(value, 'longitudeField', null),
+          disabled:
+            !canSeeFields ||
+            get(value, 'geoField') ||
+            get(value, 'type') === 'Polygon',
+        },
+      ],
+      type: [get(value, 'type', 'Point')],
+    },
+    {
+      validators: [
+        mutuallyExclusive({
+          required: true,
+          fields: ['resource', 'refData'],
+        }),
+      ],
+    }
+  );
   formGroup.valueChanges.subscribe((value) => {
     const canSeeFields = getCanSeeFields(value);
     if (canSeeFields) {
@@ -311,6 +329,7 @@ export const createSymbolForm = (
       Validators.required,
     ],
     size: [get(value, 'size', 24)],
+    fieldForSize: [get(value, 'fieldForSize', null)],
     style: new FormControl<FaIconName>(styleFinalValue),
     ...(geometryType === 'Polygon' && {
       outline: fb.group({
@@ -417,6 +436,25 @@ export const createPopupInfoForm = (value: any) =>
         createFieldsInfoForm(element)
       )
     ),
+    navigateToPage: get(value, 'navigateToPage', false),
+    navigateSettings: fb.group({
+      pageUrl: [get(value, 'navigateSettings.pageUrl', '')],
+      field: [get(value, 'navigateSettings.field', '')],
+    }),
+  });
+
+/**
+ * Create time dimension form group
+ *
+ * @param value time dimension value
+ * @returns time dimension form group
+ */
+export const createTimelineForm = (value?: any) =>
+  fb.group({
+    enabled: [get(value, 'enabled', false)],
+    startTimeField: [get(value, 'startTimeField', null)],
+    endTimeField: [get(value, 'endTimeField', null)],
+    dateFormat: [get(value, 'dateFormat', null)],
   });
 
 /**
@@ -478,8 +516,6 @@ export const createClusterForm = (value?: any): FormGroup =>
 
 export type LayerFormT = ReturnType<typeof createLayerForm>;
 
-// === MAP ===
-
 /**
  * Create map controls from value
  *
@@ -494,6 +530,24 @@ export const createMapControlsForm = (value?: MapControls): FormGroup =>
     measure: [get(value, 'measure', false)],
     layer: [get(value, 'layer', true)],
     search: [get(value, 'search', false)],
+    lastUpdate: [get(value, 'lastUpdate', null)],
+  });
+
+/**
+ * Create geographic extent entry
+ *
+ * @param value geographic extent value
+ * @param value.value geographic extent dynamic value
+ * @param value.extent geographic extent ( admin0 or region )
+ * @returns geographic extent form group
+ */
+export const createGeographicExtent = (value?: {
+  value: string;
+  extent: string;
+}): FormGroup =>
+  fb.group({
+    value: [get(value, 'value', null)],
+    extent: [get(value, 'extent', 'admin0')],
   });
 
 /**
@@ -538,6 +592,11 @@ export const createMapWidgetFormGroup = (id: any, value?: any): FormGroup => {
       }),
     }),
     basemap: [get(value, 'basemap', DEFAULT_MAP.basemap)],
+    geographicExtents: fb.array(
+      get(value, 'geographicExtents', []).map((x: any) =>
+        createGeographicExtent(x)
+      )
+    ),
     // popupFields: [get(value, 'popupFields', DEFAULT_MAP.popupFields)],
     // onlineLayers: [get(value, 'onlineLayers', DEFAULT_MAP.onlineLayers)],
     layers: [get(value, 'layers', [])] as string[],

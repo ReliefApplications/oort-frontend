@@ -12,11 +12,14 @@ interface LegendControlOptions extends L.ControlOptions {
  * Custom Legend control.
  */
 class LegendControl extends L.Control {
+  /** Legend control options */
   public override options: LegendControlOptions = {
-    position: 'bottomleft',
+    position: 'topright',
     // layers: [],
   };
+  /** Leaflet map */
   private _map!: L.Map;
+  /** Layers */
   private layers = {};
 
   /**
@@ -92,8 +95,8 @@ class LegendControl extends L.Control {
    * @param layer leaflet layer to add
    * @param legend legend to add
    */
-  public addLayer(layer: L.Layer, legend: string) {
-    set(this.layers, (layer as any)._leaflet_id, legend);
+  public addLayer(layer: L.Layer, legend: string, legendIndex?: number) {
+    set(this.layers, legendIndex ?? (layer as any)._leaflet_id, legend);
     this._update();
   }
 
@@ -102,8 +105,8 @@ class LegendControl extends L.Control {
    *
    * @param layer Leaflet layer to remove
    */
-  public removeLayer(layer: L.Layer) {
-    set(this.layers, (layer as any)._leaflet_id, null);
+  public removeLayer(layer: L.Layer, legendIndex?: number) {
+    set(this.layers, legendIndex ?? (layer as any)._leaflet_id, null);
     this._update();
   }
 

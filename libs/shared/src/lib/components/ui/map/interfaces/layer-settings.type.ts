@@ -48,6 +48,17 @@ export interface LayerFormData {
     description: string;
     popupElements: PopupElement[];
     fieldsInfo?: Fields[];
+    navigateToPage?: boolean;
+    navigateSettings?: {
+      field: string;
+      pageUrl: string;
+    };
+  };
+  timelineInfo: {
+    enabled: boolean;
+    startTimeField: string;
+    endTimeField: string;
+    dateFormat: string;
   };
   datasource?: {
     origin?: 'resource' | 'refData';
@@ -55,6 +66,7 @@ export interface LayerFormData {
     layout: any;
     aggregation: any;
     refData: any;
+    referenceDataVariableMapping?: string;
     type?: GeometryType;
   };
   sublayers?: string[];

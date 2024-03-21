@@ -1,7 +1,7 @@
 <ui-dialog size="big" [onClose]="close.bind(this)">
   <ng-container ngProjectAs="header">
-    <ng-container *ngIf="!loading">
-      <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+    <div class="flex flex-wrap justify-start items-center gap-4 mb-4">
+      <ng-container *ngIf="!loading">
         <shared-record-summary
           *ngIf="record"
           [record]="record"
@@ -11,7 +11,15 @@
           *ngIf="survey"
           [survey]="survey"
         ></shared-form-actions>
-      </div>
+        <!-- <shared-draft-record
+          [survey]="survey"
+          [formId]="form?.id ?? ''"
+          (loadDraft)="onLoadDraftRecord($event)"
+        ></shared-draft-record> -->
+      </ng-container>
+      <ng-template #uploadRecordsContent *ngIf="!record"></ng-template>
+    </div>
+    <ng-container *ngIf="!loading">
       <ui-tabs
         [selectedIndex]="(selectedPageIndex$ | async)!"
         (selectedIndexChange)="onShowPage($event)"
@@ -42,11 +50,7 @@
     </div>
   </ng-container>
   <ng-container ngProjectAs="actions">
-    <ui-button
-      (click)="close()"
-      cdkFocusInitial
-      *ngIf="survey?.showCloseButtonOnModal"
-    >
+    <ui-button (click)="close()" *ngIf="survey?.showCloseButtonOnModal">
       {{ 'common.close' | translate }}
     </ui-button>
     <ng-container *ngIf="survey?.visiblePages ?? [] as pages">
@@ -71,6 +75,9 @@
         {{ 'common.next' | translate }}
       </ui-button>
     </ng-container>
+    <!-- <ui-button [disabled]="disableSaveAsDraft" (click)="saveAsDraft()">{{
+      'components.form.draftRecords.save' | translate
+    }}</ui-button> -->
     <ui-button
       category="secondary"
       variant="primary"

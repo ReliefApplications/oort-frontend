@@ -17,6 +17,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { SnackbarService } from '@oort-front/ui';
+import { cloneDeep } from 'lodash';
 
 /**
  * Dashboard component page, for application preview.
@@ -34,8 +35,6 @@ export class DashboardComponent
   public id = '';
   /** Loading indicator */
   public loading = true;
-  /** Current widgets */
-  public tiles = [];
   /** Current dashboard */
   public dashboard?: Dashboard;
   /** Emit event when changing steps */
@@ -56,7 +55,7 @@ export class DashboardComponent
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: SnackbarService,
-    private dashboardService: DashboardService,
+    public dashboardService: DashboardService,
     private translate: TranslateService
   ) {
     super();
@@ -80,10 +79,9 @@ export class DashboardComponent
           next: ({ data, loading }) => {
             if (data.dashboard) {
               this.dashboard = data.dashboard;
-              this.dashboardService.openDashboard(this.dashboard);
-              this.tiles = data.dashboard.structure
-                ? data.dashboard.structure
-                : [];
+              this.dashboardService.widgets = cloneDeep(
+                data.dashboard.structure ? data.dashboard.structure : []
+              );
               this.loading = loading;
             } else {
               this.snackBar.openSnackBar(
@@ -114,6 +112,5 @@ export class DashboardComponent
    */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
-    this.dashboardService.closeDashboard();
   }
 }

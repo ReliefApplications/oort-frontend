@@ -1,6 +1,7 @@
 import { FaIconName } from '@oort-front/ui';
-import { Gradient } from '../components/gradient-picker/gradient-picker.component';
+import { Gradient } from '../components/controls/gradient-picker/gradient-picker.component';
 import { LayerType } from '../components/ui/map/interfaces/layer-settings.type';
+import { DateFormat } from '../pipes/date/date.pipe';
 
 /**
  * Layer types for backend
@@ -17,6 +18,7 @@ export type LayerSymbolOutline = {
 export type LayerSymbol = {
   color: string;
   size: number;
+  fieldForSize?: string;
   style: FaIconName;
   outline?: LayerSymbolOutline;
 };
@@ -96,7 +98,8 @@ export interface Fields {
   label: string;
   name: string;
   type: string;
-  [key: string]: string;
+  text?: string;
+  fields?: Fields[];
 }
 
 /** Possible types of Popup element */
@@ -119,6 +122,11 @@ export interface PopupInfo {
   description?: string;
   popupElements?: PopupElement[];
   fieldsInfo?: Fields[];
+  navigateToPage?: boolean;
+  navigateSettings?: {
+    field: string;
+    pageUrl: string;
+  };
 }
 
 export type LayerDatasourceType = 'Point' | 'Polygon';
@@ -129,6 +137,7 @@ export type LayerDatasourceType = 'Point' | 'Polygon';
 export interface LayerDatasource {
   resource?: string;
   refData?: string;
+  referenceDataVariableMapping?: string;
   layout?: string;
   aggregation?: string;
   geoField?: string;
@@ -137,6 +146,14 @@ export interface LayerDatasource {
   longitudeField?: string;
   type?: LayerDatasourceType;
 }
+
+/** Model for the timeline configuration of a layer */
+export type TimelineInfo = {
+  enabled: boolean;
+  startTimeField: string;
+  endTimeField: string;
+  dateFormat: DateFormat;
+};
 
 /**
  * Backend layer model
@@ -155,6 +172,7 @@ export interface LayerModel {
   updatedAt: Date;
   contextFilters?: string;
   at?: string;
+  timelineInfo?: TimelineInfo;
 }
 
 /** Model for AddLayerMutationResponse object */

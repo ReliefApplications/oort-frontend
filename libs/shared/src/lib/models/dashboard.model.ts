@@ -7,19 +7,48 @@ import { EditorSettingsComponent } from '../components/widgets/editor-settings/e
 import { SummaryCardSettingsComponent } from '../components/widgets/summary-card-settings/summary-card-settings.component';
 import { Category, Variant } from '@oort-front/ui';
 import { TabsSettingsComponent } from '../components/widgets/tabs-settings/tabs-settings.component';
+import { EventEmitter } from '@angular/core';
 
 /** Model for IWidgetType object */
 export interface IWidgetType {
-  id: string;
+  widgetType: string;
   name: string;
   icon: string;
   color: string;
 }
 
+/** Model for the dashboard filter */
+export interface DashboardFilter {
+  variant?: Variant;
+  show?: boolean;
+  closable?: boolean;
+  structure?: any;
+  position?: string;
+}
+
+/** Widget settings types */
+export type WidgetSettingsType = WidgetSettings<any>;
+
+/**
+ * Extended class of all widget settings components
+ *
+ * Implement this class for any widget settings class component that is created
+ */
+export abstract class WidgetSettings<T extends (...args: any[]) => any> {
+  /** Change event emitted on widget settings form group value change */
+  public formChange!: EventEmitter<ReturnType<T>>;
+  /** Related widget property */
+  public widget: any;
+  /** Widget settings form group */
+  public widgetFormGroup!: ReturnType<T>;
+  /** Build settings form for the given widget type */
+  public buildSettingsForm!: () => void;
+}
+
 /** List of Widget types with their properties */
 export const WIDGET_TYPES = [
   {
-    id: 'donut-chart',
+    widgetType: 'donut-chart',
     name: 'Donut chart',
     icon: '/assets/donut.svg',
     color: '#3B8CC4',
@@ -29,14 +58,14 @@ export const WIDGET_TYPES = [
         type: 'donut',
       },
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'chart',
     settingsTemplate: ChartSettingsComponent,
   },
   {
-    id: 'column-chart',
+    widgetType: 'column-chart',
     name: 'Column chart',
     icon: '/assets/column.svg',
     color: '#EBA075',
@@ -46,14 +75,14 @@ export const WIDGET_TYPES = [
         type: 'column',
       },
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'chart',
     settingsTemplate: ChartSettingsComponent,
   },
   {
-    id: 'line-chart',
+    widgetType: 'line-chart',
     name: 'Line chart',
     icon: '/assets/line.svg',
     color: '#F6C481',
@@ -63,14 +92,14 @@ export const WIDGET_TYPES = [
         type: 'line',
       },
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'chart',
     settingsTemplate: ChartSettingsComponent,
   },
   {
-    id: 'pie-chart',
+    widgetType: 'pie-chart',
     name: 'Pie chart',
     icon: '/assets/pie.svg',
     color: '#8CCDD5',
@@ -80,14 +109,14 @@ export const WIDGET_TYPES = [
         type: 'pie',
       },
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'chart',
     settingsTemplate: ChartSettingsComponent,
   },
   {
-    id: 'polar-chart',
+    widgetType: 'polar-chart',
     name: 'Polar chart',
     icon: '/assets/pie.svg',
     color: '#8CCDD5',
@@ -97,14 +126,14 @@ export const WIDGET_TYPES = [
         type: 'polar',
       },
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'chart',
     settingsTemplate: ChartSettingsComponent,
   },
   {
-    id: 'bar-chart',
+    widgetType: 'bar-chart',
     name: 'Bar chart',
     icon: '/assets/bar.svg',
     color: '#B5DC8D',
@@ -114,14 +143,14 @@ export const WIDGET_TYPES = [
         type: 'bar',
       },
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'chart',
     settingsTemplate: ChartSettingsComponent,
   },
   {
-    id: 'radar-chart',
+    widgetType: 'radar-chart',
     name: 'Radar chart',
     icon: '/assets/pie.svg',
     color: '#8CCDD5',
@@ -131,14 +160,14 @@ export const WIDGET_TYPES = [
         type: 'radar',
       },
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'chart',
     settingsTemplate: ChartSettingsComponent,
   },
   {
-    id: 'grid',
+    widgetType: 'grid',
     name: 'Grid',
     icon: '/assets/grid.svg',
     color: '#AC8CD5',
@@ -152,28 +181,28 @@ export const WIDGET_TYPES = [
       toolbar: false,
       canAdd: false,
     },
-    defaultCols: 8,
-    defaultRows: 4,
-    minRow: 2,
+    cols: 8,
+    rows: 4,
+    minItemRows: 2,
     component: 'grid',
     settingsTemplate: GridSettingsComponent,
   },
   {
-    id: 'map',
+    widgetType: 'map',
     name: 'Map',
     icon: '/assets/map.svg',
     color: '#D58CA6',
     settings: {
       title: 'Map widget',
     },
-    defaultCols: 4,
-    defaultRows: 4,
-    minRow: 1,
+    cols: 4,
+    rows: 4,
+    minItemRows: 1,
     component: 'map',
     settingsTemplate: MapSettingsComponent,
   },
   {
-    id: 'text',
+    widgetType: 'text',
     name: 'Text',
     icon: '/assets/text.svg',
     color: '#2F383E',
@@ -181,33 +210,33 @@ export const WIDGET_TYPES = [
       title: 'Text widget',
       text: 'Enter a content',
     },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'editor',
     settingsTemplate: EditorSettingsComponent,
   },
   {
-    id: 'summaryCard',
+    widgetType: 'summaryCard',
     name: 'Summary card',
     icon: '/assets/summary-card.svg',
     color: '#99CBEF',
     settings: { title: 'Summary Card' },
-    defaultCols: 3,
-    defaultRows: 3,
-    minRow: 1,
+    cols: 3,
+    rows: 3,
+    minItemRows: 1,
     component: 'summaryCard',
     settingsTemplate: SummaryCardSettingsComponent,
   },
   {
-    id: 'tabs',
+    widgetType: 'tabs',
     name: 'Tabs',
-    icon: '/assets/summary-card.svg',
-    color: '#99CBEF',
+    icon: '/assets/tab.svg',
+    color: '#D5B38C',
     settings: { title: 'Tabs' },
-    defaultCols: 8,
-    defaultRows: 4,
-    minRow: 2,
+    cols: 8,
+    rows: 4,
+    minItemRows: 2,
     component: 'tabs',
     settingsTemplate: TabsSettingsComponent,
   },
@@ -226,7 +255,9 @@ export interface Dashboard {
   canDelete?: boolean;
   page?: Page;
   step?: Step;
-  showFilter?: boolean;
+  contextData?: {
+    [key: string]: any;
+  };
   buttons?: {
     text: string;
     href: string;
@@ -234,6 +265,33 @@ export interface Dashboard {
     category: Category;
     openInNewTab: boolean;
   }[];
+  filter?: DashboardFilter;
+  gridOptions?: any;
+}
+
+/** Model for dashboard graphql query response */
+export interface DashboardQueryResponse {
+  dashboard: Dashboard;
+}
+
+/** Model for add dashboard graphql mutation response */
+export interface AddDashboardMutationResponse {
+  addDashboard: Dashboard;
+}
+
+/** Model for edit dashboard graphql mutation response */
+export interface EditDashboardMutationResponse {
+  editDashboard: Dashboard;
+}
+
+/** Model for delete dashboard graphql mutation response */
+export interface DeleteDashboardMutationResponse {
+  deleteDashboard: Dashboard;
+}
+
+/** Model for dashboards graphql query response */
+export interface DashboardsQueryResponse {
+  dashboards: Dashboard[];
 }
 
 /** Model for dashboard graphql query response */

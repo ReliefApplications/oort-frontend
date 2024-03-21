@@ -67,12 +67,6 @@ export default (options: GlobalOptions) => {
       currentYearStart.setFullYear(currYear - 1);
     }
 
-    console.log(
-      'currentYearStart',
-      currentYearStart,
-      currentYearStart.toISOString()
-    );
-
     // The end of the current year is the start of the next year
     const currentYearEnd = new Date(currentYearStart);
     currentYearEnd.setFullYear(currentYearStart.getFullYear() + 1);
