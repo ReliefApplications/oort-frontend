@@ -27,7 +27,6 @@ import { FormWrapperModule } from '@oort-front/ui';
   styleUrls: ['./add-resource-modal.component.scss'],
 })
 export class AddResourceModalComponent {
-  /** Add form */
   public addForm = this.fb.group({
     name: ['', Validators.required],
   });

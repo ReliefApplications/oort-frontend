@@ -10,7 +10,6 @@ import { DialogRef } from '@angular/cdk/dialog';
   selector: '[uiDialogClose]',
 })
 export class DialogCloseDirective {
-  /** Dialog close input */
   @Input() uiDialogClose!: any;
 
   /**

@@ -1,4 +1,8 @@
-<ui-tabs class="grow" [vertical]="true">
+<ui-tabs
+  class="grow"
+  [vertical]="true"
+  (selectedIndexChange)="selectedIndexChange()"
+>
   <!-- Map properties -->
   <ui-tab>
     <ng-container ngProjectAs="label">
@@ -9,9 +13,10 @@
     </ng-container>
     <ng-template uiTabContent>
       <shared-map-properties
-        [form]="widgetFormGroup"
+        [form]="tileForm"
         [mapSettings]="mapSettings"
-        [mapPortal]="mapPortal"
+        [destroyTab$]="destroyTab$"
+        [currentMapContainerRef]="currentMapContainerRef"
       ></shared-map-properties>
     </ng-template>
   </ui-tab>
@@ -19,13 +24,14 @@
   <ui-tab>
     <ng-container ngProjectAs="label">
       <ui-icon icon="layers" [size]="24"> </ui-icon>
-      <span>{{ 'common.layers.few' | translate }}</span>
+      <span>{{ 'common.layers' | translate }}</span>
     </ng-container>
     <ng-template uiTabContent>
       <shared-map-layers
-        [control]="$any(widgetFormGroup.get('layers'))"
+        [control]="$any(tileForm.get('layers'))"
         [mapComponent]="mapComponent"
-        [mapPortal]="mapPortal"
+        [destroyTab$]="destroyTab$"
+        [currentMapContainerRef]="currentMapContainerRef"
       ></shared-map-layers>
     </ng-template>
   </ui-tab>
@@ -36,16 +42,11 @@
       <span>{{ 'models.widget.display.title' | translate }}</span>
     </ng-container>
     <ng-template uiTabContent>
-      <shared-display-settings
-        [formGroup]="widgetFormGroup"
-      ></shared-display-settings>
+      <shared-display-settings [formGroup]="tileForm"></shared-display-settings>
     </ng-template>
   </ui-tab>
 </ui-tabs>
 
-<ng-template #mapContainer></ng-template>
-
-<!-- Hiding it by default, when there is no place to show it -->
 <div class="hidden">
-  <ng-template [cdkPortalOutlet]="mapPortal"></ng-template>
+  <ng-template #mapContainer></ng-template>
 </div>

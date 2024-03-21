@@ -18,7 +18,7 @@ import {
 
 describe('ConfirmModalComponent', () => {
   let component: ConfirmModalComponent;
-  let fixture: ComponentFixture<ConfirmModalComponent>;
+  let fixture: ComponentFixture<sharedConfirmModalComponent>;
   let controller: ApolloTestingController;
 
   beforeEach(async () => {

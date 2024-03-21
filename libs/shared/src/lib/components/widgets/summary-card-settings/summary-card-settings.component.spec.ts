@@ -4,7 +4,7 @@ import { SummaryCardSettingsComponent } from './summary-card-settings.component'
 
 describe('SummaryCardSettingsComponent', () => {
   let component: SummaryCardSettingsComponent;
-  let fixture: ComponentFixture<SummaryCardSettingsComponent>;
+  let fixture: ComponentFixture<sharedSummaryCardSettingsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

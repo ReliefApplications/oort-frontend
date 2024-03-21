@@ -9,11 +9,10 @@ import {
   DividerModule,
   FormWrapperModule,
   SelectMenuModule,
+  GraphQLSelectModule,
   IconModule,
-  ButtonModule,
 } from '@oort-front/ui';
 import { AggregationTableModule } from '../../../aggregation/aggregation-table/aggregation-table.module';
-import { ResourceSelectComponent } from '../../../controls/public-api';
 
 /**
  * Main Tab of grid widget configuration modal.
@@ -27,13 +26,12 @@ import { ResourceSelectComponent } from '../../../controls/public-api';
     ReactiveFormsModule,
     FormWrapperModule,
     LayoutTableModule,
+    GraphQLSelectModule,
     TooltipModule,
     IconModule,
     DividerModule,
     AggregationTableModule,
     SelectMenuModule,
-    ResourceSelectComponent,
-    ButtonModule,
   ],
   exports: [TabMainComponent],
 })

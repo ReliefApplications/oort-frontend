@@ -8,6 +8,7 @@ import {
   ApolloTestingModule,
   ApolloTestingController,
 } from 'apollo-angular/testing';
+import { environment } from 'projects/back-office/src/environments/environment';
 import { TabFilterComponent } from './tab-filter.component';
 import {
   DateTimeProvider,
@@ -26,14 +27,14 @@ import { GET_QUERY_TYPES } from '../graphql/queries';
 
 describe('TabFilterComponent', () => {
   let component: TabFilterComponent;
-  let fixture: ComponentFixture<TabFilterComponent>;
+  let fixture: ComponentFixture<sharedTabFilterComponent>;
   let controller: ApolloTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       providers: [
         UntypedFormBuilder,
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         OAuthService,
         UrlHelperService,
         OAuthLogger,

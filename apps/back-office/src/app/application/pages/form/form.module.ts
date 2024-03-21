@@ -5,7 +5,6 @@ import { FormComponent } from './form.component';
 import {
   FormModule as SharedFormModule,
   EditableTextModule,
-  UploadRecordsModule,
 } from '@oort-front/shared';
 import { ButtonModule, SpinnerModule, TooltipModule } from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
@@ -24,7 +23,6 @@ import { TranslateModule } from '@ngx-translate/core';
     EditableTextModule,
     ButtonModule,
     TooltipModule,
-    UploadRecordsModule,
   ],
   exports: [FormComponent],
 })

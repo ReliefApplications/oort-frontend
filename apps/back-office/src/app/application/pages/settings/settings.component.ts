@@ -1,6 +1,6 @@
 import { Apollo } from 'apollo-angular';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import {
   Application,
   ApplicationService,
@@ -26,11 +26,8 @@ import { SnackbarService, UILayoutService } from '@oort-front/ui';
   styleUrls: ['./settings.component.scss'],
 })
 export class SettingsComponent extends UnsubscribeComponent implements OnInit {
-  /** Application list */
   public applications = new Array<Application>();
-  /** Application settings form */
-  public settingsForm!: ReturnType<typeof this.createSettingsForm>;
-  /** Status choices */
+  public settingsForm!: UntypedFormGroup;
   public statusChoices = Object.values(status);
   /** Current application */
   public application?: Application;
@@ -92,7 +89,6 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
       id: [{ value: application.id, disabled: true }],
       name: [application.name, Validators.required],
       sideMenu: [application.sideMenu],
-      hideMenu: [application.hideMenu],
       description: [application.description],
       status: [application.status],
     });

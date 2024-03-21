@@ -4,7 +4,7 @@ import { RoleSummaryComponent } from './role-summary.component';
 
 describe('RoleSummaryComponent', () => {
   let component: RoleSummaryComponent;
-  let fixture: ComponentFixture<RoleSummaryComponent>;
+  let fixture: ComponentFixture<sharedRoleSummaryComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

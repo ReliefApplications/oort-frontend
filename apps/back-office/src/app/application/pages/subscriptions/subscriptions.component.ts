@@ -23,11 +23,8 @@ export class SubscriptionsComponent
   implements OnInit
 {
   // === DATA ===
-  /** Application subscriptions */
   public subscriptions: ApplicationSubscription[] = [];
-  /** Loading state */
   public loading = true;
-  /** Table columns */
   public displayedColumns: string[] = [
     'title',
     'convertTo',
@@ -36,7 +33,6 @@ export class SubscriptionsComponent
   ];
 
   // === SUBSCRIPTIONS ===
-  /** Channels list */
   private channels: Channel[] = [];
 
   /**

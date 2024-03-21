@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { Aggregation } from '../../../models/aggregation.model';
@@ -13,15 +13,13 @@ import {
   SelectMenuModule,
   FormWrapperModule,
 } from '@oort-front/ui';
-import { ReferenceData } from '../../../models/reference-data.model';
 
 /**
  * Interface describing the structure of the data displayed in the dialog
  */
 interface DialogData {
   aggregation?: Aggregation;
-  resource?: Resource;
-  referenceData?: ReferenceData;
+  resource: Resource;
 }
 
 /**
@@ -44,13 +42,12 @@ interface DialogData {
   templateUrl: './edit-aggregation-modal.component.html',
   styleUrls: ['./edit-aggregation-modal.component.scss'],
 })
-export class EditAggregationModalComponent {
-  /** Form group */
+export class EditAggregationModalComponent implements OnInit {
   public formGroup!: UntypedFormGroup;
-  /** Current resource */
-  public resource?: Resource;
-  /** Current reference data */
-  public referenceData?: ReferenceData;
+  public resource!: Resource;
+
+  // public templates: any[] = [];
+  // public layoutPreviewData!: { form: FormGroup; defaultLayout: any };
 
   /**
    * Modal to edit aggregation.
@@ -61,18 +58,30 @@ export class EditAggregationModalComponent {
   constructor(
     public dialogRef: DialogRef<EditAggregationModalComponent>,
     @Inject(DIALOG_DATA) public data: DialogData
-  ) {
+  ) {}
+
+  ngOnInit(): void {
     this.resource = this.data.resource;
-    this.referenceData = this.data.referenceData;
     this.formGroup = createAggregationForm(this.data.aggregation);
+    // TODO: edit with the parameters the aggregation has
+    // this.formGroup = this.formBuilder.group({
+    //   name: [this.data.aggregation?.name, Validators.required],
+    //   query: createQueryForm(this.data.aggregation?.query),
+    //   display: createDisplayForm(this.data.aggregation?.display),
+    // });
+    // this.layoutPreviewData = {
+    //   form: this.form,
+    //   defaultLayout: this.data.layout?.display,
+    // };
+    // this.form.get('display')?.valueChanges.subscribe((value: any) => {
+    //   this.layoutPreviewData.defaultLayout = value;
+    // });
   }
 
   /**
-   * Closes the modal sending form value.
+   * Closes the modal sending tile form value.
    */
   onSubmit(): void {
-    const aggregationData = this.formGroup?.getRawValue();
-    delete aggregationData.id;
-    this.dialogRef.close(aggregationData);
+    this.dialogRef.close(this.formGroup?.getRawValue());
   }
 }

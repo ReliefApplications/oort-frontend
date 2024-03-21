@@ -5,7 +5,6 @@ import { DUPLICATE_APPLICATION } from './graphql/mutations';
 import {
   Application,
   DuplicateApplicationMutationResponse,
-  SnackbarSpinnerComponent,
 } from '@oort-front/shared';
 import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
@@ -38,14 +37,10 @@ import {
   styleUrls: ['./duplicate-application-modal.component.scss'],
 })
 export class DuplicateApplicationModalComponent {
-  /** Application to duplicate */
   public currentApp: Application;
-  /** Duplication form group */
   public duplicateForm = this.fb.group({
     name: ['', Validators.required],
   });
-  /** Loading indicator */
-  public loading = false;
 
   /**
    * Duplicate application component.
@@ -72,19 +67,7 @@ export class DuplicateApplicationModalComponent {
    * Submit duplicate application form.
    * Send mutation.
    */
-  onDuplicate(): void {
-    this.loading = true;
-    const snackBarRef = this.snackBar.openComponentSnackBar(
-      SnackbarSpinnerComponent,
-      {
-        duration: 0,
-        data: {
-          message: 'Duplicating',
-          loading: true,
-        },
-      }
-    );
-    const snackBarSpinner = snackBarRef.instance.nestedComponent;
+  onSubmit(): void {
     this.apollo
       .mutate<DuplicateApplicationMutationResponse>({
         mutation: DUPLICATE_APPLICATION,
@@ -96,34 +79,35 @@ export class DuplicateApplicationModalComponent {
       .subscribe({
         next: ({ errors, data }) => {
           if (errors) {
-            snackBarSpinner.instance.message = this.translateService.instant(
-              'common.notifications.objectNotDuplicated',
-              {
-                type: this.translateService
-                  .instant('common.application.one')
-                  .toLowerCase(),
-                error: errors ? errors[0].message : '',
-              }
+            this.snackBar.openSnackBar(
+              this.translateService.instant(
+                'common.notifications.objectNotDuplicated',
+                {
+                  type: this.translateService
+                    .instant('common.application.one')
+                    .toLowerCase(),
+                  error: errors ? errors[0].message : '',
+                }
+              ),
+              { error: true }
             );
-            snackBarSpinner.instance.error = true;
           } else {
-            snackBarSpinner.instance.message = this.translateService.instant(
-              'common.notifications.objectDuplicated',
-              {
-                type: this.translateService
-                  .instant('common.application.one')
-                  .toLowerCase(),
-                value: this.currentApp.name,
-              }
+            this.snackBar.openSnackBar(
+              this.translateService.instant(
+                'common.notifications.objectDuplicated',
+                {
+                  type: this.translateService
+                    .instant('common.application.one')
+                    .toLowerCase(),
+                  value: this.currentApp.name,
+                }
+              )
             );
           }
-          snackBarSpinner.instance.loading = false;
           this.dialogRef.close(data?.duplicateApplication as any);
         },
         error: (err) => {
-          snackBarSpinner.instance.message = err.message;
-          snackBarSpinner.instance.loading = false;
-          snackBarSpinner.instance.error = true;
+          this.snackBar.openSnackBar(err.message, { error: true });
         },
       });
   }

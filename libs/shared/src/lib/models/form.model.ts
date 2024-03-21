@@ -50,7 +50,6 @@ export interface Form {
   layouts?: Connection<Layout>;
   aggregations?: Connection<Aggregation>;
   metadata?: Metadata[];
-  allowUploadRecords?: boolean;
 }
 
 /** Model for form graphql graphql query response */

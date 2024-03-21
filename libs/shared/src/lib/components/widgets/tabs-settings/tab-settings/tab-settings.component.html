@@ -1,9 +1,5 @@
-<div class="flex flex-wrap items-center mb-6 gap-4 justify-end">
-  <!-- Edit the grid options -->
-  <ui-button icon="style" variant="primary" (click)="onEditGridOptions()">
-    {{ 'components.application.dashboard.settings.gridOptions' | translate }}
-  </ui-button>
-  <!-- Remove tab -->
+<!-- Remove tab -->
+<div class="flex justify-end">
   <ui-button (click)="delete.emit()" variant="danger" category="tertiary">{{
     'components.widget.settings.tabs.deleteTab' | translate
   }}</ui-button>
@@ -17,10 +13,9 @@
 </div>
 <!-- tab structure edition -->
 <shared-widget-grid
-  class="flex-1"
   [widgets]="tabGroup.value.structure"
   [canUpdate]="true"
-  [options]="gridOptions"
+  (move)="onMove($event)"
   (edit)="onEdit($event)"
   (delete)="onDelete($event)"
   (style)="onStyle($event)"

@@ -5,6 +5,7 @@ import { EditorService } from '../../../../../../services/editor/editor.service'
 import { POPUP_EDITOR_CONFIG } from '../../../../../../const/tinymce.const';
 import { EditorModule, TINYMCE_SCRIPT_SRC } from '@tinymce/tinymce-angular';
 import { Fields } from '../../../../../../models/layer.model';
+import { MapLayersService } from '../../../../../../services/map/map-layers.service';
 import { Observable, takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../../../../../utils/unsubscribe/unsubscribe.component';
 
@@ -25,19 +26,22 @@ export class TextElementComponent
   extends UnsubscribeComponent
   implements OnInit
 {
-  /** Current form group */
   @Input() formGroup!: FormGroup;
-  /** Available fields */
   @Input() fields$!: Observable<Fields[]>;
-  /** Tinymce editor configuration */
+
+  /** tinymce editor */
   public editor: any = POPUP_EDITOR_CONFIG;
 
   /**
    * Popup text element component.
    *
    * @param editorService Shared tinymce editor service
+   * @param mapLayersService Shared map layer Service
    */
-  constructor(private editorService: EditorService) {
+  constructor(
+    private editorService: EditorService,
+    private mapLayersService: MapLayersService
+  ) {
     super();
     // Set the editor base url based on the environment file
     this.editor.base_url = editorService.url;

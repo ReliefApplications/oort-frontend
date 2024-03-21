@@ -13,11 +13,9 @@ import { takeUntil } from 'rxjs';
 })
 export class DashboardComponent extends UnsubscribeComponent {
   // === HEADER TITLE ===
-  /** Title of the page */
   public title = 'Back-office';
 
   // === AVAILABLE ROUTES, DEPENDS ON USER ===
-  /** Navigation groups */
   public navGroups: any[] = [];
 
   /**

@@ -25,21 +25,15 @@ import { SnackbarService } from '@oort-front/ui';
   styleUrls: ['./role-features.component.scss'],
 })
 export class RoleFeaturesComponent implements OnInit {
-  /** Role */
   @Input() role!: Role;
-  /** Application */
   @Input() application?: Application;
-  /** Loading status */
   @Input() loading = false;
 
-  /** Dashboards array */
   public dashboards: Page[] = [];
-  /** Forms array */
   public forms: Page[] = [];
-  /** Workflows array */
   public workflows: Page[] = [];
 
-  /** Search query */
+  // search query
   public search = '';
 
   /**

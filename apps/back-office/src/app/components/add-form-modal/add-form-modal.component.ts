@@ -1,7 +1,7 @@
-import { Apollo } from 'apollo-angular';
+import { Apollo, QueryRef } from 'apollo-angular';
 import { Component, OnInit } from '@angular/core';
 import { Validators, FormBuilder } from '@angular/forms';
-import { GET_RESOURCE_BY_ID } from './graphql/queries';
+import { GET_RESOURCES, GET_RESOURCE_BY_ID } from './graphql/queries';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -14,14 +14,17 @@ import {
   SelectMenuModule,
   ChipModule,
   FormWrapperModule,
+  GraphQLSelectModule,
 } from '@oort-front/ui';
 import { DialogModule } from '@oort-front/ui';
 import { DialogRef } from '@angular/cdk/dialog';
 import {
-  Form,
   ResourceQueryResponse,
-  ResourceSelectComponent,
+  ResourcesQueryResponse,
 } from '@oort-front/shared';
+
+/** Default items per query, for pagination */
+const ITEMS_PER_PAGE = 10;
 
 /**
  * Add form component (modal)
@@ -35,6 +38,7 @@ import {
     FormWrapperModule,
     ToggleModule,
     TranslateModule,
+    GraphQLSelectModule,
     DialogModule,
     TooltipModule,
     RadioModule,
@@ -43,34 +47,25 @@ import {
     SelectMenuModule,
     FormWrapperModule,
     ChipModule,
-    ResourceSelectComponent,
   ],
   selector: 'app-add-form-modal',
   templateUrl: './add-form-modal.component.html',
   styleUrls: ['./add-form-modal.component.scss'],
 })
 export class AddFormModalComponent implements OnInit {
-  /** Form group */
+  // === REACTIVE FORM ===
   public form = this.fb.group({
     name: ['', Validators.required],
     newResource: this.fb.nonNullable.control(true),
     resource: [null],
     inheritsTemplate: this.fb.nonNullable.control(false),
-    template: null,
+    template: [null],
   });
-  /** Available templates */
-  public templates: Form[] = [];
 
-  /**
-   * Selected template
-   *
-   * @returns {Form} selected template
-   */
-  get selectedTemplate() {
-    return this.templates.find(
-      (x) => x.id === this.form.get('template')?.value
-    );
-  }
+  // === DATA ===
+  public resourcesQuery!: QueryRef<ResourcesQueryResponse>;
+
+  public templates: any[] = [];
 
   /**
    * Add form modal
@@ -127,6 +122,36 @@ export class AddFormModalComponent implements OnInit {
           template: null,
         });
       });
+
+    this.resourcesQuery = this.apollo.watchQuery<ResourcesQueryResponse>({
+      query: GET_RESOURCES,
+      variables: {
+        first: ITEMS_PER_PAGE,
+        sortField: 'name',
+      },
+    });
+  }
+
+  /**
+   * Changes the query according to search text
+   *
+   * @param search Search text from the graphql select
+   */
+  public onResourceSearchChange(search: string): void {
+    const variables = this.resourcesQuery.variables;
+    this.resourcesQuery.refetch({
+      ...variables,
+      filter: {
+        logic: 'and',
+        filters: [
+          {
+            field: 'name',
+            operator: 'contains',
+            value: search,
+          },
+        ],
+      },
+    });
   }
 
   /**

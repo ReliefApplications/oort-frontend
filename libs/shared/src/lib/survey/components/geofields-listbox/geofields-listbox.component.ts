@@ -1,7 +1,6 @@
 import {
   ChangeDetectorRef,
   Component,
-  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -53,11 +52,8 @@ export class GeofieldsListboxComponent
   extends QuestionAngular<QuestionGeospatialListboxModel>
   implements OnInit, OnChanges, OnDestroy
 {
-  /** Selected fields */
   selectedFields: { value: keyof GeoProperties; label: string }[] = [];
-  /** Available fields */
   public availableFields = ALL_FIELDS;
-  /** Toolbar settings */
   public toolbarSettings: ListBoxToolbarConfig = {
     position: 'right',
     tools: [
@@ -70,7 +66,6 @@ export class GeofieldsListboxComponent
     ],
   };
 
-  /** Destroy subject */
   private destroy$: Subject<void> = new Subject<void>();
 
   /**
@@ -79,13 +74,11 @@ export class GeofieldsListboxComponent
    * @param {ChangeDetectorRef} changeDetectorRef - Angular - This is angular change detector ref of the component instance needed for the survey AngularQuestion class
    * @param {ViewContainerRef} viewContainerRef - Angular - This is angular view container ref of the component instance needed for the survey AngularQuestion class
    * @param {Dialog} dialog - Angular CDK - This is the Dialog service that is used to handle cdk dialogs
-   * @param {NgZone} ngZone - Angular - Injectable service for executing work inside or outside of the Angular zone.
    */
   constructor(
     changeDetectorRef: ChangeDetectorRef,
     viewContainerRef: ViewContainerRef,
-    public dialog: Dialog,
-    private ngZone: NgZone
+    public dialog: Dialog
   ) {
     super(changeDetectorRef, viewContainerRef);
   }
@@ -119,35 +112,31 @@ export class GeofieldsListboxComponent
     const { EditGeofieldComponent } = await import(
       './edit-geofield/edit-geofield.component'
     );
-    this.ngZone.run(() => {
-      const dialogRef = this.dialog.open(EditGeofieldComponent, {
-        data: {
-          geofield,
-        },
-      });
-      dialogRef.closed
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((value: any) => {
-          if (value) {
-            const modified_fields = this.availableFields.map((field) => {
-              if (field.value === geofield.value) {
-                return { ...field, label: value.label };
-              }
-              return field;
-            });
-            this.availableFields = modified_fields;
-
-            const modified_selectedFields = this.selectedFields.map((field) => {
-              if (field.value === geofield.value) {
-                return { ...field, label: value.label };
-              }
-              return field;
-            });
-            this.selectedFields = modified_selectedFields;
-            //update the value of the fields in others components
-            this.handleActionClick();
+    const dialogRef = this.dialog.open(EditGeofieldComponent, {
+      data: {
+        geofield,
+      },
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
+      if (value) {
+        const modified_fields = this.availableFields.map((field) => {
+          if (field.value === geofield.value) {
+            return { ...field, label: value.label };
           }
+          return field;
         });
+        this.availableFields = modified_fields;
+
+        const modified_selectedFields = this.selectedFields.map((field) => {
+          if (field.value === geofield.value) {
+            return { ...field, label: value.label };
+          }
+          return field;
+        });
+        this.selectedFields = modified_selectedFields;
+        //update the value of the fields in others components
+        this.handleActionClick();
+      }
     });
   }
 

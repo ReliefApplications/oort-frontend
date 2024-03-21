@@ -11,29 +11,23 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { AppOverlayContainer } from '../../utils/overlay-container';
-import { UILayoutService } from '@oort-front/ui';
-import { ShadowRootExtendedHostComponent } from '../../utils/shadow-root-extended-host.component';
+import { SnackbarService, UILayoutService } from '@oort-front/ui';
+import { POPUP_CONTAINER } from '@progress/kendo-angular-popup';
 
 /** Form web widget component */
 @Component({
-  selector: 'oort-form-widget',
+  selector: 'form-widget',
   templateUrl: './form-widget.component.html',
   styleUrls: ['./form-widget.component.scss'],
   encapsulation: ViewEncapsulation.ShadowDom,
 })
-export class FormWidgetComponent
-  extends ShadowRootExtendedHostComponent
-  implements AfterViewInit
-{
-  /** id of the form */
+export class FormWidgetComponent implements AfterViewInit {
   @Input() id = '626b96227ad4dd0c96f3b8a1';
   // @Input() id = '642061d1b7109549fa3035e8';
 
-  /** Reference to the right sideNav */
   @ViewChild('rightSidenav', { read: ViewContainerRef })
   rightSidenav?: ViewContainerRef;
 
-  /** boolean, whether the sidenav should be shown or not */
   public showSidenav = false;
 
   /**
@@ -41,16 +35,20 @@ export class FormWidgetComponent
    *
    * @param layoutService UI layout service
    * @param overlayContainer Angular overlay container
+   * @param snackBarService SnackbarService,
    * @param el ElementRef
    * @param injector Injector
    */
   constructor(
     private layoutService: UILayoutService,
     private overlayContainer: OverlayContainer,
+    private snackBarService: SnackbarService,
     el: ElementRef,
     injector: Injector
   ) {
-    super(el, injector);
+    const kendoPopupHost = injector.get(POPUP_CONTAINER);
+    kendoPopupHost.nativeElement = el.nativeElement.shadowRoot;
+    this.snackBarService.shadowDom = el.nativeElement.shadowRoot;
   }
 
   ngAfterViewInit(): void {

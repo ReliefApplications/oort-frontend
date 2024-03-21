@@ -4,7 +4,7 @@ import { BarChartComponent } from './bar-chart.component';
 
 describe('BarChartComponent', () => {
   let component: BarChartComponent;
-  let fixture: ComponentFixture<BarChartComponent>;
+  let fixture: ComponentFixture<sharedBarChartComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

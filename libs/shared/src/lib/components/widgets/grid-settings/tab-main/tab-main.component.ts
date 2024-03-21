@@ -1,7 +1,15 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
+import { Apollo, QueryRef } from 'apollo-angular';
 import { Form } from '../../../../models/form.model';
-import { Resource } from '../../../../models/resource.model';
+import {
+  Resource,
+  ResourcesQueryResponse,
+} from '../../../../models/resource.model';
+import { GET_RESOURCES } from '../graphql/queries';
+
+/** Default items per query, for pagination */
+const ITEMS_PER_PAGE = 10;
 
 /**
  * Main tab of widget grid configuration modal.
@@ -11,25 +19,51 @@ import { Resource } from '../../../../models/resource.model';
   templateUrl: './tab-main.component.html',
   styleUrls: ['./tab-main.component.scss'],
 })
-export class TabMainComponent {
-  /** Widget form group */
+export class TabMainComponent implements OnInit {
   @Input() formGroup!: UntypedFormGroup;
-  /** Selected resource */
+  @Input() form: Form | null = null;
   @Input() resource: Resource | null = null;
-  /** Available resource templates */
+  @Input() queries: any[] = [];
   @Input() templates: Form[] = [];
 
+  public resourcesQuery!: QueryRef<ResourcesQueryResponse>;
+
   /**
-   * Reset given form field value if there is a value previously to avoid triggering
-   * not necessary actions
+   * Main tab of widget grid configuration modal
    *
-   * @param formField Current form field
-   * @param event click event
+   * @param apollo Apollo service
    */
-  clearFormField(formField: string, event: Event) {
-    if (this.formGroup.get(formField)?.value) {
-      this.formGroup.get(formField)?.setValue(null);
-    }
-    event.stopPropagation();
+  constructor(private apollo: Apollo) {}
+
+  ngOnInit(): void {
+    this.resourcesQuery = this.apollo.watchQuery<ResourcesQueryResponse>({
+      query: GET_RESOURCES,
+      variables: {
+        first: ITEMS_PER_PAGE,
+        sortField: 'name',
+      },
+    });
+  }
+
+  /**
+   * Changes the query according to search text
+   *
+   * @param search Search text from the graphql select
+   */
+  onResourceSearchChange(search: string): void {
+    this.resourcesQuery.refetch({
+      first: ITEMS_PER_PAGE,
+      sortField: 'name',
+      filter: {
+        logic: 'and',
+        filters: [
+          {
+            field: 'name',
+            operator: 'contains',
+            value: search,
+          },
+        ],
+      },
+    });
   }
 }

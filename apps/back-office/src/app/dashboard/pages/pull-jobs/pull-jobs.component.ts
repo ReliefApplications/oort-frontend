@@ -9,8 +9,6 @@ import {
   ConfirmService,
   UnsubscribeComponent,
   PullJobsNodesQueryResponse,
-  getCachedValues,
-  updateQueryUniqueValues,
 } from '@oort-front/shared';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { GET_PULL_JOBS } from './graphql/queries';
@@ -21,6 +19,10 @@ import {
 } from './graphql/mutations';
 import { TranslateService } from '@ngx-translate/core';
 import { ApolloQueryResult } from '@apollo/client';
+import {
+  getCachedValues,
+  updateQueryUniqueValues,
+} from '../../../utils/update-queries';
 import { takeUntil } from 'rxjs';
 import { SnackbarService, UIPageChangeEvent } from '@oort-front/ui';
 
@@ -39,23 +41,23 @@ const ITEMS_PER_PAGE = 10;
 })
 export class PullJobsComponent extends UnsubscribeComponent implements OnInit {
   // === DATA ===
-  /** Loading state */
   public loading = true;
-  /** Pull jobs query */
   private pullJobsQuery!: QueryRef<PullJobsNodesQueryResponse>;
-  /** Pull jobs */
   public pullJobs = new Array<PullJob>();
-  /** Cached pull jobs */
   public cachedPullJobs: PullJob[] = [];
 
-  /** Columns to display */
-  public displayedColumns: string[] = ['name', 'status', 'schedule', 'actions'];
+  public displayedColumns: string[] = [
+    'name',
+    'status',
+    // 'apiConfiguration',
+    // 'convertTo',
+    'schedule',
+    'actions',
+  ];
 
   // === SUBSCRIPTIONS ===
-  /** Channels */
   private channels: Channel[] = [];
 
-  /** Page info */
   public pageInfo = {
     pageIndex: 0,
     pageSize: ITEMS_PER_PAGE,

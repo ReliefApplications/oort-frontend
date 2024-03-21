@@ -37,9 +37,7 @@ export type TreeObject = { label: string; layer: L.Layer };
   providedIn: 'root',
 })
 export class ArcgisService {
-  /** ArcGIS API key */
   private esriApiKey!: string;
-  /** ArcGIS session */
   private session!: ApiKeyManager;
 
   /**
@@ -136,7 +134,6 @@ export class ArcgisService {
    *
    * @param {L.Map} map to add the webmap
    * @param {*} webMap webmap loaded
-   * @returns Layer tree as Promise
    */
   private async loadBaseMap(map: L.Map, webMap: any): Promise<TreeObject[]> {
     // BaseMaps
@@ -254,7 +251,6 @@ export class ArcgisService {
    *
    * @param {L.Map} map to add the webmap
    * @param {*} webMap webmap loaded
-   * @returns Layer tree as Promise
    */
   private async loadOperationalLayers(
     map: L.Map,

@@ -2,9 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecordHistoryModule } from '../record-history/record-history.module';
 import { Dialog, DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
-import { ButtonModule, DialogModule } from '@oort-front/ui';
-import { TranslateModule } from '@ngx-translate/core';
-import { Subject } from 'rxjs';
+import { DialogModule } from '@oort-front/ui';
 
 /**
  * This interface describes the structure of the data that will be displayed in the dialog modal
@@ -12,8 +10,6 @@ import { Subject } from 'rxjs';
 interface DialogData {
   id: string;
   revert: any;
-  template?: string;
-  refresh$?: Subject<boolean>;
 }
 
 /**
@@ -21,13 +17,7 @@ interface DialogData {
  */
 @Component({
   standalone: true,
-  imports: [
-    CommonModule,
-    RecordHistoryModule,
-    DialogModule,
-    ButtonModule,
-    TranslateModule,
-  ],
+  imports: [CommonModule, RecordHistoryModule, DialogModule],
   selector: 'shared-history-modal',
   templateUrl: './record-history-modal.component.html',
   styleUrls: ['./record-history-modal.component.scss'],

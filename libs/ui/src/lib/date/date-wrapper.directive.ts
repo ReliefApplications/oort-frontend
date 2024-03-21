@@ -27,28 +27,17 @@ import { DOCUMENT } from '@angular/common';
   selector: '[uiDateWrapper]',
 })
 export class DateWrapperDirective implements AfterContentInit, OnDestroy {
-  /** Date wrapper directive */
   @Input() uiDateWrapper!: DateRangeComponent | DatePickerComponent;
-  /** Date inputs */
   @ContentChildren(DatePickerDirective)
   private dateInputs!: QueryList<DatePickerDirective>;
 
-  /** Destroy subject */
   private destroy$ = new Subject<void>();
-  /** Outside click listener */
   private outsideClickListener!: any;
-  /** Date input listeners */
   private dateInputListeners: any[] = [];
-  /** Overlay reference */
+  private document!: Document;
   overlayRef!: OverlayRef;
-  /** Calendar closing actions subscription */
   calendarClosingActionsSubscription!: Subscription;
-  /** Is calendar open */
   isCalendarOpen = false;
-  /** Timeout to calendar animation */
-  private calendarAnimationTimeoutListener!: NodeJS.Timeout;
-  /** Timeout to close calendar */
-  private closeCalendarTimeoutListener!: NodeJS.Timeout;
 
   /**
    * UI Date wrapper directive constructor
@@ -66,7 +55,7 @@ export class DateWrapperDirective implements AfterContentInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) document: Document
   ) {
     this.document = document;
   }
@@ -92,7 +81,7 @@ export class DateWrapperDirective implements AfterContentInit, OnDestroy {
       this.outsideClickListener();
     }
     this.outsideClickListener = this.renderer.listen(
-      this.document,
+      'window',
       'click',
       (event) => {
         if (
@@ -227,10 +216,7 @@ export class DateWrapperDirective implements AfterContentInit, OnDestroy {
       // Attach it to our overlay
       this.overlayRef.attach(templatePortal);
       // We add the needed classes to create the animation on calendar display
-      if (this.calendarAnimationTimeoutListener) {
-        clearTimeout(this.calendarAnimationTimeoutListener);
-      }
-      this.calendarAnimationTimeoutListener = setTimeout(() => {
+      setTimeout(() => {
         this.applyCalendarDisplayAnimation(true);
       }, 0);
       // Subscribe to all actions that close the calendar
@@ -265,10 +251,7 @@ export class DateWrapperDirective implements AfterContentInit, OnDestroy {
     // We remove the needed classes to create the animation on calendar close
     this.applyCalendarDisplayAnimation(false);
     // Detach the previously created overlay for the calendar
-    if (this.closeCalendarTimeoutListener) {
-      clearTimeout(this.closeCalendarTimeoutListener);
-    }
-    this.closeCalendarTimeoutListener = setTimeout(() => {
+    setTimeout(() => {
       this.overlayRef.detach();
     }, 100);
   }
@@ -294,15 +277,8 @@ export class DateWrapperDirective implements AfterContentInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.closeCalendarTimeoutListener) {
-      clearTimeout(this.closeCalendarTimeoutListener);
-    }
-    if (this.calendarAnimationTimeoutListener) {
-      clearTimeout(this.calendarAnimationTimeoutListener);
-    }
-    if (this.calendarClosingActionsSubscription) {
-      this.calendarClosingActionsSubscription.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.outsideClickListener) {
       this.outsideClickListener();
     }
@@ -311,7 +287,5 @@ export class DateWrapperDirective implements AfterContentInit, OnDestroy {
         listener();
       }
     });
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

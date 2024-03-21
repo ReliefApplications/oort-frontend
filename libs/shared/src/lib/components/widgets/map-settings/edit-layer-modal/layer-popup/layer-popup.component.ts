@@ -1,5 +1,12 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, Input, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewContainerRef,
+} from '@angular/core';
 import { FormArray, FormGroup } from '@angular/forms';
 import {
   PopupElement,
@@ -7,14 +14,10 @@ import {
 } from '../../../../../models/layer.model';
 import { createPopupElementForm } from '../../map-forms';
 import { Fields } from '../../../../../models/layer.model';
-import { Observable, takeUntil } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { INLINE_EDITOR_CONFIG } from '../../../../../const/tinymce.const';
 import { EditorService } from '../../../../../services/editor/editor.service';
 import { UnsubscribeComponent } from '../../../../utils/unsubscribe/unsubscribe.component';
-import { DomPortal } from '@angular/cdk/portal';
-import { ApplicationService } from '../../../../../services/application/application.service';
-import { Application } from '../../../../../models/application.model';
-import { ContentType, Page } from '../../../../../models/page.model';
 
 /**
  * Map layer popup settings component.
@@ -26,70 +29,61 @@ import { ContentType, Page } from '../../../../../models/page.model';
 })
 export class LayerPopupComponent
   extends UnsubscribeComponent
-  implements OnInit
+  implements OnInit, AfterViewInit
 {
-  /** Current form group */
   @Input() formGroup!: FormGroup;
-  /** Map dom portal */
-  @Input() mapPortal?: DomPortal;
-  /** Available fields */
   @Input() fields$!: Observable<Fields[]>;
-  /** Keys for editor */
+
   public keys: { text: string; value: string }[] = [];
-  /** Available fields */
-  public fields: any[] = [];
-  /** Editor configuration */
   public editorConfig = INLINE_EDITOR_CONFIG;
-  /** Available pages from the application */
-  public pages: ReturnType<typeof this.getPages> = [];
-  /** Grid actions */
-  public navigateOptions = {
-    name: 'navigateToPage',
-    text: 'components.widget.settings.grid.actions.navigateToPage',
-    tooltip: 'components.widget.settings.grid.hint.actions.navigateToPage',
-  };
-  /** Show select page id and checkbox for record id */
-  public showSelectPage = false;
 
   /** @returns popup elements as form array */
   get popupElements(): FormArray {
     return this.formGroup.get('popupElements') as FormArray;
   }
 
+  // Display of map
+  @Input() currentMapContainerRef!: BehaviorSubject<ViewContainerRef | null>;
+  @ViewChild('mapContainer', { read: ViewContainerRef })
+  mapContainerRef!: ViewContainerRef;
+  @Input() destroyTab$!: Subject<boolean>;
+
   /**
    * Creates an instance of LayerPopupComponent.
    *
-   * @param editorService Shared tinymce editor service
-   * @param applicationService Shared application service
+   * @param editorService Shared tinymce editor service.
    */
-  constructor(
-    private editorService: EditorService,
-    public applicationService: ApplicationService
-  ) {
+  constructor(private editorService: EditorService) {
     super();
   }
 
   ngOnInit(): void {
     // Listen to fields changes
     this.fields$.pipe(takeUntil(this.destroy$)).subscribe((value) => {
-      this.fields = value;
-      const keys = value.map((field) => ({
+      this.keys = value.map((field) => ({
         text: `{{${field.name}}}`,
         value: `{{${field.name}}}`,
       }));
-      this.editorService.addCalcAndKeysAutoCompleter(this.editorConfig, keys);
+      this.editorService.addCalcAndKeysAutoCompleter(
+        this.editorConfig,
+        this.keys
+      );
     });
+  }
 
-    // Add available pages to the list of available keys
-    const application = this.applicationService.application.getValue();
-    this.pages = this.getPages(application);
-
-    this.showSelectPage = this.formGroup.get('navigateToPage')?.value;
-    this.formGroup
-      .get('navigateToPage')
-      ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe((val: boolean) => {
-        this.showSelectPage = val;
+  ngAfterViewInit(): void {
+    this.currentMapContainerRef
+      .pipe(takeUntil(this.destroyTab$))
+      .subscribe((viewContainerRef) => {
+        if (viewContainerRef) {
+          if (viewContainerRef !== this.mapContainerRef) {
+            const view = viewContainerRef.detach();
+            if (view) {
+              this.mapContainerRef.insert(view);
+              this.currentMapContainerRef.next(this.mapContainerRef);
+            }
+          }
+        }
       });
   }
 
@@ -122,35 +116,5 @@ export class LayerPopupComponent
    */
   public onRemoveElement(index: number): void {
     this.popupElements.removeAt(index);
-  }
-
-  /**
-   * Get available pages from app
-   *
-   * @param application application
-   * @returns list of pages and their url
-   */
-  private getPages(application: Application | null) {
-    return (
-      application?.pages?.map((page: any) => ({
-        id: page.id,
-        name: page.name,
-        urlParams: this.getPageUrlParams(application, page),
-        placeholder: `{{page(${page.id})}}`,
-      })) || []
-    );
-  }
-
-  /**
-   * Get page url params
-   *
-   * @param application application
-   * @param page page to get url from
-   * @returns url of the page
-   */
-  private getPageUrlParams(application: Application, page: Page): string {
-    return page.type === ContentType.form
-      ? `${application.id}/${page.type}/${page.id}`
-      : `${application.id}/${page.type}/${page.content}`;
   }
 }

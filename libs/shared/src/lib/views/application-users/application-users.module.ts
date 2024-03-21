@@ -5,7 +5,7 @@ import { ApplicationUsersRoutingModule } from './application-users-routing.modul
 import { UserListModule } from './components/user-list/user-list.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { TabsModule, ButtonModule, MenuModule } from '@oort-front/ui';
-import { UsersFilterComponent } from '../../components/users/public-api';
+import { InviteUsersModule } from '../../components/users/components/invite-users/invite-users.module';
 
 /**
  * Application users view module.
@@ -19,8 +19,8 @@ import { UsersFilterComponent } from '../../components/users/public-api';
     TranslateModule,
     TabsModule,
     MenuModule,
+    InviteUsersModule,
     ButtonModule,
-    UsersFilterComponent,
   ],
   exports: [ApplicationUsersComponent],
 })

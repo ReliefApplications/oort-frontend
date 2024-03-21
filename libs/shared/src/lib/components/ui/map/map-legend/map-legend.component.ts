@@ -21,10 +21,9 @@ import { ButtonModule, IconModule, TooltipModule } from '@oort-front/ui';
   styleUrls: ['./map-legend.component.scss'],
 })
 export class MapLegendComponent {
-  /** Loaded layer legends */
-  @Input() layerLegends: { legend: LegendDefinition; layer: string }[] = [];
-  /** Is control expanded */
   public expanded = false;
+
+  @Input() layerLegends: { legend: LegendDefinition; layer: string }[] = [];
 
   /** Toggle visibility of expanded control */
   public toggleVisibility(): void {

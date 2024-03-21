@@ -20,11 +20,10 @@ interface DialogData {
 })
 export class ExportComponent implements OnInit {
   // === EXPORT MENU SELECTION ===
-  /** Export settings */
   public export = EXPORT_SETTINGS;
 
   /**
-   * Constructor for the export component
+   * Constructor for the component
    *
    * @param data The dialog data
    */

@@ -31,22 +31,9 @@ const ROUTE_TABS: string[] = [
   styleUrls: ['./resource.component.scss'],
 })
 export class ResourceComponent implements OnInit {
-  // === DATA ===
-  /**
-   * Loading state
-   */
   public loading = true;
-  /**
-   * Resource id
-   */
   public id = '';
-  /**
-   * Resource
-   */
   public resource: any;
-  /**
-   * Selected tab
-   */
   public selectedTab = 0;
 
   /**

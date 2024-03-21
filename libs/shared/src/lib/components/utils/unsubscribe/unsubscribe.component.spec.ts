@@ -4,7 +4,7 @@ import { UnsubscribeComponent } from './unsubscribe.component';
 
 describe('UnsubscribeComponent', () => {
   let component: UnsubscribeComponent;
-  let fixture: ComponentFixture<UnsubscribeComponent>;
+  let fixture: ComponentFixture<sharedUnsubscribeComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

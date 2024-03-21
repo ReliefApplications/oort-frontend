@@ -9,9 +9,7 @@ import { Component, Input, OnInit } from '@angular/core';
   styleUrls: ['./query-style-preview.component.scss'],
 })
 export class QueryStylePreviewComponent implements OnInit {
-  /** The style to preview */
   @Input() style: any;
-  /** The html style */
   public htmlStyle: any;
 
   ngOnInit(): void {

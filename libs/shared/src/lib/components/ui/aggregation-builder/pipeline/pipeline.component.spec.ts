@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
+import { environment } from 'projects/back-office/src/environments/environment';
 import {
   DateTimeProvider,
   OAuthLogger,
@@ -19,13 +20,13 @@ import { Observable } from 'rxjs';
 
 describe('PipelineComponent', () => {
   let component: PipelineComponent;
-  let fixture: ComponentFixture<PipelineComponent>;
+  let fixture: ComponentFixture<sharedPipelineComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       providers: [
         UntypedFormBuilder,
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         OAuthService,
         UrlHelperService,
         OAuthLogger,

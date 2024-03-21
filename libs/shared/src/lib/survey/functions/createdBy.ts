@@ -9,11 +9,7 @@ import { GlobalOptions } from '../types';
 export default (options: GlobalOptions) => {
   const { record, authService } = options;
 
-  /**
-   * Get the createdBy of the record.
-   *
-   * @returns who created the record, or current user if new record
-   */
+  /** @returns who created the record, or current user if new record */
   const createdBy = () => {
     if (record) {
       return record.createdBy?.name || '';

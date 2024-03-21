@@ -1,17 +1,9 @@
-import {
-  AbstractControl,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import get from 'lodash/get';
 import {
   addNewField,
   createQueryForm,
 } from '../../query-builder/query-builder-forms';
-import { extendWidgetForm } from '../common/display-settings/extendWidgetForm';
 
 /** Default action name */
 const DEFAULT_ACTION_NAME = 'Action';
@@ -60,7 +52,7 @@ export const createButtonFormGroup = (value: any) => {
         ? value.modifications.map((x: any) =>
             fb.group({
               field: [x.field, Validators.required],
-              value: [x.value],
+              value: [x.value, Validators.required],
             })
           )
         : []
@@ -144,92 +136,28 @@ export const createButtonFormGroup = (value: any) => {
  * @returns form group
  */
 export const createGridWidgetFormGroup = (id: string, configuration: any) => {
-  const formGroup = fb.group(
-    {
-      id,
-      title: [get(configuration, 'title', ''), Validators.required],
-      resource: [get(configuration, 'resource', null), Validators.required],
-      template: [get(configuration, 'template', null)],
-      layouts: [get(configuration, 'layouts', []), Validators.required],
-      aggregations: [
-        get(configuration, 'aggregations', []),
-        Validators.required,
-      ],
-      actions: createGridActionsFormGroup(configuration),
-      floatingButtons: fb.array(
-        configuration.floatingButtons && configuration.floatingButtons.length
-          ? configuration.floatingButtons.map((x: any) =>
-              createButtonFormGroup(x)
-            )
-          : [createButtonFormGroup(null)]
-      ) as FormArray<FormControl<typeof createButtonFormGroup>>,
-      sortFields: new FormArray<any>([]),
-      contextFilters: [
-        get(configuration, 'contextFilters', DEFAULT_CONTEXT_FILTER),
-      ],
-      at: get(configuration, 'at', ''),
-    },
-    {
-      validators: [templateRequiredWhenAddRecord],
-    }
-  );
-  const extendedForm = extendWidgetForm(
-    formGroup,
-    configuration?.widgetDisplay,
-    {
-      showSingleActionAsButton: new FormControl(
-        get<boolean>(
-          configuration,
-          'widgetDisplay.showSingleActionAsButton',
-          false
-        )
-      ),
-      enableActionsTitle: new FormControl(
-        get<boolean>(configuration, 'widgetDisplay.enableActionsTitle', false)
-      ),
-      actionsTitle: new FormControl(
-        get<string>(configuration, 'widgetDisplay.actionsTitle', '')
-      ),
-      addToRowClasses: new FormControl(
-        get<string[]>(configuration, 'widgetDisplay.addToRowClasses', [])
-      ),
-    }
-  );
-  return extendedForm;
-};
-
-/**
- * Validators for checking that a template is selected when configuring "add record" action.
- *
- * @param group form group
- * @returns validation errors
- */
-export const templateRequiredWhenAddRecord = (
-  group: AbstractControl
-): ValidationErrors | null => {
-  const templateControl = group.get('template');
-  const addRecordControl = group.get('actions.addRecord');
-
-  if (templateControl && addRecordControl) {
-    const templateValue = templateControl.value;
-    const addRecordValue = addRecordControl.value;
-
-    if (addRecordValue && !templateValue) {
-      addRecordControl.setErrors({
-        missingTemplate: true,
-      });
-      return {
-        actions: {
-          addRecord: {
-            missingTemplate: true,
-          },
-        },
-      };
-    } else {
-      addRecordControl.setErrors(null);
-    }
-  }
-  return null;
+  const formGroup = fb.group({
+    id,
+    title: [get(configuration, 'title', ''), Validators.required],
+    resource: [get(configuration, 'resource', null), Validators.required],
+    template: [get(configuration, 'template', null)],
+    layouts: [get(configuration, 'layouts', []), Validators.required],
+    aggregations: [get(configuration, 'aggregations', []), Validators.required],
+    actions: createGridActionsFormGroup(configuration),
+    floatingButtons: fb.array(
+      configuration.floatingButtons && configuration.floatingButtons.length
+        ? configuration.floatingButtons.map((x: any) =>
+            createButtonFormGroup(x)
+          )
+        : [createButtonFormGroup(null)]
+    ),
+    sortFields: new FormArray([]),
+    contextFilters: [
+      get(configuration, 'contextFilters', DEFAULT_CONTEXT_FILTER),
+    ],
+    at: get(configuration, 'at', ''),
+  });
+  return formGroup;
 };
 
 /**
@@ -249,15 +177,13 @@ export const createGridActionsFormGroup = (configuration: any) => {
     export: [get(configuration, 'actions.export', true)],
     showDetails: [get(configuration, 'actions.showDetails', true)],
     navigateToPage: [get(configuration, 'actions.navigateToPage', false)],
-    actionsAsIcons: [get(configuration, 'actions.actionsAsIcons', false)],
     navigateSettings: fb.group({
       pageUrl: [get(configuration, 'actions.navigateSettings.pageUrl', '')],
-      field: [get(configuration, 'actions.navigateSettings.field', '')],
+      useRecordId: [
+        get(configuration, 'actions.navigateSettings.useRecordId', false),
+      ],
       title: [
         get(configuration, 'actions.navigateSettings.title', 'Details view'),
-      ],
-      copyLink: [
-        get(configuration, 'actions.navigateSettings.copyLink', false),
       ],
     }),
   });

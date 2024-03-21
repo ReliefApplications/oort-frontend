@@ -9,15 +9,18 @@ import { AggregationBuilderService } from '../../../services/aggregation-builder
 import { AggregationService } from '../../../services/aggregation/aggregation.service';
 import { PAGER_SETTINGS } from './aggregation-grid.constants';
 import { GET_RESOURCE } from './graphql/queries';
-import { Subject, from, merge, takeUntil } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { QueryBuilderService } from '../../../services/query-builder/query-builder.service';
+import {
+  QueryBuilderService,
+  REFERENCE_DATA_END,
+} from '../../../services/query-builder/query-builder.service';
 import { GridService } from '../../../services/grid/grid.service';
+import { createDefaultField } from '../../query-builder/query-builder-forms';
 import { ContextService } from '../../../services/context/context.service';
 import { UnsubscribeComponent } from '../../utils/unsubscribe/unsubscribe.component';
 import { ResourceQueryResponse } from '../../../models/resource.model';
 import { SortDescriptor } from '@progress/kendo-data-query';
-import { cloneDeep } from 'lodash';
 
 /**
  * Shared aggregation grid component.
@@ -31,45 +34,29 @@ export class AggregationGridComponent
   extends UnsubscribeComponent
   implements OnInit, OnChanges
 {
-  /** Data */
-  @Input() widget: any;
-  /** Resource id */
-  @Input() resourceId!: string;
-  /** Aggregation */
-  @Input() aggregation!: Aggregation;
-  /** Context filters to be used with dashboard filters */
-  @Input() contextFilters: string | undefined;
-  /** Version at to be used with dashboard filters */
-  @Input() at: string | undefined;
-  /** Grid data */
   public gridData: GridDataResult = { data: [], total: 0 };
-  /** Grid fields */
   public fields: any[] = [];
-  /** Loading state */
   public loading = false;
-  /** Loading settings state */
   public loadingSettings = false;
-  /** Status */
   public status: {
     message?: string;
     error: boolean;
   } = {
     error: false,
   };
-  /** Sort */
   public sort: SortDescriptor[] = [];
-  /** Page size */
   public pageSize = 10;
-  /** Skip */
   public skip = 0;
-  /** Pager settings */
-  public pagerSettings = PAGER_SETTINGS;
-  /** Show filter */
-  public showFilter = false;
-  /** Data query */
   private dataQuery!: QueryRef<AggregationDataQueryResponse>;
-  /** Subject to emit signals for cancelling previous data queries */
-  private cancelRefresh$ = new Subject<void>();
+  public pagerSettings = PAGER_SETTINGS;
+  public showFilter = false;
+
+  @Input() resourceId!: string;
+  @Input() aggregation!: Aggregation;
+  /** Context filters to be used with dashboard filters */
+  @Input() contextFilters: string | undefined;
+  /** Version at to be used with dashboard filters */
+  @Input() at: string | undefined;
 
   /** @returns The column menu */
   get columnMenu(): { columnChooser: boolean; filter: boolean } {
@@ -113,23 +100,12 @@ export class AggregationGridComponent
   }
 
   ngOnInit(): void {
-    // Listen to dashboard filters changes if it is necessary
-    if (this.contextService.filterRegex.test(this.contextFilters as string)) {
-      this.contextService.filter$
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(({ previous, current }) => {
-          if (
-            this.contextService.shouldRefresh(this.widget, previous, current)
-          ) {
-            this.getAggregationData();
-          }
-        });
-    }
-    this.queryBuilder.isDoneLoading$.subscribe((doneLoading) => {
-      if (doneLoading) {
-        this.getAggregationFields();
-      }
-    });
+    this.contextService.filter$
+      .pipe(debounceTime(500), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.getAggregationData();
+      });
+    this.getAggregationFields();
   }
 
   ngOnChanges(): void {
@@ -148,24 +124,24 @@ export class AggregationGridComponent
       this.pageSize,
       this.skip,
       this.contextFilters
-        ? this.contextService.injectContext(JSON.parse(this.contextFilters))
+        ? this.contextService.injectDashboardFilterValues(
+            JSON.parse(this.contextFilters)
+          )
         : undefined,
       this.at ? this.contextService.atArgumentValue(this.at) : undefined
     );
-    this.dataQuery.valueChanges
-      .pipe(takeUntil(merge(this.cancelRefresh$, this.destroy$)))
-      .subscribe({
-        next: ({ data, loading }) => {
-          this.updateValues(data, loading);
-        },
-        error: (err: any) => {
-          this.loading = false;
-          this.setErrorStatus(
-            err,
-            'components.widget.grid.errors.queryFetchFailed'
-          );
-        },
-      });
+    this.dataQuery.valueChanges.pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ data, loading }) => {
+        this.updateValues(data, loading);
+      },
+      error: (err: any) => {
+        this.loading = false;
+        this.setErrorStatus(
+          err,
+          'components.widget.grid.errors.queryFetchFailed'
+        );
+      },
+    });
   }
 
   /**
@@ -199,37 +175,105 @@ export class AggregationGridComponent
         },
       })
       .subscribe({
-        next: ({ data }) => {
-          const resource = data.resource;
-          const fields = this.queryBuilder.getFields(resource.queryName || '');
-          const selectedFields = this.aggregation.sourceFields
-            .map((x: string) => {
-              const field = fields.find((y) => x === y.name);
-              if (!field) return null;
-              if (field.type.kind !== 'SCALAR') {
-                Object.assign(field, {
-                  fields: this.queryBuilder.deconfineFields(
-                    field.type,
-                    new Set().add(resource.name).add(field.type.ofType?.name)
-                  ),
-                });
-              }
-              return field;
-            })
-            .filter((x: any) => x !== null);
-          const aggregationFields = this.aggregationBuilderService.fieldsAfter(
-            selectedFields,
-            this.aggregation?.pipeline
+        next: (res) => {
+          const resource = res.data.resource;
+          const allGqlFields = this.queryBuilder.getFields(
+            resource.queryName || ''
           );
-          this.fields = this.gridService.getFields(
-            aggregationFields,
-            null,
-            null
+          // Fetch fields at the end of the pipeline
+          const aggFields = this.aggregationBuilderService.fieldsAfter(
+            allGqlFields
+              ?.filter((x) => this.aggregation.sourceFields.includes(x.name))
+              .map((field: any) => {
+                if (field.type?.kind !== 'SCALAR') {
+                  field.fields = this.queryBuilder
+                    .getFieldsFromType(
+                      field.type?.kind === 'OBJECT'
+                        ? field.type.name
+                        : field.type.ofType.name
+                    )
+                    .filter(
+                      (y) => y.type.name !== 'ID' && y.type?.kind === 'SCALAR'
+                    );
+                }
+                return field;
+              }) || [],
+            this.aggregation.pipeline
           );
-          this.loadingSettings = false;
-          this.status = {
-            error: false,
-          };
+          const fieldNames = aggFields.map((x) => x.name);
+          // Convert them to query fields
+          const queryFields = this.aggregationBuilderService.formatFields(
+            aggFields.filter((field) =>
+              allGqlFields.some((x) => x.name === field.name)
+            )
+          );
+          // Create meta query from query fields
+          const metaQuery = this.queryBuilder.buildMetaQuery({
+            name: resource.queryName || '',
+            fields: queryFields,
+          });
+          if (metaQuery) {
+            metaQuery.subscribe({
+              next: async ({ data }) => {
+                this.status = {
+                  error: false,
+                };
+                for (const key in data) {
+                  if (Object.prototype.hasOwnProperty.call(data, key)) {
+                    const metaFields = Object.assign({}, data[key]);
+                    try {
+                      await this.gridService.populateMetaFields(metaFields);
+                      // Remove ref data meta fields because it messes up with the display
+                      for (const field of queryFields) {
+                        if (field.type.endsWith(REFERENCE_DATA_END)) {
+                          delete metaFields[field.name];
+                        }
+                      }
+                    } catch (err) {
+                      console.error(err);
+                    }
+                    this.loadingSettings = false;
+                    // Concat query fields with dummy one for newly added fields
+                    const fields = queryFields.concat(
+                      fieldNames.reduce((arr, fieldName) => {
+                        if (
+                          !queryFields.some((field) => field.name === fieldName)
+                        ) {
+                          arr.push(createDefaultField(fieldName));
+                        }
+                        return arr;
+                      }, [])
+                    );
+                    // Generate grid fields
+                    this.fields = this.gridService.getFields(
+                      fields,
+                      metaFields,
+                      {}
+                    );
+                  }
+                }
+              },
+              error: (err: any) => {
+                this.loadingSettings = false;
+                this.setErrorStatus(
+                  err,
+                  'components.widget.grid.errors.metaQueryFetchFailed'
+                );
+              },
+            });
+          } else {
+            this.loadingSettings = false;
+            // todo(infinite): check
+            // this.status = {
+            //   error: !this.loadingSettings,
+            //   message: this.translate.instant(
+            //     'components.widget.grid.errors.metaQueryBuildFailed'
+            //   ),
+            // };
+            this.status = {
+              error: false,
+            };
+          }
         },
         error: (err: any) => {
           this.loadingSettings = false;
@@ -262,8 +306,8 @@ export class AggregationGridComponent
     this.skip = event.skip;
     this.pageSize = event.take;
 
-    from(
-      this.dataQuery.fetchMore({
+    this.dataQuery
+      .fetchMore({
         variables: {
           first: this.pageSize,
           skip: this.skip,
@@ -271,9 +315,7 @@ export class AggregationGridComponent
           sortOrder: this.sortOrder,
         },
       })
-    )
-      .pipe(takeUntil(merge(this.cancelRefresh$, this.destroy$)))
-      .subscribe((results) => this.updateValues(results.data, results.loading));
+      .then((results) => this.updateValues(results.data, results.loading));
   }
 
   /**
@@ -284,7 +326,7 @@ export class AggregationGridComponent
    */
   private updateValues(data: AggregationDataQueryResponse, loading: boolean) {
     this.gridData = {
-      data: cloneDeep(data.recordsAggregation.items),
+      data: data.recordsAggregation.items,
       total: data.recordsAggregation.totalCount,
     };
     this.loading = loading;

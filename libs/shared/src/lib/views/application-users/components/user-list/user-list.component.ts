@@ -1,15 +1,7 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { ApplicationService } from '../../../../services/application/application.service';
-import { BehaviorSubject, takeUntil } from 'rxjs';
+import { takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../../../../components/utils/unsubscribe/unsubscribe.component';
 import {
   ApplicationUsersQueryResponse,
@@ -24,7 +16,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { ConfirmService } from '../../../../services/confirm/confirm.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UIPageChangeEvent, handleTablePageEvent } from '@oort-front/ui';
-import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
 
 /** Default number of items per request for pagination */
 const DEFAULT_PAGE_SIZE = 10;
@@ -37,15 +28,9 @@ const DEFAULT_PAGE_SIZE = 10;
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
 })
-export class UserListComponent
-  extends UnsubscribeComponent
-  implements OnInit, OnChanges
-{
-  /** Whether the users are auto assigned or not */
+export class UserListComponent extends UnsubscribeComponent implements OnInit {
   @Input() autoAssigned = false;
-  /** Filter to apply on the users query */
-  @Input() filter: CompositeFilterDescriptor | null = null;
-  /** Columns to display */
+
   public displayedColumns = [
     'select',
     'name',
@@ -56,25 +41,15 @@ export class UserListComponent
     'actions',
   ];
 
-  /** Users */
   public users: Array<User> = new Array<User>();
-  /** Cached users */
   public cachedUsers: User[] = [];
-  /** Users query */
   private usersQuery!: QueryRef<ApplicationUsersQueryResponse>;
-  /** Roles */
   @Input() roles: Role[] = [];
-  /** Position attribute categories */
   @Input() positionAttributeCategories: PositionAttributeCategory[] = [];
 
-  /** Loading state */
-  public loading = new BehaviorSubject<boolean>(true);
-  /** Emits loading value */
-  @Output() loadingStatusChange = new EventEmitter<boolean>();
-  /** Updating state */
+  public loading = true;
   public updating = false;
 
-  /** Page info */
   public pageInfo = {
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -87,7 +62,6 @@ export class UserListComponent
     return !this.loading && this.users.length === 0;
   }
 
-  /** Selection model for users */
   public selection = new SelectionModel<User>(true, []);
 
   /**
@@ -112,14 +86,6 @@ export class UserListComponent
   }
 
   ngOnInit(): void {
-    // Emit loading value
-    this.loading
-      .asObservable()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.loadingStatusChange.emit(this.loading.value);
-      });
-
     if (this.autoAssigned) {
       this.displayedColumns = this.displayedColumns.filter(
         (x) => x !== 'select'
@@ -136,7 +102,6 @@ export class UserListComponent
                 id: application.id,
                 first: DEFAULT_PAGE_SIZE,
                 automated: this.autoAssigned,
-                filter: this.filter,
               },
             });
           this.usersQuery.valueChanges
@@ -146,12 +111,6 @@ export class UserListComponent
             });
         }
       });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.filter) {
-      this.fetchUsers(true);
-    }
   }
 
   /**
@@ -181,7 +140,6 @@ export class UserListComponent
       this.usersQuery.refetch({
         first: this.pageInfo.pageSize,
         afterCursor: null,
-        filter: this.filter,
       });
     } else {
       this.usersQuery
@@ -189,7 +147,6 @@ export class UserListComponent
           variables: {
             first: this.pageInfo.pageSize,
             afterCursor: this.pageInfo.endCursor,
-            filter: this.filter,
           },
         })
         .then((results) => this.updateValues(results.data, results.loading));
@@ -263,7 +220,7 @@ export class UserListComponent
         .subscribe((value: any) => {
           if (value) {
             const ids = users.map((u) => u.id);
-            this.loading.next(true);
+            this.loading = true;
             this.selection.clear();
             this.applicationService.deleteUsersFromApplication(ids, () =>
               this.fetchUsers(true)
@@ -299,7 +256,7 @@ export class UserListComponent
       this.pageInfo.pageSize * this.pageInfo.pageIndex,
       this.pageInfo.pageSize * (this.pageInfo.pageIndex + 1)
     );
-    this.loading.next(loading);
+    this.loading = loading;
     this.updating = false;
   }
 }

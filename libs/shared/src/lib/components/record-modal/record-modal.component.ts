@@ -68,22 +68,14 @@ export class RecordModalComponent
   implements AfterViewInit, OnDestroy
 {
   // === DATA ===
-  /** Loading state */
   public loading = true;
-  /** Form */
   public form?: Form;
-  /** Record */
   public record: Record = {};
-  /** Modified at */
   public modifiedAt: Date | null = null;
-  /** Survey */
   public survey!: SurveyModel;
-  /** Survey next */
   public surveyNext?: SurveyModel;
-  /** Can edit */
   public canEdit: boolean | undefined = false;
 
-  /** Environment */
   environment: any;
 
   /** Selected page index */
@@ -173,24 +165,17 @@ export class RecordModalComponent
    * Initializes the form
    */
   private initSurvey() {
-    this.data.isTemporary
-      ? (this.survey = this.formBuilderService.createSurvey(
-          this.form?.structure || '',
-          this.form?.metadata,
-          this.record
-        ))
-      : (this.survey = this.formBuilderService.createSurvey(
-          this.form?.structure || '',
-          this.form?.metadata
-        ));
-
+    this.survey = this.formBuilderService.createSurvey(
+      this.form?.structure || '',
+      this.form?.metadata,
+      this.record
+    );
     addCustomFunctions({
       record: this.record,
       authService: this.authService,
       apollo: this.apollo,
       form: this.form,
     });
-    this.survey.data = this.record.data;
 
     this.survey.mode = 'display';
     // After the survey is created we add common callback to survey events
@@ -281,7 +266,6 @@ export class RecordModalComponent
         revert: (version: any) =>
           this.confirmRevertDialog(this.record, version),
       },
-      panelClass: ['lg:w-4/5', 'w-full'],
       autoFocus: false,
     });
   }

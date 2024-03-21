@@ -4,6 +4,7 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
+  Inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -24,50 +25,30 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntil } from 'rxjs/operators';
 import { SelectMenuComponent } from '../select-menu/select-menu.component';
 import { updateQueryUniqueValues } from './utils/update-queries';
-import { ShadowDomService } from '../shadow-dom/shadow-dom.service';
+import { DOCUMENT } from '@angular/common';
 
 /** A constant that is used to determine how many items should be added on scroll. */
 const ITEMS_PER_RELOAD = 10;
 
-/**
- * Component for a dropdown with pagination.
- * Extended by:
- * - resource select
- * - reference data select
- *
- * BE AWARE: changes made on this component may affect extended ones!!!
- */
+/** Component for a dropdown with pagination */
 @Component({
   selector: 'ui-graphql-select',
   templateUrl: './graphql-select.component.html',
   styleUrls: ['./graphql-select.component.scss'],
-  template: '<div></div>',
 })
 export class GraphQLSelectComponent
   implements OnInit, OnChanges, OnDestroy, ControlValueAccessor
 {
-  /** Static variable for generating unique id */
   static nextId = 0;
 
-  /** Input decorator for valueField */
   @Input() valueField = '';
-  /** Input decorator for textField */
   @Input() textField = '';
-  /** Input decorator for path */
   @Input() path = '';
-  /** Whether you can select multiple items or not */
-  @Input() multiselect = false;
-  /** Whether it is a survey question or not */
   @Input() isSurveyQuestion = false;
   /** Add type to selectedElements */
   @Input() selectedElements: any[] = [];
-  /** Whether the select is filterable or not */
   @Input() filterable = false;
-  /** Placeholder text for the select */
   @Input() placeholder = '';
-  /**
-   *  Input decorator for aria-label
-   */
   // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('aria-describedby') userAriaDescribedBy!: string;
   /** Query reference for getting the available contents */
@@ -125,51 +106,31 @@ export class GraphQLSelectComponent
     this.stateChanges.next();
   }
 
-  /** Event emitter for selection change */
   @Output() selectionChange = new EventEmitter<string | string[] | null>();
-  /** Event emitter for search change */
   @Output() searchChange = new EventEmitter<string>();
 
-  /** Subject that emits when the state changes */
   public stateChanges = new Subject<void>();
-  /** Form control for search */
   public searchControl = new FormControl('', { nonNullable: true });
-  /** Control type */
   public controlType = 'ui-graphql-select';
-  /** Elements */
   public elements = new BehaviorSubject<any[]>([]);
-  /** Elements observable */
   public elements$!: Observable<any[]>;
-  /** Loading status */
   public loading = true;
-  /** Focused status */
   public focused = false;
-  /** Touched status */
   public touched = false;
 
-  /** Destroy subject */
-  public destroy$ = new Subject<void>();
-  /** Query name */
-  protected queryName!: string;
-  /** Query change subject */
-  protected queryChange$ = new Subject<void>();
-  /** Query elements */
+  private destroy$ = new Subject<void>();
+  private queryName!: string;
+  private queryChange$ = new Subject<void>();
   private queryElements: any[] = [];
-  /** Cached elements */
   private cachedElements: any[] = [];
-  /** Page info */
   private pageInfo = {
     endCursor: '',
     hasNextPage: true,
   };
-  /** Whether the field is required */
   private isRequired = false;
-  /** Scroll listener */
   private scrollListener!: any;
 
-  /** Select menu component */
   @ViewChild(SelectMenuComponent) elementSelect!: SelectMenuComponent;
-  /** Search input element */
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   /**
@@ -182,11 +143,6 @@ export class GraphQLSelectComponent
     return this.focused || !this.empty;
   }
 
-  /**
-   * Gets the id
-   *
-   * @returns the id
-   */
   @HostBinding()
   id = `ui-graphql-select-${GraphQLSelectComponent.nextId++}`;
 
@@ -219,14 +175,14 @@ export class GraphQLSelectComponent
    * @param elementRef shared element ref service
    * @param renderer - Angular - Renderer2
    * @param changeDetectorRef - Angular - ChangeDetectorRef
-   * @param shadowDomService shadow dom service to handle the current host of the component
+   * @param document document
    */
   constructor(
     @Optional() @Self() public ngControl: NgControl,
     public elementRef: ElementRef<HTMLElement>,
-    protected renderer: Renderer2,
-    protected changeDetectorRef: ChangeDetectorRef,
-    protected shadowDomService: ShadowDomService
+    private renderer: Renderer2,
+    private changeDetectorRef: ChangeDetectorRef,
+    @Inject(DOCUMENT) private document: Document
   ) {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
@@ -288,16 +244,8 @@ export class GraphQLSelectComponent
     this.onTouched = fn;
   }
 
-  /**
-   * Function shell for onTouched
-   */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onTouched = () => {};
-  /**
-   * Function shell for onChange
-   *
-   * @param _ new value
-   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
   onChange = (_: any) => {};
 
@@ -430,8 +378,7 @@ export class GraphQLSelectComponent
   onOpenSelect(): void {
     // focus on search input, if filterable
     if (this.filterable) this.searchInput?.nativeElement.focus();
-    const panel =
-      this.shadowDomService.currentHost.getElementById('optionList');
+    const panel = this.document.getElementById('optionList');
     if (this.scrollListener) {
       this.scrollListener();
     }
@@ -524,7 +471,7 @@ export class GraphQLSelectComponent
    * @param data query response data
    * @param loading loading status
    */
-  protected updateValues(data: any, loading: boolean) {
+  private updateValues(data: any, loading: boolean) {
     const path = this.path ? `${this.queryName}.${this.path}` : this.queryName;
     const elements: any[] = get(data, path).edges
       ? get(data, path).edges.map((x: any) => x.node)

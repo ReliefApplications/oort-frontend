@@ -4,7 +4,7 @@ import { TabPaginationComponent } from './tab-pagination.component';
 
 describe('TabPaginationComponent', () => {
   let component: TabPaginationComponent;
-  let fixture: ComponentFixture<TabPaginationComponent>;
+  let fixture: ComponentFixture<sharedTabPaginationComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

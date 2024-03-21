@@ -1,9 +1,15 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewContainerRef,
+} from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { GeometryType } from '../../../../ui/map/interfaces/layer-settings.type';
 import { Fields } from '../../../../../models/layer.model';
-import { DomPortal } from '@angular/cdk/portal';
 
 /** Available renderer types for point */
 const POINT_RENDERER_TYPES = ['simple', 'heatmap', 'uniqueValue'];
@@ -18,17 +24,17 @@ const POLYGON_RENDERER_TYPES = ['simple', 'uniqueValue'];
   templateUrl: './layer-styling.component.html',
   styleUrls: ['./layer-styling.component.scss'],
 })
-export class LayerStylingComponent implements OnInit {
-  /** Type of layer geometry ( point / polygon ) */
+export class LayerStylingComponent implements AfterViewInit, OnInit {
   @Input() geometryType: GeometryType = 'Point';
-  /** Current form group */
   @Input() formGroup!: FormGroup;
-  /** Map dom portal */
-  @Input() mapPortal?: DomPortal;
-  /** Available fields */
-  @Input() fields$!: Observable<Fields[]>;
-  /** Possible renderer types */
   public rendererTypes!: string[];
+  @Input() fields$!: Observable<Fields[]>;
+
+  // Display of map
+  @Input() currentMapContainerRef!: BehaviorSubject<ViewContainerRef | null>;
+  @ViewChild('mapContainer', { read: ViewContainerRef })
+  mapContainerRef!: ViewContainerRef;
+  @Input() destroyTab$!: Subject<boolean>;
 
   ngOnInit(): void {
     switch (this.geometryType) {
@@ -40,5 +46,21 @@ export class LayerStylingComponent implements OnInit {
         this.rendererTypes = POINT_RENDERER_TYPES;
         break;
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.currentMapContainerRef
+      .pipe(takeUntil(this.destroyTab$))
+      .subscribe((viewContainerRef) => {
+        if (viewContainerRef) {
+          if (viewContainerRef !== this.mapContainerRef) {
+            const view = viewContainerRef.detach();
+            if (view) {
+              this.mapContainerRef.insert(view);
+              this.currentMapContainerRef.next(this.mapContainerRef);
+            }
+          }
+        }
+      });
   }
 }

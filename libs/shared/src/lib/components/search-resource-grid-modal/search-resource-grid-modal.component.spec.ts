@@ -14,7 +14,7 @@ import {
 
 describe('ResourceTableModalComponent', () => {
   let component: ResourceGridModalComponent;
-  let fixture: ComponentFixture<ResourceGridModalComponent>;
+  let fixture: ComponentFixture<sharedResourceGridModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

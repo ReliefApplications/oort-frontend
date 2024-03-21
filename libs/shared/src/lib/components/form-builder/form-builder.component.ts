@@ -27,8 +27,6 @@ import { Question } from '../../survey/types';
 import { DOCUMENT } from '@angular/common';
 import { takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
-import { SurveyCustomJSONEditorPlugin } from './custom-json-editor/custom-json-editor.component';
-import { updateModalChoicesAndValue } from '../../survey/global-properties/reference-data';
 import { MatrixManager } from '../../survey/controllers/matrixManager';
 
 /**
@@ -125,35 +123,15 @@ export class FormBuilderComponent
   extends UnsubscribeComponent
   implements OnInit, OnChanges, OnDestroy
 {
-  /**
-   * Form object
-   */
   @Input() form!: Form;
-  /**
-   * Event emitted when the form is saved
-   */
   @Output() save: EventEmitter<any> = new EventEmitter();
-  /**
-   * Event emitted when the form is changed
-   */
   @Output() formChange: EventEmitter<any> = new EventEmitter();
 
   // === CREATOR ===
-  /**
-   * SurveyJS creator model
-   */
   surveyCreator!: SurveyCreatorModel;
-  /**
-   * JSON object of the form
-   */
   public json: any;
 
-  /**
-   * List of related names
-   */
   private relatedNames!: string[];
-  /** Timeout to survey creator */
-  private timeoutListener!: NodeJS.Timeout;
 
   /**
    * The constructor function is a special function that is called when a new instance of the class is
@@ -216,19 +194,11 @@ export class FormBuilderComponent
       this.surveyCreator.survey.onAfterRenderQuestion.add(
         renderGlobalProperties(this.referenceDataService) as any
       );
-      this.surveyCreator.survey.onAfterRenderQuestion.add(
-        this.formHelpersService.addQuestionTooltips.bind(
-          this.formHelpersService
-        )
-      );
     }
   }
 
   override ngOnDestroy(): void {
     super.ngOnDestroy();
-    if (this.timeoutListener) {
-      clearTimeout(this.timeoutListener);
-    }
     this.surveyCreator.survey?.dispose();
   }
 
@@ -240,7 +210,7 @@ export class FormBuilderComponent
   private setFormBuilder(structure: string) {
     const creatorOptions = {
       showEmbededSurveyTab: false,
-      showJSONEditorTab: false,
+      showJSONEditorTab: true,
       generateValidJSON: true,
       showTranslationTab: true,
       questionTypes: QUESTION_TYPES,
@@ -292,7 +262,6 @@ export class FormBuilderComponent
 
     this.surveyCreator.toolbox.forceCompact = false;
     this.surveyCreator.toolbox.allowExpandMultipleCategories = true;
-    new SurveyCustomJSONEditorPlugin(this.surveyCreator);
     this.surveyCreator.toolbox.changeCategories(
       QUESTION_TYPES.map((x) => ({
         name: x,
@@ -354,10 +323,7 @@ export class FormBuilderComponent
     // Scroll to question when added
     this.surveyCreator.onQuestionAdded.add((sender: any, options: any) => {
       const name = options.question.name;
-      if (this.timeoutListener) {
-        clearTimeout(this.timeoutListener);
-      }
-      this.timeoutListener = setTimeout(() => {
+      setTimeout(() => {
         const el = this.document.querySelector('[data-name="' + name + '"]');
         el?.scrollIntoView({ behavior: 'smooth' });
       });
@@ -367,17 +333,12 @@ export class FormBuilderComponent
     this.surveyCreator.survey.onAfterRenderQuestion.add(
       renderGlobalProperties(this.referenceDataService) as any
     );
-    this.surveyCreator.survey.onAfterRenderQuestion.add(
-      this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService)
-    );
-
     (this.surveyCreator.onTestSurveyCreated as any).add(
       (sender: any, options: any) =>
         options.survey.onAfterRenderQuestion.add(
           renderGlobalProperties(this.referenceDataService)
         )
     );
-    this.surveyCreator.onPropertyGridShowModal.add(updateModalChoicesAndValue);
     this.surveyCreator.survey.locale = surveyLocalization.currentLocale; // -> set the default language property also
 
     // Sets the default language to the one selected in the interface
@@ -400,7 +361,10 @@ export class FormBuilderComponent
       }
 
       // Add 'up' & 'down' adorners to panels & questions
-      const parent = element.parent;
+      const parent = element.parent ?? element.parentElement?.parent;
+      if (!parent) {
+        return;
+      }
       const index = parent.elements.indexOf(element);
       if (index > 0) {
         const moveUpAdorner = moveUpButton(element);
@@ -639,9 +603,6 @@ export class FormBuilderComponent
     }
     if (['resource', 'resources'].includes(question.getType())) {
       if (question.relatedName) {
-        question.relatedName = this.formHelpersService.toSnakeCase(
-          question.relatedName
-        );
         question.relatedName = this.formHelpersService.toSnakeCase(
           question.relatedName
         );

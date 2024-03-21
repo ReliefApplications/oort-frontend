@@ -10,9 +10,6 @@ import { RestService } from '../rest/rest.service';
 import { SnackbarService } from '@oort-front/ui';
 import { flatDeep } from '../../utils/array-filter';
 
-/** Snackbar duration in ms */
-const SNACKBAR_DURATION = 1000;
-
 /**
  * Shared email service.
  * Used by widgets to send request to the back to send emails.
@@ -132,7 +129,8 @@ export class EmailService {
             'common.notifications.email.sent'
           )),
             (snackBarSpinner.instance.loading = false);
-          snackBarRef.instance.triggerSnackBar(SNACKBAR_DURATION);
+
+          setTimeout(() => snackBarRef.instance.dismiss(), 1000);
         },
         error: () => {
           (snackBarSpinner.instance.message = this.translate.instant(
@@ -140,7 +138,7 @@ export class EmailService {
           )),
             (snackBarSpinner.instance.loading = false);
           snackBarSpinner.instance.error = true;
-          snackBarRef.instance.triggerSnackBar(SNACKBAR_DURATION);
+          setTimeout(() => snackBarRef.instance.dismiss(), 1000);
         },
       });
   }
@@ -211,11 +209,11 @@ export class EmailService {
             'common.notifications.email.ready'
           );
           snackBarSpinner.instance.loading = false;
-          snackBarRef.instance.triggerSnackBar(SNACKBAR_DURATION);
-          const { EmailPreviewModalComponent } = await import(
-            '../../components/email-preview-modal/email-preview-modal.component'
+          setTimeout(() => snackBarRef.instance.dismiss(), 1000);
+          const { EmailPreviewComponent } = await import(
+            '../../components/email-preview/email-preview.component'
           );
-          const dialogRef = this.dialog.open(EmailPreviewModalComponent, {
+          const dialogRef = this.dialog.open(EmailPreviewComponent, {
             data: res,
             autoFocus: false,
             disableClose: true,
@@ -243,7 +241,8 @@ export class EmailService {
           );
           snackBarSpinner.instance.loading = false;
           snackBarSpinner.instance.error = true;
-          snackBarRef.instance.triggerSnackBar(SNACKBAR_DURATION);
+
+          setTimeout(() => snackBarRef.instance.dismiss(), 1000);
         },
       });
   }

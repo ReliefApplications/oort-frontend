@@ -26,7 +26,6 @@ import { RadioComponent } from './radio.component';
     <p>value: {{ selectedOption }}</p>`,
 })
 class TestingComponent {
-  /** Radio options */
   public args: RadioComponent = new RadioComponent();
 
   /**

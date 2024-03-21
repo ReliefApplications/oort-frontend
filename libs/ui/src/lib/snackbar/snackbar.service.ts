@@ -2,6 +2,7 @@ import { ComponentType } from '@angular/cdk/portal';
 import {
   ApplicationRef,
   ComponentRef,
+  EnvironmentInjector,
   Inject,
   Injectable,
   TemplateRef,
@@ -10,7 +11,6 @@ import {
 import { SnackbarComponent } from './snackbar.component';
 import { SnackBarConfig } from './interfaces/snackbar.interfaces';
 import { DOCUMENT } from '@angular/common';
-import { TranslateService } from '@ngx-translate/core';
 
 /** Default snackbar definition */
 const DEFAULT_SNACKBAR = {
@@ -26,7 +26,6 @@ const DEFAULT_SNACKBAR = {
   providedIn: 'root',
 })
 export class SnackbarService {
-  /** Shadow DOM */
   public shadowDom!: any;
 
   /**
@@ -34,13 +33,13 @@ export class SnackbarService {
    * Snackbar is a brief notification that appears for a short time as a popup.
    *
    * @param document Document token containing current browser document
-   * @param translate TranslateService token containing the translation service
    * @param app Application reference
+   * @param injector Environment injector to create snackbar component
    */
   constructor(
     @Inject(DOCUMENT) private document: Document,
-    private translate: TranslateService,
-    private app: ApplicationRef
+    private app: ApplicationRef,
+    private injector: EnvironmentInjector
   ) {}
 
   /**
@@ -49,11 +48,9 @@ export class SnackbarService {
    * @param snackBar SnackbarComponent component reference
    */
   private updateView(snackBar: ComponentRef<SnackbarComponent>) {
-    // not sure everything is needed there
     const appendBody = this.shadowDom ?? this.document.body;
-    this.app.attachView(snackBar.hostView);
-    this.app.tick();
     appendBody.appendChild(snackBar.location.nativeElement);
+    this.app.attachView(snackBar.hostView);
     snackBar.changeDetectorRef.detectChanges();
   }
 
@@ -70,7 +67,7 @@ export class SnackbarService {
       ...config,
     };
     const snackBar = createComponent(SnackbarComponent, {
-      environmentInjector: this.app.injector,
+      environmentInjector: this.injector,
     });
     snackBar.instance.open(message, config);
     this.updateView(snackBar);
@@ -93,7 +90,7 @@ export class SnackbarService {
       ...config,
     };
     const snackBar = createComponent(SnackbarComponent, {
-      environmentInjector: this.app.injector,
+      environmentInjector: this.injector,
     });
     snackBar.instance.openFromComponent(component, config);
     this.updateView(snackBar);
@@ -116,7 +113,7 @@ export class SnackbarService {
       ...config,
     };
     const snackBar = createComponent(SnackbarComponent, {
-      environmentInjector: this.app.injector,
+      environmentInjector: this.injector,
     });
     snackBar.instance.openFromTemplate(template, config);
     this.updateView(snackBar);

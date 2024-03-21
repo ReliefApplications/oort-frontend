@@ -10,6 +10,5 @@ import { Component, Input } from '@angular/core';
 })
 export class RolesComponent {
   // === INPUT DATA ===
-  /** Indicates if the component is used in the application */
   @Input() inApplication = false;
 }

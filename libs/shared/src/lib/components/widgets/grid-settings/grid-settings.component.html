@@ -15,16 +15,15 @@
     </ng-container>
     <ng-template uiTabContent>
       <shared-tab-main
-        [formGroup]="widgetFormGroup"
+        [formGroup]="formGroup"
         [resource]="resource"
+        [queries]="filteredQueries"
         [templates]="templates"
       ></shared-tab-main>
     </ng-template>
   </ui-tab>
   <!-- AVAILABLE ACTIONS -->
-  <ui-tab
-    *ngIf="widgetFormGroup && !(widgetFormGroup.value.aggregations.length > 0)"
-  >
+  <ui-tab *ngIf="formGroup && !(formGroup.value.aggregations.length > 0)">
     <ng-container ngProjectAs="label">
       <ui-icon
         icon="toggle_on"
@@ -36,30 +35,13 @@
       <span>{{
         'components.widget.settings.grid.actions.title' | translate
       }}</span>
-      <!-- Icon with warning if any -->
-      <ui-icon
-        *ngIf="widgetFormGroup.get('actions')?.invalid"
-        class="ml-1 cursor-help self-center"
-        variant="danger"
-        icon="warning"
-        [size]="18"
-        [uiTooltip]="
-          'components.widget.settings.grid.warnings.general' | translate
-        "
-        uiTooltipPosition="right"
-      ></ui-icon>
     </ng-container>
     <ng-template uiTabContent>
-      <shared-tab-actions
-        [formGroup]="widgetFormGroup"
-        [fields]="fields"
-      ></shared-tab-actions>
+      <shared-tab-actions [formGroup]="formGroup"></shared-tab-actions>
     </ng-template>
   </ui-tab>
   <!-- BUTTONS -->
-  <ui-tab
-    *ngIf="widgetFormGroup && !(widgetFormGroup.value.aggregations.length > 0)"
-  >
+  <ui-tab *ngIf="formGroup && !(formGroup.value.aggregations.length > 0)">
     <ng-container ngProjectAs="label">
       <ui-icon
         icon="bolt"
@@ -74,14 +56,12 @@
     </ng-container>
     <ng-template uiTabContent>
       <shared-tab-buttons
-        class="flex flex-col h-full"
-        [formGroup]="widgetFormGroup"
+        [formGroup]="formGroup"
         [fields]="fields"
         [templates]="appTemplates"
         [distributionLists]="distributionLists"
         [relatedForms]="relatedForms"
         [channels]="channels"
-        (loadChannels)="getChannels()"
       ></shared-tab-buttons>
     </ng-template>
   </ui-tab>
@@ -93,7 +73,7 @@
     </ng-container>
     <ng-template uiTabContent>
       <shared-contextual-filters-settings
-        [form]="widgetFormGroup"
+        [form]="formGroup"
       ></shared-contextual-filters-settings>
     </ng-template>
   </ui-tab>
@@ -108,11 +88,20 @@
       <span>{{ 'models.widget.display.title' | translate }}</span>
     </ng-container>
     <ng-template uiTabContent>
-      <shared-display-settings [formGroup]="widgetFormGroup">
-        <!-- Display single action as own button -->
+      <shared-display-settings [formGroup]="formGroup">
+        <!-- Specific settings for grid -->
         <ui-toggle
+          *ngIf="formGroup.get('widgetDisplay.sortable')"
+          [formControl]="$any(formGroup.get('widgetDisplay.sortable'))"
+        >
+          <ng-container ngProjectAs="label">
+            {{ 'models.widget.display.sortable' | translate }}
+          </ng-container>
+        </ui-toggle>
+        <ui-toggle
+          *ngIf="formGroup.get('widgetDisplay.showSingleActionAsButton')"
           [formControl]="
-            $any(widgetFormGroup.get('widgetDisplay.showSingleActionAsButton'))
+            $any(formGroup.get('widgetDisplay.showSingleActionAsButton'))
           "
         >
           <ng-container ngProjectAs="label">
@@ -122,11 +111,11 @@
             }}
           </ng-container>
         </ui-toggle>
-        <!-- Display actions title -->
         <div class="flex gap-2 items-center">
           <ui-toggle
+            *ngIf="formGroup.get('widgetDisplay.enableActionsTitle')"
             [formControl]="
-              $any(widgetFormGroup.get('widgetDisplay.enableActionsTitle'))
+              $any(formGroup.get('widgetDisplay.enableActionsTitle'))
             "
           >
             <ng-container ngProjectAs="label">
@@ -136,45 +125,17 @@
               }}
             </ng-container>
           </ui-toggle>
-          <!-- Actions title input -->
-          <div class="!mb-0" uiFormFieldDirective>
+          <div
+            class="!mb-0"
+            uiFormFieldDirective
+            *ngIf="formGroup.get('widgetDisplay.enableActionsTitle')?.value"
+          >
             <input
               type="string"
-              [formControl]="
-                $any(widgetFormGroup.get('widgetDisplay.actionsTitle'))
-              "
+              [formControl]="$any(formGroup.get('widgetDisplay.actionsTitle'))"
               [placeholder]="'common.title' | translate"
             />
           </div>
-        </div>
-        <!-- Select field to inject its value a class into the <tr> element -->
-        <div uiFormFieldDirective class="w-fit">
-          <label
-            >{{
-              'components.widget.settings.grid.display.injectClasses.title'
-                | translate
-            }}
-            <ui-icon
-              class="ml-1 cursor-help self-center"
-              icon="info_outline"
-              variant="grey"
-              [size]="18"
-              [uiTooltip]="
-                'components.widget.settings.grid.display.injectClasses.tooltip'
-                  | translate
-              "
-            ></ui-icon
-          ></label>
-          <ui-select-menu
-            [formControl]="
-              $any(widgetFormGroup.get('widgetDisplay.addToRowClasses'))
-            "
-            [multiselect]="true"
-          >
-            <ui-select-option *ngFor="let field of fields" [value]="field.name">
-              {{ field.name }}
-            </ui-select-option>
-          </ui-select-menu>
         </div>
       </shared-display-settings>
     </ng-template>
@@ -193,8 +154,8 @@
     <ng-template uiTabContent>
       <shared-sorting-settings
         [fields]="fields"
-        [formArray]="widgetFormGroup.controls.sortFields"
-        [formGroup]="widgetFormGroup"
+        [formArray]="$any(formGroup.get('sortFields'))"
+        [formGroup]="formGroup"
       ></shared-sorting-settings>
     </ng-template>
   </ui-tab>

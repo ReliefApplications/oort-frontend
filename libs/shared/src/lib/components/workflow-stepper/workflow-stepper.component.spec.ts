@@ -4,7 +4,7 @@ import { WorkflowStepperComponent } from './workflow-stepper.component';
 
 describe('WorkflowStepperComponent', () => {
   let component: WorkflowStepperComponent;
-  let fixture: ComponentFixture<WorkflowStepperComponent>;
+  let fixture: ComponentFixture<sharedWorkflowStepperComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

@@ -10,7 +10,7 @@ import { QueryStyleComponent } from './query-style.component';
 
 describe('QueryStyleComponent', () => {
   let component: QueryStyleComponent;
-  let fixture: ComponentFixture<QueryStyleComponent>;
+  let fixture: ComponentFixture<sharedQueryStyleComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

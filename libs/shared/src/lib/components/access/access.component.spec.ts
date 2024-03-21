@@ -10,7 +10,7 @@ import {
 
 describe('AccessComponent', () => {
   let component: AccessComponent;
-  let fixture: ComponentFixture<AccessComponent>;
+  let fixture: ComponentFixture<sharedAccessComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

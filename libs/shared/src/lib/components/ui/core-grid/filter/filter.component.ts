@@ -25,17 +25,11 @@ export class GridFilterComponent
     return filter ? filter.value : null;
   }
 
-  /** Field */
   @Input() public field = '';
-  /** Filter */
   @Input() public override filter: any;
-  /** Data */
   @Input() public data: any[] = [];
-  /** Text field */
   @Input() public textField = '';
-  /** Value field */
   @Input() public valueField = '';
-  /** Is not array */
   @Input() isNotArray = false;
 
   /** @returns empty default item */
@@ -47,12 +41,9 @@ export class GridFilterComponent
     };
   }
 
-  /** Choices */
   public choices: any[] = [];
-  /** Operators */
   public op: any[] = [];
 
-  /** Operators translations */
   private operatorsTranslations: { [key: string]: any } = {
     eq: () => this.translate.instant('kendo.grid.filterEqOperator'),
     neq: () => this.translate.instant('kendo.grid.filterNotEqOperator'),
@@ -64,7 +55,6 @@ export class GridFilterComponent
       this.translate.instant('kendo.grid.filterIsNotEmptyOperator'),
   } as const;
 
-  /** Main operators */
   mainOperators: any[] = [
     {
       text: '',
@@ -76,7 +66,6 @@ export class GridFilterComponent
     },
   ];
 
-  /** Array operators */
   arrayOperators = [
     {
       text: '',
@@ -96,9 +85,7 @@ export class GridFilterComponent
     },
   ] as const;
 
-  /** Selected operator */
   public selectedOperator!: string;
-  /** Destroy subject */
   private destroy$: Subject<void> = new Subject<void>();
 
   /**

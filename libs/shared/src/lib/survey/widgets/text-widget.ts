@@ -41,13 +41,6 @@ export const init = (
     isFit: (question: Question): boolean => question.getType() === 'text',
     init: (): void => {
       const serializer: JsonMetadata = Serializer;
-      // add que isUnique property to the text question
-      serializer.addProperty('text', {
-        name: 'unique:boolean',
-        category: 'general',
-        default: false,
-        visibleIndex: 7,
-      });
       // hide the min and max property for date, datetime and time types
       serializer.getProperty('text', 'min').visibleIf = (obj: QuestionText) =>
         ['number', 'month', 'week'].includes(obj.inputType || '');
@@ -125,7 +118,7 @@ export const init = (
       let pickerDiv: HTMLDivElement | null = null;
       // add kendo date pickers for text inputs with dates types
       const updateTextInput = () => {
-        el.parentElement?.querySelector('.k-input')?.parentElement?.remove(); // .k-input class is shared by the 3 types of picker
+        el.parentElement?.querySelector('.k-widget')?.remove(); // .k-widget class is shared by the 3 types of picker
         // Remove the picker div whenever we switch question type, so it is not duplicated
         if (pickerDiv) {
           pickerDiv.remove();
@@ -159,13 +152,6 @@ export const init = (
               'top-0',
               'bottom-0'
             );
-
-            // disable the button if the question is read only
-            if (question.isReadOnly) {
-              button.disabled = true;
-              button.style.cursor = 'default';
-              button.classList.add('opacity-50');
-            }
 
             const icon = domService.appendComponentToBody(
               IconComponent,

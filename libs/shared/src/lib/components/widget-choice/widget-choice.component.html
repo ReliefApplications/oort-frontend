@@ -8,10 +8,8 @@
       class="shared-widget-type"
       *ngFor="let type of widgetTypes"
       (click)="onSelect(type)"
-      [ngStyle]="
-        hovered === type.widgetType ? { 'border-color': type.color } : null
-      "
-      (mouseover)="hovered = type.widgetType"
+      [ngStyle]="hovered === type.id ? { 'border-color': type.color } : null"
+      (mouseover)="hovered = type.id"
       (mouseout)="hovered = ''"
     >
       <img [src]="type.icon" />
@@ -36,12 +34,12 @@
         *ngFor="let type of widgetTypes"
         (click)="onSelect(type)"
         [uiTooltip]="type.name"
-        (mouseover)="hovered = type.widgetType"
+        (mouseover)="hovered = type.id"
         (mouseout)="hovered = ''"
       >
         <img [src]="type.icon" />
         <div
-          *ngIf="hovered === type.widgetType"
+          *ngIf="hovered === type.id"
           [style.background]="type.color"
           class="shared-widget-hovered"
         ></div>

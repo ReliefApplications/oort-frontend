@@ -2,12 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApplicationComponent } from './application.component';
 import { ApplicationRoutingModule } from './application-routing.module';
-import {
-  LayoutModule,
-  EmptyModule,
-  NavbarModule,
-  DashboardFilterIconComponent,
-} from '@oort-front/shared';
+import { LayoutModule, EmptyModule, NavbarModule } from '@oort-front/shared';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   ButtonModule,
@@ -35,7 +30,6 @@ import {
     ButtonModule,
     SpinnerModule,
     TooltipModule,
-    DashboardFilterIconComponent,
   ],
 })
 export class ApplicationModule {}

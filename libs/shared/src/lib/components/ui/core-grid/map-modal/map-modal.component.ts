@@ -4,12 +4,7 @@ import { MapComponent, MapModule } from '../../map';
 import { MapLayersService } from '../../../../services/map/map-layers.service';
 import { LayerDatasource } from '../../../../models/layer.model';
 import get from 'lodash/get';
-import {
-  ButtonModule,
-  DialogModule,
-  IconModule,
-  TooltipModule,
-} from '@oort-front/ui';
+import { DialogModule, IconModule, TooltipModule } from '@oort-front/ui';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 
 /**
@@ -25,20 +20,12 @@ interface DialogData {
  */
 @Component({
   standalone: true,
-  imports: [
-    CommonModule,
-    DialogModule,
-    MapModule,
-    IconModule,
-    TooltipModule,
-    ButtonModule,
-  ],
+  imports: [CommonModule, DialogModule, MapModule, IconModule, TooltipModule],
   selector: 'shared-map-modal',
   templateUrl: './map-modal.component.html',
   styleUrls: ['./map-modal.component.scss'],
 })
 export class MapModalComponent implements AfterViewInit {
-  /** Map component */
   @ViewChild(MapComponent) mapComponent?: MapComponent;
 
   /**

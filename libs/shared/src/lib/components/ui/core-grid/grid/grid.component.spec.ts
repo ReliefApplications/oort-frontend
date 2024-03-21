@@ -5,6 +5,7 @@ import {
   DialogRef,
   DIALOG_DATA,
 } from '@angular/cdk/dialog';
+import { environment } from 'projects/back-office/src/environments/environment';
 import {
   DateTimeProvider,
   OAuthLogger,
@@ -16,7 +17,7 @@ import { HttpClientModule } from '@angular/common/http';
 
 describe('GridComponent', () => {
   let component: KendoGridComponent;
-  let fixture: ComponentFixture<GridComponent>;
+  let fixture: ComponentFixture<sharedGridComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -24,7 +25,7 @@ describe('GridComponent', () => {
         UntypedFormBuilder,
         { provide: DialogRef, useValue: {} },
         { provide: DIALOG_DATA, useValue: {} },
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         OAuthService,
         UrlHelperService,
         OAuthLogger,

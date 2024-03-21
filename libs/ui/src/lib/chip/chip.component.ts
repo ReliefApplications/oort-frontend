@@ -1,10 +1,4 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnDestroy,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Variant } from '../types/variant';
 
 /**
@@ -16,7 +10,7 @@ import { Variant } from '../types/variant';
   templateUrl: './chip.component.html',
   styleUrls: ['./chip.component.scss'],
 })
-export class ChipComponent implements OnDestroy {
+export class ChipComponent {
   /** The value or label of the chip. */
   @Input() value = '';
   /** Boolean indicating whether the chip is removable. */
@@ -27,8 +21,6 @@ export class ChipComponent implements OnDestroy {
   @Input() disabled = false;
   /** Event emitter for when the chip is removed. */
   @Output() removed = new EventEmitter<void>();
-  /** Timeout to onClick */
-  private onClickTimeoutListener!: NodeJS.Timeout;
 
   /** @returns general chip classes and variant */
   get chipClasses(): string[] {
@@ -74,18 +66,6 @@ export class ChipComponent implements OnDestroy {
     }
     const chip = event.currentTarget as HTMLElement;
     chip.style.transform = 'scale(0.95)';
-    if (this.onClickTimeoutListener) {
-      clearTimeout(this.onClickTimeoutListener);
-    }
-    this.onClickTimeoutListener = setTimeout(
-      () => (chip.style.transform = 'scale(1)'),
-      200
-    );
-  }
-
-  ngOnDestroy(): void {
-    if (this.onClickTimeoutListener) {
-      clearTimeout(this.onClickTimeoutListener);
-    }
+    setTimeout(() => (chip.style.transform = 'scale(1)'), 200);
   }
 }

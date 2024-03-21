@@ -9,7 +9,7 @@ import { TabLayoutPreviewComponent } from './tab-layout-preview.component';
 
 describe('TabLayoutPreviewComponent', () => {
   let component: TabLayoutPreviewComponent;
-  let fixture: ComponentFixture<TabLayoutPreviewComponent>;
+  let fixture: ComponentFixture<sharedTabLayoutPreviewComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

@@ -4,7 +4,7 @@ import { RoleResourceFiltersComponent } from './resource-access-filters.componen
 
 describe('RoleResourceFiltersComponent', () => {
   let component: RoleResourceFiltersComponent;
-  let fixture: ComponentFixture<RoleResourceFiltersComponent>;
+  let fixture: ComponentFixture<sharedRoleResourceFiltersComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

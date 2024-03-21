@@ -11,7 +11,6 @@ import {
   UnsubscribeComponent,
   AppAbility,
 } from '@oort-front/shared';
-import { SnackbarService } from '@oort-front/ui';
 import get from 'lodash/get';
 import { takeUntil } from 'rxjs/operators';
 
@@ -43,8 +42,6 @@ export class ApplicationComponent
   public application: Application | null = null;
   /** Use side menu or not */
   public sideMenu = false;
-  /** Should hide menu by default ( only when vertical ) */
-  public hideMenu = false;
   /** Is large device */
   public largeDevice: boolean;
   /** Is loading */
@@ -56,7 +53,6 @@ export class ApplicationComponent
    * @param authService Shared authentication service
    * @param applicationService Shared application service
    * @param route Angular current route
-   * @param snackBar Shared snackbar service
    * @param router Angular router
    * @param translate Angular translate service
    * @param ability user ability
@@ -65,7 +61,6 @@ export class ApplicationComponent
     private authService: AuthService,
     private applicationService: ApplicationService,
     public route: ActivatedRoute,
-    private snackBar: SnackbarService,
     private router: Router,
     private translate: TranslateService,
     private ability: AppAbility
@@ -93,7 +88,6 @@ export class ApplicationComponent
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       this.loading = true;
       this.applicationService.loadApplication(params.id);
-      this.appID = params.id;
     });
     // Get list of available applications
     this.authService.user$
@@ -138,8 +132,7 @@ export class ApplicationComponent
             }
           }
           this.application = application;
-          this.sideMenu = this.application?.sideMenu ?? true;
-          this.hideMenu = this.application?.hideMenu ?? false;
+          this.sideMenu = this.application?.sideMenu ?? false;
         } else {
           this.title = '';
           this.navGroups = [];
@@ -269,4 +262,27 @@ export class ApplicationComponent
     super.ngOnDestroy();
     this.applicationService.leaveApplication();
   }
+
+  // /**
+  //  * Checks if route page is valid.
+  //  *
+  //  * @param app application to check pages of
+  //  * @returns Is page valid or not
+  //  */
+  // private validPage(app: any): boolean {
+  //   if (
+  //     this.appPage &&
+  //     (this.appPage === 'profile' ||
+  //       this.appPage === 'settings/users' ||
+  //       this.appPage === 'settings/roles' ||
+  //       app.pages?.find(
+  //         (val: any) =>
+  //           val.type + '/' + val.content === this.appPage ||
+  //           val.type + '/' + val.id === this.appPage
+  //       ))
+  //   ) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
 }

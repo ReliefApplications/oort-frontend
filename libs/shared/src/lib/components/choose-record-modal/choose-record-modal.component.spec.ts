@@ -15,7 +15,7 @@ import { GET_QUERY_TYPES } from './graphql/queries';
 
 describe('ChooseRecordModalComponent', () => {
   let component: ChooseRecordModalComponent;
-  let fixture: ComponentFixture<ChooseRecordModalComponent>;
+  let fixture: ComponentFixture<sharedChooseRecordModalComponent>;
   let controller: ApolloTestingController;
 
   beforeEach(async () => {

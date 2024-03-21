@@ -12,11 +12,9 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
  */
 export class GridToolbarComponent {
   // === DATA ===
-  /** Items */
   @Input() items: any[] = [];
 
   // === ACTIONS ===
-  /** Actions */
   @Input() actions = {
     update: false,
     delete: false,
@@ -24,7 +22,6 @@ export class GridToolbarComponent {
     convert: false,
     remove: false,
   };
-  /** Event emitter for the action event */
   @Output() action = new EventEmitter();
 
   /**

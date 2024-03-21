@@ -5,7 +5,7 @@ import { QueryStyleListComponent } from './query-style-list.component';
 
 describe('QueryStyleListComponent', () => {
   let component: QueryStyleListComponent;
-  let fixture: ComponentFixture<QueryStyleListComponent>;
+  let fixture: ComponentFixture<sharedQueryStyleListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

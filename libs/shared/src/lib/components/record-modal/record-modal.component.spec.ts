@@ -12,6 +12,7 @@ import {
   OAuthService,
   UrlHelperService,
 } from 'angular-oauth2-oidc';
+import { environment } from 'projects/back-office/src/environments/environment';
 import {
   ApolloTestingModule,
   ApolloTestingController,
@@ -26,7 +27,7 @@ import {
 
 describe('RecordModalComponent', () => {
   let component: RecordModalComponent;
-  let fixture: ComponentFixture<RecordModalComponent>;
+  let fixture: ComponentFixture<sharedRecordModalComponent>;
   let controller: ApolloTestingController;
 
   beforeEach(async () => {
@@ -34,7 +35,7 @@ describe('RecordModalComponent', () => {
       providers: [
         { provide: DialogRef, useValue: {} },
         { provide: DIALOG_DATA, useValue: {} },
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         OAuthService,
         UrlHelperService,
         OAuthLogger,

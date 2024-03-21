@@ -12,11 +12,8 @@ import { Breadcrumb } from '@oort-front/ui';
   providedIn: 'root',
 })
 export class BreadcrumbService {
-  /** Breadcrumbs */
   private breadcrumbs = new BehaviorSubject<Breadcrumb[]>([]);
-  /** @returns Breadcrumbs as observable */
   public breadcrumbs$ = this.breadcrumbs.asObservable();
-  /** Previous root */
   private previousRoot: any;
 
   /**

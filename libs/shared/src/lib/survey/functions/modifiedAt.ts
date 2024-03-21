@@ -9,11 +9,7 @@ import { GlobalOptions } from '../types';
 export default (options: GlobalOptions) => {
   const record = options.record;
 
-  /**
-   * Get the modifiedAt date of the record.
-   *
-   * @returns when the record was modified, or now if it's a new one
-   */
+  /** @returns when the record was modified, or now if it's a new one */
   const modifiedAt = () =>
     record ? new Date(Number(record.modifiedAt) || '') : new Date();
   return modifiedAt;

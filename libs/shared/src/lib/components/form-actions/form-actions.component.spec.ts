@@ -4,7 +4,7 @@ import { FormActionsComponent } from './form-actions.component';
 
 describe('FormActionsComponent', () => {
   let component: FormActionsComponent;
-  let fixture: ComponentFixture<FormActionsComponent>;
+  let fixture: ComponentFixture<sharedFormActionsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

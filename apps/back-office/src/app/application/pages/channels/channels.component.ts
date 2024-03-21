@@ -22,13 +22,9 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class ChannelsComponent extends UnsubscribeComponent implements OnInit {
   // === DATA ===
-  /** Channels list */
   private channels: Channel[] = [];
-  /** Channels data */
   public channelsData: ChannelDisplay[] = [];
-  /** Loading state */
   public loading = true;
-  /** Table columns */
   public displayedColumns: string[] = ['title', 'subscribedRoles', 'actions'];
 
   /**

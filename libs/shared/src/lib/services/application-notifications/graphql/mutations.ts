@@ -29,16 +29,8 @@ export const UPDATE_CUSTOM_NOTIFICATION = gql`
     ) {
       id
       name
-      status
-      lastExecution
-      schedule
-      resource
-      notificationType
-      recipients
-      template
-      layout
-      description
-      recipientsType
+      type
+      content
     }
   }
 `;

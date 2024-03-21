@@ -86,8 +86,6 @@ export class AppPreviewComponent
    * Use side menu or not.
    */
   public sideMenu = false;
-  /** Should hide menu by default ( only when vertical ) */
-  public hideMenu = false;
   /**
    * Is large device.
    */
@@ -141,21 +139,24 @@ export class AppPreviewComponent
         if (application) {
           this.title = application.name + ' (Preview)';
           const ability = getAbilityForAppPreview(application, this.role);
-          const displayNavItems: any[] =
-            application.pages
-              ?.filter((x) => x.content)
-              .map((x) => ({
-                id: x.id,
-                name: x.name,
-                path:
-                  x.type === ContentType.form
-                    ? `./${x.type}/${x.id}`
-                    : `./${x.type}/${x.content}`,
-                icon: x.icon || this.getNavIcon(x.type || ''),
-                fontFamily: x.icon ? 'fa' : 'material',
-                visible: x.visible ?? false,
-              })) || [];
           const adminNavItems: any[] = [];
+          this.sideMenu = application?.sideMenu ?? false;
+          if (ability.can('read', 'User')) {
+            adminNavItems.push({
+              name: this.translate.instant('common.user.few'),
+              path: './settings/users',
+              icon: 'supervisor_account',
+              visible: true,
+            });
+          }
+          if (ability.can('read', 'Role')) {
+            adminNavItems.push({
+              name: this.translate.instant('common.role.few'),
+              path: './settings/roles',
+              icon: 'admin_panel_settings',
+              visible: true,
+            });
+          }
           if (ability.can('manage', 'Template')) {
             adminNavItems.push({
               name: this.translate.instant('common.template.few'),
@@ -180,26 +181,21 @@ export class AppPreviewComponent
               visible: true,
             });
           }
-          if (ability.can('read', 'User')) {
-            adminNavItems.push({
-              name: this.translate.instant('common.user.few'),
-              path: './settings/users',
-              icon: 'supervisor_account',
-              visible: true,
-            });
-          }
-          if (ability.can('read', 'Role')) {
-            adminNavItems.push({
-              name: this.translate.instant('common.role.few'),
-              path: './settings/roles',
-              icon: 'verified_user',
-              visible: true,
-            });
-          }
           this.navGroups = [
             {
-              name: this.translate.instant('common.page.few'),
-              navItems: displayNavItems,
+              name: 'Pages',
+              navItems: application.pages
+                ?.filter((x) => x.content)
+                .map((x) => ({
+                  name: x.name,
+                  path:
+                    x.type === ContentType.form
+                      ? `./${x.type}/${x.id}`
+                      : `./${x.type}/${x.content}`,
+                  icon: x.icon || this.getNavIcon(x.type || ''),
+                  fontFamily: x.icon ? 'fa' : 'material',
+                  visible: x.visible ?? false,
+                })),
             },
             {
               name: 'Administration',
@@ -208,7 +204,12 @@ export class AppPreviewComponent
           ];
           if (!this.application || application.id !== this.application.id) {
             const firstPage = get(application, 'pages', [])[0];
-            if (this.router.url.endsWith(application?.id || '') || !firstPage) {
+            if (
+              this.router.url.endsWith('/') ||
+              (this.application && application.id !== this.application?.id) ||
+              !firstPage ||
+              (!this.application && application)
+            ) {
               if (firstPage) {
                 this.router.navigate(
                   [
@@ -226,8 +227,6 @@ export class AppPreviewComponent
             }
           }
           this.application = application;
-          this.sideMenu = this.application?.sideMenu ?? true;
-          this.hideMenu = this.application?.hideMenu ?? false;
         } else {
           this.navGroups = [];
         }

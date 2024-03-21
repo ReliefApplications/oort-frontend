@@ -4,6 +4,7 @@ import {
   DialogRef,
   DIALOG_DATA,
 } from '@angular/cdk/dialog';
+import { environment } from 'projects/back-office/src/environments/environment';
 import { RolesComponent } from './roles.component';
 import {
   DateTimeProvider,
@@ -27,7 +28,7 @@ import { GET_ROLES } from './graphql/queries';
 
 describe('RolesComponent', () => {
   let component: RolesComponent;
-  let fixture: ComponentFixture<RolesComponent>;
+  let fixture: ComponentFixture<sharedRolesComponent>;
   let controller: ApolloTestingController;
 
   beforeEach(async () => {
@@ -35,7 +36,7 @@ describe('RolesComponent', () => {
       providers: [
         { provide: DialogRef, useValue: {} },
         { provide: DIALOG_DATA, useValue: {} },
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         OAuthService,
         UrlHelperService,
         OAuthLogger,

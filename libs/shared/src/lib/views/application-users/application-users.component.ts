@@ -10,7 +10,6 @@ import { ApplicationService } from '../../services/application/application.servi
 import { UserListComponent } from './components/user-list/user-list.component';
 import { ADD_USERS } from './graphql/mutations';
 import { SnackbarService } from '@oort-front/ui';
-import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
 
 /**
  * Application users component.
@@ -24,18 +23,10 @@ export class ApplicationUsersComponent
   extends UnsubscribeComponent
   implements OnInit
 {
-  /** Loading status */
-  public loading = true;
-  /** Roles */
   public roles: Role[] = [];
-  /** Position attribute categories */
   public positionAttributeCategories: PositionAttributeCategory[] = [];
-  /** Prefetch subject */
   refetch$: Subject<boolean> = new Subject<boolean>();
-  /** User list component */
   @ViewChild(UserListComponent) userList?: UserListComponent;
-  /** Filter to apply on the users query */
-  public filters: CompositeFilterDescriptor | null = null;
 
   /**
    * Application users component.
@@ -72,12 +63,13 @@ export class ApplicationUsersComponent
    * Show a dialog for inviting someone
    */
   async onInvite(): Promise<void> {
-    const { InviteUsersModalComponent } = await import(
-      '../../components/users/invite-users-modal/invite-users-modal.component'
+    const { InviteUsersComponent } = await import(
+      '../../components/users/components/invite-users/invite-users.component'
     );
-    const dialogRef = this.dialog.open(InviteUsersModalComponent, {
+    const dialogRef = this.dialog.open(InviteUsersComponent, {
       data: {
         roles: this.roles,
+        users: [],
         downloadPath: this.applicationService
           ? this.applicationService.usersDownloadPath
           : 'download/invite',

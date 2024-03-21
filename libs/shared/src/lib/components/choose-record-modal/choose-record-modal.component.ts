@@ -52,23 +52,18 @@ export class ChooseRecordModalComponent
   implements OnInit, OnDestroy
 {
   // === REACTIVE FORM ===
-  /** Where the record is to be choosed from */
   public chooseRecordForm = this.fb.group({
     record: ['', Validators.required],
   });
 
   // === GRID SETTINGS ===
-  /** Settings of the grid */
   public settings: GridSettings = {};
 
   // === DATA ===
-  /** Filter */
   private filter: CompositeFilterDescriptor | undefined;
-  /** Query */
   public dataQuery: any;
 
   // === LOAD DATA ===
-  /** Whether the search is activated */
   public isSearchActivated = false;
 
   /**

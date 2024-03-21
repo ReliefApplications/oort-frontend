@@ -4,7 +4,7 @@ import { EmptyComponent } from './empty.component';
 
 describe('EmptyComponent', () => {
   let component: EmptyComponent;
-  let fixture: ComponentFixture<EmptyComponent>;
+  let fixture: ComponentFixture<sharedEmptyComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

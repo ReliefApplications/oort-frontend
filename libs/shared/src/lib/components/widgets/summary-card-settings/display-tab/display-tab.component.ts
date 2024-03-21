@@ -10,8 +10,5 @@ import { UntypedFormGroup } from '@angular/forms';
   styleUrls: ['./display-tab.component.scss'],
 })
 export class DisplayTabComponent {
-  /**
-   * Form group
-   */
   @Input() form!: UntypedFormGroup;
 }

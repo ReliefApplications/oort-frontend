@@ -9,7 +9,6 @@ export interface CustomNotification {
   layout?: string;
   template?: string;
   recipients?: any;
-  recipientsType?: string;
   enabled?: boolean;
   lastExecution?: Date;
   createdAt?: Date;

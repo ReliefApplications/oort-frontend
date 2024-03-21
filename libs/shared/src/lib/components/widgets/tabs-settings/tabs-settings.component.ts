@@ -1,11 +1,17 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { FormGroup } from '@angular/forms';
 import { extendWidgetForm } from '../common/display-settings/extendWidgetForm';
 import { createTabsWidgetFormGroup } from './tabs-settings.form';
 import get from 'lodash/get';
 import { UnsubscribeComponent } from '../../utils/unsubscribe/unsubscribe.component';
 import { takeUntil } from 'rxjs';
-import { WidgetSettings } from '../../../models/dashboard.model';
 
 /**
  * Settings of tabs widget.
@@ -19,40 +25,33 @@ import { WidgetSettings } from '../../../models/dashboard.model';
 })
 export class TabsSettingsComponent
   extends UnsubscribeComponent
-  implements OnInit, WidgetSettings<typeof extendWidgetForm>
+  implements OnInit, AfterViewInit
 {
+  /** Settings */
+  public widgetForm!: FormGroup;
   /** Widget definition */
-  @Input() widget: any;
+  @Input() tile: any;
   /** Emit the applied change */
-  @Output() formChange: EventEmitter<ReturnType<typeof extendWidgetForm>> =
-    new EventEmitter();
-  /** Widget form group */
-  public widgetFormGroup!: ReturnType<typeof extendWidgetForm>;
+  // eslint-disable-next-line @angular-eslint/no-output-native
+  @Output() change: EventEmitter<any> = new EventEmitter();
 
   ngOnInit(): void {
-    if (!this.widgetFormGroup) {
-      this.buildSettingsForm();
-    }
-    this.widgetFormGroup.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.widgetFormGroup.markAsDirty({ onlySelf: true });
-        this.formChange.emit(this.widgetFormGroup);
-      });
+    // Create form group, and extend it to get display settings ( such as borderless )
+    this.widgetForm = extendWidgetForm(
+      createTabsWidgetFormGroup(this.tile.id, this.tile.settings),
+      get(this.tile, 'settings.widgetDisplay')
+    );
+    this.change.emit(this.widgetForm);
   }
 
   /**
-   * Create form group, and extend it to get display settings ( such as borderless )
+   * Detect the form changes to emit the new configuration.
    */
-  public buildSettingsForm() {
-    this.widgetFormGroup = extendWidgetForm(
-      createTabsWidgetFormGroup(this.widget.id, this.widget.settings),
-      get(this.widget, 'settings.widgetDisplay'),
-      {
-        usePadding: new FormControl(
-          get<boolean>(this.widget.settings, 'widgetDisplay.usePadding', true)
-        ),
-      }
-    );
+  ngAfterViewInit(): void {
+    this.widgetForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.change.emit(this.widgetForm);
+      });
   }
 }

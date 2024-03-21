@@ -152,13 +152,10 @@ export class CronEditorComponent
     expression: ['0 0 0 0 0'],
   });
 
-  /**
+  /*
    * ControlValueAccessor
    */
   public onChange!: (value: any) => void;
-  /**
-   * ControlValueAccessor
-   */
   public onTouched!: () => void;
 
   /** @returns is cron Flavor Quartz */

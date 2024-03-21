@@ -14,7 +14,7 @@
       variant="primary"
       (click)="onSubmit()"
       cdkFocusInitial
-      [disabled]="!widgetForm?.valid"
+      [disabled]="!widgetForm || !widgetForm.valid"
     >
       {{ 'common.save' | translate }}
     </ui-button>

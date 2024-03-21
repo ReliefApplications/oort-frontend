@@ -33,9 +33,7 @@ export class TabLayoutPreviewComponent
   extends UnsubscribeComponent
   implements OnInit
 {
-  /** Layout preview data */
   @Input() data: LayoutPreviewData | null = null;
-  /** Grid settings */
   public gridSettings: GridSettings = DEFAULT_GRID_SETTINGS;
 
   /**

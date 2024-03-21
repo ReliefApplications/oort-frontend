@@ -4,7 +4,7 @@ import { MappingModalComponent } from './mapping-modal.component';
 
 describe('MappingModalComponent', () => {
   let component: MappingModalComponent;
-  let fixture: ComponentFixture<MappingModalComponent>;
+  let fixture: ComponentFixture<sharedMappingModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

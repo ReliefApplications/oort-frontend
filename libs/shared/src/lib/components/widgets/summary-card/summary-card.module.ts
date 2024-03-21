@@ -1,3 +1,4 @@
+import { LayoutModule } from '@progress/kendo-angular-layout';
 import { PDFExportModule } from '@progress/kendo-angular-pdf-export';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -24,6 +25,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
   declarations: [SummaryCardComponent],
   imports: [
     CommonModule,
+    LayoutModule,
     PDFExportModule,
     SummaryCardItemModule,
     GridWidgetModule,

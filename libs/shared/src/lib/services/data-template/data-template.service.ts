@@ -3,7 +3,6 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { DownloadService } from '../download/download.service';
 import get from 'lodash/get';
 import {
-  getAggregationKeys,
   getCalcKeys,
   getCardStyle,
   getDataKeys,
@@ -14,7 +13,6 @@ import { ApplicationService } from '../application/application.service';
 import { Application } from '../../models/application.model';
 import { ContentType, Page } from '../../models/page.model';
 import { RawEditorSettings } from 'tinymce';
-import { LocationStrategy } from '@angular/common';
 
 /**
  * Data template service
@@ -34,14 +32,12 @@ export class DataTemplateService {
    * @param downloadService Used to download file type fields
    * @param applicationService Shared application service
    * @param environment Current environment
-   * @param locationStrategy Angular location strategy
    */
   constructor(
     private sanitizer: DomSanitizer,
     private downloadService: DownloadService,
     private applicationService: ApplicationService,
-    @Inject('environment') environment: any,
-    private locationStrategy: LocationStrategy
+    @Inject('environment') environment: any
   ) {
     this.environment = environment;
   }
@@ -50,15 +46,10 @@ export class DataTemplateService {
    * Get auto completer keys
    *
    * @param fields available fields
-   * @param aggregations available aggregations
    * @returns available keys
    */
-  public getAutoCompleterKeys(fields: any[], aggregations?: any[]) {
-    return [
-      ...getDataKeys(fields),
-      ...getAggregationKeys(aggregations || []),
-      ...getCalcKeys(),
-    ];
+  public getAutoCompleterKeys(fields: any[]) {
+    return [...getDataKeys(fields), ...getCalcKeys()];
   }
 
   /**
@@ -77,32 +68,16 @@ export class DataTemplateService {
    * Render HTML from definition
    *
    * @param html html template
-   * @param options options
-   * @param options.data content data
-   * @param options.aggregation aggregation data
-   * @param options.fields definition of fields
-   * @param options.styles definition of styles
+   * @param data content data
+   * @param fields definition of fields
+   * @param styles definition of styles
    * @returns html to render
    */
-  public renderHtml(
-    html: string,
-    options: {
-      data?: any;
-      aggregation?: any;
-      fields?: any[];
-      styles?: any[];
-    }
-  ) {
+  public renderHtml(html: string, data?: any, fields?: any[], styles?: any[]) {
     // Add available pages to the list of available keys
     const application = this.applicationService.application.getValue();
     return this.sanitizer.bypassSecurityTrustHtml(
-      parseHtml(html, {
-        data: options.data,
-        aggregation: options.aggregation,
-        fields: options.fields,
-        pages: this.getPages(application),
-        styles: options.styles,
-      })
+      parseHtml(html, data, fields, this.getPages(application), styles)
     );
   }
 
@@ -115,9 +90,7 @@ export class DataTemplateService {
   public renderLink(href: string) {
     // Add available pages to the list of available keys
     const application = this.applicationService.application.getValue();
-    return parseHtml(href, {
-      pages: this.getPages(application),
-    });
+    return parseHtml(href, null, [], this.getPages(application), []);
   }
 
   /**
@@ -177,15 +150,14 @@ export class DataTemplateService {
    * @returns url of the page
    */
   private getPageUrl(application: Application, page: Page): string {
-    const baseHref = this.locationStrategy.getBaseHref();
     if (this.environment.module === 'backoffice') {
       return page.type === ContentType.form
-        ? `./applications/${application.id}/${page.type}/${page.id}`
-        : `./applications/${application.id}/${page.type}/${page.content}`;
+        ? `${this.environment.backOfficeUri}/applications/${application.id}/${page.type}/${page.id}`
+        : `${this.environment.backOfficeUri}/applications/${application.id}/${page.type}/${page.content}`;
     } else {
       return page.type === ContentType.form
-        ? `.${baseHref}${application.id}/${page.type}/${page.id}`
-        : `.${baseHref}${application.id}/${page.type}/${page.content}`;
+        ? `${this.environment.frontOfficeUri}/${application.id}/${page.type}/${page.id}`
+        : `${this.environment.frontOfficeUri}/${application.id}/${page.type}/${page.content}`;
     }
   }
 

@@ -1,4 +1,4 @@
-import { ceil, floor, max, min, round } from 'lodash';
+import { ceil, floor, round } from 'lodash';
 
 /**
  * Check that all arguments are number
@@ -37,12 +37,8 @@ const calcFunctions: Record<
     call: (value, precision = '0') => {
       const parsedValue = parseFloat(value);
       const parsedPrecision = parseInt(precision, 10);
-      try {
-        checkNumberArguments(parsedValue, parsedPrecision);
-        return round(parsedValue, parsedPrecision).toString();
-      } catch {
-        return '0';
-      }
+      checkNumberArguments(parsedValue, parsedPrecision);
+      return round(parsedValue, parsedPrecision).toString();
     },
   },
   roundup: {
@@ -57,12 +53,8 @@ const calcFunctions: Record<
     call: (value, precision = '0') => {
       const parsedValue = parseFloat(value);
       const parsedPrecision = parseInt(precision, 10);
-      try {
-        checkNumberArguments(parsedValue, parsedPrecision);
-        return ceil(parsedValue, parsedPrecision).toString();
-      } catch {
-        return '0';
-      }
+      checkNumberArguments(parsedValue, parsedPrecision);
+      return ceil(parsedValue, parsedPrecision).toString();
     },
   },
   rounddown: {
@@ -77,12 +69,8 @@ const calcFunctions: Record<
     call: (value, precision = '0') => {
       const parsedValue = parseFloat(value);
       const parsedPrecision = parseInt(precision, 10);
-      try {
-        checkNumberArguments(parsedValue, parsedPrecision);
-        return floor(parsedValue, parsedPrecision).toString();
-      } catch {
-        return '0';
-      }
+      checkNumberArguments(parsedValue, parsedPrecision);
+      return floor(parsedValue, parsedPrecision).toString();
     },
   },
   percentage: {
@@ -98,36 +86,8 @@ const calcFunctions: Record<
     call: (value, total = '1', precision = '2') => {
       const percent = (parseFloat(value) / parseFloat(total)) * 100;
       const parsedPrecision = parseInt(precision, 10);
-      try {
-        checkNumberArguments(percent, parsedPrecision);
-        return percent.toFixed(parsedPrecision) + '%';
-      } catch {
-        return '0';
-      }
-    },
-  },
-  min: {
-    signature: 'min( value1 ; value2 ; ... )',
-    /**
-     * Get minimum value from array
-     *
-     * @param values array of values, must be separated in the template by ";"
-     * @returns minimum value
-     */
-    call: (...values) => {
-      return min(values)?.toString() || '';
-    },
-  },
-  max: {
-    signature: 'max( value1 ; value2 ; ... )',
-    /**
-     * Get maximum value from array
-     *
-     * @param values array of values, must be separated in the template by ";"
-     * @returns maximum value
-     */
-    call: (...values) => {
-      return max(values)?.toString() || '';
+      checkNumberArguments(percent, parsedPrecision);
+      return percent.toFixed(parsedPrecision) + '%';
     },
   },
 };

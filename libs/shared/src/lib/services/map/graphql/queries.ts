@@ -13,7 +13,6 @@ export const GET_LAYER_BY_ID = gql`
       datasource {
         resource
         refData
-        referenceDataVariableMapping
         layout
         aggregation
         geoField
@@ -37,7 +36,6 @@ export const GET_LAYER_BY_ID = gql`
               symbol {
                 color
                 size
-                fieldForSize
                 style
               }
             }
@@ -49,7 +47,6 @@ export const GET_LAYER_BY_ID = gql`
             symbol {
               color
               size
-              fieldForSize
               style
               outline {
                 color
@@ -102,17 +99,6 @@ export const GET_LAYER_BY_ID = gql`
           description
           fields
         }
-        navigateToPage
-        navigateSettings {
-          field
-          pageUrl
-        }
-      }
-      timelineInfo {
-        enabled
-        startTimeField
-        endTimeField
-        dateFormat
       }
       sublayers
       contextFilters
@@ -124,8 +110,8 @@ export const GET_LAYER_BY_ID = gql`
 // === GET LAYERS ===
 /** Graphql request for getting layers */
 export const GET_LAYERS = gql`
-  query GetLayers($sortField: String, $filter: JSON) {
-    layers(sortField: $sortField, filter: $filter) {
+  query GetLayers {
+    layers {
       id
       name
     }
