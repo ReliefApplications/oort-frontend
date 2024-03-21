@@ -23,9 +23,7 @@ interface DialogData {
   styleUrls: ['./edit-role-auto-assignment-modal.component.scss'],
 })
 export class EditRoleAutoAssignmentModalComponent {
-  /** Form group */
   public formGroup!: UntypedFormGroup;
-  /** List of fields */
   public fields: any[] = [];
 
   /**

@@ -8,8 +8,6 @@ import {
   UnsubscribeComponent,
   ApiConfigurationsQueryResponse,
   DeleteApiConfigurationMutationResponse,
-  getCachedValues,
-  updateQueryUniqueValues,
 } from '@oort-front/shared';
 import {
   ADD_API_CONFIGURATION,
@@ -18,6 +16,10 @@ import {
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
+import {
+  getCachedValues,
+  updateQueryUniqueValues,
+} from '../../../utils/update-queries';
 import { ApolloQueryResult } from '@apollo/client';
 import {
   TableSort,
@@ -44,35 +46,22 @@ export class ApiConfigurationsComponent
   implements OnInit
 {
   // === DATA ===
-  /** Loading state */
   public loading = true;
-  /** Updating state */
-  public updating = false;
-  /** Query reference */
   private apiConfigurationsQuery!: QueryRef<ApiConfigurationsQueryResponse>;
-  /** Columns to display */
   displayedColumns = ['name', 'status', 'authType', 'actions'];
-  /** Data source */
   dataSource = new Array<ApiConfiguration>();
-  /** Cached data */
+  filteredDataSources = new Array<ApiConfiguration>();
   public cachedApiConfigurations: ApiConfiguration[] = [];
 
   // === SORTING ===
-  /** Sort object */
-  private sort!: TableSort;
+  sort?: TableSort;
 
   // === FILTERS ===
-  /** Filter object */
-  public filter: any = {
-    filters: [],
-    logic: 'and',
-  };
-  /** Filter form */
   form = this.fb.group({});
-  /** Show filter */
   public showFilters = false;
+  public searchText = '';
+  public statusFilter = '';
 
-  /** Page info */
   public pageInfo = {
     pageIndex: 0,
     pageSize: ITEMS_PER_PAGE,
@@ -113,19 +102,14 @@ export class ApiConfigurationsComponent
         variables: {
           first: ITEMS_PER_PAGE,
           afterCursor: this.pageInfo.endCursor,
-          filter: this.filter,
-          sortField: this.sort?.sortDirection && this.sort.active,
-          sortOrder: this.sort?.sortDirection,
         },
       });
 
     this.apiConfigurationsQuery.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(
-        (results: ApolloQueryResult<ApiConfigurationsQueryResponse>) => {
-          this.updateValues(results.data, results.loading);
-        }
-      );
+      .subscribe((results) => {
+        this.updateValues(results.data, results.loading);
+      });
     // Initializing sort to an empty one
     this.sort = {
       active: '',
@@ -146,9 +130,25 @@ export class ApiConfigurationsComponent
     );
     if (cachedData && cachedData.length === this.pageInfo.pageSize) {
       this.dataSource = cachedData;
+      this.filteredDataSources = this.dataSource;
     } else {
       this.fetchApiConfigurations();
     }
+  }
+
+  /**
+   * Frontend filtering.
+   */
+  private filterPredicate(): void {
+    this.filteredDataSources = this.dataSource.filter(
+      (data: any) =>
+        (this.searchText.trim().length === 0 ||
+          (this.searchText.trim().length > 0 &&
+            data.name.toLowerCase().includes(this.searchText.trim()))) &&
+        (this.statusFilter.trim().length === 0 ||
+          (this.statusFilter.trim().length > 0 &&
+            data.status.toLowerCase().includes(this.statusFilter.trim())))
+    );
   }
 
   /**
@@ -157,8 +157,17 @@ export class ApiConfigurationsComponent
    * @param event event value of the filter.
    */
   applyFilter(event: any): void {
-    this.filter = event;
-    this.fetchApiConfigurations(true);
+    if (event.statusFilter) {
+      this.statusFilter = event.statusFilter;
+    } else {
+      this.statusFilter = '';
+    }
+    if (event.search) {
+      this.searchText = event.search.toLowerCase();
+    } else {
+      this.searchText = '';
+    }
+    this.filterPredicate();
   }
 
   /**
@@ -260,6 +269,7 @@ export class ApiConfigurationsComponent
                 this.dataSource = this.dataSource.filter(
                   (x) => x.id !== element.id
                 );
+                this.filteredDataSources = this.dataSource;
               } else {
                 this.snackBar.openSnackBar(
                   this.translate.instant(
@@ -306,7 +316,7 @@ export class ApiConfigurationsComponent
     this.pageInfo.length = data.apiConfigurations.totalCount;
     this.pageInfo.endCursor = data.apiConfigurations.pageInfo.endCursor;
     this.loading = loading;
-    this.updating = false;
+    this.filterPredicate();
   }
 
   /**
@@ -326,11 +336,10 @@ export class ApiConfigurationsComponent
    * @param refetch erase previous query results
    */
   private fetchApiConfigurations(refetch?: boolean): void {
-    this.updating = true;
+    this.loading = true;
     const variables = {
       first: this.pageInfo.pageSize,
       afterCursor: refetch ? null : this.pageInfo.endCursor,
-      filter: this.filter,
       sortField: this.sort?.sortDirection && this.sort.active,
       sortOrder: this.sort?.sortDirection,
     };

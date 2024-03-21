@@ -1,7 +1,6 @@
 <ui-dialog>
   <ng-container ngProjectAs="header">
     <h3 class="font-semibold">
-      <!-- todo: translate -->
       Duplicating <i>{{ currentApp.name }}</i>
     </h3>
   </ng-container>
@@ -25,14 +24,13 @@
     </form>
   </ng-container>
   <ng-container ngProjectAs="actions">
-    <ui-button [uiDialogClose] variant="default">{{
+    <ui-button uiDialogClose variant="default">{{
       'common.close' | translate
     }}</ui-button>
     <ui-button
-      [disabled]="loading"
       category="secondary"
       variant="primary"
-      (click)="onDuplicate()"
+      (click)="onSubmit()"
       cdkFocusInitial
       [disabled]="!duplicateForm.valid"
     >

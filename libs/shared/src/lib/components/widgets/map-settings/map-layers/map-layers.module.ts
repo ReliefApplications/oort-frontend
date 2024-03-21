@@ -15,7 +15,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { EmptyModule } from '../../../ui/empty/empty.module';
 import { SkeletonTableModule } from '../../../skeleton/skeleton-table/skeleton-table.module';
-import { PortalModule } from '@angular/cdk/portal';
 
 /**
  * Map Widget layers configuration module.
@@ -37,7 +36,6 @@ import { PortalModule } from '@angular/cdk/portal';
     EmptyModule,
     SkeletonTableModule,
     TooltipModule,
-    PortalModule,
   ],
   exports: [MapLayersComponent],
 })

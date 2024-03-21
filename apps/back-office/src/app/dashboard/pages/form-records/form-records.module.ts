@@ -7,9 +7,10 @@ import {
   RecordHistoryModule,
   SkeletonTableModule,
   EmptyModule,
-  UploadRecordsModule,
 } from '@oort-front/shared';
 import { TranslateModule } from '@ngx-translate/core';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { UploadMenuModule } from '../../../components/upload-menu/upload-menu.module';
 import {
   DividerModule,
   TooltipModule,
@@ -32,11 +33,12 @@ import {
     DividerModule,
     PaginatorModule,
     TranslateModule,
+    OverlayModule,
+    UploadMenuModule,
     SkeletonTableModule,
     ButtonModule,
     TableModule,
     EmptyModule,
-    UploadRecordsModule,
   ],
   exports: [FormRecordsComponent],
 })

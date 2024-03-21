@@ -4,7 +4,6 @@ import {
   EventEmitter,
   HostListener,
   Input,
-  OnDestroy,
   Renderer2,
   TemplateRef,
   ViewContainerRef,
@@ -19,23 +18,15 @@ import { OverlayRef, Overlay, ConnectedPosition } from '@angular/cdk/overlay';
 @Directive({
   selector: '[uiMenuTriggerFor]',
 })
-export class MenuTriggerForDirective implements OnDestroy {
-  /** Menu trigger for */
+export class MenuTriggerForDirective {
   @Input('uiMenuTriggerFor') public menuPanel!: {
     templateRef: TemplateRef<any>;
     closed: EventEmitter<void>;
   };
 
-  /** Whether the menu is open or not */
   private isMenuOpen = false;
-  /** Overlay reference */
   overlayRef!: OverlayRef;
-  /** Menu closing actions subscription */
   menuClosingActionsSubscription!: Subscription;
-  /** Timeout to open menu */
-  private openMenuTimeoutListener!: NodeJS.Timeout;
-  /** Timeout to destroy menu */
-  private destroyMenuTimeoutListener!: NodeJS.Timeout;
 
   /**
    * UI Directive constructor
@@ -117,10 +108,7 @@ export class MenuTriggerForDirective implements OnDestroy {
     // Attach it to our overlay
     this.overlayRef.attach(templatePortal);
     // We add the needed classes to create the animation on menu display
-    if (this.openMenuTimeoutListener) {
-      clearTimeout(this.openMenuTimeoutListener);
-    }
-    this.openMenuTimeoutListener = setTimeout(() => {
+    setTimeout(() => {
       this.applyMenuDisplayAnimation(true);
     }, 0);
     // Subscribe to all actions that close the menu (outside click, item click, any other overlay detach)
@@ -156,10 +144,7 @@ export class MenuTriggerForDirective implements OnDestroy {
     // We remove the needed classes to create the animation on menu close
     this.applyMenuDisplayAnimation(false);
     // Detach the previously created overlay for the menu
-    if (this.destroyMenuTimeoutListener) {
-      clearTimeout(this.destroyMenuTimeoutListener);
-    }
-    this.destroyMenuTimeoutListener = setTimeout(() => {
+    setTimeout(() => {
       this.overlayRef.detach();
     }, 100);
   }
@@ -179,18 +164,6 @@ export class MenuTriggerForDirective implements OnDestroy {
     } else {
       this.renderer.removeClass(menuList, 'translate-y-0');
       this.renderer.removeClass(menuList, 'opacity-100');
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (this.openMenuTimeoutListener) {
-      clearTimeout(this.openMenuTimeoutListener);
-    }
-    if (this.destroyMenuTimeoutListener) {
-      clearTimeout(this.destroyMenuTimeoutListener);
-    }
-    if (this.menuClosingActionsSubscription) {
-      this.menuClosingActionsSubscription.unsubscribe();
     }
   }
 }

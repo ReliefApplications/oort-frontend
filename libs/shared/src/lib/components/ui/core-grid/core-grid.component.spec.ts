@@ -5,6 +5,7 @@ import {
   OAuthService,
   UrlHelperService,
 } from 'angular-oauth2-oidc';
+import { environment } from 'projects/back-office/src/environments/environment';
 import {
   DialogModule as DialogCdkModule,
   DialogRef,
@@ -29,7 +30,7 @@ import {
 
 describe('CoreGridComponent', () => {
   let component: CoreGridComponent;
-  let fixture: ComponentFixture<CoreGridComponent>;
+  let fixture: ComponentFixture<sharedCoreGridComponent>;
   let controller: ApolloTestingController;
 
   beforeEach(async () => {
@@ -37,7 +38,7 @@ describe('CoreGridComponent', () => {
       providers: [
         { provide: DialogRef, useValue: {} },
         { provide: DIALOG_DATA, useValue: {} },
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         OAuthService,
         UrlHelperService,
         OAuthLogger,

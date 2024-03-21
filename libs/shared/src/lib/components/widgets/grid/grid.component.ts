@@ -18,9 +18,11 @@ import {
   Input,
   Output,
   EventEmitter,
+  Inject,
   TemplateRef,
 } from '@angular/core';
 import { WorkflowService } from '../../../services/workflow/workflow.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { EmailService } from '../../../services/email/email.service';
 import { QueryBuilderService } from '../../../services/query-builder/query-builder.service';
 import { CoreGridComponent } from '../../ui/core-grid/core-grid.component';
@@ -28,6 +30,7 @@ import { GridLayoutService } from '../../../services/grid-layout/grid-layout.ser
 import { ConfirmService } from '../../../services/confirm/confirm.service';
 import { Layout } from '../../../models/layout.model';
 import { TranslateService } from '@ngx-translate/core';
+import { cleanRecord } from '../../../utils/cleanRecord';
 import get from 'lodash/get';
 import set from 'lodash/set';
 import { ApplicationService } from '../../../services/application/application.service';
@@ -49,9 +52,7 @@ import {
 } from '../../../models/notification.model';
 import { FormQueryResponse } from '../../../models/form.model';
 import { AggregationGridComponent } from '../../aggregation/aggregation-grid/aggregation-grid.component';
-import { ReferenceDataGridComponent } from '../../ui/reference-data-grid/reference-data-grid.component';
 import { DashboardService } from '../../../services/dashboard/dashboard.service';
-
 /** Component for the grid widget */
 @Component({
   selector: 'shared-grid-widget',
@@ -63,65 +64,47 @@ export class GridWidgetComponent
   extends UnsubscribeComponent
   implements OnInit
 {
-  /** Template reference */
+  // === TEMPLATE REFERENCE ===
   @ViewChild(CoreGridComponent)
   private grid!: CoreGridComponent;
-  /** Reference to main grid */
-  @ViewChild(CoreGridComponent)
-  coreGridComponent?: CoreGridComponent;
-  /** Reference to aggregation grid */
-  @ViewChild(AggregationGridComponent)
-  aggregationGridComponent?: AggregationGridComponent;
-  /** Reference to reference data grid */
-  @ViewChild(ReferenceDataGridComponent)
-  referenceDataGridComponent?: ReferenceDataGridComponent;
-  /** Header template */
   @ViewChild('headerTemplate') headerTemplate!: TemplateRef<any>;
 
-  /** Data */
+  // === DATA ===
   @Input() widget: any;
 
-  /** Permissions */
+  // === PERMISSIONS ===
   public canCreateRecords = false;
 
-  /** Cached configuration */
+  // === CACHED CONFIGURATION ===
   public layout: Layout | null = null;
-  /** List of layouts */
   public layouts: Layout[] = [];
 
-  /** Sort fields select */
+  // === SORT FIELDS SELECT ===
   public sortFields: any[] = [];
 
-  /** Aggregation */
+  // === AGGREGATION ===
   public aggregation: Aggregation | null = null;
-  /** List of aggregations */
   public aggregations: Aggregation[] = [];
 
-  /** Reference data */
-  public useReferenceData = false;
+  // === VERIFICATION IF USER IS ADMIN ===
+  public isAdmin: boolean;
 
-  /** Settings */
+  // === SETTINGS ===
+  @Input() header = true;
   @Input() settings: any = null;
-  /** Id */
   @Input() id = '';
-  /** Can update */
   @Input() canUpdate = false;
-  /** Grid settings */
   public gridSettings: any = null;
-  /** Grid status */
   public status: {
     message?: string;
     error: boolean;
   } = { error: false };
 
-  /** Emit step change for workflow */
+  // === EMIT STEP CHANGE FOR WORKFLOW ===
   @Output() changeStep: EventEmitter<number> = new EventEmitter();
 
-  /** Emit event */
+  // === EMIT EVENT ===
   @Output() edit: EventEmitter<any> = new EventEmitter();
-
-  /** Event emitter for inline edition of records */
-  @Output() inlineEdition: EventEmitter<any> = new EventEmitter();
 
   /**
    * Test if the grid uses a layout, and if a layout is used, if any item is currently updated.
@@ -134,18 +117,20 @@ export class GridWidgetComponent
       : true;
   }
 
-  /** @returns list of active floating buttons */
-  get floatingButtons() {
-    return (this.settings.floatingButtons || []).filter((x: any) => x.show);
-  }
+  @ViewChild(CoreGridComponent) coreGridComponent?: CoreGridComponent;
+  @ViewChild(AggregationGridComponent)
+  aggregationGridComponent?: AggregationGridComponent;
 
   /**
    * Heavy constructor for the grid widget component
    *
+   * @param environment Environment variables
    * @param apollo The apollo client
    * @param dialog Dialogs service
    * @param snackBar Shared snack bar service
    * @param workflowService Shared workflow service
+   * @param dashboardService Shared dashboard service
+   * @param authService Shared authentication service
    * @param emailService Shared email service
    * @param queryBuilder Shared query builder service
    * @param gridLayoutService Shared grid layout service
@@ -153,31 +138,32 @@ export class GridWidgetComponent
    * @param applicationService The shared application service
    * @param translate Angular translate service
    * @param aggregationService Shared aggregation service
-   * @param dashboardService Shared dashboard service
    */
   constructor(
+    @Inject('environment') environment: any,
     private apollo: Apollo,
     public dialog: Dialog,
     private snackBar: SnackbarService,
     private workflowService: WorkflowService,
+    private dashboardService: DashboardService,
+    private authService: AuthService,
     private emailService: EmailService,
     private queryBuilder: QueryBuilderService,
     private gridLayoutService: GridLayoutService,
     private confirmService: ConfirmService,
     private applicationService: ApplicationService,
     private translate: TranslateService,
-    private aggregationService: AggregationService,
-    private dashboardService: DashboardService
+    private aggregationService: AggregationService
   ) {
     super();
+    this.isAdmin =
+      this.authService.userIsAdmin && environment.module === 'backoffice';
   }
 
   ngOnInit() {
     this.gridSettings = { ...this.settings };
     delete this.gridSettings.query;
-    let buildSortFields = false;
     if (this.settings.resource) {
-      this.useReferenceData = false;
       const layouts = get(this.settings, 'layouts', []);
       const aggregations = get(this.settings, 'aggregations', []);
 
@@ -215,7 +201,10 @@ export class GridWidgetComponent
                 error: true,
               };
             } else {
-              buildSortFields = true;
+              // Build list of available sort fields
+              this.widget.settings.sortFields?.forEach((sortField: any) => {
+                this.sortFields.push(sortField);
+              });
             }
             this.gridSettings = {
               ...this.settings,
@@ -228,8 +217,7 @@ export class GridWidgetComponent
 
       if (aggregations.length > 0) {
         this.aggregationService
-          .getAggregations({
-            resource: this.settings.resource,
+          .getAggregations(this.settings.resource, {
             ids: aggregations,
             first: aggregations.length,
           })
@@ -246,20 +234,14 @@ export class GridWidgetComponent
               };
             }
             this.aggregation = this.aggregations[0] || null;
-            buildSortFields = true;
+
+            // Build list of available sort fields
+            this.widget.settings.sortFields?.forEach((sortField: any) => {
+              this.sortFields.push(sortField);
+            });
           });
         return;
       }
-    } else if (this.settings.referenceData) {
-      buildSortFields = true;
-      this.useReferenceData = true;
-    }
-
-    if (buildSortFields) {
-      // Build list of available sort fields
-      this.widget.settings.sortFields?.forEach((sortField: any) => {
-        this.sortFields.push(sortField);
-      });
     }
   }
 
@@ -279,14 +261,6 @@ export class GridWidgetComponent
     }
     if (this.aggregationGridComponent) {
       this.aggregationGridComponent.onSortChange([
-        {
-          field: e ? e.field : '',
-          dir: e ? e.order : 'asc',
-        },
-      ]);
-    }
-    if (this.referenceDataGridComponent) {
-      this.referenceDataGridComponent.onSortChange([
         {
           field: e ? e.field : '',
           dir: e ? e.order : 'asc',
@@ -517,11 +491,19 @@ export class GridWidgetComponent
       options.goToPreviousStep ||
       options.closeWorkflow
     ) {
-      if (options.goToNextStep) {
+      const addToWorkflowContext = async () => {
+        const dashboard = await firstValueFrom(
+          this.dashboardService.dashboard$
+        );
+        if (!dashboard?.id) return;
         this.workflowService.setContext(this.grid.selectedRows);
+      };
+
+      if (options.goToNextStep) {
+        await addToWorkflowContext();
         this.changeStep.emit(1);
       } else if (options.goToPreviousStep) {
-        this.workflowService.setContext(this.grid.selectedRows);
+        await addToWorkflowContext();
         this.changeStep.emit(-1);
       } else {
         const dialogRef = this.confirmService.openConfirmModal({
@@ -598,20 +580,16 @@ export class GridWidgetComponent
     const update: any = {};
     for (const modification of modifications) {
       if (modification.field) {
-        // If no value, set at null
-        if (modification.value === undefined || modification.value === '') {
-          set(update, modification.field, null);
-        } else {
-          set(update, modification.field, modification.value);
-        }
+        set(update, modification.field, modification.value);
       }
     }
+    const data = cleanRecord(update);
     return firstValueFrom(
       this.apollo.mutate<EditRecordsMutationResponse>({
         mutation: EDIT_RECORDS,
         variables: {
           ids,
-          data: update,
+          data,
           template: get(this.settings, 'template', null),
         },
       })
@@ -627,7 +605,6 @@ export class GridWidgetComponent
    * @param targetForm Target template id
    * @param targetFormField The form field
    * @param targetFormQuery The form query
-   * @returns Promise resolving when execution done
    */
   private async promisedAttachToRecord(
     selectedRecords: string[],

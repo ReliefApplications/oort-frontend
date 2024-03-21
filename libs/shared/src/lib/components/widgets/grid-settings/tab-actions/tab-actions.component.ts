@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Inject } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { ApplicationService } from '../../../../services/application/application.service';
 import { Application } from '../../../../models/application.model';
@@ -18,14 +18,14 @@ export class TabActionsComponent
   extends UnsubscribeComponent
   implements OnInit
 {
-  /** Widget reactive form group */
   @Input() formGroup!: UntypedFormGroup;
-  /** Available fields */
-  @Input() fields: any[] = [];
+
   /** Show select page id and checkbox for record id */
   public showSelectPage = false;
   /** Available pages from the application */
   public pages: any[] = [];
+  /** Current environment */
+  private environment: any;
   /** Grid actions */
   public actions = [
     {
@@ -57,7 +57,6 @@ export class TabActionsComponent
       name: 'addRecord',
       text: 'components.widget.settings.grid.actions.add',
       tooltip: 'components.widget.settings.grid.hint.actions.add',
-      toolTipWarning: 'components.widget.settings.grid.warnings.add',
     },
     {
       name: 'export',
@@ -71,18 +70,23 @@ export class TabActionsComponent
     },
     {
       name: 'navigateToPage',
-      text: 'components.widget.settings.grid.actions.goTo.label',
-      tooltip: 'components.widget.settings.grid.hint.actions.goTo',
+      text: 'components.widget.settings.grid.actions.navigateToPage',
+      tooltip: 'components.widget.settings.grid.hint.actions.navigateToPage',
     },
   ];
 
   /**
    * Constructor of the grid component
    *
-   * @param applicationService Application service
+   * @param applicationService Application service,
+   * @param environment environment
    */
-  constructor(public applicationService: ApplicationService) {
+  constructor(
+    public applicationService: ApplicationService,
+    @Inject('environment') environment: any
+  ) {
     super();
+    this.environment = environment;
   }
 
   ngOnInit(): void {

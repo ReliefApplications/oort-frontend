@@ -4,7 +4,7 @@ import { BadgeComponent } from './badge.component';
 
 describe('BadgeComponent', () => {
   let component: BadgeComponent;
-  let fixture: ComponentFixture<BadgeComponent>;
+  let fixture: ComponentFixture<sharedBadgeComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

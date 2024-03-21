@@ -16,7 +16,7 @@ import { GET_QUERY_TYPES } from '../graphql/queries';
 
 describe('TabFieldsComponent', () => {
   let component: TabFieldsComponent;
-  let fixture: ComponentFixture<TabFieldsComponent>;
+  let fixture: ComponentFixture<sharedTabFieldsComponent>;
   let controller: ApolloTestingController;
 
   beforeEach(async () => {

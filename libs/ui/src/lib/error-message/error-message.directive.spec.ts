@@ -41,7 +41,6 @@ import {
   ],
 })
 class TestingComponent {
-  /** Name form control */
   name = new FormControl('');
 }
 

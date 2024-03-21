@@ -7,7 +7,6 @@ import { Directive, ElementRef, Renderer2 } from '@angular/core';
   selector: '[uiMenuItem]',
 })
 export class MenuItemDirective {
-  /** Classes */
   private classes = [
     'flex',
     'flex-row',

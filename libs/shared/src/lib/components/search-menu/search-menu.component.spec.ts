@@ -7,9 +7,9 @@ import {
 } from '@ngx-translate/core';
 import { SearchMenuComponent } from './search-menu.component';
 
-describe('SafeSearchMenuComponent', () => {
-  let component: SafeSearchMenuComponent;
-  let fixture: ComponentFixture<SafeSearchMenuComponent>;
+describe('SearchMenuComponent', () => {
+  let component: SearchMenuComponent;
+  let fixture: ComponentFixture<sharedSearchMenuComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

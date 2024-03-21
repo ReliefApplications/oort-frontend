@@ -5,7 +5,7 @@ import { GroupStageComponent } from './group-stage.component';
 
 describe('GroupStageComponent', () => {
   let component: GroupStageComponent;
-  let fixture: ComponentFixture<GroupStageComponent>;
+  let fixture: ComponentFixture<sharedGroupStageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

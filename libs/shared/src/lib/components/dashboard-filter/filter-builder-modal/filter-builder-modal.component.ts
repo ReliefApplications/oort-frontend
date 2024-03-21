@@ -13,19 +13,13 @@ import { FormService } from '../../../services/form/form.service';
 import { CommonModule } from '@angular/common';
 import { FormBuilderModule } from '../../form-builder/form-builder.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { ButtonModule, SnackbarService, TooltipModule } from '@oort-front/ui';
+import { SnackbarService, TooltipModule } from '@oort-front/ui';
 import { DialogModule, AlertModule } from '@oort-front/ui';
 import { renderGlobalProperties } from '../../../survey/render-global-properties';
 import { ReferenceDataService } from '../../../services/reference-data/reference-data.service';
 import { FormHelpersService } from '../../../services/form-helper/form-helper.service';
 import { Question } from '../../../survey/types';
 import 'survey-core/survey.i18n.min.js';
-import { CustomQuestionTypes } from '../../../survey/custom-question-types';
-import {
-  CustomJSONEditorComponent,
-  SurveyCustomJSONEditorPlugin,
-} from '../../form-builder/custom-json-editor/custom-json-editor.component';
-import { updateModalChoicesAndValue } from '../../../survey/global-properties/reference-data';
 //import 'survey-creator-core/survey-creator-core.i18n.min.js';
 
 /**
@@ -58,7 +52,7 @@ const QUESTION_TYPES = [
   // 'image',
   'html',
   // 'signaturepad',
-  'expression',
+  // 'expression',
   // 'matrix',
   // 'matrixdropdown',
   // 'matrixdynamic',
@@ -100,7 +94,6 @@ const CORE_QUESTION_ALLOWED_PROPERTIES = [
   'defaultValueExpression',
   'relatedName',
   'addRecord',
-  'updateRecord',
   'addTemplate',
   'Search resource table',
   'visible',
@@ -140,38 +133,6 @@ const CORE_QUESTION_ALLOWED_PROPERTIES = [
   'valueName',
   'inputType',
   'html',
-  'resource',
-  'displayField',
-  'test service',
-  'addRecordText',
-  'updateRecordText',
-  'canSearch',
-  'searchButtonText',
-  'canOnlyCreateRecords',
-  'alwaysCreateRecord',
-  'prefillWithCurrentRecord',
-  'selectQuestion',
-  'staticValue',
-  'filterBy',
-  'filterCondition',
-  'selectResourceText',
-  'gridFieldsSettings',
-  'customFilterEl',
-  'customFilter',
-  'newCreatedRecords',
-  'afterRecordCreation',
-  'afterRecordSelection',
-  'afterRecordDeselection',
-  'displayAsGrid',
-  'valueExpression',
-  'canDelete',
-  'history',
-  'convert',
-  'update',
-  'inlineEdition',
-  'export',
-  'canDeselectRecords',
-  'autoSaveChanges',
 ];
 
 /**
@@ -214,14 +175,11 @@ const NAVIGATION_PROPERTIES = [
     DialogModule,
     AlertModule,
     SurveyCreatorModule,
-    ButtonModule,
-    CustomJSONEditorComponent,
   ],
 })
 export class FilterBuilderModalComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
-  /** Survey creator instance */
   surveyCreator!: SurveyCreatorModel;
 
   /**
@@ -244,13 +202,8 @@ export class FilterBuilderModalComponent
   ) {}
 
   ngOnInit(): void {
-    // Initialize survey creator instance with selected custom questions
-    this.formService.initialize({
-      customQuestions: [
-        CustomQuestionTypes.RESOURCE,
-        CustomQuestionTypes.RESOURCES,
-      ],
-    });
+    // Initialize survey creator instance without custom questions
+    this.formService.initialize({ customQuestions: false });
   }
 
   ngAfterViewInit(): void {
@@ -269,8 +222,6 @@ export class FilterBuilderModalComponent
       questionTypes: QUESTION_TYPES,
     };
     this.surveyCreator = new SurveyCreatorModel(creatorOptions);
-
-    new SurveyCustomJSONEditorPlugin(this.surveyCreator);
 
     // this.surveyCreator.text = '';
     this.surveyCreator.showToolbox = true;
@@ -302,12 +253,6 @@ export class FilterBuilderModalComponent
     // Reset property grid to let it handle onShowingProperty event (cf doc)
     this.surveyCreator.JSON = {};
 
-    // Set content
-    const survey = new SurveyModel(
-      this.data?.surveyStructure || DEFAULT_STRUCTURE
-    );
-    this.surveyCreator.JSON = survey.toJSON();
-
     // add the rendering of custom properties
     this.surveyCreator.survey.onAfterRenderQuestion.add(
       renderGlobalProperties(this.referenceDataService) as any
@@ -319,7 +264,11 @@ export class FilterBuilderModalComponent
         )
     );
 
-    this.surveyCreator.onPropertyGridShowModal.add(updateModalChoicesAndValue);
+    // Set content
+    const survey = new SurveyModel(
+      this.data?.surveyStructure || DEFAULT_STRUCTURE
+    );
+    this.surveyCreator.JSON = survey.toJSON();
   }
 
   /**

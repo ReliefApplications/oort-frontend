@@ -1,7 +1,6 @@
 // Leaflet imports
 import * as L from 'leaflet';
 import 'leaflet.heat';
-import 'leaflet.timeline';
 import 'leaflet.markercluster';
 import { Feature, Geometry } from 'geojson';
 import { get, isNil, set } from 'lodash';
@@ -21,13 +20,12 @@ import {
   LayerModel,
   LayerSymbol,
   PopupInfo,
-  TimelineInfo,
 } from '../../../models/layer.model';
 import { MapPopupService } from './map-popup/map-popup.service';
 import { haversineDistance } from './utils/haversine';
 import { GradientPipe } from '../../../pipes/gradient/gradient.pipe';
 import { MapLayersService } from '../../../services/map/map-layers.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, filter, firstValueFrom } from 'rxjs';
 import centroid from '@turf/centroid';
 import { Injector, Renderer2, Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
@@ -36,7 +34,6 @@ import {
   icon as iconCreator,
 } from '@fortawesome/fontawesome-svg-core';
 import { getIconDefinition } from '@oort-front/ui';
-import { DatePipe } from '../../../pipes/date/date.pipe';
 
 type FieldTypes = 'string' | 'number' | 'boolean' | 'date' | 'any';
 
@@ -139,88 +136,60 @@ const featureSatisfiesFilter = (
 
 /** Objects represent a map layer */
 export class Layer implements LayerModel {
-  /** Map popup service */
+  // Services and classes for layer class
   private popupService!: MapPopupService;
-  /** Map layer service */
   private layerService!: MapLayersService;
-  /** Map renderer */
   private renderer!: Renderer2;
-  /** Date pipe service */
-  private datePipe!: DatePipe;
-  /** Map layer */
-  private layer: L.Layer | null = null;
-  /** Layer id */
-  public id!: string;
-  /** Layer name */
-  public name!: string;
-  /** Layer type */
-  public type!: LayerType;
-  /** Layer visibility */
-  public visibility!: boolean;
-  /** Layer opacity */
-  public opacity!: number;
-  /** Layer definition */
-  public layerDefinition?: LayerDefinition;
-  /** Timeline config */
-  public timelineInfo?: TimelineInfo;
 
-  /** Popup info */
+  // Map layer
+  private layer: L.Layer | null = null;
+
+  // Global properties for the layer
+  public id!: string;
+  public name!: string;
+  public type!: LayerType;
+
+  // Visibility
+  public visibility!: boolean;
+  public opacity!: number;
+
+  // Layer Definition
+  public layerDefinition?: LayerDefinition;
+
+  // Popup info
   public popupInfo: PopupInfo = {
     title: '',
     description: '',
     popupElements: [],
-    navigateToPage: false,
-    navigateSettings: {
-      field: '',
-      pageUrl: '',
-    },
   };
-  /** Created at */
   public createdAt!: Date;
-  /** Updated at */
   public updatedAt!: Date;
 
   // If the layer is a group, the sublayers array has the ids of the layers
-  /** Sublayers */
   public sublayers: string[] = [];
 
-  /** Sublayers */
-  public _sublayers: string[] = [];
+  public _sublayers: Layer[] = [];
 
-  /** Sublayers loaded */
   public sublayersLoaded = new BehaviorSubject(false);
 
-  /** Layer datasource */
+  // Layer datasource
   public datasource?: LayerDatasource;
-  /** Layer geojson */
   public geojson: GeoJSON | null = null;
   // private properties: any | null = null;
-  /** Layer filter */
   private filter: LayerFilter | null = null;
-  /** Layer context filters  */
-  public contextFilters!: string;
   // private styling: any | null = null;
   // private label: LayerLabel | null = null;
 
-  /** Layer fields, extracted from geojson */
+  // Layer fields, extracted from geojson
   private fields: { [key in string]: FieldTypes } = {};
 
   // Declare variables to store the event listeners
-  /** Event listener for zoom event */
   private zoomListener!: L.LeafletEventHandlerFn;
-  /** Array of listeners */
   private listeners: any[] = [];
-  /** Timeline control */
-  private timelineControl: any = null;
-  /** Index in the legend panel */
-  public legendIndex!: number;
 
-  /**
-   * Get layer children. Await for sub-layers to be loaded first.
-   *
-   * @returns Children of the current layer
-   */
-  public getChildren() {
+  /** @returns the children of the current layer */
+  public async getChildren() {
+    await firstValueFrom(this.sublayersLoaded.pipe(filter((v) => v)));
     return this._sublayers;
   }
 
@@ -275,7 +244,6 @@ export class Layer implements LayerModel {
       this.popupService = injector.get(MapPopupService);
       this.layerService = injector.get(MapLayersService);
       this.renderer = injector.get(Renderer2);
-      this.datePipe = injector.get(DatePipe);
       this.setConfig(options);
     } else {
       throw 'No settings provided';
@@ -300,17 +268,20 @@ export class Layer implements LayerModel {
       this.datasource = get(options, 'datasource', null);
       this.geojson = get(options, 'geojson', EMPTY_FEATURE_COLLECTION);
       // this.properties = options.properties || DEFAULT_LAYER_PROPERTIES;
-      this.contextFilters = get(options, 'contextFilters', null);
       this.filter = get(options, 'filter', DEFAULT_LAYER_FILTER);
       // this.styling = options.styling || [];
       // this.label = options.labels || null;
       this.layerDefinition = get(options, 'layerDefinition');
       this.popupInfo = get(options, 'popupInfo');
-      this.timelineInfo = get(options, 'timelineInfo');
       this.setFields();
     } else if (options.sublayers) {
       // Group layer, add sublayers
-      this._sublayers = options.sublayers?.length ? options.sublayers : [];
+      this._sublayers = options.sublayers?.length
+        ? await this.layerService.createLayersFromIds(
+            options.sublayers,
+            this.injector
+          )
+        : [];
 
       this.sublayersLoaded.next(true);
     }
@@ -461,138 +432,103 @@ export class Layer implements LayerModel {
     );
 
     // options used for parsing geojson to leaflet layer
-    const geoJSONopts = (fieldForSize?: string): L.GeoJSONOptions<any> => {
-      // Find min and max values of selected propriety
-      let minValue = Number.POSITIVE_INFINITY;
-      let maxValue = Number.NEGATIVE_INFINITY;
-      if (fieldForSize) {
-        (data as any).features.forEach((feature: any) => {
-          const value = get(feature, `properties.${fieldForSize}`, 0);
-          if (value < minValue) {
-            minValue = value;
-          }
-          if (value > maxValue) {
-            maxValue = value;
-          }
-        });
-      }
-      const calculateMarkerSize = (value: number): number => {
-        const minSize = 15; // Minimum size of the marker
-        const maxSize = 50; // Maximum size of the marker
-        const scaledSize =
-          minSize +
-          ((maxSize - minSize) * (value - minValue)) / (maxValue - minValue);
-        return scaledSize;
-      };
-      return {
-        ...(geometryType === 'Point' && {
-          pointToLayer: (feature, latlng) => {
-            if (rendererType === 'uniqueValue') {
-              const fieldValue = get(
-                feature,
-                `properties.${uniqueValueField}`,
-                null
-              );
-              const uniqueValueSymbol =
-                uniqueValueInfos.find((x) => x.value === fieldValue)?.symbol ||
-                uniqueValueDefaultSymbol;
-              return new L.Marker(latlng).setIcon(
-                createCustomDivIcon({
-                  icon: uniqueValueSymbol.style,
-                  color: uniqueValueSymbol.color,
-                  size: fieldForSize
-                    ? calculateMarkerSize(feature.properties[fieldForSize])
-                    : uniqueValueSymbol.size,
-                  opacity: this.opacity,
-                })
-              );
-            } else {
-              return new L.Marker(latlng).setIcon(
-                createCustomDivIcon({
-                  icon: symbol.style,
-                  color: symbol.color,
-                  size: fieldForSize
-                    ? calculateMarkerSize(feature.properties[fieldForSize])
-                    : symbol.size,
-                  opacity: this.opacity,
-                })
-              );
-            }
-          },
-        }),
-        ...(geometryType === 'Polygon' && {
-          style: (feature) => {
-            if (rendererType === 'uniqueValue') {
-              const fieldValue = get(
-                feature,
-                `properties.${uniqueValueField}`,
-                null
-              );
-              const uniqueValueSymbol =
-                uniqueValueInfos.find((x) => x.value == fieldValue)?.symbol ||
-                uniqueValueDefaultSymbol;
-              return {
-                fillColor: uniqueValueSymbol.color,
-                color: uniqueValueSymbol.outline?.color,
-                weight: uniqueValueSymbol.outline?.width,
-                fillOpacity: this.opacity,
-                opacity: this.opacity,
-              };
-            } else {
-              return {
-                fillColor: symbol.color,
-                color: symbol.outline?.color,
-                weight: symbol.outline?.width,
-                fillOpacity: this.opacity,
-                opacity: this.opacity,
-              };
-            }
-          },
-        }),
-        onEachFeature: (feature: Feature<any>, layer: L.Layer) => {
-          // Add popup on click because we destroy popup component each time we remove it
-          // In order to destroy all event subscriptions and avoid memory leak
-          const setPopupListener = () => {
-            const center = centroid(feature);
-            // bind this to the popup service
-            this.popupService.setPopUp(
-              [feature],
-              L.latLng({
-                lat: center.geometry.coordinates[1],
-                lng: center.geometry.coordinates[0],
-              }),
-              this.popupInfo,
-              layer
+    const geoJSONopts: L.GeoJSONOptions<any> = {
+      ...(geometryType === 'Point' && {
+        pointToLayer: (feature, latlng) => {
+          if (rendererType === 'uniqueValue') {
+            const fieldValue = get(
+              feature,
+              `properties.${uniqueValueField}`,
+              null
             );
-          };
-          const listener = this.renderer.listen(
-            layer,
-            'click',
-            setPopupListener
-          );
-          this.listeners.push(listener);
+            const uniqueValueSymbol =
+              uniqueValueInfos.find((x) => x.value === fieldValue)?.symbol ||
+              uniqueValueDefaultSymbol;
+            return new L.Marker(latlng).setIcon(
+              createCustomDivIcon({
+                icon: uniqueValueSymbol.style,
+                color: uniqueValueSymbol.color,
+                size: uniqueValueSymbol.size,
+                opacity: this.opacity,
+              })
+            );
+          } else {
+            return new L.Marker(latlng).setIcon(
+              createCustomDivIcon({
+                icon: symbol.style,
+                color: symbol.color,
+                size: symbol.size,
+                opacity: this.opacity,
+              })
+            );
+          }
         },
-        // style: (feature: Feature<Geometry> | undefined) => {
-        //   if (!feature) return {};
-        //   // const style = this.getFeatureStyle(feature);
+      }),
+      ...(geometryType === 'Polygon' && {
+        style: (feature) => {
+          if (rendererType === 'uniqueValue') {
+            const fieldValue = get(
+              feature,
+              `properties.${uniqueValueField}`,
+              null
+            );
+            const uniqueValueSymbol =
+              uniqueValueInfos.find((x) => x.value == fieldValue)?.symbol ||
+              uniqueValueDefaultSymbol;
+            return {
+              fillColor: uniqueValueSymbol.color,
+              color: uniqueValueSymbol.outline?.color,
+              weight: uniqueValueSymbol.outline?.width,
+              fillOpacity: this.opacity,
+              opacity: this.opacity,
+            };
+          } else {
+            return {
+              fillColor: symbol.color,
+              color: symbol.outline?.color,
+              weight: symbol.outline?.width,
+              fillOpacity: this.opacity,
+              opacity: this.opacity,
+            };
+          }
+        },
+      }),
+      onEachFeature: (feature: Feature<any>, layer: L.Layer) => {
+        // Add popup on click because we destroy popup component each time we remove it
+        // In order to destroy all event subscriptions and avoid memory leak
+        const setPopupListener = () => {
+          const center = centroid(feature);
+          // bind this to the popup service
+          this.popupService.setPopUp(
+            [feature],
+            L.latLng({
+              lat: center.geometry.coordinates[1],
+              lng: center.geometry.coordinates[0],
+            }),
+            this.popupInfo,
+            layer
+          );
+        };
+        const listener = this.renderer.listen(layer, 'click', setPopupListener);
+        this.listeners.push(listener);
+      },
+      // style: (feature: Feature<Geometry> | undefined) => {
+      //   if (!feature) return {};
+      //   // const style = this.getFeatureStyle(feature);
 
-        //   return {
-        //     // fillColor: style.symbol.color,
-        //     // fillOpacity: style.fillOpacity,
-        //     // color: style.borderColor,
-        //     // opacity: style.borderOpacity,
-        //     // weight: style.borderWidth,
-        //   };
-        // },
-      };
+      //   return {
+      //     // fillColor: style.symbol.color,
+      //     // fillOpacity: style.fillOpacity,
+      //     // color: style.borderColor,
+      //     // opacity: style.borderOpacity,
+      //     // weight: style.borderWidth,
+      //   };
+      // },
     };
+
     switch (this.type) {
       case 'GroupLayer':
-        const ChildrenIds = this.getChildren();
-        const layerPromises = ChildrenIds.map((layer) => {
-          return this.layerService.createLayersFromId(layer, this.injector);
-        });
-        const sublayers = await Promise.all(layerPromises);
+        const sublayers = await this.getChildren();
 
         for (const child of sublayers) {
           child.opacity = child.opacity * this.opacity;
@@ -823,7 +759,7 @@ export class Layer implements LayerModel {
                   );
                 });
 
-                const clusterLayer = L.geoJSON(data, geoJSONopts());
+                const clusterLayer = L.geoJSON(data, geoJSONopts);
                 clusterLayer.onAdd = (map: L.Map) => {
                   const l = L.GeoJSON.prototype.onAdd.call(clusterLayer, map);
                   this.onAddLayer(map, clusterLayer);
@@ -840,58 +776,8 @@ export class Layer implements LayerModel {
                 (this.layer as any).id = this.id;
                 return this.layer;
               default:
-                const getInterval = (point: Feature) => {
-                  const start =
-                    point?.properties?.[
-                      this.timelineInfo?.startTimeField || 'start'
-                    ];
+                const layer = L.geoJSON(data, geoJSONopts);
 
-                  const end =
-                    point?.properties?.[
-                      this.timelineInfo?.endTimeField || 'end'
-                    ] ?? start;
-
-                  const startDate = new Date(start).getTime();
-                  if (isNaN(startDate)) {
-                    return false;
-                  }
-
-                  const endDate = new Date(end).getTime();
-                  return {
-                    start: startDate,
-                    end: endDate,
-                  };
-                };
-
-                // Call the timeline function if the timeline is enabled
-                // Otherwise, call the default geoJSON function
-                const geoJsonFunction = this.timelineInfo?.enabled
-                  ? (L as any).timeline
-                  : L.geoJSON;
-
-                const layer = geoJsonFunction(data, {
-                  ...geoJSONopts(
-                    this.layerDefinition?.drawingInfo?.renderer?.symbol
-                      ?.fieldForSize
-                  ),
-                  getInterval,
-                });
-
-                if (this.timelineInfo?.enabled) {
-                  // If the control does not exist, create it
-                  if (!this.timelineControl) {
-                    const timelineControl = (L as any).timelineSliderControl({
-                      position: 'bottomleft',
-                      formatOutput: (date: string | number | Date) =>
-                        this.datePipe.transform(
-                          date,
-                          this.timelineInfo?.dateFormat ?? 'shortDate'
-                        ),
-                    });
-
-                    this.timelineControl = timelineControl;
-                  }
-                }
                 layer.onAdd = (map: L.Map) => {
                   const l = L.GeoJSON.prototype.onAdd.call(layer, map);
                   this.onAddLayer(map, layer);
@@ -905,7 +791,7 @@ export class Layer implements LayerModel {
                 this.layer = layer;
                 (this.layer as any).origin = 'app-builder';
                 (this.layer as any).id = this.id;
-                return layer;
+                return this.layer;
             }
         }
     }
@@ -920,33 +806,9 @@ export class Layer implements LayerModel {
    * @param layer leaflet layer
    */
   onAddLayer(map: L.Map, layer: L.Layer) {
-    if (isNil(this.legendIndex)) {
-      return;
-    }
     // Ensure that we do not subscribe multiple times to zoom event
     if (this.zoomListener) {
       map.off('zoomend', this.zoomListener);
-    }
-
-    // If timeline is enabled, add the control to the map
-    if (this.timelineInfo?.enabled) {
-      this.timelineControl?.addTo(map);
-
-      // Link the timeline control to the layer
-      this.timelineControl?.addTimelines(layer);
-
-      // Add some custom classes to the timeline control
-      const container = this.timelineControl.getContainer();
-      if (container) {
-        container.classList.add('min-w-96');
-        container.classList.add('m-0');
-        container.classList.add('flex');
-        container.classList.add('gap-1');
-      }
-
-      // Gets its first child html element
-      const timelineCtrl = container?.firstElementChild;
-      timelineCtrl?.classList.add('min-w-28');
     }
     // Using the sidenav-controls-menu-item, we can overwrite visibility property of the layer
     if (!isNil((layer as any).shouldDisplay)) {
@@ -954,7 +816,7 @@ export class Layer implements LayerModel {
       if (this.visibility) {
         const legendControl = (map as any).legendControl;
         if (legendControl) {
-          legendControl.addLayer(layer, this.legend, this.legendIndex);
+          legendControl.addLayer(layer, this.legend);
         }
       } else {
         map.removeLayer(layer);
@@ -970,7 +832,7 @@ export class Layer implements LayerModel {
         if (this.visibility) {
           const legendControl = (map as any).legendControl;
           if (legendControl) {
-            legendControl.addLayer(layer, this.legend, this.legendIndex);
+            legendControl.addLayer(layer, this.legend);
           }
         } else {
           map.removeLayer(layer);
@@ -1020,13 +882,7 @@ export class Layer implements LayerModel {
   onRemoveLayer(map: L.Map, layer: L.Layer) {
     const legendControl = (map as any).legendControl;
     if (legendControl) {
-      legendControl.removeLayer(layer, this.legendIndex);
-    }
-
-    // If timeline is enabled, remove the control from the map
-    if (this.timelineInfo?.enabled) {
-      this.timelineControl?.remove();
-      this.timelineControl.removeTimelines(layer);
+      legendControl.removeLayer(layer);
     }
     if (!isNil((layer as any).shouldDisplay) || (layer as any).deleted) {
       // Ensure that we do not subscribe multiple times to zoom event
@@ -1191,11 +1047,10 @@ export class Layer implements LayerModel {
     label?: string
   ): string {
     if (symbol) {
-      let svg: string;
       switch (type) {
         case 'Polygon': {
           // We avoid stroke width to be too important
-          svg = `<svg 
+          const svgTemplate = `<svg 
                 
                   width="16" 
                   height="16"
@@ -1209,10 +1064,16 @@ export class Layer implements LayerModel {
                     height="16" />
                     </g>
                 </svg>`;
-          break;
+          return `<span class="flex gap-2 items-center">${svgTemplate}${
+            label || ''
+          }</span>`;
         }
         default:
         case 'Point': {
+          const wrapper = this.renderer.createElement('span');
+          ['flex', 'gap-2', 'items-center'].forEach((classProp) => {
+            this.renderer.addClass(wrapper, classProp);
+          });
           const iconDef = getIconDefinition(symbol.style as IconName);
           const i = iconCreator(iconDef, {
             styles: {
@@ -1221,13 +1082,13 @@ export class Layer implements LayerModel {
               color: symbol.color,
               'line-height': '1rem',
               'font-size': '1rem',
+              'padding-left': '.5rem',
             },
           });
-          svg = i.node[0].outerHTML;
-          break;
+          this.renderer.appendChild(wrapper, i.node[0]);
+          return wrapper.outerHTML;
         }
       }
-      return `<span class="flex gap-2 items-start">${svg}${label || ''}</span>`;
     } else {
       return '';
     }
@@ -1242,16 +1103,11 @@ export class Layer implements LayerModel {
     if (this.zoomListener) {
       map.off('zoomend', this.zoomListener);
     }
-    const children = this.getChildren();
+    const children = await this.getChildren();
     if (children.length) {
-      const removeAllListenersLayerPromises = children.map((layer) => {
-        return this.layerService
-          .createLayersFromId(layer, this.injector)
-          .then((layer) => {
-            return layer.removeAllListeners(map);
-          });
+      children.forEach((cl) => {
+        cl.removeAllListeners(map);
       });
-      await Promise.all(removeAllListenersLayerPromises);
     }
     this.zoomListener = null as unknown as L.LeafletEventHandlerFn;
     this.listeners.forEach((listener) => {

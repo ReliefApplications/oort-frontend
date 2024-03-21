@@ -101,9 +101,6 @@ If you need to add a new component, you should uncomment there the related impor
 // @import "@progress/kendo-theme-default/scss/tabstrip/_index.scss";
 @import '@progress/kendo-theme-default/scss/tilelayout/_index.scss';
 
-// kendo-angular-listbox
-@import '@progress/kendo-theme-default/scss/listbox/_index.scss';
-
 // kendo-angular-menu
 // @import "@progress/kendo-theme-default/scss/menu/_index.scss";
 
@@ -149,6 +146,8 @@ If you need to add a new component, you should uncomment there the related impor
 // Import of Kendo themes
 // @import '@progress/kendo-theme-default/dist/all.scss';
 
-.k-badge-edge {
-  z-index: 1;
+// === WIDGETS ===
+.k-resize-handle,
+.k-resize-hint {
+  z-index: 1100;
 }

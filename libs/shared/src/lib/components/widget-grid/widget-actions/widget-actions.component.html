@@ -11,7 +11,7 @@
     <!-- Widget settings -->
     <ui-button
       [isIcon]="true"
-      icon="tune"
+      icon="insert_chart"
       [uiTooltip]="'common.settings' | translate"
       (click)="onClick('settings')"
       [disabled]="!this.widget || !this.widget.settings"
@@ -44,7 +44,7 @@
     ></ui-button>
   </div>
 
-  <!-- Only display if we have space to do it -->
+  <!-- Widget tooltip -->
   <div *ngIf="collapsed" class="flex items-center">
     <ui-button
       *ngIf="widget.settings?.widgetDisplay?.showTooltip"
@@ -53,6 +53,7 @@
       variant="grey"
       [uiTooltip]="widget.settings.widgetDisplay.tooltip"
     ></ui-button>
+    <!-- Only display if we have space to do it -->
     <ui-button
       [isIcon]="true"
       icon="more_vert"
@@ -68,7 +69,7 @@
       (click)="onClick('settings')"
       [disabled]="!this.widget || !this.widget.settings"
     >
-      <ui-icon icon="tune" variant="grey"></ui-icon>
+      <ui-icon icon="insert_chart" variant="grey"></ui-icon>
       <span>{{ 'common.settings' | translate }}</span>
     </button>
     <!-- Widget styling  -->

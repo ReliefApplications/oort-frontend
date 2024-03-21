@@ -28,7 +28,6 @@ import {
     TooltipModule,
     DateModule,
     FormWrapperModule,
-    TooltipModule,
   ],
   exports: [FilterComponent],
 })

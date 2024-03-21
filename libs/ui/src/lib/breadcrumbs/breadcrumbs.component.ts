@@ -4,7 +4,6 @@ import {
   HostListener,
   Input,
   OnChanges,
-  OnDestroy,
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
@@ -21,7 +20,7 @@ import { isEqual } from 'lodash';
   templateUrl: './breadcrumbs.component.html',
   styleUrls: ['./breadcrumbs.component.scss'],
 })
-export class BreadcrumbsComponent implements OnChanges, OnDestroy {
+export class BreadcrumbsComponent implements OnChanges {
   /** Array of Breadcrumb objects. */
   @Input() breadcrumbs: Breadcrumb[] = [];
   /** Separator between breadcrumbs. */
@@ -35,8 +34,6 @@ export class BreadcrumbsComponent implements OnChanges, OnDestroy {
   isBreadcrumbOffLimits = false;
   /** Width of the expanded breadcrumb. */
   expandedWidth = 0;
-  /** Timeout to load Breadcrumb */
-  private loadBreadcrumbTimeoutListener!: NodeJS.Timeout;
   /** Method to update off limit value when breadcrumbs change. */
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -48,12 +45,6 @@ export class BreadcrumbsComponent implements OnChanges, OnDestroy {
       )
     ) {
       this.updateOffLimitValue();
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (this.loadBreadcrumbTimeoutListener) {
-      clearTimeout(this.loadBreadcrumbTimeoutListener);
     }
   }
 
@@ -75,18 +66,9 @@ export class BreadcrumbsComponent implements OnChanges, OnDestroy {
   private loadBreadcrumb(): Promise<void> {
     const checkAgain = (resolve: () => void) => {
       if (this.breadcrumbs.every((bc) => bc.key || bc.text)) {
-        if (this.loadBreadcrumbTimeoutListener) {
-          clearTimeout(this.loadBreadcrumbTimeoutListener);
-        }
         resolve();
       } else {
-        if (this.loadBreadcrumbTimeoutListener) {
-          clearTimeout(this.loadBreadcrumbTimeoutListener);
-        }
-        this.loadBreadcrumbTimeoutListener = setTimeout(
-          () => checkAgain(resolve),
-          400
-        );
+        setTimeout(() => checkAgain(resolve), 400);
       }
     };
     return new Promise(checkAgain);

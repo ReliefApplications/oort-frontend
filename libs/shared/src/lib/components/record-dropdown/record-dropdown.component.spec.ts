@@ -9,7 +9,7 @@ import { RecordDropdownComponent } from './record-dropdown.component';
 
 describe('RecordDropdownComponent', () => {
   let component: RecordDropdownComponent;
-  let fixture: ComponentFixture<RecordDropdownComponent>;
+  let fixture: ComponentFixture<sharedRecordDropdownComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

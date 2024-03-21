@@ -7,6 +7,11 @@ import { DomService } from '../services/dom/dom.service';
 import { AuthService } from '../services/auth/auth.service';
 import { ReferenceDataService } from '../services/reference-data/reference-data.service';
 import addCustomFunctions from './custom-functions';
+import * as ResourceComponent from './components/resource';
+import * as ResourcesComponent from './components/resources';
+import * as OwnerComponent from './components/owner';
+import * as UsersComponent from './components/users';
+import * as GeospatialComponent from './components/geospatial';
 import * as TextWidget from './widgets/text-widget';
 import * as CommentWidget from './widgets/comment-widget';
 import * as DropdownWidget from './widgets/dropdown-widget';
@@ -29,24 +34,20 @@ import {
   CustomPropertyGridEditors,
 } from './components/utils/components.enum';
 import { TranslateService } from '@ngx-translate/core';
-import {
-  CustomQuestionTypes,
-  InitCustomQuestionComponent,
-} from './custom-question-types';
 
 /**
  * Executes all init methods of custom SurveyJS.
  *
  * @param environment injected environment
  * @param injector Parent instance angular injector containing all needed services and directives
- * @param customQuestions List of custom questions to load
+ * @param containsCustomQuestions If survey contains custom questions or not
  * @param ngZone Angular Service to execute code inside Angular environment
  * @param document Document
  */
 export const initCustomSurvey = (
   environment: any,
   injector: Injector,
-  customQuestions: Array<CustomQuestionTypes>,
+  containsCustomQuestions: boolean,
   ngZone: NgZone,
   document: Document
 ): void => {
@@ -56,8 +57,11 @@ export const initCustomSurvey = (
   const referenceDataService = injector.get(ReferenceDataService);
   const translateService = injector.get(TranslateService);
 
-  CustomWidgetCollection.Instance.clear();
-  ComponentCollection.Instance.clear();
+  // If the survey created does not contain custom questions, we destroy previously set custom questions if so
+  if (!containsCustomQuestions) {
+    CustomWidgetCollection.Instance.clear();
+    ComponentCollection.Instance.clear();
+  }
 
   TagboxWidget.init(domService, CustomWidgetCollection.Instance, document);
   TextWidget.init(
@@ -69,7 +73,7 @@ export const initCustomSurvey = (
   DropdownWidget.init(domService, CustomWidgetCollection.Instance, document);
   Matrices.init(domService);
 
-  if (customQuestions) {
+  if (containsCustomQuestions) {
     // Register all custom property grid component types
     const registeredTypes = AngularComponentFactory.Instance.getAllTypes();
     const registeredElements = ElementFactory.Instance.getAllTypes();
@@ -94,17 +98,21 @@ export const initCustomSurvey = (
     });
     CommentWidget.init(CustomWidgetCollection.Instance, document);
     // load components (same as widgets, but with less configuration options)
-    customQuestions.forEach((questionType) => {
-      const initQuestionComponent = InitCustomQuestionComponent[questionType];
-      if (initQuestionComponent) {
-        initQuestionComponent({
-          injector,
-          instance: ComponentCollection.Instance,
-          ngZone,
-          document,
-        });
-      }
-    });
+    ResourceComponent.init(
+      injector,
+      ComponentCollection.Instance,
+      ngZone,
+      document
+    );
+    ResourcesComponent.init(
+      injector,
+      ComponentCollection.Instance,
+      ngZone,
+      document
+    );
+    OwnerComponent.init(apollo, ComponentCollection.Instance);
+    UsersComponent.init(apollo, ComponentCollection.Instance);
+    GeospatialComponent.init(domService, ComponentCollection.Instance);
   }
 
   // load global properties

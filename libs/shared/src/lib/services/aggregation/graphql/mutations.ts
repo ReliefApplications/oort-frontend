@@ -2,16 +2,8 @@ import { gql } from 'apollo-angular';
 
 /** Graphql request for adding a new aggregation with a given type */
 export const ADD_AGGREGATION = gql`
-  mutation addAggregation(
-    $resource: ID
-    $referenceData: ID
-    $aggregation: AggregationInputType!
-  ) {
-    addAggregation(
-      resource: $resource
-      referenceData: $referenceData
-      aggregation: $aggregation
-    ) {
+  mutation addAggregation($resource: ID, $aggregation: AggregationInputType!) {
+    addAggregation(resource: $resource, aggregation: $aggregation) {
       id
       name
       sourceFields
@@ -25,16 +17,10 @@ export const ADD_AGGREGATION = gql`
 export const EDIT_AGGREGATION = gql`
   mutation editAggregation(
     $resource: ID
-    $referenceData: ID
     $aggregation: AggregationInputType!
     $id: ID!
   ) {
-    editAggregation(
-      resource: $resource
-      referenceData: $referenceData
-      aggregation: $aggregation
-      id: $id
-    ) {
+    editAggregation(resource: $resource, aggregation: $aggregation, id: $id) {
       id
       name
       sourceFields

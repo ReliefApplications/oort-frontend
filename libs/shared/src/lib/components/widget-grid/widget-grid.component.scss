@@ -2,25 +2,6 @@
   display: block;
 }
 
-::ng-deep gridster {
-  background: none !important;
-  .gridster-row,
-  .gridster-column {
-    @apply bg-gray-300/25 border-none;
-  }
-}
-
-// Apply same rounded to the grid item preview
-::ng-deep gridster-item.gridster-item-resizing,
-gridster-item.gridster-item-moving {
-  z-index: 2 !important;
-  border-radius: 0.375rem /* 6px */;
-}
-
-::ng-deep .gridster-preview {
-  @apply bg-gray-500/25;
-}
-
 // === DASHBOARD WIDGETS===
 .floating-widget-choice-wrapper {
   position: fixed;
@@ -32,7 +13,11 @@ gridster-item.gridster-item-moving {
   pointer-events: none;
 }
 
-// Make sure 'fit' grid use full height
-gridster.gridSize.fit {
-  height: 100% !important;
+kendo-tilelayout {
+  grid-auto-flow: row;
+  background-color: unset;
+
+  kendo-tilelayout-item {
+    overflow: hidden;
+  }
 }

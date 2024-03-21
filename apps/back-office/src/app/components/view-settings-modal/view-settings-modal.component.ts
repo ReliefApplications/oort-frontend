@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Inject, OnInit } from '@angular/core';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -21,7 +21,6 @@ import {
   AccessModule,
   ApplicationService,
   Page,
-  Dashboard,
   Step,
   UnsubscribeComponent,
   WorkflowService,
@@ -29,13 +28,10 @@ import {
   SearchMenuModule,
   AuthService,
   Application,
-  DashboardService,
 } from '@oort-front/shared';
-import { debounceTime, takeUntil } from 'rxjs';
-import { get, isNil } from 'lodash';
+import { takeUntil } from 'rxjs';
+import { isNil } from 'lodash';
 import { AbilityModule } from '@casl/angular';
-import { DashboardFilterSettingsComponent } from '../dashboard-filter-settings/dashboard-filter-settings.component';
-import { GridType } from 'angular-gridster2';
 
 /** Settings Dialog Data */
 interface DialogData {
@@ -47,7 +43,6 @@ interface DialogData {
   visible?: boolean;
   accessData: AccessData;
   canUpdate: boolean;
-  dashboard?: Dashboard;
 }
 
 /**
@@ -76,7 +71,6 @@ interface DialogData {
     SearchMenuModule,
     AlertModule,
     AbilityModule,
-    DashboardFilterSettingsComponent,
   ],
   templateUrl: './view-settings-modal.component.html',
   styleUrls: ['./view-settings-modal.component.scss'],
@@ -93,35 +87,20 @@ export class ViewSettingsModalComponent
   public showDuplicateMenu = false;
   /** List of available applications */
   public applications: Application[] = [];
-  /** Dashboard object */
-  public dashboard?: Dashboard;
-  /** Default grid options */
-  public defaultGridOptions = {
-    minCols: 8,
-    fixedRowHeight: 200,
-    minimumHeight: 0,
-    margin: 10,
-    gridType: GridType.VerticalFixed,
-  };
   /** Step object */
   private step?: Step;
   /** Page object */
   private page?: Page;
-  /** Show dashboard filter */
-  public showFilter!: boolean;
-  /** Grid type */
-  public gridType = GridType;
 
   /**
    * Common settings of pages / steps.
    *
    * @param dialogRef Dialog ref
    * @param data Data that will be passed to the dialog
-   * @param fb Angular form builder
+   * @param fb This is the service that will be used to build forms.
    * @param workflowService Shared workflow service
    * @param applicationService Shared application service
    * @param authService Shared authentication service
-   * @param dashboardService Shared dashboard service
    */
   constructor(
     public dialogRef: DialogRef<ViewSettingsModalComponent>,
@@ -129,14 +108,12 @@ export class ViewSettingsModalComponent
     private fb: FormBuilder,
     private workflowService: WorkflowService,
     private applicationService: ApplicationService,
-    private authService: AuthService,
-    private dashboardService: DashboardService
+    private authService: AuthService
   ) {
     super();
     if (this.data) {
-      this.page = this.data.page;
-      this.step = this.data.step;
-      this.dashboard = this.data.dashboard;
+      this.page = this.data?.page;
+      this.step = this.data?.step;
     }
   }
 
@@ -166,14 +143,13 @@ export class ViewSettingsModalComponent
         });
     }
 
-    if (this.dashboard) {
-      // Listen to grid settings updates
-      this.settingsForm?.controls.gridOptions?.valueChanges
-        .pipe(debounceTime(500), takeUntil(this.destroy$))
-        .subscribe((value: any) => {
-          // update only if the form is valid
-          if (this.settingsForm?.controls.gridOptions?.valid) {
-            this.onUpdateGridOptions(value);
+    // Listen to nextnextStepOnSave updates (only for steps)
+    if (this.data.type === 'step') {
+      this.settingsForm?.controls.nextStepOnSave.valueChanges
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((value: boolean | null) => {
+          if (!isNil(value)) {
+            this.onUpdateNextStepOnSave(value);
           }
         });
     }
@@ -262,49 +238,7 @@ export class ViewSettingsModalComponent
       // initializes icon field with data info
       icon: this.fb.control(this.data.icon ?? ''),
       visible: this.fb.control(this.data.visible ?? true),
-      ...(this.dashboard && {
-        gridOptions: this.fb.group({
-          minCols: this.fb.control(
-            get<number>(
-              this.dashboard.gridOptions,
-              'minCols',
-              this.defaultGridOptions.minCols
-            ),
-            Validators.compose([Validators.min(4), Validators.max(24)])
-          ),
-          gridType: this.fb.control(
-            get<GridType>(
-              this.dashboard.gridOptions,
-              'gridType',
-              this.defaultGridOptions.gridType
-            )
-          ),
-          fixedRowHeight: this.fb.control(
-            get<number>(
-              this.dashboard.gridOptions,
-              'fixedRowHeight',
-              this.defaultGridOptions.fixedRowHeight
-            ),
-            Validators.min(50)
-          ),
-          minimumHeight: this.fb.control(
-            get<number>(
-              this.dashboard.gridOptions,
-              'minimumHeight',
-              this.defaultGridOptions.minimumHeight
-            ),
-            Validators.min(0)
-          ),
-          margin: this.fb.control(
-            get<number>(
-              this.dashboard.gridOptions,
-              'margin',
-              this.defaultGridOptions.margin
-            ),
-            Validators.min(0)
-          ),
-        }),
-      }),
+      nextStepOnSave: this.fb.control(this.step?.nextStepOnSave ?? false),
     });
   }
 
@@ -369,29 +303,25 @@ export class ViewSettingsModalComponent
   }
 
   /**
-   * Save grid settings on change.
+   * Save nextStepOnSave on change
    *
-   * @param gridOptions grid options
+   * @param nextStepOnSave boolean
    */
-  public onUpdateGridOptions(gridOptions: any): void {
-    gridOptions = {
-      ...gridOptions,
-      // block adding more columns by dragging or resizing
-      maxCols: gridOptions.minCols,
-    };
-
+  private onUpdateNextStepOnSave(nextStepOnSave: boolean): void {
     const callback = () => {
-      this.dashboard = {
-        ...this.dashboard,
-        gridOptions,
+      this.step = {
+        ...this.step,
+        nextStepOnSave,
       };
       // Updates parent component
-      const updates = { gridOptions };
+      const updates = { nextStepOnSave };
       this.onUpdate.emit(updates);
     };
-    this.dashboardService.editGridOptions(
-      this.dashboard?.id,
-      gridOptions,
+    this.workflowService.updateStepNextStepOnSave(
+      {
+        id: this.step?.id,
+        nextStepOnSave,
+      },
       callback
     );
   }

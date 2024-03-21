@@ -4,7 +4,7 @@ import { SnackbarSpinnerComponent } from './snackbar-spinner.component';
 
 describe('SnackbarSpinnerComponent', () => {
   let component: SnackbarSpinnerComponent;
-  let fixture: ComponentFixture<SnackbarSpinnerComponent>;
+  let fixture: ComponentFixture<sharedSnackbarSpinnerComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

@@ -18,7 +18,7 @@ import { ProfileComponent } from './profile.component';
 
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
-  let fixture: ComponentFixture<ProfileComponent>;
+  let fixture: ComponentFixture<sharedProfileComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

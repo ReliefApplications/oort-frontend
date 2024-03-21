@@ -35,7 +35,7 @@ const MAX_CLUSTER_SIZE = 100;
  * @param document Document
  * @returns The HTML element for the icon
  */
-export const createFontAwesomeIcon = (
+const createFontAwesomeIcon = (
   properties: MarkerIconOptions,
   document: Document
 ) => {

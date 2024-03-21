@@ -12,7 +12,7 @@ import { tap } from 'rxjs/operators';
 })
 export class AuthGuard implements CanActivate {
   /**
-   * Auth Guard. Checks that the user is authenticated.
+   * Constructor of the auth guard injectable
    *
    * @param authService The authentication service
    * @param router The router client

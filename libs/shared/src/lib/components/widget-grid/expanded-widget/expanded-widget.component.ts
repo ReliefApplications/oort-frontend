@@ -1,59 +1,47 @@
 import {
   AfterViewInit,
   Component,
-  ElementRef,
+  EventEmitter,
   Inject,
   OnDestroy,
+  Output,
 } from '@angular/core';
 import { DIALOG_DATA } from '@angular/cdk/dialog';
 import { DOCUMENT } from '@angular/common';
-import { DomPortal, PortalModule } from '@angular/cdk/portal';
-import { ButtonModule, DialogModule } from '@oort-front/ui';
 
-/** Widget data and template for class dialog */
-interface WidgetData {
-  element?: ElementRef<any>;
+/** Dialog data */
+interface DialogData {
+  widget: any;
 }
 
-/** Expand widgets in a modal */
+/** Component for expanded widgets */
 @Component({
-  standalone: true,
   selector: 'shared-expanded-widget',
   templateUrl: './expanded-widget.component.html',
   styleUrls: ['./expanded-widget.component.scss'],
-  imports: [DialogModule, ButtonModule, PortalModule],
 })
 export class ExpandedWidgetComponent implements AfterViewInit, OnDestroy {
-  /** CDK portal */
-  public portal?: DomPortal;
-  /** Timeout listener */
-  private setFullscreenTimeoutListener!: NodeJS.Timeout;
+  // === EMIT STEP CHANGE FOR WORKFLOW ===
+  @Output() changeStep: EventEmitter<number> = new EventEmitter();
 
   /**
-   * Expand widgets in a modal
+   * Constructor for the component
    *
-   * @param data Dialog data
+   * @param data The input data for the dialog
    * @param document Document
    */
   constructor(
-    @Inject(DIALOG_DATA) public data: WidgetData,
+    @Inject(DIALOG_DATA) public data: DialogData,
     @Inject(DOCUMENT) private document: Document
   ) {}
 
   ngAfterViewInit(): void {
-    this.portal = new DomPortal(this.data.element);
-    // sync with the domPortal content
-    this.setFullscreenTimeoutListener = setTimeout(() => {
-      this.document.dispatchEvent(
-        new CustomEvent('expandchange', { detail: { expanded: true } })
-      );
-    });
+    this.document.dispatchEvent(
+      new CustomEvent('expandchange', { detail: { expanded: true } })
+    );
   }
 
   ngOnDestroy(): void {
-    if (this.setFullscreenTimeoutListener) {
-      clearTimeout(this.setFullscreenTimeoutListener);
-    }
     this.document.dispatchEvent(
       new CustomEvent('expandchange', { detail: { expanded: false } })
     );

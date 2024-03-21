@@ -4,7 +4,7 @@ import { EditorComponent } from './editor.component';
 
 describe('EditorComponent', () => {
   let component: EditorComponent;
-  let fixture: ComponentFixture<EditorComponent>;
+  let fixture: ComponentFixture<sharedEditorComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({

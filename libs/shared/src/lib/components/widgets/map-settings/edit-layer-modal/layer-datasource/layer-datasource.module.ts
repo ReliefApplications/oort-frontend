@@ -10,15 +10,10 @@ import {
   TableModule,
   FormWrapperModule,
   SelectMenuModule,
+  GraphQLSelectModule,
   DividerModule,
   TooltipModule,
 } from '@oort-front/ui';
-import { PortalModule } from '@angular/cdk/portal';
-import {
-  ReferenceDataSelectComponent,
-  ResourceSelectComponent,
-} from '../../../../controls/public-api';
-import { GraphqlVariablesMappingComponent } from '../../../common/graphql-variables-mapping/graphql-variables-mapping.component';
 
 /** Module for the LayerDatasourceComponent */
 @NgModule({
@@ -29,6 +24,7 @@ import { GraphqlVariablesMappingComponent } from '../../../common/graphql-variab
     ReactiveFormsModule,
     SelectMenuModule,
     TranslateModule,
+    GraphQLSelectModule,
     ButtonModule,
     DividerModule,
     TranslateModule,
@@ -38,10 +34,6 @@ import { GraphqlVariablesMappingComponent } from '../../../common/graphql-variab
     ButtonModule,
     AlertModule,
     TooltipModule,
-    PortalModule,
-    ResourceSelectComponent,
-    ReferenceDataSelectComponent,
-    GraphqlVariablesMappingComponent,
   ],
   exports: [LayerDatasourceComponent],
 })

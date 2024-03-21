@@ -2,7 +2,6 @@
 
 # compiled output
 dist
-/widgets
 tmp
 /out-tsc
 
@@ -45,9 +44,3 @@ Thumbs.db
 # Doc generated while running storybook
 libs/shared/documentation.json
 libs/ui/documentation.json
-
-# Widgets build
-/widgets/
-
-# Kendo license
-kendo-ui-license.txt

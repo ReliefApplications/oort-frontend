@@ -4,7 +4,7 @@ import { StepComponent } from './step.component';
 
 describe('StepComponent', () => {
   let component: StepComponent;
-  let fixture: ComponentFixture<StepComponent>;
+  let fixture: ComponentFixture<sharedStepComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

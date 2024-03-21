@@ -1,11 +1,24 @@
-import { Component, Input } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { LayoutModule } from '@progress/kendo-angular-layout';
 import { SummaryCardItemModule } from '../../summary-card/summary-card-item/summary-card-item.module';
 import { SummaryCardFormT } from '../summary-card-settings.component';
+import { Apollo, QueryRef } from 'apollo-angular';
 import { Aggregation } from '../../../../models/aggregation.model';
-import { Resource } from '../../../../models/resource.model';
+import {
+  Resource,
+  ResourcesQueryResponse,
+} from '../../../../models/resource.model';
 import { Layout } from '../../../../models/layout.model';
 import { get } from 'lodash';
 import { GridLayoutService } from '../../../../services/grid-layout/grid-layout.service';
@@ -17,6 +30,7 @@ import {
   CheckboxModule,
   DividerModule,
   FormWrapperModule,
+  GraphQLSelectComponent,
   GraphQLSelectModule,
   IconModule,
   RadioModule,
@@ -25,12 +39,12 @@ import {
   TooltipModule,
 } from '@oort-front/ui';
 import { Dialog } from '@angular/cdk/dialog';
-import {
-  ReferenceDataSelectComponent,
-  ResourceSelectComponent,
-} from '../../../controls/public-api';
-import { ReferenceData } from '../../../../models/reference-data.model';
-import { GraphqlVariablesMappingComponent } from '../../common/graphql-variables-mapping/graphql-variables-mapping.component';
+import { GET_RESOURCES } from '../graphql/queries';
+
+/** Default number of resources to be fetched per page */
+const ITEMS_PER_PAGE = 10;
+/** Define max width of summary card */
+const MAX_COL_SPAN = 8;
 
 /** Component for the general summary cards tab */
 @Component({
@@ -41,6 +55,7 @@ import { GraphqlVariablesMappingComponent } from '../../common/graphql-variables
     FormsModule,
     ReactiveFormsModule,
     TranslateModule,
+    LayoutModule,
     ButtonModule,
     IconModule,
     SummaryCardItemModule,
@@ -52,44 +67,114 @@ import { GraphqlVariablesMappingComponent } from '../../common/graphql-variables
     RadioModule,
     CheckboxModule,
     TooltipModule,
-    ResourceSelectComponent,
-    ReferenceDataSelectComponent,
-    DividerModule,
-    GraphqlVariablesMappingComponent,
   ],
   templateUrl: './summary-card-general.component.html',
   styleUrls: ['./summary-card-general.component.scss'],
 })
-export class SummaryCardGeneralComponent extends UnsubscribeComponent {
-  /** Widget form group */
-  @Input() formGroup!: SummaryCardFormT;
-  /** Selected reference data */
-  @Input() referenceData: ReferenceData | null = null;
-  /** Selected resource */
-  @Input() resource: Resource | null = null;
-  /** Selected layout */
-  @Input() layout: Layout | null = null;
-  /** Selected aggregation */
-  @Input() aggregation: Aggregation | null = null;
+export class SummaryCardGeneralComponent
+  extends UnsubscribeComponent
+  implements OnInit
+{
+  @Input() tileForm!: SummaryCardFormT;
+
+  @Input() selectedResource: Resource | null = null;
+  @Input() selectedLayout: Layout | null = null;
+  @Input() selectedAggregation: Aggregation | null = null;
+
+  @Output() resourceChange = new EventEmitter<Resource | null>();
+  @Output() layoutChange = new EventEmitter<Layout | null>();
+  @Output() aggregationChange = new EventEmitter<Aggregation | null>();
+
+  /** Number of columns */
+  colsNumber = MAX_COL_SPAN;
+
+  /** Resource query used in graphql-select */
+  public resourcesQuery!: QueryRef<ResourcesQueryResponse>;
+
+  /** Reference to resource graphql-select */
+  @ViewChild(GraphQLSelectComponent)
+  private resourceSelect?: GraphQLSelectComponent;
+
+  /**
+   * Changes display when windows size changes.
+   *
+   * @param event window resize event
+   */
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: any): void {
+    this.colsNumber = this.setColsNumber(event.target.innerWidth);
+  }
 
   /**
    * Component for the general summary cards tab
    *
    * @param dialog Shared dialog service
+   * @param apollo Apollo service
    * @param layoutService Shared layout service
    * @param aggregationService Shared aggregation service
    */
   constructor(
     private dialog: Dialog,
+    private apollo: Apollo,
     private layoutService: GridLayoutService,
     private aggregationService: AggregationService
   ) {
     super();
   }
 
+  ngOnInit(): void {
+    this.colsNumber = this.setColsNumber(window.innerWidth);
+
+    this.resourcesQuery = this.apollo.watchQuery<ResourcesQueryResponse>({
+      query: GET_RESOURCES,
+      variables: {
+        first: ITEMS_PER_PAGE,
+        sortField: 'name',
+      },
+    });
+
+    // Resource change
+    this.tileForm
+      .get('card.resource')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((resource) => {
+        if (!resource) {
+          this.resourceChange.emit(null);
+        } else {
+          this.resourceChange.emit(
+            this.resourceSelect?.elements
+              .getValue()
+              .find((r) => r.id === resource) || null
+          );
+        }
+      });
+  }
+
+  /**
+   * Changes the number of displayed columns.
+   *
+   * @param width width of the screen.
+   * @returns new number of cols.
+   */
+  private setColsNumber(width: number): number {
+    if (width <= 480) {
+      return 1;
+    }
+    if (width <= 600) {
+      return 2;
+    }
+    if (width <= 800) {
+      return 4;
+    }
+    if (width <= 1024) {
+      return 6;
+    }
+    return MAX_COL_SPAN;
+  }
+
   /** Opens modal for layout selection/creation */
   public async addLayout() {
-    if (!this.resource) {
+    if (!this.selectedResource) {
       return;
     }
     const { AddLayoutModalComponent } = await import(
@@ -97,16 +182,17 @@ export class SummaryCardGeneralComponent extends UnsubscribeComponent {
     );
     const dialogRef = this.dialog.open(AddLayoutModalComponent, {
       data: {
-        resource: this.resource,
-        hasLayouts: get(this.resource, 'layouts.totalCount', 0) > 0,
+        resource: this.selectedResource,
+        hasLayouts: get(this.selectedResource, 'layouts.totalCount', 0) > 0,
       },
     });
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
       if (value) {
         if (typeof value === 'string') {
-          this.formGroup.get('card.layout')?.setValue(value);
+          this.tileForm.get('card.layout')?.setValue(value);
         } else {
-          this.formGroup.get('card.layout')?.setValue((value as any).id);
+          this.tileForm.get('card.layout')?.setValue((value as any).id);
+          this.layoutChange.emit(value);
         }
       }
     });
@@ -122,20 +208,16 @@ export class SummaryCardGeneralComponent extends UnsubscribeComponent {
     const dialogRef = this.dialog.open(EditLayoutModalComponent, {
       disableClose: true,
       data: {
-        layout: this.layout,
-        queryName: this.resource?.queryName,
+        layout: this.selectedLayout,
+        queryName: this.selectedResource?.queryName,
       },
     });
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
-      if (value && this.layout) {
+      if (value && this.selectedLayout) {
         this.layoutService
-          .editLayout(this.layout, value, this.resource?.id)
-          .subscribe(() => {
-            if (this.formGroup.get('card.layout')) {
-              this.formGroup
-                .get('card.layout')
-                ?.setValue(this.formGroup.get('card.layout')?.value || null);
-            }
+          .editLayout(this.selectedLayout, value, this.selectedResource?.id)
+          .subscribe((res: any) => {
+            this.layoutChange.emit(res.data?.editLayout || null);
           });
       }
     });
@@ -145,24 +227,23 @@ export class SummaryCardGeneralComponent extends UnsubscribeComponent {
    * Adds a new aggregation for the resource.
    */
   async addAggregation(): Promise<void> {
-    if (!this.resource) {
-      return;
-    }
     const { AddAggregationModalComponent } = await import(
       '../../../aggregation/add-aggregation-modal/add-aggregation-modal.component'
     );
     const dialogRef = this.dialog.open(AddAggregationModalComponent, {
       data: {
-        hasAggregations: get(this.resource, 'aggregations.totalCount', 0) > 0, // check if at least one existing aggregation
-        resource: this.resource,
+        hasAggregations:
+          get(this.selectedResource, 'aggregations.totalCount', 0) > 0, // check if at least one existing aggregation
+        resource: this.selectedResource,
       },
     });
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
       if (value) {
         if (typeof value === 'string') {
-          this.formGroup.get('card.aggregation')?.setValue(value);
+          this.tileForm.get('card.aggregation')?.setValue(value);
         } else {
-          this.formGroup.get('card.aggregation')?.setValue((value as any).id);
+          this.tileForm.get('card.aggregation')?.setValue((value as any).id);
+          this.aggregationChange.emit(value);
         }
       }
     });
@@ -178,40 +259,44 @@ export class SummaryCardGeneralComponent extends UnsubscribeComponent {
     const dialogRef = this.dialog.open(EditAggregationModalComponent, {
       disableClose: true,
       data: {
-        resource: this.resource,
-        aggregation: this.aggregation,
+        resource: this.selectedResource,
+        aggregation: this.selectedAggregation,
       },
     });
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
-      if (value && this.aggregation) {
+      if (value && this.selectedAggregation) {
         this.aggregationService
-          .editAggregation(this.aggregation, value, {
-            resource: this.resource?.id,
-          })
-          .subscribe(() => {
-            if (this.formGroup.get('card.aggregation')) {
-              this.formGroup
-                .get('card.aggregation')
-                ?.setValue(
-                  this.formGroup.get('card.aggregation')?.value || null
-                );
-            }
+          .editAggregation(
+            this.selectedAggregation,
+            value,
+            this.selectedResource?.id
+          )
+          .subscribe((res) => {
+            this.aggregationChange.emit(res.data?.editAggregation || null);
           });
       }
     });
   }
 
   /**
-   * Reset given form field value if there is a value previously to avoid triggering
-   * not necessary actions
+   * Changes the query according to search text
    *
-   * @param formField Current form field
-   * @param event click event
+   * @param search Search text from the graphql select
    */
-  clearFormField(formField: string, event: Event) {
-    if (this.formGroup.get(formField)?.value) {
-      this.formGroup.get(formField)?.setValue(null);
-    }
-    event.stopPropagation();
+  public onResourceSearchChange(search: string): void {
+    const variables = this.resourcesQuery.variables;
+    this.resourcesQuery.refetch({
+      ...variables,
+      filter: {
+        logic: 'and',
+        filters: [
+          {
+            field: 'name',
+            operator: 'contains',
+            value: search,
+          },
+        ],
+      },
+    });
   }
 }

@@ -7,7 +7,6 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
-  ViewContainerRef,
 } from '@angular/core';
 import { Dialog, DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { GET_RECORD_BY_ID, GET_FORM_BY_ID } from './graphql/queries';
@@ -47,9 +46,6 @@ import {
   transformSurveyData,
 } from '../../services/form-helper/form-helper.service';
 import { DialogModule } from '@oort-front/ui';
-import { DraftRecordComponent } from '../draft-record/draft-record.component';
-import { UploadRecordsComponent } from '../upload-records/upload-records.component';
-import { ContextService } from '../../services/context/context.service';
 
 /**
  * Interface of Dialog data.
@@ -68,7 +64,7 @@ interface DialogData {
 const DEFAULT_DIALOG_DATA = { askForConfirm: true };
 
 /**
- * Display a form instance in a modal.
+ * Component that displays a form in a modal
  */
 @Component({
   standalone: true,
@@ -86,54 +82,37 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
     ButtonModule,
     SpinnerModule,
     SurveyModule,
-    DraftRecordComponent,
   ],
 })
 export class FormModalComponent
   extends UnsubscribeComponent
   implements OnInit, OnDestroy
 {
-  /** Reference to form container */
-  @ViewChild('formContainer') formContainer!: ElementRef;
-  /** Reference to content view container */
-  @ViewChild('uploadRecordsContent', { read: ViewContainerRef })
-  uploadRecordsContent!: ViewContainerRef;
-  /** Current template */
-  public survey!: SurveyModel;
-  /** Loading indicator */
+  // === DATA ===
   public loading = true;
-  /** Is form saving */
   public saving = false;
-  /** Loaded form */
   public form?: Form;
-  /** Loaded record (optional) */
   public record?: Record;
-  /** Modification date */
+
   public modifiedAt: Date | null = null;
+
+  protected isMultiEdition = false;
+  private storedMergedData: any;
+
+  public survey!: SurveyModel;
+  protected temporaryFilesStorage: TemporaryFilesStorage = new Map();
+
+  @ViewChild('formContainer') formContainer!: ElementRef;
+
   /** Selected page index */
   public selectedPageIndex: BehaviorSubject<number> =
     new BehaviorSubject<number>(0);
   /** Selected page index as observable */
   public selectedPageIndex$ = this.selectedPageIndex.asObservable();
-  /** The id of the last draft record that was loaded */
-  public lastDraftRecord?: string;
-  /** Disables the save as draft button */
-  public disableSaveAsDraft = false;
-  /** Available pages*/
-  private pages = new BehaviorSubject<any[]>([]);
-  /** Pages as observable */
-  public pages$ = this.pages.asObservable();
-  /** Is multi edition of records enabled ( for grid actions ) */
-  protected isMultiEdition = false;
-  /** Temporary storage of files */
-  protected temporaryFilesStorage: TemporaryFilesStorage = new Map();
-  /** Stored merged data */
-  private storedMergedData: any;
-  /** If new records was uploaded */
-  private uploadedRecords = false;
 
   /**
-   * Display a form instance in a modal.
+   * The constructor function is a special function that is called when a new instance of the class is
+   * created.
    *
    * @param data This is the data that is passed to the modal when it is opened.
    * @param dialog This is the Angular Dialog service.
@@ -146,7 +125,6 @@ export class FormModalComponent
    * @param confirmService This is the service that will be used to display confirm window.
    * @param translate This is the service that allows us to translate the text in our application.
    * @param ngZone Angular Service to execute code inside Angular environment
-   * @param contextService Shared context service
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
@@ -159,8 +137,7 @@ export class FormModalComponent
     protected formHelpersService: FormHelpersService,
     protected confirmService: ConfirmService,
     protected translate: TranslateService,
-    protected ngZone: NgZone,
-    protected contextService: ContextService
+    protected ngZone: NgZone
   ) {
     super();
   }
@@ -232,19 +209,6 @@ export class FormModalComponent
     await Promise.all(promises);
 
     this.initSurvey();
-
-    // Creates UploadRecordsComponent
-    const componentRef = this.uploadRecordsContent.createComponent(
-      UploadRecordsComponent
-    );
-    componentRef.setInput('id', this.form?.id);
-    componentRef.setInput('name', this.form?.name);
-    componentRef.setInput('path', 'form');
-    componentRef.instance.uploaded.subscribe(
-      () => (this.uploadedRecords = true)
-    );
-    /** To use angular hooks */
-    componentRef.changeDetectorRef.detectChanges();
   }
 
   /**
@@ -301,10 +265,6 @@ export class FormModalComponent
           this.survey.getQuestionByName(field.name).readOnly = true;
       });
     }
-    this.survey.onValueChanged.add(() => {
-      // Allow user to save as draft
-      this.disableSaveAsDraft = false;
-    });
     this.survey.onComplete.add(this.onComplete);
     if (this.storedMergedData) {
       this.survey.data = {
@@ -356,11 +316,11 @@ export class FormModalComponent
         .pipe(takeUntil(this.destroy$))
         .subscribe((value: any) => {
           if (value) {
-            this.dialogRef.close((this.uploadedRecords ? true : false) as any);
+            this.dialogRef.close();
           }
         });
     } else {
-      this.dialogRef.close((this.uploadedRecords ? true : false) as any);
+      this.dialogRef.close();
     }
   }
 
@@ -411,21 +371,20 @@ export class FormModalComponent
    * Handles update data event.
    *
    * @param survey current survey
-   * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
    */
-  public async onUpdate(survey: any, refreshWidgets = false): Promise<void> {
+  public async onUpdate(survey: any): Promise<void> {
     await this.formHelpersService.uploadFiles(
       this.temporaryFilesStorage,
       this.form?.id
     );
     // await Promise.allSettled(promises);
-    await this.formHelpersService.createTemporaryRecords(survey);
+    await this.formHelpersService.createCachedRecords(survey);
 
     if (this.data.recordId) {
       if (this.isMultiEdition) {
-        this.updateMultipleData(this.data.recordId, survey, refreshWidgets);
+        this.updateMultipleData(this.data.recordId, survey);
       } else {
-        this.updateData(this.data.recordId, survey, refreshWidgets);
+        this.updateData(this.data.recordId, survey);
       }
     } else {
       this.apollo
@@ -437,7 +396,7 @@ export class FormModalComponent
           },
         })
         .subscribe({
-          next: async ({ errors, data }) => {
+          next: ({ errors, data }) => {
             if (errors) {
               this.snackBar.openSnackBar(`Error. ${errors[0].message}`, {
                 error: true,
@@ -446,23 +405,6 @@ export class FormModalComponent
                 this.dialogRef.close();
               });
             } else {
-              if (this.lastDraftRecord) {
-                const callback = () => {
-                  this.lastDraftRecord = undefined;
-                };
-                this.formHelpersService.deleteRecordDraft(
-                  this.lastDraftRecord,
-                  callback
-                );
-              }
-              if (refreshWidgets) {
-                this.contextService.setWidgets(
-                  await this.formHelpersService.checkResourceOnFilter(
-                    this.form?.resource?.id as string,
-                    this.contextService.filterStructure.getValue()
-                  )
-                );
-              }
               this.ngZone.run(() => {
                 this.dialogRef.close({
                   template: this.data.template,
@@ -484,9 +426,8 @@ export class FormModalComponent
    *
    * @param id record id.
    * @param survey current survey.
-   * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
    */
-  public updateData(id: any, survey: any, refreshWidgets = false): void {
+  public updateData(id: any, survey: any): void {
     this.apollo
       .mutate<EditRecordMutationResponse>({
         mutation: EDIT_RECORD,
@@ -497,16 +438,8 @@ export class FormModalComponent
         },
       })
       .subscribe({
-        next: async ({ errors, data }) => {
+        next: ({ errors, data }) => {
           this.handleRecordMutationResponse({ data, errors }, 'editRecord');
-          if (refreshWidgets) {
-            this.contextService.setWidgets(
-              await this.formHelpersService.checkResourceOnFilter(
-                this.form?.resource?.id as string,
-                this.contextService.filterStructure.getValue()
-              )
-            );
-          }
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
@@ -519,13 +452,8 @@ export class FormModalComponent
    *
    * @param ids list of record ids.
    * @param survey current survey.
-   * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
    */
-  public updateMultipleData(
-    ids: any,
-    survey: any,
-    refreshWidgets = false
-  ): void {
+  public updateMultipleData(ids: any, survey: any): void {
     const recordData = cleanRecord(survey.parsedData ?? survey.data);
     this.apollo
       .mutate<EditRecordsMutationResponse>({
@@ -537,25 +465,8 @@ export class FormModalComponent
         },
       })
       .subscribe({
-        next: async ({ errors, data }) => {
-          if (this.lastDraftRecord) {
-            const callback = () => {
-              this.lastDraftRecord = undefined;
-            };
-            this.formHelpersService.deleteRecordDraft(
-              this.lastDraftRecord,
-              callback
-            );
-          }
+        next: ({ errors, data }) => {
           this.handleRecordMutationResponse({ data, errors }, 'editRecords');
-          if (refreshWidgets) {
-            this.contextService.setWidgets(
-              await this.formHelpersService.checkResourceOnFilter(
-                this.form?.resource?.id as string,
-                this.contextService.filterStructure.getValue()
-              )
-            );
-          }
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
@@ -704,7 +615,6 @@ export class FormModalComponent
           revert: (version: any) =>
             this.confirmRevertDialog(this.record, version),
         },
-        panelClass: ['lg:w-4/5', 'w-full'],
         autoFocus: false,
       });
     }
@@ -753,35 +663,11 @@ export class FormModalComponent
   }
 
   /**
-   * Saves the current data as a draft record
-   */
-  public saveAsDraft(): void {
-    const callback = (details: any) => {
-      this.lastDraftRecord = details.id;
-    };
-    this.formHelpersService.saveAsDraft(
-      this.survey,
-      this.form?.id as string,
-      this.lastDraftRecord,
-      callback
-    );
-  }
-
-  /**
-   * Handle draft record load .
-   *
-   * @param id if of the draft record loaded
-   */
-  public onLoadDraftRecord(id: string): void {
-    this.lastDraftRecord = id;
-    this.disableSaveAsDraft = true;
-  }
-
-  /**
    * Clears the cache for the records created by resource questions
    */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
+    this.formHelpersService.cleanCachedRecords(this.survey);
     this.survey?.dispose();
   }
 }

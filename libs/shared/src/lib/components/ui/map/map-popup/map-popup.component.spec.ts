@@ -4,7 +4,7 @@ import { MapPopupComponent } from './map-popup.component';
 
 describe('MapPopupComponent', () => {
   let component: MapPopupComponent;
-  let fixture: ComponentFixture<MapPopupComponent>;
+  let fixture: ComponentFixture<sharedMapPopupComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

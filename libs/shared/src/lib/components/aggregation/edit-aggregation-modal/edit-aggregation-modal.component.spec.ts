@@ -15,7 +15,7 @@ import {
 
 describe('EditAggregationModalComponent', () => {
   let component: EditAggregationModalComponent;
-  let fixture: ComponentFixture<EditAggregationModalComponent>;
+  let fixture: ComponentFixture<sharedEditAggregationModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

@@ -12,17 +12,13 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
   styleUrls: ['./editable-text.component.scss'],
 })
 export class EditableTextComponent implements OnInit {
-  /** Text to display */
+  // Full text to display
   @Input() text: string | undefined = '';
-  /** Edit permission control */
   @Input() canEdit = false;
 
-  /** Event emitter for change event */
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
   @Output() onChange = new EventEmitter<string>();
-  /** Event emitter for form active event */
   @Output() formActiveEvent = new EventEmitter<boolean>();
-  /** Form control */
   public formControl!: FormControl;
 
   /**

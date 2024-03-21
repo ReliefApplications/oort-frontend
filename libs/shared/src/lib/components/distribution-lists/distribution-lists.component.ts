@@ -20,15 +20,11 @@ export class DistributionListsComponent
   implements OnInit
 {
   // === INPUT DATA ===
-  /** Distribution lists array */
   public distributionLists: DistributionList[] = [];
-  /** Application service */
   @Input() applicationService!: ApplicationService;
   // === DISPLAYED COLUMNS ===
-  /** List of displayed columns */
   public displayedColumns = ['name', 'actions'];
 
-  /** Loading state */
   public loading = false;
 
   /**

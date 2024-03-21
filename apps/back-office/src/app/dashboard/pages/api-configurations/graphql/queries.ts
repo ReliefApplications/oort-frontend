@@ -4,20 +4,8 @@ import { gql } from 'apollo-angular';
 
 /** Graphql query for getting multiple api configurations object with a cursor */
 export const GET_API_CONFIGURATIONS = gql`
-  query GetApiConfigurations(
-    $first: Int
-    $afterCursor: ID
-    $filter: JSON
-    $sortField: String
-    $sortOrder: String
-  ) {
-    apiConfigurations(
-      first: $first
-      afterCursor: $afterCursor
-      filter: $filter
-      sortField: $sortField
-      sortOrder: $sortOrder
-    ) {
+  query GetApiConfigurations($first: Int, $afterCursor: ID) {
+    apiConfigurations(first: $first, afterCursor: $afterCursor) {
       edges {
         node {
           id

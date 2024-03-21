@@ -4,7 +4,7 @@ import { DateFilterMenuComponent } from './date-filter-menu.component';
 
 describe('DateFilterMenuComponent', () => {
   let component: DateFilterMenuComponent;
-  let fixture: ComponentFixture<DateFilterMenuComponent>;
+  let fixture: ComponentFixture<sharedDateFilterMenuComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

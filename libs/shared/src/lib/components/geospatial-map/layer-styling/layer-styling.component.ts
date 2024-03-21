@@ -17,9 +17,6 @@ export class LayerStylingComponent
   extends UnsubscribeComponent
   implements OnInit
 {
-  /**
-   * Selected layer
-   */
   private _selectedLayer?: L.Layer;
 
   /** Sets the selected layer */
@@ -49,17 +46,9 @@ export class LayerStylingComponent
   }
 
   // eslint-disable-next-line @angular-eslint/no-output-native
-  /**
-   * Event emitted when the user clicks on the close button
-   */
-  @Output() closeEvent = new EventEmitter<void>();
-  /**
-   * Event emitted when the user clicks on the edit button
-   */
+  @Output() close = new EventEmitter<void>();
   @Output() edit = new EventEmitter<typeof this.styleForm.value>();
-  /**
-   * Form for styling the selected layer
-   */
+
   public styleForm!: ReturnType<typeof this.getStyleForm>;
 
   /** Component for styling leaflet layers */

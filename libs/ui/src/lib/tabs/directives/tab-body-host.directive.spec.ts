@@ -30,9 +30,6 @@ import {
   >`,
 })
 class TestingComponent {
-  /**
-   * Tab content
-   */
   @ViewChild('tabContent', { read: ViewContainerRef })
   tabContent!: ViewContainerRef;
 }

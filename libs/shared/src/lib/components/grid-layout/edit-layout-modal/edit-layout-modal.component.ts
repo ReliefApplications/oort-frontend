@@ -42,25 +42,13 @@ interface DialogData {
   styleUrls: ['./edit-layout-modal.component.scss'],
 })
 export class EditLayoutModalComponent implements AfterViewInit {
-  /**
-   * Layout to edit
-   */
   @Input() layout: any;
-  /**
-   * Form
-   */
   public form = this.fb.group({
     name: [this.data.layout?.name, Validators.required],
     query: createQueryForm(this.data.layout?.query),
     display: createDisplayForm(this.data.layout?.display),
   });
-  /**
-   * Templates
-   */
   public templates: any[] = [];
-  /**
-   * Layout preview data
-   */
   public layoutPreviewData!: { form: UntypedFormGroup; defaultLayout: any };
 
   /**
@@ -98,7 +86,7 @@ export class EditLayoutModalComponent implements AfterViewInit {
   }
 
   /**
-   * Closes the modal sending form value.
+   * Closes the modal sending tile form value.
    */
   onSubmit(): void {
     this.dialogRef.close(this.form?.getRawValue() as any);

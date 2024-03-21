@@ -6,7 +6,7 @@ import { AutocompleteModule } from '@oort-front/ui';
 
 describe('TagboxComponent', () => {
   let component: TagboxComponent;
-  let fixture: ComponentFixture<TagboxComponent>;
+  let fixture: ComponentFixture<sharedTagboxComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

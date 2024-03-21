@@ -22,12 +22,6 @@ import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
   styleUrls: ['./geospatial-fields.component.scss'],
 })
 export class GeospatialFieldsComponent {
-  /**
-   * Fields to display
-   */
   @Input() fields: { value: keyof GeoProperties; label: string }[] = [];
-  /**
-   * Form group
-   */
   @Input() geoForm!: FormGroup;
 }

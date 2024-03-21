@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { WorkflowRoutingModule } from './workflow-routing.module';
 import { WorkflowComponent } from './workflow.component';
 import { SpinnerModule } from '@oort-front/ui';
-import { SkeletonModule, WorkflowStepperModule } from '@oort-front/shared';
+import { WorkflowStepperModule } from '@oort-front/shared';
 
 /**
  * Workflow page module.
@@ -15,7 +15,6 @@ import { SkeletonModule, WorkflowStepperModule } from '@oort-front/shared';
     WorkflowRoutingModule,
     SpinnerModule,
     WorkflowStepperModule,
-    SkeletonModule,
   ],
   exports: [WorkflowComponent],
 })

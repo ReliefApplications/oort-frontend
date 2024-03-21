@@ -9,7 +9,7 @@ import { TabSortComponent } from './tab-sort.component';
 
 describe('TabSortComponent', () => {
   let component: TabSortComponent;
-  let fixture: ComponentFixture<TabSortComponent>;
+  let fixture: ComponentFixture<sharedTabSortComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

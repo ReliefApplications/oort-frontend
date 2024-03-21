@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
   IPanel,
   PageModel,
@@ -13,27 +13,15 @@ import { ADD_RECORD } from '../../components/form/graphql/mutations';
 import { DialogRef } from '@angular/cdk/dialog';
 import { IconComponent, SnackbarService } from '@oort-front/ui';
 import localForage from 'localforage';
-import { snakeCase, cloneDeep, set, get, isNil, flattenDeep } from 'lodash';
+import { snakeCase, cloneDeep, set } from 'lodash';
 import { AuthService } from '../auth/auth.service';
 import { BlobType, DownloadService } from '../download/download.service';
-import {
-  AddDraftRecordMutationResponse,
-  AddRecordMutationResponse,
-  EditDraftRecordMutationResponse,
-  Record,
-} from '../../models/record.model';
+import { AddRecordMutationResponse } from '../../models/record.model';
 import { Question } from '../../survey/types';
-import {
-  ADD_DRAFT_RECORD,
-  DELETE_DRAFT_RECORD,
-  EDIT_DRAFT_RECORD,
-} from './graphql/mutations';
 import { WorkflowService } from '../workflow/workflow.service';
 import { ApplicationService } from '../application/application.service';
 import { DomService } from '../dom/dom.service';
 import { TemporaryFilesStorage } from '../form-builder/form-builder.service';
-import { Router } from '@angular/router';
-import { DashboardService } from '../dashboard/dashboard.service';
 
 /**
  * Applies custom logic to survey data values.
@@ -86,7 +74,6 @@ export class FormHelpersService {
   /**
    * Shared survey helper service.
    *
-   * @param environment Environment configuration
    * @param apollo Apollo client
    * @param snackBar This is the service that allows you to display a snackbar.
    * @param confirmService This is the service that will be used to display confirm window.
@@ -96,11 +83,8 @@ export class FormHelpersService {
    * @param workflowService Shared workflow service
    * @param applicationService Shared application service
    * @param domService Shared dom service
-   * @param router Angular router service.
-   * @param dashboardService Shared dashboard service
    */
   constructor(
-    @Inject('environment') private environment: any,
     public apollo: Apollo,
     private snackBar: SnackbarService,
     private confirmService: ConfirmService,
@@ -109,9 +93,7 @@ export class FormHelpersService {
     private downloadService: DownloadService,
     private workflowService: WorkflowService,
     private applicationService: ApplicationService,
-    private domService: DomService,
-    private router: Router,
-    private dashboardService: DashboardService
+    private domService: DomService
   ) {}
 
   /**
@@ -151,7 +133,7 @@ export class FormHelpersService {
       if (questions[field]) {
         const key = questions[field].getValueName();
         // If there is no value for this question
-        if (isNil(survey.data[key])) {
+        if (!survey.data[key]) {
           // And is not boolean(false by default, we want to save that), we nullify it
           if (questions[field].getType() !== 'boolean') {
             // survey.data[key] = null;
@@ -276,14 +258,35 @@ export class FormHelpersService {
   }
 
   /**
-   * Create temporary records (from resource/s questions) of passed survey.
+   * Clean cached records from passed survey.
+   *
+   * @param survey Survey from which we need to clean cached records.
+   */
+  cleanCachedRecords(survey: SurveyModel): void {
+    if (!survey) return;
+    survey.getAllQuestions().forEach((question) => {
+      if (question.value) {
+        const type = question.getType();
+        if (type === 'resources') {
+          question.value.forEach((recordId: string) =>
+            localForage.removeItem(recordId)
+          );
+        } else if (type === 'resource') {
+          localForage.removeItem(question.value);
+        }
+      }
+    });
+  }
+
+  /**
+   * Create cache records (from resource/s questions) of passed survey.
    *
    * @param survey Survey to get questions from
    */
-  public async createTemporaryRecords(survey: SurveyModel): Promise<void> {
+  public async createCachedRecords(survey: SurveyModel): Promise<void> {
     const promises: Promise<any>[] = [];
     const questions = survey.getAllQuestions();
-    const nestedRecordsToAdd: { draftIds: string[]; question: Question }[] = [];
+    const nestedRecordsToAdd: string[] = [];
 
     // Callbacks to update the ids of new records
     const updateIds: {
@@ -321,9 +324,7 @@ export class FormHelpersService {
     // Get all nested records to add
     questions.concat(nestedQuestions).forEach((question) => {
       const type = question.getType();
-      if (!['resource', 'resources'].includes(type) || !question.draftData) {
-        return;
-      }
+      if (!['resource', 'resources'].includes(type)) return;
 
       // If this question uses valueExpression, we should not upload the records
       // in it, as they will be uploaded by the fields they get their values from
@@ -337,16 +338,18 @@ export class FormHelpersService {
             question.value = value.map((x) => (x === oldId ? newId : x));
           }
         });
+        return;
       }
+
+      const uuidv4Pattern =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
       const isResource = type === 'resource';
 
       const toAdd = (isResource ? [question.value] : question.value).filter(
-        (id: string) => id in question.draftData
+        (x: string) => uuidv4Pattern.test(x)
       );
-      nestedRecordsToAdd.push({
-        draftIds: toAdd,
-        question,
-      });
+      nestedRecordsToAdd.push(...toAdd);
 
       toAdd.forEach((id: string) => {
         updateIds[id] = (newId: string) => {
@@ -357,52 +360,37 @@ export class FormHelpersService {
       });
     });
 
-    for (const element of nestedRecordsToAdd) {
-      for (const draftId of element.draftIds) {
-        const data = element.question.draftData[draftId];
-        const template = element.question.template;
+    for (const localID of nestedRecordsToAdd) {
+      // load them from localForage and add them to the promises
+      const cache = await localForage.getItem(localID);
+      if (!cache) continue;
 
-        promises.push(
-          firstValueFrom(
-            this.apollo.mutate<AddRecordMutationResponse>({
-              mutation: ADD_RECORD,
-              variables: {
-                form: template,
-                data,
-              },
-            })
-          ).then((res) => {
-            // change the draftId to the new recordId
-            const newId = res.data?.addRecord?.id;
-            if (!newId) {
-              return;
-            }
-            updateIds[draftId](newId);
-            // update question.newCreatedRecords too
-            const isResource = element.question.getType() === 'resource';
-            const draftIndex = (
-              isResource
-                ? [element.question.newCreatedRecords]
-                : element.question.newCreatedRecords
-            ).indexOf(draftId);
-            if (draftIndex !== -1) {
-              if (isResource) {
-                element.question.newCreatedRecords = newId;
-              } else {
-                element.question.newCreatedRecords[draftIndex] = newId;
-              }
-            }
-            // delete old temporary/draft record and data
-            this.deleteRecordDraft(draftId);
-            delete element.question.draftData[draftId];
-            return;
+      const { template, data } = JSON.parse(cache as string);
+
+      promises.push(
+        firstValueFrom(
+          this.apollo.mutate<AddRecordMutationResponse>({
+            mutation: ADD_RECORD,
+            variables: {
+              form: template,
+              data,
+            },
           })
-        );
-      }
+        ).then((res) => {
+          // change the localID to the new recordId
+          const newId = res.data?.addRecord?.id;
+          if (!newId) return;
+          updateIds[localID](newId);
+          updateResourcesExpressions.forEach((update) =>
+            update(localID, newId)
+          );
+          localForage.removeItem(localID);
+          return;
+        })
+      );
     }
 
     await Promise.all(promises);
-
     // We need to apply the transformations to the data again
     survey.parsedData = transformSurveyData(survey);
   }
@@ -422,14 +410,6 @@ export class FormHelpersService {
     survey.setVariable('user.lastName', user?.lastName ?? '');
     survey.setVariable('user.email', user?.username ?? '');
 
-    // Set user attributes
-    for (const attribute of this.environment.user?.attributes || []) {
-      survey.setVariable(
-        `user.${attribute}`,
-        get(user?.attributes, attribute) || ''
-      );
-    }
-
     // Allow us to do some cool stuff like
     // {user.roles} contains '62e3e676c9bcb900656c95c9'
     survey.setVariable('user.roles', user?.roles?.map((r) => r.id || '') ?? []);
@@ -440,9 +420,59 @@ export class FormHelpersService {
   };
 
   /**
+   * Registration of new custom variables for the survey.
+   * Custom variables can be used in the logic fields.
+   * This function is used to add the application id, name and description to the survey variables
+   *
+   * @param survey Survey instance
+   */
+  public addApplicationVariables = (survey: SurveyModel) => {
+    const application = this.applicationService.application.getValue();
+    survey.setVariable('application.id', application?.id ?? null);
+    survey.setVariable('application.name', application?.name ?? null);
+    survey.setVariable(
+      'application.description',
+      application?.description ?? null
+    );
+  };
+  /**
+   * Registration of new custom variables for the survey.
+   * Custom variables can be used in the logic fields.
+   * This function is used to add the record id and the incremental id to the survey variables
+   *
+   * @param survey Survey instance
+   * @param record Record to add to the survey variables
+   * @param record.id Record id
+   * @param record.incrementalId Record incremental id
+   */
+  public addRecordIDVariable = (
+    survey: SurveyModel,
+    record: { id?: string; incrementalId?: string }
+  ) => {
+    survey.setVariable('record.id', record.id);
+    survey.setVariable('record.incrementalID', record?.incrementalId ?? '');
+  };
+
+  /**
+   * Registers custom variables based on the workflow state
+   * to be used in the survey.
+   *
+   * @param survey Survey instance
+   */
+  public setWorkflowContextVariable = (survey: SurveyModel) => {
+    survey.setVariable(
+      `__WORKFLOW_CONTEXT__`,
+      this.workflowService.workflowContextValue ?? []
+    );
+
+    // After the workflow context is set, we clear it
+    this.workflowService.setContext([]);
+  };
+
+  /**
    * Add tooltip to the survey question if exists
    *
-   * @param _ current survey
+   * @param _ Default value of afterRenderQuestion callback
    * @param options current survey question options
    */
   public addQuestionTooltips(_: any, options: any): void {
@@ -529,118 +559,6 @@ export class FormHelpersService {
   }
 
   /**
-   * Saves the current data as a draft record
-   *
-   * @param survey Survey where to add the callbacks
-   * @param formId Form id of the survey
-   * @param draftId Draft record id
-   * @param callback callback method
-   */
-  public saveAsDraft(
-    survey: SurveyModel,
-    formId: string,
-    draftId?: string,
-    callback?: any
-  ): void {
-    // Check if a draft has already been loaded
-    if (!draftId) {
-      // Add a new draft record to the database
-      const mutation = this.apollo.mutate<AddDraftRecordMutationResponse>({
-        mutation: ADD_DRAFT_RECORD,
-        variables: {
-          form: formId,
-          data: survey.data,
-        },
-      });
-      mutation.subscribe({
-        next: ({ errors, data }) => {
-          if (errors) {
-            survey.clear(false, true);
-            this.snackBar.openSnackBar(errors[0].message, { error: true });
-          } else {
-            // localStorage.removeItem(this.storageId);
-            this.snackBar.openSnackBar(
-              this.translate.instant(
-                'components.form.draftRecords.successSave'
-              ),
-              {
-                error: false,
-              }
-            );
-          }
-          // Callback to emit save but stay in record addition mode
-          if (callback) {
-            callback({
-              id: data?.addDraftRecord.id,
-              save: {
-                completed: false,
-                hideNewRecord: true,
-              },
-            });
-          }
-        },
-        error: (err) => {
-          this.snackBar.openSnackBar(err.message, { error: true });
-        },
-      });
-    } else {
-      // Edit last added draft record in the database
-      const mutation = this.apollo.mutate<EditDraftRecordMutationResponse>({
-        mutation: EDIT_DRAFT_RECORD,
-        variables: {
-          id: draftId,
-          data: survey.data,
-        },
-      });
-      mutation.subscribe(({ errors }: any) => {
-        if (errors) {
-          survey.clear(false, true);
-          this.snackBar.openSnackBar(errors[0].message, { error: true });
-        } else {
-          // localStorage.removeItem(this.storageId);
-          this.snackBar.openSnackBar(
-            this.translate.instant('components.form.draftRecords.successEdit'),
-            {
-              error: false,
-            }
-          );
-        }
-        // Callback to emit save but stay in record addition mode
-        if (callback) {
-          callback({
-            id: draftId,
-            save: {
-              completed: false,
-              hideNewRecord: true,
-            },
-          });
-        }
-      });
-    }
-  }
-
-  /**
-   * Handles the deletion of a specific draft record
-   *
-   * @param draftId Id of the draft record to delete
-   * @param callback callback method
-   */
-  public deleteRecordDraft(draftId: string, callback?: any): void {
-    this.apollo
-      .mutate<any>({
-        mutation: DELETE_DRAFT_RECORD,
-        variables: {
-          id: draftId,
-        },
-      })
-      .subscribe(() => {
-        if (callback) {
-          callback();
-        }
-      });
-  }
-
-  /**
    * Checks if a string is already in snake case
    *
    * @param text The text to check
@@ -648,108 +566,5 @@ export class FormHelpersService {
    */
   private isSnakeCase(text: string): any {
     return text.match(/^[a-z]+[a-z0-9_]+$/);
-  }
-
-  /**
-   * Registration of new custom variables for the survey.
-   * Custom variables can be used in the logic fields.
-   * This function is used to add the application id, name and description to the survey variables
-   *
-   * @param survey Survey instance
-   */
-  public addApplicationVariables = (survey: SurveyModel) => {
-    const application = this.applicationService.application.getValue();
-    survey.setVariable('application.id', application?.id ?? null);
-    survey.setVariable('application.name', application?.name ?? null);
-    survey.setVariable(
-      'application.description',
-      application?.description ?? null
-    );
-  };
-  /**
-   * Registration of new custom variables for the survey.
-   * Custom variables can be used in the logic fields.
-   * This function is used to add the record id and the incremental id to the survey variables
-   *
-   * @param survey Survey instance
-   * @param record Record to add to the survey variables
-   * @param record.id Record id
-   * @param record.incrementalId Record incremental id
-   */
-  public addRecordVariables = (survey: SurveyModel, record: Record) => {
-    survey.setVariable('record.id', record.id);
-    survey.setVariable('record.incrementalID', record?.incrementalId ?? '');
-
-    Object.keys(record?.data ?? {}).forEach((key) => {
-      survey.setVariable(`record.${key}`, record.data[key]);
-    });
-  };
-
-  /**
-   * Registers custom variables based on the workflow state
-   * to be used in the survey.
-   *
-   * @param survey Survey instance
-   */
-  public setWorkflowContextVariable = (survey: SurveyModel) => {
-    survey.setVariable(
-      `__WORKFLOW_CONTEXT__`,
-      this.workflowService.workflowContextValue ?? []
-    );
-
-    // After the workflow context is set, we clear it
-    this.workflowService.setContext([]);
-  };
-
-  /**
-   * Adds any query parameters to the survey variables
-   * These variables are accessible using the variables {param.<paramName>}
-   *
-   * @param survey Survey instance
-   */
-  public addQueryParamsVariables = (survey: SurveyModel) => {
-    const queryParams = this.router.parseUrl(this.router.url).queryParams;
-
-    Object.keys(queryParams).forEach((key) => {
-      survey.setVariable(`param.${key}`, queryParams[key]);
-    });
-  };
-
-  /**
-   * Checks if record were created/updated from a resource/s question
-   * on a dashboard filter and dashboard widgets needs to refresh.
-   *
-   * @param resourceId id of the resource
-   * @param filterStructure id of the resource
-   *
-   * @returns list of widgets id that needs to be refreshed
-   */
-  public async checkResourceOnFilter(
-    resourceId: string,
-    filterStructure: any
-  ): Promise<string | undefined> {
-    if (filterStructure) {
-      const widgets = flattenDeep(
-        this.dashboardService.widgets.map((widget: any) => {
-          if (widget.component === 'tabs') {
-            const tabs = widget.settings.tabs.map((tab: any) => tab.structure);
-            return tabs;
-          } else {
-            return widget;
-          }
-        })
-      );
-      for await (const widget of widgets) {
-        if (
-          widget.settings.resource === resourceId ||
-          widget.settings.card?.resource === resourceId
-        ) {
-          return resourceId;
-        }
-      }
-      return;
-    } else {
-      return;
-    }
   }
 }

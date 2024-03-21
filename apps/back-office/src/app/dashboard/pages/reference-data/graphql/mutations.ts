@@ -15,7 +15,6 @@ export const EDIT_REFERENCE_DATA = gql`
     $data: JSON
     $graphQLFilter: String
     $permissions: JSON
-    $pageInfo: PageInfoInput
   ) {
     editReferenceData(
       id: $id
@@ -29,7 +28,6 @@ export const EDIT_REFERENCE_DATA = gql`
       data: $data
       graphQLFilter: $graphQLFilter
       permissions: $permissions
-      pageInfo: $pageInfo
     ) {
       id
       name
@@ -56,15 +54,6 @@ export const EDIT_REFERENCE_DATA = gql`
           id
           title
         }
-      }
-      pageInfo {
-        strategy
-        cursorField
-        cursorVar
-        offsetVar
-        pageVar
-        pageSizeVar
-        totalCountField
       }
       canSee
       canUpdate

@@ -5,7 +5,7 @@ import { WIDGET_EDITOR_CONFIG } from '../../../../const/tinymce.const';
 import { DataTemplateService } from '../../../../services/data-template/data-template.service';
 
 /**
- * Edition of card template.
+ * Component used in the card-modal-settings for editing the content of the card.
  */
 @Component({
   selector: 'shared-text-editor-tab',
@@ -13,17 +13,16 @@ import { DataTemplateService } from '../../../../services/data-template/data-tem
   styleUrls: ['./text-editor-tab.component.scss'],
 })
 export class TextEditorTabComponent implements OnChanges {
-  /** Form group */
   @Input() form!: UntypedFormGroup;
-  /** Available fields */
   @Input() fields: any[] = [];
-  /** Tinymce editor configuration */
+
+  /** tinymce editor */
   public editor = WIDGET_EDITOR_CONFIG;
 
   /**
-   * Edition of card template.
+   * TextEditorTabComponent constructor.
    *
-   * @param editorService Shared editor service
+   * @param editorService Editor service used to get main URL and current language
    * @param dataTemplateService Shared data template service
    */
   constructor(

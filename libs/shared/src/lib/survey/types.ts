@@ -56,11 +56,6 @@ export interface QuestionOwner extends QuestionCustomModel, GlobalProperties {
   contentQuestion: SurveyCoreQuestionSelectBase;
 }
 
-/** Type for the users question */
-export interface QuestionUsers extends QuestionCustomModel, GlobalProperties {
-  applications?: any;
-}
-
 /** Type for resource question */
 export interface QuestionResource
   extends QuestionCustomModel,
@@ -83,8 +78,6 @@ export interface QuestionResource
   customFilter: string;
   displayAsGrid: boolean;
   remove?: boolean;
-  template?: string;
-  draftData?: any;
   canOnlyCreateRecords?: boolean;
 }
 

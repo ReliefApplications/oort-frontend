@@ -13,7 +13,6 @@ export const GET_FORM_BY_ID = gql`
       status
       canUpdate
       canCreateRecords
-      allowUploadRecords
       uniqueRecord {
         id
         modifiedAt

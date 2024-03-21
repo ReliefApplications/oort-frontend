@@ -5,7 +5,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { LayerClusterModule } from '../layer-cluster/layer-cluster.module';
 import { FormWrapperModule, SelectMenuModule } from '@oort-front/ui';
-import { PortalModule } from '@angular/cdk/portal';
 
 /**
  * Map layer aggregation settings module.
@@ -20,7 +19,6 @@ import { PortalModule } from '@angular/cdk/portal';
     FormWrapperModule,
     LayerClusterModule,
     SelectMenuModule,
-    PortalModule,
   ],
   exports: [LayerAggregationComponent],
 })

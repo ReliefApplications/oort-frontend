@@ -4,7 +4,7 @@ import { FilterComponent } from './filter.component';
 
 describe('FilterComponent', () => {
   let component: FilterComponent;
-  let fixture: ComponentFixture<FilterComponent>;
+  let fixture: ComponentFixture<sharedFilterComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

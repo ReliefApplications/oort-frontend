@@ -96,7 +96,6 @@ import {
 } from '../../models/custom-notification.model';
 import { UPDATE_CUSTOM_NOTIFICATION } from '../application-notifications/graphql/mutations';
 import {
-  ShadowDomService,
   SnackbarService,
   UILayoutService,
   faV4toV6Mapper,
@@ -140,11 +139,9 @@ export class ApplicationService {
   /** Current environment */
   private environment: any;
 
-  /** Raw application custom style */
-  public rawCustomStyle?: string;
   /** Application custom style */
+  public rawCustomStyle?: string;
   public customStyle?: HTMLStyleElement;
-  /** Custom style edited */
   public customStyleEdited = false;
 
   /** @returns Path to download application users */
@@ -203,7 +200,7 @@ export class ApplicationService {
    * @param {RestService} restService - The REST API service.
    * @param {DownloadService} downloadService - The download service.
    * @param {Document} document - The Document object.
-   * @param shadowDomService shadow dom service to handle the current host of the component
+   * @memberof ApplicationService
    */
   constructor(
     @Inject('environment') environment: any,
@@ -215,8 +212,7 @@ export class ApplicationService {
     private layoutService: UILayoutService,
     private restService: RestService,
     private downloadService: DownloadService,
-    @Inject(DOCUMENT) private document: Document,
-    private shadowDomService: ShadowDomService
+    @Inject(DOCUMENT) private document: Document
   ) {
     this.environment = environment;
   }
@@ -243,22 +239,19 @@ export class ApplicationService {
       })
       .subscribe(async ({ data }) => {
         // extend user abilities for application
+        const app = { ...data.application };
         if (data.application) {
           // Map all previously configured icons in v4 to v6 so on application edit, new icons are saved in DB
-          data.application.pages?.map((page: Page) => {
+          app.pages = (app.pages ?? []).map((page: Page) => {
             if (faV4toV6Mapper[page.icon as string]) {
-              return {
-                ...page,
-                icon: faV4toV6Mapper[page.icon as string],
-              };
-            } else {
-              return page;
+              (page as Page).icon = faV4toV6Mapper[page.icon as string];
             }
+            return page;
           });
-          this.authService.extendAbilityForApplication(data.application);
+          this.authService.extendAbilityForApplication(app);
         }
-        await this.getCustomStyle(data.application);
-        this.application.next(data.application);
+        await this.getCustomStyle(app);
+        this.application.next(app);
         const application = this.application.getValue();
         if (data.application?.locked) {
           if (!application?.lockedByUser) {
@@ -314,8 +307,9 @@ export class ApplicationService {
    */
   leaveApplication(): void {
     if (this.customStyle) {
-      const parentNode = this.customStyle.parentNode;
-      parentNode?.removeChild(this.customStyle);
+      this.document
+        .getElementsByTagName('head')[0]
+        .removeChild(this.customStyle);
       this.rawCustomStyle = undefined;
       this.customStyle = undefined;
       this.layoutService.closeRightSidenav = true;
@@ -381,7 +375,6 @@ export class ApplicationService {
             name: value.name,
             description: value.description,
             sideMenu: value.sideMenu,
-            hideMenu: value.hideMenu,
             status: value.status,
           },
         })
@@ -398,7 +391,6 @@ export class ApplicationService {
                 name: data.editApplication.name,
                 description: data.editApplication.description,
                 sideMenu: value.sideMenu,
-                hideMenu: value.hideMenu,
                 status: data.editApplication.status,
               };
               this.application.next(newApplication);
@@ -1971,16 +1963,9 @@ export class ApplicationService {
             .then((css) => {
               if (this.customStyle) {
                 this.customStyle.innerText = css;
-                // Add stylesheet to shadow root instead of document head
-                if (this.shadowDomService.isShadowRoot) {
-                  this.shadowDomService.currentHost.appendChild(
-                    this.customStyle
-                  );
-                } else {
-                  this.document
-                    .getElementsByTagName('head')[0]
-                    .appendChild(this.customStyle);
-                }
+                this.document
+                  .getElementsByTagName('head')[0]
+                  .appendChild(this.customStyle);
               }
             })
             .catch(() => {
@@ -1993,11 +1978,7 @@ export class ApplicationService {
         }
       })
       .catch((err) => {
-        console.error(err);
-        this.snackBar.openSnackBar(
-          this.translate.instant('models.application.errors.style.notFound'),
-          { error: true }
-        );
+        this.snackBar.openSnackBar(err.message, { error: true });
       })
       .finally(() => (this.customStyleEdited = false));
   }

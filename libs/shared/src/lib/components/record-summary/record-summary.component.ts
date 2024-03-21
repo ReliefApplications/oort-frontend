@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Record } from '../../models/record.model';
 
 /**
- * Show a summary of a record and its information
+ * This component is used to show a summary of a record and its informations
  */
 @Component({
   selector: 'shared-record-summary',

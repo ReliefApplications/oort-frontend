@@ -14,7 +14,7 @@ import {
 
 describe('ExpandedCommentComponent', () => {
   let component: ErrorsModalComponent;
-  let fixture: ComponentFixture<ErrorsModalComponent>;
+  let fixture: ComponentFixture<sharedErrorsModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

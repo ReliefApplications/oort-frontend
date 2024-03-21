@@ -29,11 +29,9 @@ import { FormWrapperModule } from '../form-wrapper/form-wrapper.module';
   </form>`,
 })
 class TestingComponent {
-  /** Form */
   form = new FormGroup({
     formControl: new FormControl(''),
   });
-  /** GraphQL select component */
   @ViewChild(GraphQLSelectComponent) graphQLComponent!: GraphQLSelectComponent;
 }
 describe('GraphQLSelectComponent', () => {

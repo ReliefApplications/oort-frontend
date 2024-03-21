@@ -22,8 +22,8 @@ import { OptionComponent } from './components/option.component';
 import { NgControl } from '@angular/forms';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { ScrollStrategies } from './types/scroll-strategies';
 import { DOCUMENT } from '@angular/common';
+import { ScrollStrategies } from './types/scroll-strategies';
 
 /**
  * UI Autocomplete directive
@@ -34,45 +34,26 @@ import { DOCUMENT } from '@angular/common';
 export class AutocompleteDirective
   implements OnInit, AfterContentInit, OnDestroy
 {
-  /** Autocomplete panel */
   @Input('uiAutocomplete')
   autocompletePanel!: AutocompleteComponent;
 
-  /** Autocomplete display key */
   @Input() autocompleteDisplayKey?: any;
-  /** Autocomplete scroll strategy */
   @Input() scrollStrategy?: ScrollStrategies = 'close';
 
-  /** Opened event */
   @Output() opened: EventEmitter<void> = new EventEmitter();
-  /** Closed event */
   @Output() closed: EventEmitter<void> = new EventEmitter();
-  /** Option selected event */
   @Output() optionSelected: EventEmitter<any> = new EventEmitter();
 
-  /** Overlay reference */
   public overlayRef!: OverlayRef;
 
-  /** Input element */
   private inputElement!: HTMLInputElement;
-  /** Autocomplete value */
   private value!: any;
-  /** Input event listener */
   private inputEventListener!: () => void;
-  /** Destroy subject */
   private destroy$ = new Subject<void>();
-  /** NgControl */
   private control!: NgControl;
-  /** Autocomplete closing actions subscription */
   private autocompleteClosingActionsSubscription!: Subscription;
-  /** Select option listener */
   private selectOptionListener!: () => void;
-  /** Click outside listener */
   private clickOutsideListener!: () => void;
-  /** Timeout to autocomplete close */
-  private closeAutoCompleteTimeoutListener!: NodeJS.Timeout;
-  /** Timeout to autocomplete animation */
-  private AutoCompleteAnimationTimeoutListener!: NodeJS.Timeout;
 
   /**
    * Get the value from the option to set in the input host element
@@ -170,7 +151,7 @@ export class AutocompleteDirective
         });
     }
     this.clickOutsideListener = this.renderer.listen(
-      this.document,
+      window,
       'click',
       (event) => {
         if (
@@ -313,10 +294,7 @@ export class AutocompleteDirective
     // Attach it to our overlay
     this.overlayRef.attach(templatePortal);
     // We add the needed classes to create the animation on autocomplete display
-    if (this.AutoCompleteAnimationTimeoutListener) {
-      clearTimeout(this.AutoCompleteAnimationTimeoutListener);
-    }
-    this.AutoCompleteAnimationTimeoutListener = setTimeout(() => {
+    setTimeout(() => {
       this.applyAutocompleteDisplayAnimation(true);
     }, 0);
     // Subscribe to all actions that close the autocomplete (outside click, item click, any other overlay detach)
@@ -376,10 +354,7 @@ export class AutocompleteDirective
     // We remove the needed classes to create the animation on autocomplete close
     this.applyAutocompleteDisplayAnimation(false);
     // Detach the previously created overlay for the autocomplete
-    if (this.closeAutoCompleteTimeoutListener) {
-      clearTimeout(this.closeAutoCompleteTimeoutListener);
-    }
-    this.closeAutoCompleteTimeoutListener = setTimeout(() => {
+    setTimeout(() => {
       this.overlayRef.detach();
     }, 100);
   }
@@ -415,12 +390,6 @@ export class AutocompleteDirective
   }
 
   ngOnDestroy(): void {
-    if (this.AutoCompleteAnimationTimeoutListener) {
-      clearTimeout(this.AutoCompleteAnimationTimeoutListener);
-    }
-    if (this.closeAutoCompleteTimeoutListener) {
-      clearTimeout(this.closeAutoCompleteTimeoutListener);
-    }
     if (this.inputEventListener) {
       this.inputEventListener();
     }

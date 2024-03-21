@@ -4,7 +4,7 @@ import { RoleListComponent } from './role-list.component';
 
 describe('RoleListComponent', () => {
   let component: RoleListComponent;
-  let fixture: ComponentFixture<RoleListComponent>;
+  let fixture: ComponentFixture<sharedRoleListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

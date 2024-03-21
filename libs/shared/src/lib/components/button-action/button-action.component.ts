@@ -13,11 +13,8 @@ import { ButtonActionT } from './button-action-type';
   styleUrls: ['./button-action.component.scss'],
 })
 export class ButtonActionComponent {
-  /** Button actions */
   @Input() buttonActions: ButtonActionT[] = [];
-  /** Dashboard */
   @Input() dashboard?: Dashboard;
-  /** Can update dashboard or not */
   @Input() canUpdate = false;
 
   /**
@@ -81,9 +78,7 @@ export class ButtonActionComponent {
       if (value) {
         const currButtons = this.dashboard?.buttons || [];
         currButtons.splice(idx, 1);
-        this.dashboardService
-          .saveDashboardButtons(this.dashboard?.id, currButtons)
-          ?.subscribe();
+        this.dashboardService.saveDashboardButtons(currButtons);
       }
     });
   }

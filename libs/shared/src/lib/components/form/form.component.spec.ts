@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { environment } from 'projects/back-office/src/environments/environment';
 import {
   DialogModule as DialogCdkModule,
   DialogRef,
@@ -22,12 +23,12 @@ import {
 
 describe('FormComponent', () => {
   let component: FormComponent;
-  let fixture: ComponentFixture<FormComponent>;
+  let fixture: ComponentFixture<sharedFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       providers: [
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         { provide: DialogRef, useValue: {} },
         {
           provide: DIALOG_DATA,

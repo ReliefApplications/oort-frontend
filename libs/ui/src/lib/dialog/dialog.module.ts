@@ -6,7 +6,6 @@ import { DialogCloseDirective } from './dialog-close.directive';
 import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from '../tooltip/tooltip.module';
 import { ButtonModule } from '../button/button.module';
-import { ResizableModule } from 'angular-resizable-element';
 
 /**
  * UI Dialog Module
@@ -19,7 +18,6 @@ import { ResizableModule } from 'angular-resizable-element';
     TranslateModule,
     ButtonModule,
     TooltipModule,
-    ResizableModule,
   ],
   exports: [DialogComponent, DialogCloseDirective, TranslateModule],
 })

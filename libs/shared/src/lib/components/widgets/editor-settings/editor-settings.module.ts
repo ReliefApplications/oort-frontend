@@ -12,11 +12,11 @@ import {
   CheckboxModule,
   DividerModule,
   FormWrapperModule,
+  GraphQLSelectModule,
   IconModule,
   RadioModule,
   SelectMenuModule,
   SelectOptionModule,
-  SpinnerModule,
   TabsModule,
   ToggleModule,
   TooltipModule,
@@ -25,11 +25,6 @@ import { DisplaySettingsComponent } from '../common/display-settings/display-set
 import { RecordSelectionTabComponent } from './record-selection-tab/record-selection-tab.component';
 import { CoreGridModule } from '../../ui/core-grid/core-grid.module';
 import { EditorModule } from '../editor/editor.module';
-import {
-  ReferenceDataSelectComponent,
-  ResourceSelectComponent,
-} from '../../controls/public-api';
-import { TemplateAggregationsComponent } from '../common/template-aggregations/template-aggregations.component';
 
 /**
  * Module for the EditorSetting component
@@ -46,6 +41,7 @@ import { TemplateAggregationsComponent } from '../common/template-aggregations/t
     DisplaySettingsComponent,
     CoreGridModule,
     EditorModule,
+    GraphQLSelectModule,
     SelectMenuModule,
     SelectOptionModule,
     ButtonModule,
@@ -56,10 +52,6 @@ import { TemplateAggregationsComponent } from '../common/template-aggregations/t
     RadioModule,
     DividerModule,
     ToggleModule,
-    ResourceSelectComponent,
-    ReferenceDataSelectComponent,
-    SpinnerModule,
-    TemplateAggregationsComponent,
   ],
   exports: [EditorSettingsComponent],
   providers: [

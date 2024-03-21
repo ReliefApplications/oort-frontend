@@ -7,19 +7,19 @@ export const EDIT_DASHBOARD = gql`
     $id: ID!
     $structure: JSON
     $name: String
-    $filter: DashboardFilterInputType
+    $showFilter: Boolean
   ) {
     editDashboard(
       id: $id
       structure: $structure
       name: $name
-      filter: $filter
+      showFilter: $showFilter
     ) {
       id
       name
       structure
-      filter
       modifiedAt
+      showFilter
       permissions {
         canSee {
           id

@@ -132,7 +132,7 @@ export const getCalcKeys = (): string[] => {
  * @returns List of info keys
  */
 export const getInfoKeys = (): string[] =>
-  ['createdAt', 'updatedAt', 'incrementalId', 'id'].map(
+  ['createdAt', 'updatedAt', 'incrementalId'].map(
     (k) => INFO_PREFIX + k + PLACEHOLDER_SUFFIX
   );
 

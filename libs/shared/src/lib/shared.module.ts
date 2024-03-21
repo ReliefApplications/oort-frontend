@@ -8,6 +8,7 @@ import { EditorSettingsModule } from './components/widgets/editor-settings/edito
 import { GridSettingsModule } from './components/widgets/grid-settings/grid-settings.module';
 import { MapSettingsModule } from './components/widgets/map-settings/map-settings.module';
 import { WidgetGridModule } from './components/widget-grid/widget-grid.module';
+import { UsersModule } from './components/users/users.module';
 import { RolesModule } from './components/roles/roles.module';
 import { RecordHistoryModule } from './components/record-history/record-history.module';
 import { ContentChoiceModule } from './components/content-choice/content-choice.module';
@@ -30,7 +31,7 @@ import { CronParserModule } from './pipes/cron-parser/cron-parser.module';
 import { UnsubscribeModule } from './components/utils/unsubscribe/unsubscribe.module';
 import { ViewsModule } from './views/views.module';
 import { EditableTextModule } from './components/editable-text/editable-text.module';
-import { CronExpressionControlModule } from './components/controls/cron-expression-control/cron-expression-control.module';
+import { CronExpressionControlModule } from './components/cron-expression-control/cron-expression-control.module';
 import { MapModule } from './components/ui/map';
 import { FullScreenModule } from './directives/fullscreen/fullscreen.module';
 import { DashboardFilterModule } from './components/dashboard-filter/dashboard-filter.module';
@@ -43,13 +44,10 @@ import { ApplicationsArchiveModule } from './components/applications-archive/app
 import { ReferenceDataDropdownModule } from './survey/components/reference-data-dropdown/reference-data-dropdown.module';
 import { ListFilterComponent } from './components/list-filter/list-filter.component';
 import { StatusOptionsComponent } from './components/status-options/status-options.component';
-import { DashboardFilterIconComponent } from './components/dashboard-filter-icon/dashboard-filter-icon.component';
-import { PayloadModalComponent } from './components/payload-modal/payload-modal.component';
 
 /** Main module for the shared project */
 @NgModule({
   exports: [
-    PayloadModalComponent,
     LayoutModule,
     AccessModule,
     FormModule,
@@ -60,6 +58,7 @@ import { PayloadModalComponent } from './components/payload-modal/payload-modal.
     MapSettingsModule,
     WidgetGridModule,
     SortingSettingsModule,
+    UsersModule,
     RolesModule,
     RecordHistoryModule,
     ContentChoiceModule,
@@ -77,7 +76,6 @@ import { PayloadModalComponent } from './components/payload-modal/payload-modal.
     CronExpressionControlModule,
     MapModule,
     DashboardFilterModule,
-    DashboardFilterIconComponent,
     ButtonActionModule,
     WidgetChoiceModule,
     TabsSettingsModule,
@@ -101,11 +99,6 @@ import { PayloadModalComponent } from './components/payload-modal/payload-modal.
     ViewsModule,
   ],
   declarations: [],
-  imports: [
-    ListFilterComponent,
-    StatusOptionsComponent,
-    DashboardFilterIconComponent,
-    PayloadModalComponent,
-  ],
+  imports: [ListFilterComponent, StatusOptionsComponent],
 })
 export class Module {}

@@ -12,6 +12,7 @@ import { IconModule } from '@oort-front/ui';
 import { AccessModule, DateModule } from '@oort-front/shared';
 import { TranslateModule } from '@ngx-translate/core';
 import { OverlayModule } from '@angular/cdk/overlay';
+import { UploadMenuModule } from '../../../components/upload-menu/upload-menu.module';
 
 /** Resource page module. */
 @NgModule({
@@ -27,6 +28,7 @@ import { OverlayModule } from '@angular/cdk/overlay';
     PaginatorModule,
     TranslateModule,
     OverlayModule,
+    UploadMenuModule,
     DateModule,
   ],
   exports: [ResourceComponent],

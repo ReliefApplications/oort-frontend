@@ -4,7 +4,7 @@ import { WidgetChoiceComponent } from './widget-choice.component';
 
 describe('WidgetChoiceComponent', () => {
   let component: WidgetChoiceComponent;
-  let fixture: ComponentFixture<WidgetChoiceComponent>;
+  let fixture: ComponentFixture<sharedWidgetChoiceComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

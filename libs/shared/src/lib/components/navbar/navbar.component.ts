@@ -1,14 +1,15 @@
 import {
   Component,
   Input,
+  Inject,
   Output,
   EventEmitter,
   HostListener,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
 /**
- * Navbar used in the main layout.
- * Can be horizontal or vertical.
+ * The navbar navigator used in the main layout
  */
 @Component({
   selector: 'shared-navbar',
@@ -16,26 +17,28 @@ import { moveItemInArray } from '@angular/cdk/drag-drop';
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent {
-  /** Application layout */
   @Input() appLayout = false;
-  /** Does admin has permission to add a page */
   @Input() canAddPage = false;
-  /** Should be displayed vertically or horizontally.*/
   @Input() vertical = true;
-  /** Navigation groups */
-  @Input() navGroups: any[] = [];
-  /** Navigation group selected */
-  @Input() nav: any;
-  /** Event emitted when the navbar items are reordered. */
   @Output() reorder: EventEmitter<any> = new EventEmitter();
-  /** Boolean for portview threshold */
+
+  // === NAVIGATION GROUP ===
+  @Input() navGroups: any[] = [];
+  @Input() nav: any;
+
+  private environment: any;
+
+  // === DISPLAY ===
   public largeDevice: boolean;
 
   /**
-   * Navbar used in the main layout.
-   * Can be horizontal or vertical.
+   * Left sidenav visible in application edition and preview.
+   *
+   * @param environment This is the environment in which we are running the application
+   * @param router The Angular Router service
    */
-  constructor() {
+  constructor(@Inject('environment') environment: any, private router: Router) {
+    this.environment = environment;
     this.largeDevice = window.innerWidth > 1024;
   }
 

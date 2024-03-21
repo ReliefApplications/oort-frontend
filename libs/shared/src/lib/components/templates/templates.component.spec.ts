@@ -7,6 +7,7 @@ import {
   OAuthService,
   UrlHelperService,
 } from 'angular-oauth2-oidc';
+import { environment } from 'projects/back-office/src/environments/environment';
 import {
   TranslateModule,
   TranslateService,
@@ -19,12 +20,12 @@ import { MenuModule } from '@oort-front/ui';
 
 describe('TemplatesComponent', () => {
   let component: TemplatesComponent;
-  let fixture: ComponentFixture<TemplatesComponent>;
+  let fixture: ComponentFixture<sharedTemplatesComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       providers: [
-        { provide: 'environment', useValue: {} },
+        { provide: 'environment', useValue: environment },
         OAuthService,
         UrlHelperService,
         OAuthLogger,

@@ -62,11 +62,7 @@ export class PieDonutChartComponent implements OnChanges {
     datasets: [],
   };
 
-  /**
-   * Uses chart.js to render the data as a pie chart
-   *
-   * @param environment Environment configuration
-   */
+  /** Uses chart.js to render the data as a pie chart */
   constructor(@Inject('environment') private environment: any) {}
 
   /** OnChanges lifecycle hook. */

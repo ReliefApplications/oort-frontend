@@ -45,26 +45,40 @@
         <button uiMenuItem (click)="onDownload('csv')">.csv</button>
         <button uiMenuItem (click)="onDownload('xlsx')">.xlsx</button>
       </ui-menu>
-      <shared-upload-records
-        [id]="id"
-        [name]="form.name"
-        [path]="'form'"
-        (uploaded)="fetchRecordsData(true)"
-      ></shared-upload-records>
+      <ui-button
+        icon="file_upload"
+        category="secondary"
+        variant="primary"
+        [uiTooltip]="'components.records.upload.hint' | translate"
+        (click)="showUpload = !showUpload"
+        cdkOverlayOrigin
+        #uploadTrigger="cdkOverlayOrigin"
+      >
+        {{
+          'common.uploadObject'
+            | translate : { name: 'common.record.few' | translate }
+        }}
+      </ui-button>
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="uploadTrigger"
+        [cdkConnectedOverlayOpen]="showUpload"
+      >
+        <app-upload-menu
+          (close)="showUpload = false"
+          (upload)="onFileChange($event)"
+          (download)="onDownloadTemplate()"
+        ></app-upload-menu>
+      </ng-template>
     </div>
   </div>
   <ng-container *ngIf="!empty; else emptyTmpl">
     <!-- Table container -->
-    <div class="overflow-x-hidden shadow-2lg grow">
+    <div class="overflow-x-hidden shadow-2lg">
       <!-- Table scroll container -->
-      <div class="overflow-x-auto h-full">
+      <div class="overflow-x-auto">
         <!-- Records table -->
-        <table
-          cdk-table
-          uiTableWrapper
-          [dataSource]="dataSource"
-          class="h-full"
-        >
+        <table cdk-table uiTableWrapper [dataSource]="dataSource">
           <ng-container
             *ngFor="let column of displayedColumns"
             [cdkColumnDef]="column"
@@ -145,9 +159,8 @@
       </div>
     </div>
     <ui-paginator
-      [disabled]="loadingMore || updating"
+      [disabled]="loadingMore"
       [pageSize]="pageInfo.pageSize"
-      [pageIndex]="pageInfo.pageIndex"
       [totalItems]="pageInfo.length"
       [ariaLabel]="'components.records.paginator.ariaLabel' | translate"
       (pageChange)="onPage($event)"

@@ -26,11 +26,8 @@ export class RoleAutoAssignmentComponent
   extends UnsubscribeComponent
   implements OnInit
 {
-  /** Role to display */
   @Input() role!: Role;
-  /** Form array */
   public formArray!: UntypedFormArray;
-  /** Event emitter for edit event */
   @Output() edit = new EventEmitter();
 
   /** Setter for the loading state */
@@ -42,14 +39,10 @@ export class RoleAutoAssignmentComponent
     }
   }
 
-  /** List of rules */
   public rules = new Array<CompositeFilterDescriptor>();
-  /** List of displayed columns */
   public displayedColumns: string[] = ['filter', 'actions'];
 
-  /** List of fields */
   private fields: any[] = [];
-  /** List of groups */
   private groups: Group[] = [];
 
   /**

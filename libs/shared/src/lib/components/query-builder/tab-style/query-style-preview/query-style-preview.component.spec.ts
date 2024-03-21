@@ -4,7 +4,7 @@ import { QueryStylePreviewComponent } from './query-style-preview.component';
 
 describe('QueryStylePreviewComponent', () => {
   let component: QueryStylePreviewComponent;
-  let fixture: ComponentFixture<QueryStylePreviewComponent>;
+  let fixture: ComponentFixture<sharedQueryStylePreviewComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

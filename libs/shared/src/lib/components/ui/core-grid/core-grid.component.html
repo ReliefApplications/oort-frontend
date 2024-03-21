@@ -21,6 +21,7 @@
   [multiSelect]="multiSelect"
   (selectionChange)="onSelectionChange($event)"
   [selectedRows]="selectedRows"
+  [admin]="admin"
   (columnChange)="onColumnChange()"
   (searchChange)="onSearchChange($event)"
   (export)="onExport($event)"
@@ -30,6 +31,5 @@
   [canUpdate]="canUpdate"
   [canAdd]="canCreateRecords"
   [actionsWidth]="defaultLayout.actionsColWidth ?? 86"
-  [searchable]="searchable"
 >
 </shared-grid>
