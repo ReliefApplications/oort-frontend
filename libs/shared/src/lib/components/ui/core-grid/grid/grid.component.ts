@@ -1189,14 +1189,21 @@ export class GridComponent
       const columnFieldType = typesFields.find(
         (type: any) => column.title === type.title && activeColumns[type.field]
       );
-      if (columnFieldType) {
-        column.width = Math.floor(
-          (activeColumns[columnFieldType.field] * gridTotalWidth) / 100
-        );
-      } else {
-        // If contains a title, we set the minPercentage
-        if (column.title) {
-          column.width = Math.floor((minPercentage * gridTotalWidth) / 100);
+      const hasFixedWidth = fixedWidthColumns.some(
+        (fixedColumn: any) =>
+          column.title === fixedColumn.title &&
+          column.field === fixedColumn.field
+      );
+      if (!hasFixedWidth) {
+        if (columnFieldType) {
+          column.width = Math.floor(
+            (activeColumns[columnFieldType.field] * gridTotalWidth) / 100
+          );
+        } else {
+          // If contains a title, we set the minPercentage
+          if (column.title) {
+            column.width = Math.floor((minPercentage * gridTotalWidth) / 100);
+          }
         }
       }
       // Make sure that every column has a width set
