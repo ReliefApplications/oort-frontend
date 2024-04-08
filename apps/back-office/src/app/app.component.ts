@@ -13,6 +13,8 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../environments/environment';
 import { CldrIntlService, IntlService } from '@progress/kendo-angular-intl';
+import * as Mixpanel from 'mixpanel-browser';
+
 /**
  * Root component of back-office.
  */
@@ -59,5 +61,10 @@ export class AppComponent implements OnInit {
    */
   ngOnInit(): void {
     this.authService.initLoginSequence();
+    Mixpanel.init('868b6b2592744682f6380d8f5f097f54', {
+      debug: true,
+      track_pageview: true,
+      persistence: 'localStorage',
+    });
   }
 }

@@ -33,6 +33,7 @@ import {
   FormHelpersService,
 } from '../../services/form-helper/form-helper.service';
 import { SnackbarService, UILayoutService } from '@oort-front/ui';
+import * as Mixpanel from 'mixpanel-browser';
 
 /**
  * This component is used to display forms
@@ -336,6 +337,27 @@ export class FormComponent
                   error: true,
                 });
               } else {
+                if (data.addRecord) {
+                  Mixpanel.track('Add record', {
+                    $user: this.authService.userValue,
+                    $form_name: this.form.name,
+                    $form: this.form,
+                    $template:
+                      this.form.id !== this.record?.form?.id
+                        ? this.form.id
+                        : null,
+                  });
+                } else {
+                  Mixpanel.track('Edit record', {
+                    $user: this.authService.userValue,
+                    $form_name: this.form.name,
+                    $form: this.form,
+                    $template:
+                      this.form.id !== this.record?.form?.id
+                        ? this.form.id
+                        : null,
+                  });
+                }
                 if (this.lastDraftRecord) {
                   const callback = () => {
                     this.lastDraftRecord = undefined;
