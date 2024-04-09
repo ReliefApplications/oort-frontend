@@ -491,7 +491,7 @@ export const init = (
       }
       if (question.resource) {
         if (question.selectQuestion) {
-          filters[0].operator = question.filterCondition;
+          filters[0].operator = question.filterCondition ?? 'eq';
           filters[0].field = question.filterBy;
           question.registerFunctionOnPropertyValueChanged(
             'filterCondition',
