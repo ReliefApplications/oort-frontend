@@ -28,6 +28,7 @@ import { FormActionsModule } from '../form-actions/form-actions.module';
 import { DateModule } from '../../pipes/date/date.module';
 import { SpinnerModule, ButtonModule } from '@oort-front/ui';
 import { DialogModule } from '@oort-front/ui';
+import { MixpanelService } from '../../services/mixpanel/mixpanel.service';
 
 /**
  * Interface that describes the structure of the data that will be shown in the dialog
@@ -105,6 +106,7 @@ export class RecordModalComponent
    * @param formBuilderService This is the service that will be used to build forms.
    * @param formHelpersService This is the service to handle forms.
    * @param translate This is the service that allows us to translate the text in the modal.
+   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     public dialogRef: DialogRef<RecordModalComponent>,
@@ -115,7 +117,8 @@ export class RecordModalComponent
     private snackBar: SnackbarService,
     private formBuilderService: FormBuilderService,
     private formHelpersService: FormHelpersService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private mixpanelService: MixpanelService
   ) {
     super();
   }
@@ -314,6 +317,12 @@ export class RecordModalComponent
                   { error: true }
                 );
               } else {
+                this.mixpanelService.recordEvent(
+                  'Edit record',
+                  this.form as Form,
+                  record,
+                  'Record update from recovery of data'
+                );
                 this.snackBar.openSnackBar(
                   this.translate.instant('common.notifications.dataRecovered')
                 );

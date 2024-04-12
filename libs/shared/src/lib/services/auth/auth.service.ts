@@ -305,6 +305,10 @@ export class AuthService {
    */
   private updateAbility(user: User | null) {
     if (!user) return;
+    // Register login events.
+    Mixpanel.track('Sign Up', {
+      $user: user,
+    });
 
     const { can, rules } = new AbilityBuilder(AppAbility);
     const permissions: Permission[] = get(user, 'permissions', []);

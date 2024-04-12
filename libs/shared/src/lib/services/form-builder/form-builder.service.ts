@@ -24,6 +24,7 @@ import { SnackbarService } from '@oort-front/ui';
 import { FormHelpersService } from '../form-helper/form-helper.service';
 import { cloneDeep, difference } from 'lodash';
 import { Form } from '../../models/form.model';
+import { MixpanelService } from '../mixpanel/mixpanel.service';
 
 /** Type for the temporary file storage */
 export type TemporaryFilesStorage = Map<Question, File[]>;
@@ -135,6 +136,7 @@ export class FormBuilderService {
    * @param snackBar Service used to show a snackbar.
    * @param restService This is the service that is used to make http requests.
    * @param formHelpersService Shared form helper service.
+   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     private referenceDataService: ReferenceDataService,
@@ -142,7 +144,8 @@ export class FormBuilderService {
     private apollo: Apollo,
     private snackBar: SnackbarService,
     private restService: RestService,
-    private formHelpersService: FormHelpersService
+    private formHelpersService: FormHelpersService,
+    private mixpanelService: MixpanelService
   ) {}
 
   /**
@@ -484,6 +487,7 @@ export class FormBuilderService {
                 { error: true }
               );
             } else {
+              this.mixpanelService.recordEvent('Edit record', data.form, data);
               this.snackBar.openSnackBar(
                 this.translate.instant('common.notifications.objectUpdated', {
                   type: this.translate.instant('common.record.one'),

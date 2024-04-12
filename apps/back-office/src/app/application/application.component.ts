@@ -11,7 +11,6 @@ import {
 import get from 'lodash/get';
 import { takeUntil, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import * as Mixpanel from 'mixpanel-browser';
 
 /**
  * Main component of Application view.
@@ -71,9 +70,6 @@ export class ApplicationComponent
       .pipe(takeUntil(this.destroy$))
       .subscribe((application: Application | null) => {
         if (application) {
-          Mixpanel.track('Init application: ', {
-            $application_name: application.name,
-          });
           this.loading = false;
           this.title = application.name || '';
           const displayNavItems: any[] =

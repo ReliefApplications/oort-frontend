@@ -56,6 +56,7 @@ import { DialogModule } from '@oort-front/ui';
 import { DraftRecordComponent } from '../draft-record/draft-record.component';
 import { UploadRecordsComponent } from '../upload-records/upload-records.component';
 import { ContextService } from '../../services/context/context.service';
+import { MixpanelService } from '../../services/mixpanel/mixpanel.service';
 
 /**
  * Interface of Dialog data.
@@ -153,6 +154,7 @@ export class FormModalComponent
    * @param translate This is the service that allows us to translate the text in our application.
    * @param ngZone Angular Service to execute code inside Angular environment
    * @param contextService Shared context service
+   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
@@ -166,7 +168,8 @@ export class FormModalComponent
     protected confirmService: ConfirmService,
     protected translate: TranslateService,
     protected ngZone: NgZone,
-    protected contextService: ContextService
+    protected contextService: ContextService,
+    private mixpanelService: MixpanelService
   ) {
     super();
   }
@@ -466,6 +469,11 @@ export class FormModalComponent
                       this.dialogRef.close();
                     });
                   } else {
+                    this.mixpanelService.recordEvent(
+                      'Add record',
+                      this.form as Form,
+                      data?.addRecord as Record
+                    );
                     if (this.lastDraftRecord) {
                       const callback = () => {
                         this.lastDraftRecord = undefined;
@@ -622,6 +630,11 @@ export class FormModalComponent
       );
     } else {
       if (data) {
+        this.mixpanelService.recordEvent(
+          'Edit record',
+          this.form as Form,
+          data[responseType]
+        );
         this.snackBar.openSnackBar(
           this.translate.instant('common.notifications.objectUpdated', {
             type,
@@ -770,6 +783,12 @@ export class FormModalComponent
                   { error: true }
                 );
               } else {
+                this.mixpanelService.recordEvent(
+                  'Edit record',
+                  this.form as Form,
+                  record,
+                  'Record update from recovery of data'
+                );
                 this.snackBar.openSnackBar(
                   this.translate.instant('common.notifications.dataRecovered')
                 );

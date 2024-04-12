@@ -29,7 +29,6 @@ import {
 } from '@oort-front/ui';
 import { SnackbarService } from '@oort-front/ui';
 import { GET_APPLICATIONS } from './graphql/queries';
-import * as Mixpanel from 'mixpanel-browser';
 
 /** Default number of items per request for pagination */
 const DEFAULT_PAGE_SIZE = 10;
@@ -108,10 +107,6 @@ export class ApplicationsComponent
    * Creates the application query and subscribes to the query changes.
    */
   ngOnInit(): void {
-    // Track an event. It can be anything, but in this example, we're tracking a Sign Up event.
-    Mixpanel.track('Sign Up', {
-      'Signup Type': 'Referral',
-    });
     this.applicationsQuery =
       this.apollo.watchQuery<ApplicationsApplicationNodesQueryResponse>({
         query: GET_APPLICATIONS,

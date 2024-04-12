@@ -57,6 +57,7 @@ import { ContextService } from '../../../services/context/context.service';
 import { ResourceQueryResponse } from '../../../models/resource.model';
 import { Router } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
+import { MixpanelService } from '../../../services/mixpanel/mixpanel.service';
 
 /**
  * Default file name when exporting grid data.
@@ -352,6 +353,7 @@ export class CoreGridComponent
    * @param router Angular Router
    * @param el Element reference
    * @param clipboard Angular clipboard service
+   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     @Inject('environment') environment: any,
@@ -369,7 +371,8 @@ export class CoreGridComponent
     private contextService: ContextService,
     private router: Router,
     private el: ElementRef,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private mixpanelService: MixpanelService
   ) {
     super();
     this.environment = environment;
@@ -721,6 +724,12 @@ export class CoreGridComponent
             this.originalItems[originalIndex] = item;
             // add a property to indicate the item is saved
             item.saved = true;
+            this.mixpanelService.recordEvent(
+              'Edit record',
+              this.settings.template,
+              resRecord,
+              'Inline edition of record on grid widget'
+            );
           }
         }
         this.inlineEdition.emit();
@@ -1400,6 +1409,12 @@ export class CoreGridComponent
                   { error: true }
                 );
               } else {
+                this.mixpanelService.recordEvent(
+                  'Edit record',
+                  this.settings.template,
+                  record,
+                  'Record update from recovery of data'
+                );
                 this.reloadData();
                 this.layoutService.setRightSidenav(null);
                 this.snackBar.openSnackBar(

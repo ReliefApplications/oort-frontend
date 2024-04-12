@@ -21,6 +21,7 @@ import {
 import { BehaviorSubject, takeUntil } from 'rxjs';
 import addCustomFunctions from '../../survey/custom-functions';
 import { AuthService } from '../../services/auth/auth.service';
+import { MixpanelService } from '../../services/mixpanel/mixpanel.service';
 import {
   FormBuilderService,
   TemporaryFilesStorage,
@@ -33,7 +34,6 @@ import {
   FormHelpersService,
 } from '../../services/form-helper/form-helper.service';
 import { SnackbarService, UILayoutService } from '@oort-front/ui';
-import * as Mixpanel from 'mixpanel-browser';
 
 /**
  * This component is used to display forms
@@ -103,6 +103,7 @@ export class FormComponent
    * @param formBuilderService This is the service that will be used to build forms.
    * @param formHelpersService This is the service that will handle forms.
    * @param translate This is the service used to translate text
+   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     public dialog: Dialog,
@@ -112,7 +113,8 @@ export class FormComponent
     private layoutService: UILayoutService,
     private formBuilderService: FormBuilderService,
     public formHelpersService: FormHelpersService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private mixpanelService: MixpanelService
   ) {
     super();
   }
@@ -337,27 +339,12 @@ export class FormComponent
                   error: true,
                 });
               } else {
-                if (data.addRecord) {
-                  Mixpanel.track('Add record', {
-                    $user: this.authService.userValue,
-                    $form_name: this.form.name,
-                    $form: this.form,
-                    $template:
-                      this.form.id !== this.record?.form?.id
-                        ? this.form.id
-                        : null,
-                  });
-                } else {
-                  Mixpanel.track('Edit record', {
-                    $user: this.authService.userValue,
-                    $form_name: this.form.name,
-                    $form: this.form,
-                    $template:
-                      this.form.id !== this.record?.form?.id
-                        ? this.form.id
-                        : null,
-                  });
-                }
+                this.mixpanelService.recordEvent(
+                  data.addRecord ? 'Add record' : 'Edit record',
+                  this.form,
+                  data.addRecord ?? data.editRecord
+                );
+
                 if (this.lastDraftRecord) {
                   const callback = () => {
                     this.lastDraftRecord = undefined;
@@ -477,6 +464,12 @@ export class FormComponent
                   { error: true }
                 );
               } else {
+                this.mixpanelService.recordEvent(
+                  'Edit record',
+                  this.form,
+                  record,
+                  'Record edition from data recover'
+                );
                 this.layoutService.setRightSidenav(null);
                 this.snackBar.openSnackBar(
                   this.translate.instant('common.notifications.dataRecovered')

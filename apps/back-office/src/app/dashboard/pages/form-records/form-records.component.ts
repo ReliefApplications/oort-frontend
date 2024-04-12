@@ -19,6 +19,7 @@ import {
   DownloadService,
   getCachedValues,
   updateQueryUniqueValues,
+  MixpanelService,
 } from '@oort-front/shared';
 import { Dialog } from '@angular/cdk/dialog';
 import { TranslateService } from '@ngx-translate/core';
@@ -112,6 +113,7 @@ export class FormRecordsComponent
    * @param translate Angular translate service
    * @param breadcrumbService Shared breadcrumb service
    * @param confirmService Shared confirm service
+   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     private apollo: Apollo,
@@ -122,7 +124,8 @@ export class FormRecordsComponent
     private snackBar: SnackbarService,
     private translate: TranslateService,
     private breadcrumbService: BreadcrumbService,
-    private confirmService: ConfirmService
+    private confirmService: ConfirmService,
+    private mixpanelService: MixpanelService
   ) {
     super();
   }
@@ -385,6 +388,11 @@ export class FormRecordsComponent
                   { error: true }
                 );
               } else {
+                this.mixpanelService.recordEvent(
+                  'Edit record',
+                  this.form,
+                  'Revert record version'
+                );
                 this.layoutService.setRightSidenav(null);
                 this.snackBar.openSnackBar(
                   this.translate.instant('common.notifications.dataRecovered')

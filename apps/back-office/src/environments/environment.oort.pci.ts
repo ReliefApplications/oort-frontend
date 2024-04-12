@@ -31,6 +31,7 @@ export const environment: Environment = {
   availableLanguages: ['en', 'fr'],
   authConfig,
   theme,
+  mixpanelToken: 'a90bc11bbb9f338701eaa1422a98e35e',
   availableWidgets: [
     'donut-chart',
     'line-chart',
