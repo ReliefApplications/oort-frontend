@@ -12,7 +12,6 @@ import {
   ResourceSelectTextComponent,
   TestServiceDropdownComponent,
   DownloadService,
-  MixpanelService,
 } from '@oort-front/shared';
 import { CldrIntlService, IntlService } from '@progress/kendo-angular-intl';
 import { Router } from '@angular/router';
@@ -70,15 +69,13 @@ export class AppComponent implements OnInit {
    * @param kendoIntl Kendo Intl Service
    * @param router Angular router service
    * @param downloadService Shared download service
-   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     private authService: AuthService,
     private translate: TranslateService,
     private kendoIntl: IntlService,
     private router: Router,
-    private downloadService: DownloadService,
-    private mixpanelService: MixpanelService
+    private downloadService: DownloadService
   ) {
     this.translate.addLangs(environment.availableLanguages);
     this.translate.setDefaultLang(environment.availableLanguages[0]);
@@ -143,7 +140,6 @@ export class AppComponent implements OnInit {
    * Configuration of the Authentication behavior
    */
   ngOnInit(): void {
-    this.mixpanelService.init();
     this.authService.initLoginSequence();
   }
 }

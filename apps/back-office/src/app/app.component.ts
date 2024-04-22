@@ -9,7 +9,6 @@ import {
   ResourceDropdownComponent,
   ResourceSelectTextComponent,
   TestServiceDropdownComponent,
-  MixpanelService,
 } from '@oort-front/shared';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../environments/environment';
@@ -44,13 +43,11 @@ export class AppComponent implements OnInit {
    * @param authService Shared authentication service
    * @param translate Angular translate service
    * @param kendoIntl Kendo Intl Service
-   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     private authService: AuthService,
     private translate: TranslateService,
-    private kendoIntl: IntlService,
-    private mixpanelService: MixpanelService
+    private kendoIntl: IntlService
   ) {
     this.translate.addLangs(environment.availableLanguages);
     this.translate.setDefaultLang(environment.availableLanguages[0]);
@@ -62,7 +59,6 @@ export class AppComponent implements OnInit {
    * Configuration of the Authentication behavior
    */
   ngOnInit(): void {
-    this.mixpanelService.init();
     this.authService.initLoginSequence();
   }
 }

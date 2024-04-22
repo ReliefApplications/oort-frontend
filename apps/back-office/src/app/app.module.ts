@@ -34,7 +34,6 @@ import {
   AppAbility,
   FormService,
   DatePipe,
-  MixpanelService,
 } from '@oort-front/shared';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
@@ -172,7 +171,6 @@ export const httpTranslateLoader = (http: HttpClient) =>
     ResizeBatchService,
     IconsService,
     DatePipe,
-    MixpanelService,
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     // Sentry
     ...(environment.sentry
