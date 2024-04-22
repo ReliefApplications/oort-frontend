@@ -51,6 +51,7 @@ export interface Form {
   aggregations?: Connection<Aggregation>;
   metadata?: Metadata[];
   allowUploadRecords?: boolean;
+  logEvents?: boolean;
 }
 
 /** Model for form graphql graphql query response */

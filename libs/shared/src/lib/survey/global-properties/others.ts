@@ -207,6 +207,15 @@ export const init = (environment: any): void => {
     visibleIndex: 2,
   });
 
+  // Adds property to log the form events
+  serializer.addProperty('survey', {
+    name: 'logEvents',
+    category: 'general',
+    type: 'boolean',
+    default: false,
+    visibleIndex: 2,
+  });
+
   // Add ability to conditionally allow dynamic panel add new panel
   serializer.addProperty('paneldynamic', {
     name: 'AllowNewPanelsExpression:expression',
