@@ -37,7 +37,6 @@ import { Router } from '@angular/router';
 import { DashboardService } from '../dashboard/dashboard.service';
 import { GET_RECORD_BY_UNIQUE_FIELD_VALUE } from './graphql/queries';
 import { Metadata } from '../../models/metadata.model';
-import { MixpanelService } from '../mixpanel/mixpanel.service';
 
 export type CheckUniqueProprietyReturnT = {
   verified: boolean;
@@ -108,7 +107,6 @@ export class FormHelpersService {
    * @param router Angular router service.
    * @param dialog Dialogs service
    * @param dashboardService Shared dashboard service
-   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     @Inject('environment') private environment: any,
@@ -123,8 +121,7 @@ export class FormHelpersService {
     private domService: DomService,
     private router: Router,
     public dialog: Dialog,
-    private dashboardService: DashboardService,
-    private mixpanelService: MixpanelService
+    private dashboardService: DashboardService
   ) {}
 
   /**
@@ -255,12 +252,6 @@ export class FormHelpersService {
                             );
                             reject(errors);
                           } else {
-                            this.mixpanelService.recordEvent(
-                              'Add record',
-                              recordFromResource.template,
-                              data?.addRecord as Record,
-                              'Record created from temporary record (from resource/s questions)'
-                            );
                             question.value[question.value.indexOf(recordId)] =
                               question.value.includes(recordId)
                                 ? data?.addRecord.id
@@ -396,12 +387,6 @@ export class FormHelpersService {
             if (!newId) {
               return;
             }
-            this.mixpanelService.recordEvent(
-              'Add record',
-              template,
-              res.data?.addRecord as Record,
-              'Record created from temporary record (from resource/s questions)'
-            );
             updateIds[draftId](newId);
             // update question.newCreatedRecords too
             const isResource = element.question.getType() === 'resource';

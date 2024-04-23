@@ -21,7 +21,6 @@ import {
 import { BehaviorSubject, takeUntil } from 'rxjs';
 import addCustomFunctions from '../../survey/custom-functions';
 import { AuthService } from '../../services/auth/auth.service';
-import { MixpanelService } from '../../services/mixpanel/mixpanel.service';
 import {
   FormBuilderService,
   TemporaryFilesStorage,
@@ -103,7 +102,6 @@ export class FormComponent
    * @param formBuilderService This is the service that will be used to build forms.
    * @param formHelpersService This is the service that will handle forms.
    * @param translate This is the service used to translate text
-   * @param mixpanelService This is the service used to register logs
    */
   constructor(
     public dialog: Dialog,
@@ -113,8 +111,7 @@ export class FormComponent
     private layoutService: UILayoutService,
     private formBuilderService: FormBuilderService,
     public formHelpersService: FormHelpersService,
-    private translate: TranslateService,
-    private mixpanelService: MixpanelService
+    private translate: TranslateService
   ) {
     super();
   }
@@ -339,12 +336,6 @@ export class FormComponent
                   error: true,
                 });
               } else {
-                this.mixpanelService.recordEvent(
-                  data.addRecord ? 'Add record' : 'Edit record',
-                  this.form,
-                  data.addRecord ?? data.editRecord
-                );
-
                 if (this.lastDraftRecord) {
                   const callback = () => {
                     this.lastDraftRecord = undefined;
@@ -464,12 +455,6 @@ export class FormComponent
                   { error: true }
                 );
               } else {
-                this.mixpanelService.recordEvent(
-                  'Edit record',
-                  this.form,
-                  record,
-                  'Record edition from data recover'
-                );
                 this.layoutService.setRightSidenav(null);
                 this.snackBar.openSnackBar(
                   this.translate.instant('common.notifications.dataRecovered')

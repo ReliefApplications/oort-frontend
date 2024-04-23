@@ -253,6 +253,12 @@ export class AuthService {
    * Cleans user profile, and logout.
    */
   logout(): void {
+    // Register logout events.
+    Mixpanel.init(this.environment.mixpanelToken, {
+      debug: true,
+      // track_pageview: true,
+      persistence: 'localStorage',
+    });
     Mixpanel.track('User logout', {
       $user: this.userValue,
     });
@@ -305,10 +311,6 @@ export class AuthService {
    */
   private updateAbility(user: User | null) {
     if (!user) return;
-    // Register login events.
-    Mixpanel.track('Sign Up', {
-      $user: user,
-    });
 
     const { can, rules } = new AbilityBuilder(AppAbility);
     const permissions: Permission[] = get(user, 'permissions', []);

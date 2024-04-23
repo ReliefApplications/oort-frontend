@@ -57,4 +57,5 @@ export const environment: Environment = {
     'summaryCard',
     'tabs',
   ],
+  mixpanelToken: 'a90bc11bbb9f338701eaa1422a98e35e',
 };
