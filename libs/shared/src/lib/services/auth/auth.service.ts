@@ -24,6 +24,7 @@ import {
 } from '@casl/ability';
 import { get } from 'lodash';
 import { Application } from '../../models/application.model';
+import * as Mixpanel from 'mixpanel-browser';
 
 /** Defining the interface for the account object. */
 export interface Account {
@@ -252,6 +253,15 @@ export class AuthService {
    * Cleans user profile, and logout.
    */
   logout(): void {
+    // Register logout events.
+    Mixpanel.init(this.environment.mixpanelToken, {
+      debug: true,
+      // track_pageview: true,
+      persistence: 'localStorage',
+    });
+    Mixpanel.track('User logout', {
+      $user: this.userValue,
+    });
     this.account = null;
     this.user.next(null);
     localStorage.removeItem('idtoken');
