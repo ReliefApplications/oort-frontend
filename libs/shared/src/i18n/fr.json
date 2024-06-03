@@ -77,6 +77,11 @@
 			"one": "Colonne"
 		},
 		"comma": "virgule",
+		"conversion": {
+			"few": "Data Conversion",
+			"none": "No conversion",
+			"one": "Conversion"
+		},
 		"copy": "Copier",
 		"create": "Créer",
 		"createdOn": "Date de création",
@@ -649,6 +654,37 @@
 			"confirm": "Confirmer",
 			"delete": "Supprimer",
 			"title": "Confirmer"
+		},
+		"conversion": {
+			"actions": {
+				"all": "Conserver tous les éléments, séparés par une virgule",
+				"cancel": "Annuler la conversion",
+				"delete": "Supprimer la valeur et continuer",
+				"first": "Conserver le premier élément",
+				"ignore": "Ignorer l'enregistrement et poursuivre",
+				"last": "Conserver le dernier élément"
+			},
+			"convertButton": "Convertir",
+			"failedAction": {
+				"name": "Mesures à prendre en cas d'échec de la conversion",
+				"tooltip": "Sélectionnez ce qui sera fait pour les enregistrements qui ne sont pas convertis."
+			},
+			"initialType": {
+				"name": "Type de champ initial",
+				"tooltip": "Type initial du champ à partir duquel les enregistrements doivent être convertis."
+			},
+			"newType": {
+				"name": "Nouveau type de champ",
+				"tooltip": "Nouveau type de champ vers lequel convertir les enregistrements. Sélectionnez un type initial pour obtenir la liste des conversions possibles."
+			},
+			"popArray": {
+				"name": "Action pour popArray",
+				"tooltip": "Cette conversion transforme un champ stocké sous forme de tableau en un champ qui ne l'est pas. Sélectionnez l'élément du tableau qui sera conservé."
+			},
+			"selectResource": {
+				"name": "Action pour selectResource",
+				"tooltip": "Sélectionnez une ressource à laquelle l'enregistrement doit être lié ou Aucune pour obtenir automatiquement la ressource à partir de l'enregistrement."
+			}
 		},
 		"customNotifications": {
 			"edit": {

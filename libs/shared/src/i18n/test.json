@@ -77,6 +77,11 @@
 			"one": "******"
 		},
 		"comma": "******",
+		"conversion": {
+			"few": "******",
+			"none": "******",
+			"one": "******"
+		},
 		"copy": "******",
 		"create": "******",
 		"createdOn": "******",
@@ -649,6 +654,37 @@
 			"confirm": "******",
 			"delete": "******",
 			"title": "******"
+		},
+		"conversion": {
+			"actions": {
+				"all": "******",
+				"cancel": "******",
+				"delete": "******",
+				"first": "******",
+				"ignore": "******",
+				"last": "******"
+			},
+			"convertButton": "******",
+			"failedAction": {
+				"name": "******",
+				"tooltip": "******"
+			},
+			"initialType": {
+				"name": "******",
+				"tooltip": "******"
+			},
+			"newType": {
+				"name": "******",
+				"tooltip": "******"
+			},
+			"popArray": {
+				"name": "******",
+				"tooltip": "******"
+			},
+			"selectResource": {
+				"name": "******",
+				"tooltip": "******"
+			}
 		},
 		"customNotifications": {
 			"edit": {
