@@ -95,6 +95,57 @@ export const init = (environment: any): void => {
       }
     },
   });
+
+  // Adds a few properties to handle old records when the form structure changes
+  serializer.addProperty('survey', {
+    name: 'updateOldRecords:boolean',
+    category: 'Records',
+    default: false,
+  });
+
+  // If updateOldRecords is true, the user can choose what to do with the records that fail to convert
+  serializer.addProperty('survey', {
+    name: 'onConversionFail:dropdown',
+    category: 'Records',
+    choices: [
+      {
+        value: 'skip',
+        text: 'Remove value',
+      },
+      {
+        value: 'ignore',
+        text: 'Keep old value',
+      },
+      {
+        value: 'archive',
+        text: 'Archive record',
+      },
+    ],
+    default: 'skip',
+    visibleIf: (survey: SurveyModel) => survey.updateOldRecords,
+  });
+  // The user can also select the logic for choosing between multiple values if question with choices
+  serializer.addProperty('survey', {
+    name: 'strategyForArrays:dropdown',
+    category: 'Records',
+    choices: [
+      {
+        value: 'first',
+        text: 'First value',
+      },
+      {
+        value: 'last',
+        text: 'Last value',
+      },
+      {
+        value: 'random',
+        text: 'Random value',
+      },
+    ],
+    default: 'first',
+    visibleIf: (survey: SurveyModel) => survey.updateOldRecords,
+  });
+
   // change the prefix for comments
   settings.commentPrefix = '_comment';
   // override default expression properties
