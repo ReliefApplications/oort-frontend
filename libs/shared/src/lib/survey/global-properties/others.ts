@@ -73,7 +73,11 @@ export const init = (environment: any): void => {
     question: Question,
     newValue: string
   ) => {
-    question.setPropertyValue('oldName', question.name);
+    if (newValue && question.name && newValue !== question.name) {
+      question.setPropertyValue('oldName', question.name);
+    } else {
+      question.setPropertyValue('oldName', undefined);
+    }
     question.setPropertyValue('valueName', newValue);
     return newValue;
   };
