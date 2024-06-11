@@ -63,6 +63,24 @@ export const init = (environment: any): void => {
     }
     return newValue;
   };
+  // When updating the question name, we need to inform that's a new name
+  Serializer.addProperty('question', {
+    name: 'oldName',
+    visible: false,
+  });
+  // When updating the question name, sets the question valueName as well
+  serializer.getProperty('question', 'name').onSettingValue = (
+    question: Question,
+    newValue: string
+  ) => {
+    if (newValue && question.name && newValue !== question.name) {
+      question.setPropertyValue('oldName', question.name);
+    } else {
+      question.setPropertyValue('oldName', undefined);
+    }
+    question.setPropertyValue('valueName', newValue);
+    return newValue;
+  };
   // Adds valueExpression to questions, that when set pretty much transforms it into an expression question
   // whilst still keeping normal question behaviors
   Serializer.addProperty('question', {
