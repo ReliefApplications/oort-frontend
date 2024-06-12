@@ -6,6 +6,7 @@ import * as ResourcesComponent from './components/resources';
 import * as OwnerComponent from './components/owner';
 import * as UsersComponent from './components/users';
 import * as GeospatialComponent from './components/geospatial';
+import * as DateRangeComponent from './components/daterange';
 import { Apollo } from 'apollo-angular';
 
 /**
@@ -17,6 +18,7 @@ export enum CustomQuestionTypes {
   OWNER = 'owner',
   USERS = 'users',
   GEO_SPATIAL = 'geoSpatial',
+  TESTE = 'teste',
 }
 
 /** Custom question options */
@@ -55,5 +57,10 @@ export const InitCustomQuestionComponent: {
     const { injector, instance } = options;
     const domService = injector.get(DomService);
     GeospatialComponent.init(domService, instance);
+  },
+  teste: (options) => {
+    const { injector, instance } = options;
+    const domService = injector.get(DomService);
+    DateRangeComponent.init(domService, instance);
   },
 };

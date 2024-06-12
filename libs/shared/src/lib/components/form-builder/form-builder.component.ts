@@ -58,6 +58,7 @@ const QUESTION_TYPES = [
   'multipletext',
   'panel',
   'paneldynamic',
+  'teste',
 ];
 
 /**
