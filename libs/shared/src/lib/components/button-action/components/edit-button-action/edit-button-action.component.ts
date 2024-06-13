@@ -24,13 +24,11 @@ import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { get } from 'lodash';
 import { RawEditorSettings } from 'tinymce';
 import { EditorModule } from '@tinymce/tinymce-angular';
-import {
-  EditorService,
-  EditorControlComponent,
-  DataTemplateService,
-  INLINE_EDITOR_CONFIG,
-  ButtonActionT,
-} from '@oort-front/shared';
+import { EditorService } from '../../../../services/editor/editor.service';
+import { DataTemplateService } from '../../../../services/data-template/data-template.service';
+import { INLINE_EDITOR_CONFIG } from '../../../../const/tinymce.const';
+import { EditorControlComponent } from '../../../../components/editor-control/editor-control.component';
+import { ButtonActionT } from '../../button-action-type';
 import { Router } from '@angular/router';
 
 /**

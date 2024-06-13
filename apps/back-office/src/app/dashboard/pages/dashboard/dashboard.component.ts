@@ -614,9 +614,7 @@ export class DashboardComponent
 
   /** Open modal to add new button action */
   public async onAddButtonAction() {
-    const { EditButtonActionComponent } = await import(
-      './components/edit-button-action/edit-button-action.component'
-    );
+    const { EditButtonActionComponent } = await import('@oort-front/shared');
     const dialogRef = this.dialog.open<ButtonActionT | undefined>(
       EditButtonActionComponent
     );

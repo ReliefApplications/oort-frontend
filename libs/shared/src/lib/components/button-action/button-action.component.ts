@@ -5,6 +5,7 @@ import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { DataTemplateService } from '../../services/data-template/data-template.service';
 import { Dashboard } from '../../models/dashboard.model';
 import { ButtonActionT } from './button-action-type';
+import { firstValueFrom } from 'rxjs';
 
 /** Component for display action buttons */
 @Component({
@@ -43,6 +44,32 @@ export class ButtonActionComponent {
       if (button.openInNewTab) window.open(href, '_blank');
       else window.location.href = href;
     }
+  }
+
+  /**
+   * Opens dialog for editing button action.
+   *
+   * @param idx Index of button action to be edited
+   */
+  public async onEditButtonAction(idx: number) {
+    const { EditButtonActionComponent } = await import(
+      './components/edit-button-action/edit-button-action.component'
+    );
+    const dialogRef = this.dialog.open<ButtonActionT | undefined>(
+      EditButtonActionComponent,
+      {
+        data: this.dashboard?.buttons?.[idx],
+      }
+    );
+
+    dialogRef.closed.subscribe(async (button) => {
+      if (!button) return;
+      const currButtons =
+        (await firstValueFrom(this.dashboardService.dashboard$))?.buttons || [];
+
+      currButtons[idx] = button;
+      this.dashboardService.saveDashboardButtons(currButtons);
+    });
   }
 
   /**
