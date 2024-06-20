@@ -18,7 +18,7 @@ export enum CustomQuestionTypes {
   OWNER = 'owner',
   USERS = 'users',
   GEO_SPATIAL = 'geoSpatial',
-  TESTE = 'teste',
+  DATE_RANGE = 'dateRange',
 }
 
 /** Custom question options */
@@ -58,7 +58,7 @@ export const InitCustomQuestionComponent: {
     const domService = injector.get(DomService);
     GeospatialComponent.init(domService, instance);
   },
-  teste: (options) => {
+  dateRange: (options) => {
     const { injector, instance } = options;
     const domService = injector.get(DomService);
     DateRangeComponent.init(domService, instance);
