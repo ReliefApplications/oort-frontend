@@ -13,6 +13,7 @@
   [menuOpened]="!hideMenu"
   [profileRoute]="appID ? '/' + appID + '/profile' : '/profile'"
   (openApplication)="onOpenApplication($event)"
+  [variant]="'new'"
 ></shared-layout>
 <!--Need the nav variable, don't remove let-nav, used in layout-->
 <ng-template #pages let-nav>
@@ -21,6 +22,8 @@
     [appLayout]="true"
     [navGroups]="navGroups"
     [vertical]="!(!sideMenu && largeDevice)"
+    [variant]="'new'"
+    [bottomOptions]="adminNavItems"
   ></shared-navbar>
 </ng-template>
 

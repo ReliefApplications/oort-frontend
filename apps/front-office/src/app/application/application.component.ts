@@ -263,6 +263,7 @@ export class ApplicationComponent
         icon: 'schedule_send',
       });
     }
+    console.log(this.adminNavItems);
   }
 
   override ngOnDestroy(): void {

@@ -15,7 +15,11 @@ import {
 import { NavigationEnd, Router } from '@angular/router';
 import { SidenavDirective } from './sidenav.directive';
 import { Subject, takeUntil } from 'rxjs';
-import { SidenavPositionTypes, SidenavTypes } from './types/sidenavs';
+import {
+  SidenavPositionTypes,
+  SidenavTypes,
+  SidenavVariantsTypes,
+} from './types/sidenavs';
 import { filter } from 'rxjs/operators';
 import { UILayoutService } from './layout/layout.service';
 
@@ -48,6 +52,8 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   public mode: SidenavTypes[] = [];
   /** Array indicating the position of each side navigation menu. */
   public position: SidenavPositionTypes[] = [];
+  /** Array indicating the variant of each side navigation menu. */
+  public variant: SidenavVariantsTypes[] = [];
   /** Array indicating whether each side navigation menu is visible. */
   public visible: boolean[] = [];
   /** Subject to emit when the component is destroyed. */
@@ -128,6 +134,7 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
         : false;
       this.mode[index] = sidenavDirective.mode;
       this.position[index] = sidenavDirective.position;
+      this.variant[index] = sidenavDirective.variant;
       this.setRightSidenavHeight(
         this.sidenav.get(index).nativeElement,
         sidenavDirective
@@ -205,6 +212,12 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
       classes.push(
         'shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)]'
       );
+    }
+    if (this.variant[index] === 'new') {
+      classes.push('text-white');
+      classes.push('bg-[#161215]');
+    } else {
+      classes.push('bg-white');
     }
     return classes;
   }

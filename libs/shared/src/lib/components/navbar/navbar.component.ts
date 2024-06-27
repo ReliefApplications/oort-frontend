@@ -6,6 +6,14 @@ import {
   HostListener,
 } from '@angular/core';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
+
+/**
+ * Available variants for the style of this component
+ * Use 'original' to get the default look
+ * Use 'new' to get the oort revamp look (TODO: Horizontal compatibility)
+ */
+type SidenavVariantsTypes = 'original' | 'new';
+
 /**
  * Navbar used in the main layout.
  * Can be horizontal or vertical.
@@ -26,10 +34,17 @@ export class NavbarComponent {
   @Input() navGroups: any[] = [];
   /** Navigation group selected */
   @Input() nav: any;
+  /** Variant style for the layout */
+  @Input() variant: SidenavVariantsTypes = 'original';
+  /** Variant style for the layout */
+  @Input() bottomOptions: any[] = [];
+
   /** Event emitted when the navbar items are reordered. */
   @Output() reorder: EventEmitter<any> = new EventEmitter();
   /** Boolean for portview threshold */
   public largeDevice: boolean;
+  /** Used to change text color on variant */
+  public hovered = '';
 
   /**
    * Navbar used in the main layout.

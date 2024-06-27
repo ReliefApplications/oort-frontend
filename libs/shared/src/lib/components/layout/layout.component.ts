@@ -28,6 +28,13 @@ import { Breadcrumb, UILayoutService } from '@oort-front/ui';
 import { BreadcrumbService } from '../../services/breadcrumb/breadcrumb.service';
 
 /**
+ * Available variants for the style of this component
+ * Use 'original' to get the default look
+ * Use 'new' to get the oort revamp look (TODO: Horizontal compatibility)
+ */
+type SidenavVariantsTypes = 'original' | 'new';
+
+/**
  * Component for the main layout of the platform
  */
 @Component({
@@ -96,6 +103,11 @@ export class LayoutComponent
    * Event emitted when the user clicks on the profile button
    */
   @Input() menuOpened = true;
+
+  /**
+   * Event emitted when the user clicks on the profile button
+   */
+  @Input() variant: SidenavVariantsTypes = 'original';
 
   /**
    * Languages available

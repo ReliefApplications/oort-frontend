@@ -98,3 +98,13 @@
   max-height: calc(100vh - 48px);
   overflow: auto;
 }
+
+.new-variant {
+  & > li {
+    @apply min-h-[44px] text-white mb-2;
+
+    & > a {
+      @apply py-0;
+    }
+  }
+}

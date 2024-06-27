@@ -11,6 +11,7 @@
   [leftSidenav]="pages"
   [sideMenu]="sideMenu"
   [menuOpened]="!hideMenu"
+  [variant]="'new'"
 ></shared-layout>
 <ng-template #header>
   <app-application-header
@@ -28,6 +29,7 @@
     [appLayout]="true"
     [canAddPage]="application?.canUpdate!"
     [vertical]="!(!sideMenu && largeDevice)"
+    [variant]="'new'"
     (reorder)="onReorder($event)"
   ></shared-navbar>
 </ng-template>

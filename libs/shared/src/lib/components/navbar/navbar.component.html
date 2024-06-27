@@ -13,7 +13,7 @@
         <div
           class="overflow-clip flex flex-row justify-between items-center text-xs font-semibold pt-2 leading-6 text-gray-400"
         >
-          <div class="truncate">
+          <div class="truncate" [ngClass]="{'mb-2': variant === 'new'}">
             {{ group.name }}
           </div>
           <ui-button
@@ -28,13 +28,21 @@
           ></ui-button>
         </div>
         <ng-container
-          *ngTemplateOutlet="navListTmpl; context: { $implicit: group }"
+          *ngTemplateOutlet="navListTmpl; context: { $implicit: group, index: i }"
         ></ng-container>
       </div>
-      <ng-container *ngIf="appLayout && canAddPage">
+      <ng-container *ngIf="appLayout">
         <div class="flex flex-col items-center w-full absolute bottom-0">
-          <ui-divider class="m-0"></ui-divider>
-          <ng-container *ngTemplateOutlet="addPageButton"></ng-container>
+          <ng-container *ngIf="canAddPage">
+            <ui-divider class="m-0"></ui-divider>
+            <ng-container *ngTemplateOutlet="addPageButton"></ng-container>
+          </ng-container>
+          <div class="pl-6 py-4 w-full" *ngIf="variant === 'new' && bottomOptions.length > 0">
+            <div class="w-[calc(100% - 1.5rem)] h-[1px] mr-6 mb-4 bg-slate-800"></div>
+            <ng-container
+              *ngTemplateOutlet="navListTmpl; context: { $implicit: {navItems: bottomOptions}, index: -1 }"
+            ></ng-container>
+          </div>
         </div>
       </ng-container>
     </ng-container>
@@ -51,7 +59,7 @@
 </section>
 
 <!-- Shared templates for vertical and horizontal view -->
-<ng-template #navListTmpl let-group>
+<ng-template #navListTmpl let-group let-i="index">
   <div
     cdkDropList
     [cdkDropListOrientation]="vertical ? 'vertical' : 'horizontal'"
@@ -65,22 +73,31 @@
     }"
   >
     <!-- Classes determine nav-list height for application layout -->
-    <ul [ngClass]="{ 'pr-6': vertical, flex: !vertical }">
-      <ng-container *ngFor="let item of group.navItems">
+    <ul [ngClass]="{
+      'pr-6': vertical, flex: !vertical,
+      }">
+      <ng-container *ngFor="let item of group.navItems;  let j = index">
         <div
           cdkDrag
           [cdkDragDisabled]="!item.orderable"
-          [ngClass]="{ 'w-full max-w-[200px]': !vertical }"
           class="show-icons"
+          [ngClass]="{
+            'w-full max-w-[200px]': !vertical,
+            'new-variant': variant === 'new'
+          }"
         >
-          <li routerLinkActive="text-primary-600 bg-gray-50">
+          <li
+            [routerLinkActive]="variant === 'new' ? 'bg-primary-600' : 'text-primary-600 bg-gray-50'"
+            (mouseover)="hovered = i+':'+j"
+            (mouseout)="hovered = ''"
+          >
             <a
               class="group"
               (click)="largeDevice ? null : nav.toggle()"
               [routerLink]="item.path"
             >
               <ui-icon
-                variant="grey"
+                [variant]="variant === 'new' ? (hovered === i+':'+j ? 'primary' : 'light') : 'grey'"
                 [icon]="item.icon"
                 [fontFamily]="item.fontFamily"
                 [size]="vertical ? 24 : 18"

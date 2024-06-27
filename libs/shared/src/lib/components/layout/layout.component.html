@@ -175,6 +175,7 @@
     [mode]="largeDevice ? 'side' : 'over'"
     [opened]="largeDevice && sideMenu && menuOpened"
     [visible]="!!leftSidenav"
+    [variant]="variant"
   >
     <ng-container *ngIf="leftSidenav">
       <ng-container
