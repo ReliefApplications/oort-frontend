@@ -64,6 +64,7 @@ export const init = (
             obj.inputType || ''
           ),
         onPropertyEditorUpdate: (obj: QuestionText, propertyEditor: any) => {
+          console.log(obj.inputType);
           if (!!obj && !!obj.inputType) {
             propertyEditor.inputType = obj.inputType;
           }
@@ -134,6 +135,7 @@ export const init = (
             question.inputType
           )
         ) {
+          console.log(question.inputType);
           pickerDiv = document.createElement('div');
           pickerDiv.classList.add('flex', 'min-h-[36px]');
           const pickerInstance = createPickerInstance(

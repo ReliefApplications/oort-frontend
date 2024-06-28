@@ -2,9 +2,10 @@ import {
   ComponentCollection,
   JsonMetadata,
   Serializer,
+  SurveyError,
   SvgRegistry,
 } from 'survey-core';
-import { Question } from '../types';
+import { Question, QuestionText } from '../types';
 import { DomService } from '../../services/dom/dom.service';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
 import { registerCustomPropertyEditor } from './utils/component-register';
@@ -14,6 +15,7 @@ import { registerCustomPropertyEditor } from './utils/component-register';
  *
  * @param domService DOM service.
  * @param componentCollectionInstance ComponentCollection
+ * @param translateService Angular translate service
  */
 export const init = (
   domService: DomService,
@@ -33,58 +35,70 @@ export const init = (
       name: 'daterange',
       type: 'text',
       inputType: 'range',
-      step: 0.5,
+      step: 1,
+      default: 1,
+      min: 1,
     },
     category: 'Custom Questions',
     onInit: (): void => {
       const serializer: JsonMetadata = Serializer;
-      // initial date
+      // min date
       serializer.addProperty('daterange', {
         name: 'dateMin',
         type: CustomPropertyGridComponentTypes.dateTypeDisplayer,
-        category: 'Custom Questions',
-        visibleIndex: 8,
-        dependsOn: 'inputType',
-        onPropertyEditorUpdate: (obj: any, propertyEditor: any) => {
-          if (!!obj && !!obj.inputType) {
-            propertyEditor.inputType = obj.inputType;
-          }
+        category: 'Custom questions',
+        visibleIndex: 1,
+        isRequired: true,
+        onPropertyEditorUpdate: (obj: QuestionText, propertyEditor: any) => {
+          propertyEditor.inputType = 'date';
         },
-        onSetValue: (obj: any, value: any) => {
+        onSetValue: (obj: QuestionText, value: any) => {
           obj.setPropertyValue('dateMin', value);
-          obj.setPropertyValue('min', value);
+          // obj.addError(new SurveyError('This is a custom error message'));
+          // console.log(obj.hasErrors());
         },
       });
+      // max date
+      serializer.addProperty('daterange', {
+        name: 'dateMax',
+        type: CustomPropertyGridComponentTypes.dateTypeDisplayer,
+        category: 'Custom questions',
+        visibleIndex: 2,
+        isRequired: true,
+        onPropertyEditorUpdate: (obj: QuestionText, propertyEditor: any) => {
+          propertyEditor.inputType = 'date';
+        },
+        onSetValue: (obj: QuestionText, value: any) => {
+          obj.setPropertyValue('dateMax', value);
+        },
+      });
+      // register the editor for type "date" with kendo date picker
       registerCustomPropertyEditor(
         CustomPropertyGridComponentTypes.dateTypeDisplayer
       );
     },
     onAfterRender: (question: Question, el: HTMLElement): void => {
-      console.log(question);
-      console.log(el);
-      // hides the input element
-      // const element = el.getElementsByTagName('input')[0].parentElement;
-      // if (element) element.style.display = 'none';
+      const data = question.toJSON();
+      // console.log(data);
+      const dateMin = data.dateMin;
+      const date = new Date(dateMin); // Parse the ISO string to a Date object
+      // console.log('date = ', date);
+      const milliseconds = date.getTime(); // Get the time in milliseconds since the Unix epoch
+      const minutes = Math.floor(milliseconds / (1000 * 60)); // Convert milliseconds to minutes
 
-      // render the GeospatialMapComponent
-      // const map = domService.appendComponentToBody(GeospatialMapComponent, el);
-      // const instance: GeospatialMapComponent = map.instance;
+      const dateMax = data.dateMax;
+      const date2 = new Date(dateMax); // Parse the ISO string to a Date object
+      // console.log('date2 = ', date2);
+      const milliseconds2 = date2.getTime(); // Get the time in milliseconds since the Unix epoch
+      const minutes2 = Math.floor(milliseconds2 / (1000 * 60)); // Convert milliseconds to minutes
 
-      // // inits the map with the value of the question
-      // if (question.value) instance.data = question.value;
+      const diff = (minutes2 - minutes) / (60 * 24) + 1;
 
-      // // Set geo fields
-      // instance.fields = getGeoFields(question);
-
-      // // Listen to change on geofields
-      // question.registerFunctionOnPropertyValueChanged('geoFields', () => {
-      //   instance.fields = question.geoFields;
-      // });
-
-      // // updates the question value when the map changes
-      // instance.mapChange.subscribe((res) => {
-      //   question.value = res;
-      // });
+      // Set the max property dynamically
+      const inputElement = el.querySelector('input[type="range"]');
+      if (inputElement) {
+        inputElement.setAttribute('max', diff.toString());
+      }
     },
   };
   componentCollectionInstance.add(component);

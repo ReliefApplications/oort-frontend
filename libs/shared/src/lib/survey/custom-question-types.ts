@@ -8,6 +8,7 @@ import * as UsersComponent from './components/users';
 import * as GeospatialComponent from './components/geospatial';
 import * as DateRangeComponent from './components/daterange';
 import { Apollo } from 'apollo-angular';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * Custom question types for the survey creator toolbox
