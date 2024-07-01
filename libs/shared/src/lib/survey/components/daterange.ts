@@ -2,13 +2,13 @@ import {
   ComponentCollection,
   JsonMetadata,
   Serializer,
-  SurveyError,
   SvgRegistry,
 } from 'survey-core';
 import { Question, QuestionText } from '../types';
 import { DomService } from '../../services/dom/dom.service';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
 import { registerCustomPropertyEditor } from './utils/component-register';
+import { DateRangeComponent } from './date-range/date-range.component';
 
 /**
  * Inits the geospatial component.
@@ -34,10 +34,6 @@ export const init = (
     questionJSON: {
       name: 'daterange',
       type: 'text',
-      inputType: 'range',
-      step: 1,
-      default: 1,
-      min: 1,
     },
     category: 'Custom Questions',
     onInit: (): void => {
@@ -54,8 +50,6 @@ export const init = (
         },
         onSetValue: (obj: QuestionText, value: any) => {
           obj.setPropertyValue('dateMin', value);
-          // obj.addError(new SurveyError('This is a custom error message'));
-          // console.log(obj.hasErrors());
         },
       });
       // max date
@@ -78,26 +72,37 @@ export const init = (
       );
     },
     onAfterRender: (question: Question, el: HTMLElement): void => {
+      // hides the input element
+      const element = el.getElementsByTagName('input')[0].parentElement;
+      if (element) element.style.display = 'none';
+
       const data = question.toJSON();
-      // console.log(data);
-      const dateMin = data.dateMin;
-      const date = new Date(dateMin); // Parse the ISO string to a Date object
-      // console.log('date = ', date);
-      const milliseconds = date.getTime(); // Get the time in milliseconds since the Unix epoch
-      const minutes = Math.floor(milliseconds / (1000 * 60)); // Convert milliseconds to minutes
 
-      const dateMax = data.dateMax;
-      const date2 = new Date(dateMax); // Parse the ISO string to a Date object
-      // console.log('date2 = ', date2);
-      const milliseconds2 = date2.getTime(); // Get the time in milliseconds since the Unix epoch
-      const minutes2 = Math.floor(milliseconds2 / (1000 * 60)); // Convert milliseconds to minutes
+      // check if it has date min and date max before render
+      if (data.dateMin && data.dateMax) {
+        const dateMinMilliseconds = new Date(data.dateMin).getTime(); // Get the time in milliseconds since the Unix epoch
+        const dateMaxMilliseconds = new Date(data.dateMax).getTime(); // Get the time in milliseconds since the Unix epoch
 
-      const diff = (minutes2 - minutes) / (60 * 24) + 1;
+        // check if date max is later than date min
+        if (dateMaxMilliseconds > dateMinMilliseconds) {
+          // render the DateRangeComponent
+          const daterange = domService.appendComponentToBody(
+            DateRangeComponent,
+            el
+          );
+          const instance: DateRangeComponent = daterange.instance;
 
-      // Set the max property dynamically
-      const inputElement = el.querySelector('input[type="range"]');
-      if (inputElement) {
-        inputElement.setAttribute('max', diff.toString());
+          instance.dateMin = data.dateMin;
+          instance.dateMax = data.dateMax;
+
+          // inits the map with the value of the question
+          if (question.value) instance.data = question.value;
+
+          // updates the question value when the range changes
+          instance.dateChange.subscribe((res) => {
+            question.value = res;
+          });
+        }
       }
     },
   };
