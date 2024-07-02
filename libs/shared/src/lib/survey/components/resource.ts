@@ -633,7 +633,6 @@ export const init = (
     },
     // Display of add button for resource question ans set placeholder, if any
     onAfterRender: (question: QuestionResource, el: HTMLElement): void => {
-      console.log(question);
       const survey: SurveyModel = question.survey as SurveyModel;
       survey.loadedRecords = loadedRecords;
 

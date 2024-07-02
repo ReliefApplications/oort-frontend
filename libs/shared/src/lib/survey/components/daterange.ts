@@ -21,16 +21,16 @@ export const init = (
   domService: DomService,
   componentCollectionInstance: ComponentCollection
 ): void => {
-  // registers icon-geospatial in the SurveyJS library
+  // registers icon-daterange in the SurveyJS library
   SvgRegistry.registerIconFromSvg(
-    'daterange',
-    '<svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 0 24 24" width="18px"> <path d="M0 0h24v24H0V0z" fill="none" /> <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM10 5.47l4 1.4v11.66l-4-1.4V5.47zm-5 .99l3-1.01v11.7l-3 1.16V6.46zm14 11.08l-3 1.01V6.86l3-1.16v11.84z" /></svg>'
+    'icon-daterange',
+    '<svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 0 24 24" width="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V10h14v9zm0-11H5V5h14v3z"/><path d="M7 12h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>'
   );
 
   const component = {
     name: 'daterange',
     title: 'Date Range',
-    iconName: 'icon-geospatial',
+    iconName: 'icon-daterange',
     questionJSON: {
       name: 'daterange',
       type: 'text',
@@ -70,6 +70,22 @@ export const init = (
       registerCustomPropertyEditor(
         CustomPropertyGridComponentTypes.dateTypeDisplayer
       );
+    },
+    /**
+     * Set default date min and date max
+     *
+     * @param question The current resource question
+     */
+    onLoaded(question: Question): void {
+      const data = question.toJSON();
+      if (!data.dateMin) {
+        question.dateMin = new Date();
+      }
+
+      if (!data.dateMax) {
+        question.dateMax = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // one day later before the current
+        question.update;
+      }
     },
     onAfterRender: (question: Question, el: HTMLElement): void => {
       // hides the input element
