@@ -138,6 +138,7 @@
               [selectedElements]="[selectedApiConfiguration]"
               [filterable]="true"
               (searchChange)="onSearchChange($event)"
+              (selectionChange)="onSelectionChange($event)"
               [placeholder]="
                 'components.form.create.kobo.apiConfiguration.placeholder'
                   | translate
@@ -145,15 +146,21 @@
             >
             </ui-graphql-select>
           </div>
-          <div uiFormFieldDirective>
+          <div uiFormFieldDirective *ngIf="form.get('apiConfiguration')?.value">
             <label>{{ 'components.form.create.kobo.label' | translate }}</label>
-            <input
+            <ui-select-menu
+              [loading]="loadingKoboForms"
+              [filterable]="true"
               formControlName="kobo"
-              type="text"
-              [placeholder]="
-                'components.form.create.kobo.placeholder' | translate
-              "
-            />
+              [placeholder]="'components.form.create.kobo.placeholder' | translate"
+            >
+              <ui-select-option
+                *ngFor="let form of koboForms"
+                [value]="form.id"
+              >
+                {{ form.title }}
+              </ui-select-option>
+            </ui-select-menu>
           </div>
         </ng-container>
       </div>

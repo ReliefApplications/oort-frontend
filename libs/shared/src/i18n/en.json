@@ -835,10 +835,11 @@
         },
         "kobo": {
           "apiConfiguration": {
-            "placeholder": "Select an api configuration"
+            "placeholder": "Select an API configuration"
           },
-          "label": "KoboToolbox form id",
-          "placeholder": "Enter a KoboToolbox form id"
+          "selectAPIConfigurationFirst": "Please select a API configuration first",
+          "label": "KoboToolbox form",
+          "placeholder": "Select a KoboToolbox form"
         },
         "template": {
           "from": "From template",

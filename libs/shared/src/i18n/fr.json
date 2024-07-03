@@ -846,10 +846,11 @@
         },
         "kobo": {
           "apiConfiguration": {
-            "placeholder": "Sélectionnez une configuration d'api"
+            "placeholder": "Sélectionnez une configuration d'API"
           },
-          "label": "Identifiant du formulaire KoboToolbox",
-          "placeholder": "Entrez l'identifiant du formulaire KoboToolbox"
+          "selectAPIConfigurationFirst": "Veuillez d'abord sélectionner une configuration d'API",
+          "label": "Formulaire KoboToolbox",
+          "placeholder": "Sélectionnez un formulaire KoboToolbox"
         },
         "template": {
           "from": "Depuis le modèle",

@@ -1,7 +1,10 @@
 import { Apollo, QueryRef } from 'apollo-angular';
 import { Component, OnInit } from '@angular/core';
 import { Validators, FormBuilder } from '@angular/forms';
-import { GET_RESOURCE_BY_ID } from './graphql/queries';
+import {
+  GET_RESOURCE_BY_ID,
+  KOBO_FORMS_FROM_API_CONFIGURATION,
+} from './graphql/queries';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -20,8 +23,10 @@ import { DialogModule } from '@oort-front/ui';
 import { DialogRef } from '@angular/cdk/dialog';
 import {
   Form,
+  KoboFormFromAPIConfigurationQueryResponse,
   ResourceQueryResponse,
   ResourceSelectComponent,
+  UnsubscribeComponent,
 } from '@oort-front/shared';
 import {
   ApiConfiguration,
@@ -32,6 +37,8 @@ import {
   GET_API_CONFIGURATION,
   GET_API_CONFIGURATIONS_NAMES,
 } from './graphql/queries';
+import { firstValueFrom, takeUntil } from 'rxjs';
+import { get } from 'lodash';
 
 /** Default pagination parameter. */
 const ITEMS_PER_PAGE = 10;
@@ -63,7 +70,10 @@ const ITEMS_PER_PAGE = 10;
   templateUrl: './add-form-modal.component.html',
   styleUrls: ['./add-form-modal.component.scss'],
 })
-export class AddFormModalComponent implements OnInit {
+export class AddFormModalComponent
+  extends UnsubscribeComponent
+  implements OnInit
+{
   /** Form group */
   public form = this.fb.group({
     name: ['', Validators.required],
@@ -76,10 +86,16 @@ export class AddFormModalComponent implements OnInit {
   });
   /** Available templates */
   public templates: Form[] = [];
+  /** Loading kobo form indicator */
+  public loadingKoboForms = true;
+  /** Available kobo forms */
+  public koboForms: { title: string; id: string }[] = [];
   /** Selected API configuration */
   public selectedApiConfiguration?: ApiConfiguration;
   /** Api configurations query */
   public apiConfigurationsQuery!: QueryRef<ApiConfigurationsQueryResponse>;
+  /** Kobo forms query */
+  public koboFormsQuery!: QueryRef<KoboFormFromAPIConfigurationQueryResponse>;
 
   /**
    * Selected template
@@ -103,46 +119,52 @@ export class AddFormModalComponent implements OnInit {
     private fb: FormBuilder,
     public dialogRef: DialogRef<AddFormModalComponent>,
     private apollo: Apollo
-  ) {}
+  ) {
+    super();
+  }
 
   /** Load the resources and build the form. */
   ngOnInit(): void {
-    this.form.get('type')?.valueChanges.subscribe((value: string) => {
-      if (value == 'core') {
-        this.form.get('resource')?.clearValidators();
-        this.form.get('kobo')?.clearValidators();
-        this.form.get('apiConfiguration')?.clearValidators();
-        this.form.patchValue({
-          resource: null,
-          inheritsTemplate: false,
-          template: null,
-          apiConfiguration: null,
-          kobo: null,
-        });
-      } else if (value == 'template') {
-        this.form.get('kobo')?.clearValidators();
-        this.form.get('apiConfiguration')?.clearValidators();
-        this.form.patchValue({
-          apiConfiguration: null,
-          kobo: null,
-        });
-        this.form.get('resource')?.setValidators([Validators.required]);
-      } else {
-        this.form.get('resource')?.clearValidators();
-        this.form.patchValue({
-          resource: null,
-          inheritsTemplate: false,
-          template: null,
-        });
-        this.loadApiConfigurations();
-        this.form.get('kobo')?.setValidators([Validators.required]);
-      }
-      this.form.get('resource')?.updateValueAndValidity();
-    });
+    this.form
+      .get('type')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value: string) => {
+        if (value == 'core') {
+          this.form.get('resource')?.clearValidators();
+          this.form.get('kobo')?.clearValidators();
+          this.form.get('apiConfiguration')?.clearValidators();
+          this.form.patchValue({
+            resource: null,
+            inheritsTemplate: false,
+            template: null,
+            apiConfiguration: null,
+            kobo: null,
+          });
+        } else if (value == 'template') {
+          this.form.get('kobo')?.clearValidators();
+          this.form.get('apiConfiguration')?.clearValidators();
+          this.form.patchValue({
+            apiConfiguration: null,
+            kobo: null,
+          });
+          this.form.get('resource')?.setValidators([Validators.required]);
+        } else {
+          this.form.get('resource')?.clearValidators();
+          this.form.patchValue({
+            resource: null,
+            inheritsTemplate: false,
+            template: null,
+          });
+          this.loadApiConfigurations();
+          this.form.get('kobo')?.setValidators([Validators.required]);
+        }
+        this.form.get('resource')?.updateValueAndValidity();
+      });
 
     this.form
       .get('inheritsTemplate')
-      ?.valueChanges.subscribe((value: boolean) => {
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value: boolean) => {
         if (value) {
           this.form.get('template')?.setValidators([Validators.required]);
         } else {
@@ -156,7 +178,8 @@ export class AddFormModalComponent implements OnInit {
 
     this.form
       .get('resource')
-      ?.valueChanges.subscribe((value: string | null) => {
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value: string | null) => {
         if (value) {
           this.getResource(value);
         } else {
@@ -182,6 +205,7 @@ export class AddFormModalComponent implements OnInit {
           id,
         },
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe(({ data }) => {
         this.templates = data.resource.forms || [];
       });
@@ -201,6 +225,7 @@ export class AddFormModalComponent implements OnInit {
             id: this.form.value.apiConfiguration,
           },
         })
+        .pipe(takeUntil(this.destroy$))
         .subscribe(({ data }) => {
           if (data.apiConfiguration) {
             this.selectedApiConfiguration = data.apiConfiguration;
@@ -219,7 +244,7 @@ export class AddFormModalComponent implements OnInit {
   }
 
   /**
-   * Update query based on text search.
+   * Update API Configuration query based on text search.
    *
    * @param search Search text from the graphql select
    */
@@ -238,5 +263,31 @@ export class AddFormModalComponent implements OnInit {
         ],
       },
     });
+  }
+
+  /**
+   * API Configuration selection change handler: fetch kobo forms
+   *
+   * @param API New API selected
+   */
+  async onSelectionChange(API: any): Promise<void> {
+    if (API) {
+      this.loadingKoboForms = true;
+      const apolloRes = await firstValueFrom(
+        this.apollo.query<KoboFormFromAPIConfigurationQueryResponse>({
+          query: KOBO_FORMS_FROM_API_CONFIGURATION,
+          variables: {
+            apiConfiguration: API,
+          },
+        })
+      );
+      if (get(apolloRes, 'data')) {
+        this.koboForms = apolloRes?.data?.koboFormsFromAPIConfiguration;
+        this.loadingKoboForms = false;
+      } else {
+        this.koboForms = [];
+        this.loadingKoboForms = false;
+      }
+    }
   }
 }
