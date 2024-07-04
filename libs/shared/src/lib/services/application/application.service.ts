@@ -382,6 +382,7 @@ export class ApplicationService {
             description: value.description,
             sideMenu: value.sideMenu,
             hideMenu: value.hideMenu,
+            variant: value.variant,
             status: value.status,
           },
         })

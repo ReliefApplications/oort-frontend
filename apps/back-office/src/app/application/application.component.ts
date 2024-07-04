@@ -13,6 +13,7 @@ import {
   ApplicationService,
   ConfirmService,
   UnsubscribeComponent,
+  SidenavVariantsTypes,
 } from '@oort-front/shared';
 import { get } from 'lodash';
 import { takeUntil, map } from 'rxjs/operators';
@@ -43,6 +44,8 @@ export class ApplicationComponent
   public sideMenu = false;
   /** Should hide menu by default ( only when vertical ) */
   public hideMenu = false;
+  /** Use side menu or not */
+  public variant: SidenavVariantsTypes = 'original';
   /** Is large device */
   public largeDevice: boolean;
   /** Loading indicator */
@@ -148,6 +151,10 @@ export class ApplicationComponent
           }
           this.application = application;
           this.sideMenu = this.application?.sideMenu ?? true;
+          this.variant =
+            this.sideMenu && this.application?.variant
+              ? this.application.variant
+              : 'original';
           this.hideMenu = this.application?.hideMenu ?? false;
         } else {
           this.title = '';

@@ -10,6 +10,7 @@ import {
   ContentType,
   UnsubscribeComponent,
   AppAbility,
+  SidenavVariantsTypes,
 } from '@oort-front/shared';
 import { SnackbarService } from '@oort-front/ui';
 import { get } from 'lodash';
@@ -45,6 +46,8 @@ export class ApplicationComponent
   public sideMenu = false;
   /** Should hide menu by default ( only when vertical ) */
   public hideMenu = false;
+  /** Dide menu variant */
+  public variant: SidenavVariantsTypes = 'original';
   /** Is large device */
   public largeDevice: boolean;
   /** Is loading */
@@ -140,6 +143,10 @@ export class ApplicationComponent
           this.application = application;
           this.sideMenu = this.application?.sideMenu ?? true;
           this.hideMenu = this.application?.hideMenu ?? false;
+          this.variant =
+            this.sideMenu && this.application?.variant
+              ? this.application.variant
+              : 'original';
         } else {
           this.title = '';
           this.navGroups = [];

@@ -94,6 +94,7 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
       sideMenu: [application.sideMenu],
       hideMenu: [application.hideMenu],
       description: [application.description],
+      variant: [application.variant || 'original'],
       status: [application.status],
     });
   }

@@ -14,7 +14,10 @@ import {
 } from '@angular/core';
 import { Account, AuthService } from '../../services/auth/auth.service';
 import { User } from '../../models/user.model';
-import { Application } from '../../models/application.model';
+import {
+  Application,
+  SidenavVariantsTypes,
+} from '../../models/application.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Notification } from '../../models/notification.model';
 import { Dialog } from '@angular/cdk/dialog';
@@ -26,13 +29,6 @@ import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component
 import { takeUntil } from 'rxjs/operators';
 import { Breadcrumb, UILayoutService } from '@oort-front/ui';
 import { BreadcrumbService } from '../../services/breadcrumb/breadcrumb.service';
-
-/**
- * Available variants for the style of this component
- * Use 'original' to get the default look
- * Use 'new' to get the oort revamp look (TODO: Horizontal compatibility)
- */
-type SidenavVariantsTypes = 'original' | 'new';
 
 /**
  * Component for the main layout of the platform

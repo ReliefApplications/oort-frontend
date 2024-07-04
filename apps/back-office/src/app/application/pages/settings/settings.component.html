@@ -92,6 +92,31 @@
         ></ng-container>
       </ui-toggle>
     </div>
+    <!-- Variant for side menu -->
+    <div uiFormFieldDirective [outline]="false" class="p-0" >
+      <ng-container ngProjectAs="label">
+        <span class="text-sm font-medium leading-6 text-gray-900">{{'components.application.update.variants.label' | translate }}</span>
+        <ui-icon
+          class="ml-1 cursor-help self-center"
+          variant="grey"
+          [size]="18"
+          icon="info_outline"
+          [uiTooltip]="
+            'components.application.update.tooltip.hideMenu' | translate
+          "
+        ></ui-icon
+      ></ng-container>
+      <ui-select-menu
+        formControlName="variant"
+      >
+        <ui-select-option [value]="'original'">
+          {{ 'components.application.update.variants.original' | translate }}
+        </ui-select-option>
+        <ui-select-option [value]="'new'">
+          {{ 'components.application.update.variants.new' | translate }}
+        </ui-select-option>
+      </ui-select-menu>
+    </div>
   </div>
 </form>
 <!-- Actions -->

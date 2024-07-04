@@ -717,6 +717,11 @@
         "sideMenu": "******",
         "tooltip": {
           "hideMenu": "******"
+        },
+        "variants": {
+          "label": "******",
+          "new": "******",
+          "original": "******"
         }
       },
       "users": {

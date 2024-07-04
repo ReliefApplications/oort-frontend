@@ -6,13 +6,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
-
-/**
- * Available variants for the style of this component
- * Use 'original' to get the default look
- * Use 'new' to get the oort revamp look (TODO: Horizontal compatibility)
- */
-type SidenavVariantsTypes = 'original' | 'new';
+import { SidenavVariantsTypes } from '../../models/application.model';
 
 /**
  * Navbar used in the main layout.
