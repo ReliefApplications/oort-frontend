@@ -1249,7 +1249,8 @@ export class GridComponent
    * @param url URL to open
    * @param event Click event
    */
-  public onOpenURL(url: string, event: MouseEvent) {
+  public onOpenURL(url: string | any, event: MouseEvent) {
+    url = typeof url === 'string' ? url : url.href;
     if (url?.startsWith(LIFT_REPORT_URL)) {
       event.preventDefault();
       const urlList = url.split('/');
