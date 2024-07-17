@@ -14,7 +14,7 @@ import {
   ConfirmService,
   UnsubscribeComponent,
 } from '@oort-front/shared';
-import { get } from 'lodash';
+import get from 'lodash/get';
 import { takeUntil, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
@@ -59,7 +59,7 @@ export class ApplicationComponent
    * @param router Angular router
    * @param translate Angular translate service
    * @param confirmService Shared confirmation service
-   * @param document Document object
+   * @param document Angular document
    */
   constructor(
     private applicationService: ApplicationService,
@@ -84,6 +84,7 @@ export class ApplicationComponent
         if (application) {
           // change the page title to the application name
           this.document.title = application.name || '';
+
           this.loading = false;
           this.title = application.name || '';
           const displayNavItems: any[] =
@@ -116,12 +117,6 @@ export class ApplicationComponent
             this.translate.onLangChange
               .pipe(takeUntil(this.destroy$))
               .subscribe(() => this.configNavItems());
-
-            this.adminNavItems.push({
-              name: this.translate.instant('common.archive.few'),
-              path: './settings/archive',
-              icon: 'delete',
-            });
           }
           this.navGroups = [
             {

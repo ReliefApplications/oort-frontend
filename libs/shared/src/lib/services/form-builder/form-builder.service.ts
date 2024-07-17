@@ -82,7 +82,10 @@ export const transformSurveyData = (survey: SurveyModel) => {
       };
 
       // Removes null values for invisible questions (or pages)
-      if (!isQuestionVisible(question) && data[filed] === null) {
+      if (
+        (!isQuestionVisible(question) && data[filed] === null) ||
+        question.omitField
+      ) {
         delete data[filed];
       }
     }
@@ -231,6 +234,13 @@ export class FormBuilderService {
         question.registerFunctionOnPropertyValueChanged('value', () => {
           question.validate();
         });
+      }
+    });
+
+    survey.onQuestionValueChanged = {};
+    survey.onValueChanged.add((_, options) => {
+      if (survey.onQuestionValueChanged[options.name]) {
+        survey.onQuestionValueChanged[options.name](options);
       }
     });
 

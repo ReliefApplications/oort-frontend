@@ -69,7 +69,7 @@ export const init = (environment: any): void => {
     name: 'valueExpression:expression',
     category: 'logic',
     onExecuteExpression: (obj: Question, res: any) => {
-      obj.readOnly = true;
+      // obj.readOnly = true;
       obj.value = res;
     },
   });
@@ -234,9 +234,7 @@ export const init = (environment: any): void => {
     isLocalizable: true,
     onExecuteExpression: (obj: QuestionPanelDynamicModel, res: any) => {
       // Weird bug with surveyJS, if we don't wait a bit, it doesn't work
-      setTimeout(() => {
-        obj.allowAddPanel = !!res;
-      }, 50);
+      obj.allowAddPanel = !!res;
     },
   });
 
