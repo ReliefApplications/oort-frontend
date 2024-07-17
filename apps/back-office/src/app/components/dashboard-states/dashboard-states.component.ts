@@ -8,7 +8,7 @@ import {
   UnsubscribeComponent,
 } from '@oort-front/shared';
 import { isArray } from 'lodash';
-import { takeUntil } from 'rxjs';
+import { filter, takeUntil } from 'rxjs';
 
 /** Interface for the table element */
 interface DashboardStateElement {
@@ -62,9 +62,18 @@ export class DashboardStatesComponent extends UnsubscribeComponent {
       './state-modal/state-modal.component'
     );
     const dialogRef = this.dialog.open(StateModalComponent);
-    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((data: any) => {
-      this.dashboardService.setDashboardState(data.value, undefined, data.name);
-    });
+    dialogRef.closed
+      .pipe(
+        filter((data) => !!data),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((data: any) => {
+        this.dashboardService.setDashboardState(
+          data.value,
+          undefined,
+          data.name
+        );
+      });
   }
 
   /**

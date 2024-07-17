@@ -400,6 +400,7 @@ export class ApplicationService {
                 description: data.editApplication.description,
                 sideMenu: value.sideMenu,
                 hideMenu: value.hideMenu,
+                variant: value.variant,
                 status: data.editApplication.status,
               };
               this.application.next(newApplication);

@@ -14,10 +14,7 @@ import {
 } from '@angular/core';
 import { Account, AuthService } from '../../services/auth/auth.service';
 import { User } from '../../models/user.model';
-import {
-  Application,
-  SidenavVariantsTypes,
-} from '../../models/application.model';
+import { Application } from '../../models/application.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Notification } from '../../models/notification.model';
 import { Dialog } from '@angular/cdk/dialog';
@@ -27,7 +24,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { DateTranslateService } from '../../services/date-translate/date-translate.service';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
 import { takeUntil } from 'rxjs/operators';
-import { Breadcrumb, UILayoutService } from '@oort-front/ui';
+import {
+  Breadcrumb,
+  SidenavVariantsTypes,
+  UILayoutService,
+} from '@oort-front/ui';
 import { BreadcrumbService } from '../../services/breadcrumb/breadcrumb.service';
 
 /**

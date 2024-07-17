@@ -9,13 +9,7 @@ import { DistributionList } from './distribution-list.model';
 import { Connection } from '../utils/graphql/connection.type';
 import { CustomNotification } from './custom-notification.model';
 import { GraphqlNodesResponse } from './graphql-query.model';
-
-/**
- * Available variants for the style of this component
- * Use 'original' to get the default look
- * Use 'new' to get the oort revamp look (TODO: Horizontal compatibility)
- */
-export type SidenavVariantsTypes = 'original' | 'new';
+import { SidenavVariantsTypes } from '@oort-front/ui';
 
 /** Model for Application object. */
 export interface Application {
@@ -46,6 +40,8 @@ export interface Application {
   templates?: Template[];
   distributionLists?: DistributionList[];
   customNotifications?: Connection<CustomNotification>;
+  // @TODO logo backend support has to be added
+  logo?: string;
 }
 
 /** Model for application query response object */

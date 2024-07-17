@@ -10,9 +10,8 @@ import {
   ContentType,
   UnsubscribeComponent,
   AppAbility,
-  SidenavVariantsTypes,
 } from '@oort-front/shared';
-import { SnackbarService } from '@oort-front/ui';
+import { SidenavVariantsTypes, SnackbarService } from '@oort-front/ui';
 import { get } from 'lodash';
 import { takeUntil } from 'rxjs/operators';
 

@@ -6,7 +6,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
-import { SidenavVariantsTypes } from '../../models/application.model';
+import { SidenavVariantsTypes } from '@oort-front/ui';
 
 /**
  * Navbar used in the main layout.
@@ -30,6 +30,10 @@ export class NavbarComponent {
   @Input() nav: any;
   /** Variant style for the layout */
   @Input() variant: SidenavVariantsTypes = 'original';
+  /** Application name displayed on top of the navbar when variant type is "new" */
+  @Input() appName = '';
+  /** Application logo displayed on top of the navbar when variant type is "new" */
+  @Input() appLogo = '';
   /** Variant style for the layout */
   @Input() bottomOptions: any[] = [];
 

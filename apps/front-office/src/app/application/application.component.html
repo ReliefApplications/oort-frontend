@@ -23,9 +23,12 @@
     [navGroups]="navGroups"
     [vertical]="!(!sideMenu && largeDevice)"
     [variant]="variant"
+    [appName]="application?.name!"
+    [appLogo]="application?.logo!"
     [bottomOptions]="adminNavItems"
   ></shared-navbar>
 </ng-template>
+<!--@TODO add application.logo from backend, this is just a placeholder example-->
 
 <!-- Application header -->
 <ng-template #header>

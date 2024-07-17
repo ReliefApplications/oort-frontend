@@ -13,12 +13,12 @@ import {
   ApplicationService,
   ConfirmService,
   UnsubscribeComponent,
-  SidenavVariantsTypes,
 } from '@oort-front/shared';
 import { get } from 'lodash';
 import { takeUntil, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
+import { SidenavVariantsTypes } from '@oort-front/ui';
 
 /**
  * Main component of Application view.
@@ -116,8 +116,7 @@ export class ApplicationComponent
             this.translate.onLangChange
               .pipe(takeUntil(this.destroy$))
               .subscribe(() => this.configNavItems());
-          }
-          if (application.canUpdate) {
+
             this.adminNavItems.push({
               name: this.translate.instant('common.archive.few'),
               path: './settings/archive',

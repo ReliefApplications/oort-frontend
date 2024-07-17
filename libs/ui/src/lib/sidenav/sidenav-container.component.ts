@@ -150,6 +150,7 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
           this.showSidenav[index] = sidenavDirective.visible ? opened : false;
           // Change the mode if it has changed since last opening/closure
           this.mode[index] = sidenavDirective.mode;
+          this.variant[index] = sidenavDirective.variant;
         });
     });
 
