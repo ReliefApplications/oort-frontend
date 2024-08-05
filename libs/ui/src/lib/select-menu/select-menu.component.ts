@@ -62,6 +62,8 @@ export class SelectMenuComponent
   @Input() extraClasses?: string;
   /** Default value to be displayed when no option is selected */
   @Input() placeholder = '';
+  /** If on setDisplayTriggerText should try to display all selected options */
+  @Input() displayAllOptions = false;
 
   /** Emits when the list is opened */
   @Output() opened = new EventEmitter<void>();
@@ -321,8 +323,53 @@ export class SelectMenuComponent
         if (labelValues.length === 1) {
           this.displayTrigger = labelValues[0];
         } else {
-          this.displayTrigger =
-            labelValues[0] + ' (+' + (labelValues.length - 1) + ' others)';
+          if (this.displayAllOptions) {
+            this.displayTrigger = '';
+            const displayElement =
+              this.shadowDomService.currentHost.getElementById(
+                'displayElement'
+              );
+            const totalWidth = displayElement?.getBoundingClientRect().width;
+            const font = window.getComputedStyle(
+              displayElement as HTMLElement
+            ).font;
+            const othersTextWidth = 85;
+
+            let widthCount = 0;
+            let indexOut = -1;
+            const displayAll = labelValues.every(
+              (labelValue: string, index: number) => {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                if (context && totalWidth) {
+                  context.font = font;
+                  const width = context.measureText(labelValue).width;
+                  widthCount += width;
+                  // If there are still values in the array to be added to the display, consider that it may be necessary to add '+ others' at the end.
+                  const validWidth =
+                    index < labelValues.length
+                      ? totalWidth - othersTextWidth
+                      : totalWidth;
+                  if (widthCount > validWidth) {
+                    indexOut = index;
+                    return false;
+                  }
+                }
+                if (index) {
+                  this.displayTrigger += ', ';
+                }
+                this.displayTrigger += labelValue;
+                return true;
+              }
+            );
+            if (!displayAll && indexOut != -1) {
+              this.displayTrigger +=
+                ' (+' + labelValues.slice(indexOut).length + ' others)';
+            }
+          } else {
+            this.displayTrigger =
+              labelValues[0] + ' (+' + (labelValues.length - 1) + ' others)';
+          }
         }
       } else {
         this.displayTrigger = '';

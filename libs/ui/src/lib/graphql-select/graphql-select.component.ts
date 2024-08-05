@@ -72,6 +72,8 @@ export class GraphQLSelectComponent
   @Input('aria-describedby') userAriaDescribedBy!: string;
   /** Query reference for getting the available contents */
   @Input() query!: QueryRef<any>;
+  /** If on setDisplayTriggerText should try to display all selected options */
+  @Input() displayAllOptions = false;
 
   /**
    * Gets the value
