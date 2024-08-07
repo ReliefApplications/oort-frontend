@@ -841,8 +841,16 @@
       "create": {
         "choice": {
           "inherit": "Copier un modèle de ressources existant",
+          "kobo": "Créer à partir de KoboToolbox",
           "resource": "Créer une nouvelle ressource",
           "template": "Commencer depuis un modèle existant"
+        },
+        "kobo": {
+          "apiConfiguration": {
+            "placeholder": "Sélectionnez une configuration d'api"
+          },
+          "label": "Identifiant du formulaire KoboToolbox",
+          "placeholder": "Entrez l'identifiant du formulaire KoboToolbox"
         },
         "template": {
           "from": "Depuis le modèle",
@@ -852,6 +860,7 @@
         },
         "tooltip": {
           "inherit": "Crée un formulaire hérité en utilisant comme modèle la ressource liée à un formulaire source.",
+          "kobo": "Crée un formulaire à partir d'un formulaire KoboToolbox, en utilisant le même modèle",
           "resource": "Crée un formulaire source permettant la création de formulaire hérités liés à celui-ci. Crée aussi une nouvelle ressource liée.",
           "template": "Si aucun modèle n'est sélectionné, la structure principale sera chargée"
         }
@@ -2619,11 +2628,13 @@
         "scope": "Entrer le scope",
         "secret": "Entrer le client secret",
         "token": "Entrez le jeton d'accès pour l'authentification",
+        "tokenPrefix": "Entrez un préfixe de jeton pour l'authentification",
         "tokenUrl": "Entrez l'URL du jeton d'accès"
       },
       "scope": "Scope",
       "secret": "Client Secret",
       "token": "Jeton d'accès",
+      "tokenPrefix": "Préfixe de jeton",
       "tokenUrl": "URL du jeton d'accès"
     },
     "apiConfigurations": {

@@ -275,7 +275,11 @@ export class FormsComponent extends UnsubscribeComponent implements OnInit {
         Object.assign(
           variablesData,
           value.resource && { resource: value.resource },
-          value.template && { template: value.template }
+          value.template && { template: value.template },
+          value.apiConfiguration && {
+            apiConfiguration: value.apiConfiguration,
+          },
+          value.kobo && { kobo: value.kobo }
         );
         this.apollo
           .mutate<AddFormMutationResponse>({
