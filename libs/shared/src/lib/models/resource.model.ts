@@ -1,5 +1,7 @@
+import { Access } from '../services/filters/filters.service';
 import { Connection } from '../utils/graphql/connection.type';
 import { Aggregation } from './aggregation.model';
+import { CustomNotification } from './custom-notification.model';
 import { Form } from './form.model';
 import { GraphqlNodesResponse } from './graphql-query.model';
 import { Layout } from './layout.model';
@@ -36,7 +38,18 @@ export interface Resource {
     padding: number;
   };
   importField?: string;
+  customNotifications?: CustomNotification[];
+  hasLayouts?: boolean;
+  triggersFilters?: TriggersFilters[];
 }
+
+/** Resource triggers filters type */
+export type TriggersFilters = {
+  application?: string;
+  cronBased?: Access;
+  onRecordCreation?: Access;
+  onRecordUpdate?: Access;
+};
 
 /** Model for resource query response object */
 export interface ResourceQueryResponse {

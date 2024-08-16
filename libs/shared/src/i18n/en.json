@@ -478,6 +478,11 @@
         "insert": "Type '{' to inject expressions and variables"
       }
     },
+    "trigger": {
+      "few": "Triggers",
+      "none": "No triggers",
+      "one": "Trigger"
+    },
     "true": "True",
     "type": {
       "few": "Types",
@@ -771,6 +776,7 @@
         "recipients": {
           "distributionList": "Use a distribution list",
           "email": "Input a single email address",
+          "emailField": "Group by dataset email field",
           "title": "Recipients",
           "userField": "Group by dataset user field"
         },
@@ -1036,6 +1042,8 @@
       "value": "Value"
     },
     "notifications": {
+      "noRecord": "No record to be redirected",
+      "noRedirect": "Can't redirect. Missing information.",
       "paginator": {
         "ariaLabel": "Select page of notifications"
       },
@@ -1388,7 +1396,48 @@
       },
       "type": {
         "email": "Email",
+        "notification": "Notification",
         "title": "Template type"
+      }
+    },
+    "triggers": {
+      "addTrigger": "Add trigger",
+      "confirmDelete": "Do you confirm the deletion of the trigger {{name}}?",
+      "createTrigger": "New {{type}} Trigger",
+      "cronBased": "Cron Based",
+      "customNotificationRecipientsType": {
+        "channel": "Channel",
+        "distributionList": "Distribution list",
+        "email": "Email",
+        "emailField": "Email field",
+        "userField": "User field"
+      },
+      "editTrigger": "Edit {{type}} Trigger",
+      "noFilters": "No triggers filters detected",
+      "noTriggers": "No triggers detected",
+      "notification": "Notification",
+      "onRecordCreation": "On Record Creation",
+      "onRecordUpdate": "On Record Update",
+      "redirect": {
+        "active": "Add redirection when clicking on notification",
+        "recordIds": "Redirect to record(s) details",
+        "type": "Redirection type",
+        "url": "Redirect to page"
+      },
+      "selectNotificationType": "Please select a notification type first",
+      "tooltip": {
+        "noFilterCronBasedTrigger": "This filter doesn't affect cron based triggers",
+        "noFilterOnRecordCreationTrigger": "This filter doesn't affect on record creation triggers",
+        "noFilterOnRecordUpdateTrigger": "This filter doesn't affect on record update triggers",
+        "withCronBasedTrigger": "Resource with a cron based trigger",
+        "withFilterCronBasedTrigger": "This filter affects cron based triggers",
+        "withFilterOnRecordCreationTrigger": "This filter affects on record creation triggers",
+        "withFilterOnRecordUpdateTrigger": "This filter affects on record update triggers",
+        "withOnRecordCreationTrigger": "Resource with a trigger on record creation",
+        "withOnRecordUpdateTrigger": "Resource with a trigger on record update",
+        "withoutCronBasedTrigger": "Resource without any cron based trigger",
+        "withoutOnRecordCreationTrigger": "Resource without any trigger on record creation",
+        "withoutOnRecordUpdateTrigger": "Resource without any trigger on record update"
       }
     },
     "user": {

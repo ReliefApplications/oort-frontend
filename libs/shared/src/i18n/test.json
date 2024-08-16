@@ -478,6 +478,11 @@
         "insert": "******"
       }
     },
+    "trigger": {
+      "few": "******",
+      "none": "******",
+      "one": "******"
+    },
     "true": "******",
     "type": {
       "few": "******",
@@ -771,6 +776,7 @@
         "recipients": {
           "distributionList": "******",
           "email": "******",
+          "emailField": "******",
           "title": "******",
           "userField": "******"
         },
@@ -1036,6 +1042,8 @@
       "value": "******"
     },
     "notifications": {
+      "noRecord": "******",
+      "noRedirect": "******",
       "paginator": {
         "ariaLabel": "******"
       },
@@ -1388,7 +1396,48 @@
       },
       "type": {
         "email": "******",
+        "notification": "******",
         "title": "******"
+      }
+    },
+    "triggers": {
+      "addTrigger": "******",
+      "confirmDelete": "****** {{name}} ******",
+      "createTrigger": "****** {{type}} ******",
+      "cronBased": "******",
+      "customNotificationRecipientsType": {
+        "channel": "******",
+        "distributionList": "******",
+        "email": "******",
+        "emailField": "******",
+        "userField": "******"
+      },
+      "editTrigger": "****** {{type}} ******",
+      "noFilters": "******",
+      "noTriggers": "******",
+      "notification": "******",
+      "onRecordCreation": "******",
+      "onRecordUpdate": "******",
+      "redirect": {
+        "active": "******",
+        "recordIds": "******",
+        "type": "******",
+        "url": "******"
+      },
+      "selectNotificationType": "******",
+      "tooltip": {
+        "noFilterCronBasedTrigger": "******",
+        "noFilterOnRecordCreationTrigger": "******",
+        "noFilterOnRecordUpdateTrigger": "******",
+        "withCronBasedTrigger": "******",
+        "withFilterCronBasedTrigger": "******",
+        "withFilterOnRecordCreationTrigger": "******",
+        "withFilterOnRecordUpdateTrigger": "******",
+        "withOnRecordCreationTrigger": "******",
+        "withOnRecordUpdateTrigger": "******",
+        "withoutCronBasedTrigger": "******",
+        "withoutOnRecordCreationTrigger": "******",
+        "withoutOnRecordUpdateTrigger": "******"
       }
     },
     "user": {
