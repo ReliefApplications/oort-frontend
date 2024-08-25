@@ -266,10 +266,7 @@ export class DataGenerationFieldsComponent
     for (const record of res.data?.generateRecords ?? []) {
       this.formSurvey.data = record.data;
       // Run surveyJS expressions
-      console.log(this.formSurvey.getAllQuestions());
       this.formSurvey.getAllQuestions().forEach((q) => {
-        console.log(q.name, q.getType());
-
         if (q.getType() === 'resource') {
           const qValue = q.value;
           this.formSurvey.setValue(q.name, null);
@@ -283,9 +280,6 @@ export class DataGenerationFieldsComponent
         if (!fieldsToGenerate.find((x) => x.field === q.name)) {
           return;
         }
-
-        const expQuestion = q as QuestionExpressionModel;
-        console.log(this.formSurvey.runExpression(expQuestion.expression));
       });
 
       await firstValueFrom(

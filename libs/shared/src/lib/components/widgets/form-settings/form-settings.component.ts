@@ -59,6 +59,7 @@ export class FormSettingsComponent
         }
       });
 
+    this.getFormById();
     this.widgetFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -75,10 +76,11 @@ export class FormSettingsComponent
         .query<FormQueryResponse>({
           query: GET_SHORT_FORM_BY_ID,
           variables: {
-            id: this.widgetFormGroup.get('resource')?.value,
+            id: this.widgetFormGroup.get('form')?.value,
           },
         })
-        .subscribe((data: any) => {
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(({ data }) => {
           if (data) {
             this.form = data.form;
           } else {

@@ -19,6 +19,7 @@ import {
 } from '../components/utils/create-picker-instance';
 import { TranslateService } from '@ngx-translate/core';
 import { FieldSearchTableComponent } from '../components/field-search-table/field-search-table.component';
+import { isNaN } from 'lodash';
 
 /**
  * Custom definition for overriding the text question. Allowed support for dates.
@@ -130,9 +131,7 @@ export const init = (
           pickerDiv.remove();
         }
         if (
-          ['date', 'datetime', 'datetime-local', 'time'].includes(
-            question.inputType
-          )
+          ['datetime', 'datetime-local', 'time'].includes(question.inputType)
         ) {
           pickerDiv = document.createElement('div');
           pickerDiv.classList.add('flex', 'min-h-[36px]');
@@ -261,6 +260,20 @@ export const init = (
               }
             );
           }
+        } else if (question.inputType === 'date') {
+          if (
+            typeof question.value === 'string' &&
+            !isNaN(new Date(question.value).getTime())
+          ) {
+            question.value = question.value?.split('T')[0];
+          } else if (question.value instanceof Date) {
+            const date = question.value;
+            const padded = (num: number) => num.toString().padStart(2, '0');
+            const dateStr = `${date.getFullYear()}-${padded(
+              date.getMonth() + 1
+            )}-${padded(date.getDate())}`;
+            question.value = dateStr;
+          }
         } else {
           el.classList.add('flex-1', 'min-h-[36px]');
           el.style.display = 'initial';
@@ -347,6 +360,69 @@ export const init = (
               window.open(urlTester.href, '_blank', 'noopener,noreferrer');
             }
           });
+        }
+      }
+
+      if (question.inputType === 'range') {
+        const parentElement = el.parentElement;
+        if (parentElement) {
+          const valueIndicator = document.createElement('span');
+          valueIndicator.textContent = question.value;
+          valueIndicator.classList.add('font-black', 'text-center', 'text-xl');
+          parentElement.appendChild(valueIndicator);
+
+          const inputElement = el.querySelector('input');
+          if (inputElement) {
+            const createMinMaxSpan = (end: 'min' | 'max') => {
+              const DEFAULT_VALUE = end === 'min' ? '0' : '100';
+              const span = document.createElement('span');
+              span.classList.add('text-gray-500');
+
+              const updateValue = () => {
+                span.textContent =
+                  question[end + 'ValueExpression'] ||
+                  question[end] ||
+                  DEFAULT_VALUE;
+              };
+
+              updateValue();
+              question.registerFunctionOnPropertyValueChanged(
+                end,
+                updateValue,
+                el.id
+              );
+
+              return span;
+            };
+
+            const minSpan = createMinMaxSpan('min');
+            const maxSpan = createMinMaxSpan('max');
+
+            parentElement.appendChild(minSpan);
+            parentElement.appendChild(inputElement);
+            parentElement.appendChild(maxSpan);
+
+            el.style.display = 'none';
+
+            parentElement.style.display = 'grid';
+            parentElement.style.gridTemplateColumns =
+              'max-content 1fr max-content';
+            parentElement.style.gap = '1rem';
+            parentElement.style.alignItems = 'center';
+
+            valueIndicator.style.gridColumn = '1 / span 3';
+            minSpan.style.gridColumn = '1';
+            inputElement.style.gridColumn = '2';
+            maxSpan.style.gridColumn = '3';
+          }
+
+          question.registerFunctionOnPropertyValueChanged(
+            'value',
+            () => {
+              valueIndicator.textContent = question.value;
+            },
+            el.id
+          );
         }
       }
 
