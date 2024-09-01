@@ -840,7 +840,7 @@
         },
         "kobo": {
           "apiConfiguration": {
-            "placeholder": "Select an api configuration"
+            "placeholder": "Select an API configuration"
           },
           "data": {
             "fromFormWithVersion": "Form \"{{formName}}\" was imported with version ID <i>{{versionID}}</i>.<br>Specify the frequency entries should be fetched from KoboToolbox below or press the button to import now.",
@@ -854,8 +854,9 @@
               "schedule": "Enter the schedule time to fetch the Kobo entries"
             }
           },
-          "label": "KoboToolbox form id",
-          "placeholder": "Enter a KoboToolbox form id",
+          "label": "KoboToolbox form",
+          "placeholder": "Select a KoboToolbox form",
+          "selectAPIConfigurationFirst": "Please select a API configuration first",
           "settings": "KoboToolbox settings"
         },
         "template": {

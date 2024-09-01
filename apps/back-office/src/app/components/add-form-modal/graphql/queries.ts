@@ -55,3 +55,13 @@ export const GET_API_CONFIGURATIONS_NAMES = gql`
     }
   }
 `;
+
+/** Kobotoolbox forms names and if, retrieved from the selected API Configuration */
+export const KOBO_FORMS_FROM_API_CONFIGURATION = gql`
+  query GetKoboFormsFromAPIConfiguration($apiConfiguration: ID!) {
+    koboFormsFromAPIConfiguration(apiConfiguration: $apiConfiguration) {
+      title
+      id
+    }
+  }
+`;

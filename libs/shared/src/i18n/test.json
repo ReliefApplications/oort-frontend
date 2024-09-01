@@ -856,6 +856,7 @@
           },
           "label": "******",
           "placeholder": "******",
+          "selectAPIConfigurationFirst": "******",
           "settings": "******"
         },
         "template": {

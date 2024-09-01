@@ -26,6 +26,17 @@ export interface ApiConfiguration {
   canDelete?: boolean;
 }
 
+/** Model for a single Kobo form*/
+export interface KoboForm {
+  title: string;
+  id: string;
+}
+
+/** Model for Kobotoolbox forms from a API configuration graphql query response */
+export interface KoboFormFromAPIConfigurationQueryResponse {
+  koboFormsFromAPIConfiguration: KoboForm[];
+}
+
 /** Model for API configuration graphql query response */
 export interface ApiConfigurationQueryResponse {
   apiConfiguration: ApiConfiguration;
