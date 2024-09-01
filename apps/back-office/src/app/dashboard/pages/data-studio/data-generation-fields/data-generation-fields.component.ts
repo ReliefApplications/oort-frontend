@@ -17,7 +17,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { GET_FORM_STRUCTURE } from './graphql/queries';
 import { GENERATE_RECORDS, EDIT_RECORD } from './graphql/mutations';
-import { Model, QuestionExpressionModel } from 'survey-core';
+import { Model } from 'survey-core';
 import { takeUntil, firstValueFrom } from 'rxjs';
 import { SnackbarService } from '@oort-front/ui';
 
