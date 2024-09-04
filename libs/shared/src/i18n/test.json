@@ -119,6 +119,9 @@
         "feminine": "******",
         "masculine": "******"
       },
+      "question": {
+        "one": "******"
+      },
       "seconds": "******",
       "week": "******",
       "weekDay": "******",
@@ -287,6 +290,7 @@
     "name": "******",
     "next": "******",
     "noOptions": "******",
+    "none": "******",
     "notifications": {
       "accessDenied": "****** {{type}} ******",
       "accessNotProvided": "****** {{type}} ****** {{error}}",
@@ -340,6 +344,7 @@
       "objectNotCreated": "****** {{type}} ****** {{error}}",
       "objectNotDeleted": "{{value}} ****** {{error}}",
       "objectNotDuplicated": "****** {{type}} ****** {{error}}",
+      "objectNotEdited": "{{type}} ****** {{error}}",
       "objectNotFound": "{{name}} ******",
       "objectNotInvited": "{{name}} ******",
       "objectNotReordered": "{{type}} ****** {{error}}",
@@ -834,8 +839,29 @@
       "create": {
         "choice": {
           "inherit": "******",
+          "kobo": "******",
           "resource": "******",
           "template": "******"
+        },
+        "kobo": {
+          "apiConfiguration": {
+            "placeholder": "******"
+          },
+          "data": {
+            "fromFormWithVersion": "****** {{formName}} ****** {{versionID}} ******",
+            "nothingToFetch": "******",
+            "start": "******",
+            "strictVersionPolicy": {
+              "label": "******",
+              "tooltip": "******"
+            },
+            "tooltip": {
+              "schedule": "******"
+            }
+          },
+          "label": "******",
+          "placeholder": "******",
+          "settings": "******"
         },
         "template": {
           "from": "******",
@@ -845,6 +871,7 @@
         },
         "tooltip": {
           "inherit": "******",
+          "kobo": "******",
           "resource": "******",
           "template": "******"
         }
@@ -1098,6 +1125,10 @@
           "info": "******",
           "title": "******"
         },
+        "hidden": {
+          "hiddenByDefault": "******",
+          "tooltip": "******"
+        },
         "search": "******",
         "selected": "******",
         "title": "******"
@@ -1318,6 +1349,7 @@
         "newFilter": "******",
         "noFeatures": "******",
         "noFilters": "******",
+        "noForm": "******",
         "noForms": "******",
         "noSteps": "******",
         "removeFilter": "******",
@@ -1462,6 +1494,27 @@
         }
       },
       "expand": "******",
+      "form": {
+        "addNewMapping": "******",
+        "autoPopulateOnSubmit": {
+          "label": "******",
+          "omit": {
+            "label": "******",
+            "tooltip": "******"
+          },
+          "tooltip": "******"
+        },
+        "directions": {
+          "both": "******",
+          "questionToState": "******",
+          "stateToQuestion": "******"
+        },
+        "mapQuestionState": "******",
+        "questionStateTab": {
+          "label": "******",
+          "tooltip": "******"
+        }
+      },
       "grid": {
         "actions": {
           "detail": "******",
@@ -2605,11 +2658,13 @@
         "scope": "******",
         "secret": "******",
         "token": "******",
+        "tokenPrefix": "******",
         "tokenUrl": "******"
       },
       "scope": "******",
       "secret": "******",
       "token": "******",
+      "tokenPrefix": "******",
       "tokenUrl": "******"
     },
     "apiConfigurations": {
@@ -2743,6 +2798,19 @@
       "empty": {
         "add": "******",
         "customize": "******"
+      }
+    }
+  },
+  "survey": {
+    "customFunctions": {
+      "getFollowupSummary": {
+        "comment": "******",
+        "followUp": {
+          "numbered": "****** {{number}}",
+          "one": "******"
+        },
+        "initialInspection": "******",
+        "inspectionAction": "******"
       }
     }
   }

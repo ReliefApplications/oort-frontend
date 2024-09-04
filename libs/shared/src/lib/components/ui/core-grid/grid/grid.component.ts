@@ -55,9 +55,7 @@ import { DatePipe } from '../../../../pipes/date/date.pipe';
 import { ResizeObservable } from '../../../../utils/rxjs/resize-observable.util';
 import { formatGridRowData } from './utils/grid-data-formatter';
 import { GridActions } from '../models/grid-settings.model';
-
-/** LIFT case report api URL */
-const LIFT_REPORT_URL = 'https://lift-functions.azurewebsites.net/api/report/';
+import { HttpHeaders } from '@angular/common/http';
 
 /** Minimum column width */
 const MIN_COLUMN_WIDTH = 100;
@@ -75,7 +73,7 @@ const matches = (el: any, selector: any) =>
   (el.matches || el.msMatchesSelector).call(el, selector);
 
 /** Row actions. */
-export const rowActions = [
+export const ROW_ACTIONS = [
   'update',
   'delete',
   'history',
@@ -123,12 +121,22 @@ export class GridComponent
   /** Input decorator for actions */
   @Input() actions: GridActions = {
     add: false,
-    update: false,
-    delete: false,
-    history: false,
-    convert: false,
+    update: {
+      display: false,
+    },
+    delete: {
+      display: false,
+    },
+    history: {
+      display: false,
+    },
+    convert: {
+      display: false,
+    },
     export: false,
-    showDetails: false,
+    showDetails: {
+      display: false,
+    },
     navigateToPage: false,
     navigateSettings: {
       field: '',
@@ -230,7 +238,7 @@ export class GridComponent
   /** Search control */
   public search = new UntypedFormControl('');
   /** Row actions for the component */
-  private readonly rowActions = ['update', 'delete', 'history', 'convert'];
+  private readonly rowActions = ROW_ACTIONS;
   /** Snackbar reference */
   private snackBarRef!: any;
   /** Column change timeout */
@@ -250,9 +258,11 @@ export class GridComponent
   get enabledActions() {
     return intersection(
       Object.keys(this.actions).filter((key: string) =>
-        get(this.actions, key, false)
+        typeof get(this.actions, key, false) === 'object'
+          ? get(this.actions, `${key}.display`, false)
+          : get(this.actions, key, false)
       ),
-      rowActions
+      this.rowActions
     );
   }
 
@@ -387,7 +397,9 @@ export class GridComponent
       this.hasEnabledActions =
         intersection(
           Object.keys(this.actions).filter((key: string) =>
-            get(this.actions, key, false)
+            typeof get(this.actions, key, false) === 'object'
+              ? get(this.actions, `${key}.display`, false)
+              : get(this.actions, key, false)
           ),
           this.rowActions
         ).length > 0;
@@ -772,6 +784,18 @@ export class GridComponent
       downloadLink.href = file.content;
       downloadLink.download = file.name;
       downloadLink.click();
+    } else if (file.content.startsWith('custom:')) {
+      this.downloadService.getFile(
+        file.content.slice(7),
+        file.type,
+        file.name,
+        {
+          headers: new HttpHeaders({
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+          }),
+        }
+      );
     } else {
       const path = `download/file/${file.content}/${recordId}/${fieldName}`;
       this.downloadService.getFile(path, file.type, file.name);
@@ -986,6 +1010,15 @@ export class GridComponent
     if (this.selectable) {
       totalWidthSticky += 41;
     }
+    // Hide the columns that are hidden by default
+    const hiddenFields = this.fields.filter((field) => field.hiddenByDefault);
+    hiddenFields.forEach((field) => {
+      const column = this.columns.find((column) => column.field === field.name);
+      if (column && !(column as any).init) {
+        column.hidden = true;
+        (column as any).init = true;
+      }
+    });
 
     // Set the width of fixed width columns
     const fixedWidthColumns = this.columns.filter(
@@ -1242,29 +1275,6 @@ export class GridComponent
   }
 
   /**
-   * \TODO: Find a better way to handle this
-   * Handle specific URLs
-   * Initially this is being used to add the token to the URL for downloading LIFT reports
-   *
-   * @param url URL to open
-   * @param event Click event
-   */
-  public onOpenURL(url: string, event: MouseEvent) {
-    if (url?.startsWith(LIFT_REPORT_URL)) {
-      event.preventDefault();
-      const urlList = url.split('/');
-      // We remove the incrementalID from the URL
-      // It should not be sent to the API, it's used only for the file name
-      const incrementalID = urlList.pop();
-      this.downloadService.getFile(
-        urlList.join('/'),
-        'pdf',
-        `Report-${incrementalID}.pdf`
-      );
-    }
-  }
-
-  /**
    * Gets any data to be injected into the row template as html classes
    *
    * @param context The record context
@@ -1307,8 +1317,26 @@ export class GridComponent
         this.widget?.settings?.widgetDisplay.showSingleActionAsButton &&
         size === ICON_SIZE
       ) {
-        // TODO: Figure out how to get the width of the button
-        this.actionsWidth = 100;
+        this.actionsWidth = 200;
+
+        let attempts = 0;
+        const maxAttempts = 10000;
+        const interval = 250; // 1 minute
+
+        const checkButtonWidth = () => {
+          const button = document.getElementById('single-action-button');
+          if (button) {
+            const buttonWidth = button.offsetWidth;
+            this.actionsWidth = buttonWidth + 12;
+          } else {
+            attempts++;
+            if (attempts < maxAttempts) {
+              setTimeout(checkButtonWidth, interval);
+            }
+          }
+        };
+
+        checkButtonWidth();
       } else if (size > 0) {
         // Show three dots menu
         this.actionsWidth = 56;

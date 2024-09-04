@@ -11,15 +11,15 @@ jobs:
     environment: ${{ github.event.client_payload.environment }}
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [20.x]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.client_payload.ref }}
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Get package version
@@ -28,68 +28,111 @@ jobs:
       - name: Install Dependencies
         run: npm i
       - name: Build Back-office ${{ github.event.client_payload.environment }} - ${{ steps.get_version.outputs.version }}
-        run: npx nx run back-office:build:${{ secrets.CONFIG }}
+        run: npx nx run back-office:build:${{ vars.CONFIG }}
       - name: Build Front-office ${{ github.event.client_payload.environment }} - ${{ steps.get_version.outputs.version }}
-        run: npx nx run front-office:build:${{ secrets.CONFIG }}
+        run: npx nx run front-office:build:${{ vars.CONFIG }}
       - name: Archive build Back-office
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: back_office_${{ github.event.client_payload.environment }}
+          name: back-office_${{ github.event.client_payload.environment }}
           path: dist/apps/back-office
       - name: Archive build Front-office
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: front_office_${{ github.event.client_payload.environment }}
+          name: front-office_${{ github.event.client_payload.environment }}
           path: dist/apps/front-office
 
-  deploy_back_office:
-    name: Deploy Back-office 🚀
+  create_deployment:
+    name: Create Deployment
     runs-on: ubuntu-latest
     environment: ${{ github.event.client_payload.environment }}
     needs: build
+
+    permissions:
+      deployments: write
+
+    outputs:
+      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+      environment_url: ${{ steps.deployment.outputs.environment_url }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Download build
-        uses: actions/download-artifact@v1
+        uses: actions/checkout@v4
+
+      - uses: chrnorm/deployment-action@v2
+        name: Create GitHub deployment
+        id: deployment
         with:
-          name: back_office_${{ github.event.client_payload.environment }}
-          path: dist/apps/back-office
+          initial-status: 'in_progress'
+          token: '${{ github.token }}'
+          environment-url: ${{ vars.DEPLOYMENT_URL }}
+          environment: ${{ github.event.client_payload.environment }}
+          auto-inactive: false
+
+  deploy:
+    name: Deploy Back-office and Front-office 🚀
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.client_payload.environment }}
+    needs: create_deployment
+    strategy:
+      matrix:
+        include:
+          - app: back-office
+            path: BO_REMOTE_PATH
+          - app: front-office
+            path: FO_REMOTE_PATH
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.app }}_${{ github.event.client_payload.environment }}
+          path: dist/apps/${{ matrix.app }}
+
       - name: Setup SSH Keys and known_hosts
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - name: Deploy
-        run: ./CI/deploy.sh
-        env:
-          SSH_PASS: ${{ secrets.SSH_PASS }}
-          CONNECTION: ${{ secrets.CONNECTION }}
-          REMOTE_PATH: ${{ secrets.BO_REMOTE_PATH }}
-          OUT: dist/apps/back-office
 
-  deploy_front_office:
-    name: Deploy Front-office 🚀
-    runs-on: ubuntu-latest
-    environment: ${{ github.event.client_payload.environment }}
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Download build
-        uses: actions/download-artifact@v1
-        with:
-          name: front_office_${{ github.event.client_payload.environment }}
-          path: dist/apps/front-office
-      - name: Setup SSH Keys and known_hosts
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - name: Deploy
+      - name: Deploy ${{ matrix.app }}
         run: ./CI/deploy.sh
         env:
           SSH_PASS: ${{ secrets.SSH_PASS }}
           CONNECTION: ${{ secrets.CONNECTION }}
-          REMOTE_PATH: ${{ secrets.FO_REMOTE_PATH }}
-          OUT: dist/apps/front-office
+          REMOTE_PATH: ${{ secrets[matrix.path] }}
+          OUT: dist/apps/${{ matrix.app }}
+
+  update_deployment_status:
+    name: Update Deployment Status ✅
+    runs-on: ubuntu-latest
+    needs: 
+      - create_deployment
+      - deploy
+    if: always()
+
+    permissions:
+      deployments: write
+
+    steps:
+      - name: Update deployment status (success)
+        if: ${{ needs.deploy.result == 'success' }}
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ github.token }}'
+          environment-url: ${{ needs.create_deployment.outputs.environment_url }}
+          deployment-id: ${{ needs.create_deployment.outputs.deployment_id }}
+          state: 'success'
+
+      - name: Update deployment status (failure)
+        if: ${{ needs.deploy.result != 'success' }}
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ github.token }}'
+          environment-url: ${{ needs.create_deployment.outputs.environment_url }}
+          deployment-id: ${{ needs.create_deployment.outputs.deployment_id }}
+          state: 'failure'

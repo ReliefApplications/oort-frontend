@@ -35,6 +35,15 @@ import {
   FormHelpersService,
 } from '../../services/form-helper/form-helper.service';
 import { SnackbarService, UILayoutService } from '@oort-front/ui';
+import { DashboardService } from '../../services/dashboard/dashboard.service';
+import { DashboardState } from '../../models/dashboard.model';
+
+/** Interface of the type of the mapping question o state rules */
+interface MapQuestionToState {
+  question: string;
+  state: string;
+  direction: 'questionToState' | 'stateToQuestion' | 'both';
+}
 
 /**
  * This component is used to display forms
@@ -54,6 +63,8 @@ export class FormComponent
   @Input() record?: RecordModel;
   /** Display actions buttons on floating div, optional */
   @Input() floatingActions = true;
+  /** Array of mapping questions to states rules, if form widget on dashboard uses it */
+  @Input() mapQuestionState?: MapQuestionToState[];
   /** Output event when saving the form */
   @Output() save: EventEmitter<{
     completed: boolean;
@@ -106,6 +117,7 @@ export class FormComponent
    * @param formBuilderService This is the service that will be used to build forms.
    * @param formHelpersService This is the service that will handle forms.
    * @param translate This is the service used to translate text
+   * @param dashboardService Shared dashboard service
    */
   constructor(
     public dialog: Dialog,
@@ -115,19 +127,68 @@ export class FormComponent
     private layoutService: UILayoutService,
     private formBuilderService: FormBuilderService,
     public formHelpersService: FormHelpersService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private dashboardService: DashboardService
   ) {
     super();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.record) {
+    if (
+      changes.record &&
+      changes.record.currentValue?.id !== changes.record.previousValue?.id
+    ) {
       this.initSurvey();
     }
   }
 
   ngOnInit(): void {
     this.initSurvey();
+  }
+
+  /** Sets up listeners to keep mapped fields updated */
+  private setupStateMappingListeners(): void {
+    this.mapQuestionState?.forEach((rule: MapQuestionToState) => {
+      const question = this.survey.getQuestionByName(rule.question);
+      if (!question) {
+        return;
+      }
+
+      if (rule.direction === 'questionToState' || rule.direction === 'both') {
+        const updateState = (_: any, options: any) => {
+          if (options.question.name === question.name) {
+            const state = this.dashboardService.states
+              .getValue()
+              .find((s: DashboardState) => s.name === rule.state);
+            if (state) {
+              this.dashboardService.setDashboardState(options.value, state.id);
+            }
+          }
+        };
+
+        (question.survey as SurveyModel)?.onValueChanged.add(updateState);
+      }
+
+      if (rule.direction === 'stateToQuestion' || rule.direction === 'both') {
+        this.dashboardService.states$.subscribe(() => {
+          const states = this.dashboardService.states.getValue();
+          const state = states.find(
+            (s: DashboardState) => s.name === rule.state
+          );
+          if (state) {
+            if (question.isValueArray && Array.isArray(state.value)) {
+              question.value = state.value;
+            } else if (!question.isValueArray && !Array.isArray(state.value)) {
+              question.value = state.value;
+            } else if (question.isValueArray && !Array.isArray(state.value)) {
+              question.value = [state.value];
+            } else {
+              question.value = state.value[0];
+            }
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -154,6 +215,7 @@ export class FormComponent
     if (this.resetTimeoutListener) {
       clearTimeout(this.resetTimeoutListener);
     }
+    this.survey.data = {};
     this.resetTimeoutListener = setTimeout(
       () => (this.surveyActive = true),
       100
@@ -413,6 +475,7 @@ export class FormComponent
       authService: this.authService,
       apollo: this.apollo,
       form: this.form,
+      translateService: this.translate,
     });
 
     const structure = JSON.parse(this.form.structure || '{}');
@@ -429,11 +492,16 @@ export class FormComponent
       this.form
     );
 
+    this.survey.onAfterRenderSurvey.add(() => {
+      this.setupStateMappingListeners();
+    });
+
     // After the survey is created we add common callback to survey events
     this.formBuilderService.addEventsCallBacksToSurvey(
       this.survey,
       this.selectedPageIndex,
-      this.temporaryFilesStorage
+      this.temporaryFilesStorage,
+      this.destroy$
     );
 
     this.survey.showCompletedPage = false;

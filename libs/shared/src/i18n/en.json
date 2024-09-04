@@ -119,6 +119,9 @@
         "feminine": "On the",
         "masculine": "On the"
       },
+      "question": {
+        "one": "Question"
+      },
       "seconds": "Second(s)",
       "week": "Week",
       "weekDay": "Week Day (MON-FRI)",
@@ -287,6 +290,7 @@
     "name": "Name",
     "next": "Next",
     "noOptions": "No available choices",
+    "none": "None",
     "notifications": {
       "accessDenied": "You don't have permission to see the {{type}}.",
       "accessNotProvided": "No access provided to this {{type}}. {{error}}",
@@ -340,6 +344,7 @@
       "objectNotCreated": "The {{type}} was not created. {{error}}",
       "objectNotDeleted": "{{value}} deletion failed. {{error}}",
       "objectNotDuplicated": "The {{type}} was not duplicated. {{error}}",
+      "objectNotEdited": "{{type}} not edited. {{error}}",
       "objectNotFound": "{{name}} not found.",
       "objectNotInvited": "{{name}} invitation failed.",
       "objectNotReordered": "{{type}} not reordered. {{error}}",
@@ -834,8 +839,29 @@
       "create": {
         "choice": {
           "inherit": "Create from template",
+          "kobo": "Create from KoboToolbox",
           "resource": "Create a core form",
           "template": "Start from existing template"
+        },
+        "kobo": {
+          "apiConfiguration": {
+            "placeholder": "Select an api configuration"
+          },
+          "data": {
+            "fromFormWithVersion": "Form \"{{formName}}\" was imported with version ID <i>{{versionID}}</i>.<br>Specify the frequency entries should be fetched from KoboToolbox below or press the button to import now.",
+            "nothingToFetch": "No new entries found",
+            "start": "Fetch now",
+            "strictVersionPolicy": {
+              "label": "Strict version policy",
+              "tooltip": "When importing a form from KoboToolbox, it is possible to have multiple versions and iterations over time. Enabling the strict version policy ensures that only form entries with the same version as the one at the time of import will be fetched. Disabling this option allows fetching entries from any version of the form."
+            },
+            "tooltip": {
+              "schedule": "Enter the schedule time to fetch the Kobo entries"
+            }
+          },
+          "label": "KoboToolbox form id",
+          "placeholder": "Enter a KoboToolbox form id",
+          "settings": "KoboToolbox settings"
         },
         "template": {
           "from": "From template",
@@ -845,6 +871,7 @@
         },
         "tooltip": {
           "inherit": "Creates a child form using a template from the resource linked to the core form",
+          "kobo": "Creates a form from a KoboToolbox form, using the same template",
           "resource": "Creates a core form that allows the creation of children forms linked to this core form. It will also create a new resource.",
           "template": "If no template is selected, core structure will be loaded"
         }
@@ -1098,6 +1125,10 @@
           "info": "Left empty to ignore formatting",
           "title": "Display format"
         },
+        "hidden": {
+          "hiddenByDefault": "Hide column by default",
+          "tooltip": "Column will be hidden by default, but can still be shown by the user"
+        },
         "search": "Search fields...",
         "selected": "Selected fields",
         "title": "Fields"
@@ -1318,6 +1349,7 @@
         "newFilter": "New filter",
         "noFeatures": "No feature detected",
         "noFilters": "No access filters detected",
+        "noForm": "No form detected",
         "noForms": "No forms detected",
         "noSteps": "No steps detected",
         "removeFilter": "Remove filter",
@@ -1462,6 +1494,27 @@
         }
       },
       "expand": "Expand",
+      "form": {
+        "addNewMapping": "Add mapping",
+        "autoPopulateOnSubmit": {
+          "label": "Auto populate on submit",
+          "omit": {
+            "label": "Omit fields",
+            "tooltip": "Fields to omit during the auto-population"
+          },
+          "tooltip": "When submitting a record from the widget, the form will be automatically populated with the record's data after the submission"
+        },
+        "directions": {
+          "both": "Both changes on the state or the question will be reflected on the other",
+          "questionToState": "Changes on the question will be reflected on the state",
+          "stateToQuestion": "Changes on the state will be reflected on the question"
+        },
+        "mapQuestionState": "Map question value to state",
+        "questionStateTab": {
+          "label": "State mapping",
+          "tooltip": "Configure state mapping, allowing the widget to interact with dashboard states"
+        }
+      },
       "grid": {
         "actions": {
           "detail": "Open detail",
@@ -2605,11 +2658,13 @@
         "scope": "Enter scope",
         "secret": "Enter client secret",
         "token": "Enter token for authentication",
+        "tokenPrefix": "Enter a token prefix for authentication",
         "tokenUrl": "Enter access token URL"
       },
       "scope": "Scope",
       "secret": "Client Secret",
       "token": "Token",
+      "tokenPrefix": "Token prefix",
       "tokenUrl": "Access token URL"
     },
     "apiConfigurations": {
@@ -2743,6 +2798,19 @@
       "empty": {
         "add": "Add steps",
         "customize": "Customize each of the steps created"
+      }
+    }
+  },
+  "survey": {
+    "customFunctions": {
+      "getFollowupSummary": {
+        "comment": "Comment",
+        "followUp": {
+          "numbered": "Follow-up #{{number}}",
+          "one": "Follow-up"
+        },
+        "initialInspection": "Initial inspection",
+        "inspectionAction": "Inspection action"
       }
     }
   }
