@@ -50,6 +50,8 @@ export class ApplicationComponent
   public largeDevice: boolean;
   /** Loading indicator */
   public loading = true;
+  /** Logo base64 */
+  public logoBase64 = '';
 
   /**
    * Main component of application view
@@ -150,6 +152,11 @@ export class ApplicationComponent
               ? this.application.variant
               : 'original';
           this.hideMenu = this.application?.hideMenu ?? false;
+          this.applicationService
+            .getLogoBase64(this.application)
+            .then((logo) => {
+              this.logoBase64 = logo;
+            });
         } else {
           this.title = '';
           this.navGroups = [];

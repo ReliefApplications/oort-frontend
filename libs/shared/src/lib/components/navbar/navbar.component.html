@@ -9,9 +9,9 @@
   <ng-container *ngIf="variant === 'new'">
     <ng-container *ngIf="appLogo">
       <div class="pl-6 w-full">
-        <img class="h-14 w-14 object-contain" src="{{ appLogo }}" />
+        <img class="h-14 object-contain" [src]="appLogo" />
       </div>
-      <ui-divider class="w-4/5 pb-8 pt-3 mx-auto"></ui-divider>
+      <ui-divider color="#403d3f" class="w-4/5 pb-8 pt-3 mx-auto"></ui-divider>
     </ng-container>
     <p class="font-semibold text-white text-lg pl-6">{{ appName }}</p>
   </ng-container>
@@ -47,14 +47,17 @@
         <ng-container *ngIf="appLayout">
           <div class="flex flex-col items-center w-full absolute bottom-0">
             <ng-container *ngIf="canAddPage">
-              <ui-divider class="w-4/5 m-0"></ui-divider>
+              <ui-divider
+                class="w-4/5 m-0"
+                [color]="variant === 'new' ? '#403d3f' : ''"
+              ></ui-divider>
               <ng-container *ngTemplateOutlet="addPageButton"></ng-container>
             </ng-container>
             <div
               class="pl-6 py-4 w-full"
               *ngIf="variant === 'new' && bottomOptions.length > 0"
             >
-              <ui-divider class="w-4/5 pb-6"></ui-divider>
+              <ui-divider class="w-4/5 pb-6" color="#403d3f"></ui-divider>
               <ng-container
                 *ngTemplateOutlet="
                   navListTmpl;

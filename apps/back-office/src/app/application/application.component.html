@@ -31,8 +31,7 @@
     [vertical]="!(!sideMenu && largeDevice)"
     [variant]="variant"
     [appName]="application?.name!"
-    [appLogo]="application?.logo!"
+    [appLogo]="logoBase64"
     (reorder)="onReorder($event)"
   ></shared-navbar>
-  <!--@TODO add application.logo from backend, this is just a placeholder example-->
 </ng-template>

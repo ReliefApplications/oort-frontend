@@ -57,6 +57,21 @@ export class RestService {
   }
 
   /**
+   * Create Http DELETE request
+   *
+   * @param path the path.
+   * @param options the options object for http request.
+   * @returns Http DELETE request.
+   */
+  public delete(path: string, options?: any): Observable<any> {
+    const url = this.buildUrl(path);
+    if (!options) {
+      return this.http.delete(url);
+    }
+    return this.http.delete(url, options);
+  }
+
+  /**
    * Build the url from the given path.
    *
    * @param path the path.

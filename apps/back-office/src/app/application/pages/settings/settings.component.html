@@ -115,6 +115,56 @@
     </div>
   </div>
 </form>
+<!-- Logo -->
+<div
+  *ngIf="
+    application && application.canUpdate && settingsForm.value.variant === 'new'
+  "
+  class="mt-2"
+>
+  <h1>
+    {{ 'common.logo.one' | translate
+    }}<ui-icon
+      class="ml-1 cursor-help self-center"
+      variant="grey"
+      [size]="18"
+      icon="info_outline"
+      [uiTooltip]="'components.application.update.tooltip.logo' | translate"
+    ></ui-icon>
+  </h1>
+  <div class="flex h-28 items-center" *ngIf="loadingLogo || logoBase64">
+    <ui-spinner *ngIf="loadingLogo"></ui-spinner>
+    <div class="flex flex-col gap-4 mb-4" *ngIf="logoBase64 && !loadingLogo">
+      <label class="block text-sm font-medium leading-6 text-gray-900">{{
+        'components.application.update.logo.current' | translate
+      }}</label>
+      <div class="flex gap-2">
+        <img
+          class="h-14 w-14 object-contain"
+          [src]="logoBase64"
+          alt="Application Logo"
+        />
+        <button (click)="onDeleteLogo()">
+          <ui-icon icon="delete" variant="danger"></ui-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="block text-sm font-medium leading-6 text-gray-900"
+      >{{ 'components.application.update.logo.upload' | translate }}
+    </label>
+    <kendo-upload
+      class="flex-1"
+      name="Upload logo"
+      [restrictions]="{ maxFileSize: MAX_FILE_SIZE_MB * 1024 * 1024 }"
+      (upload)="onUpload($event)"
+      [accept]="extensions"
+      [multiple]="false"
+    >
+    </kendo-upload>
+  </div>
+</div>
 <!-- Actions -->
 <div
   *ngIf="

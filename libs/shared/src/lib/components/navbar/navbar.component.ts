@@ -32,7 +32,7 @@ export class NavbarComponent {
   @Input() variant: SidenavVariantsTypes = 'original';
   /** Application name displayed on top of the navbar when variant type is "new" */
   @Input() appName = '';
-  /** Application logo displayed on top of the navbar when variant type is "new" */
+  /** Application logo */
   @Input() appLogo = '';
   /** Variant style for the layout */
   @Input() bottomOptions: any[] = [];

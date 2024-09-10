@@ -8,6 +8,8 @@ import {
   UnsubscribeComponent,
   DeleteApplicationMutationResponse,
   status,
+  DownloadService,
+  BlobType,
 } from '@oort-front/shared';
 import { Dialog } from '@angular/cdk/dialog';
 import { DELETE_APPLICATION } from './graphql/mutations';
@@ -26,6 +28,10 @@ import { SnackbarService, UILayoutService } from '@oort-front/ui';
   styleUrls: ['./settings.component.scss'],
 })
 export class SettingsComponent extends UnsubscribeComponent implements OnInit {
+  /** Maximum file size */
+  public MAX_FILE_SIZE_MB = 2;
+  /** Allowed extensions */
+  public extensions = '.png, .jpg, .jpeg';
   /** Application list */
   public applications = new Array<Application>();
   /** Application settings form */
@@ -40,6 +46,10 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
   public locked: boolean | undefined = undefined;
   /** Is application locked for edition by current user */
   public lockedByUser: boolean | undefined = undefined;
+  /** Logo in base 64 */
+  public logoBase64: string | undefined;
+  /** Logo loading */
+  public loadingLogo = false;
 
   /**
    * Application settings page component.
@@ -53,6 +63,7 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
    * @param dialog Dialog service
    * @param translate Angular translate service
    * @param layoutService UI layout service
+   * @param downloadService Shared download service
    */
   constructor(
     private fb: FormBuilder,
@@ -63,7 +74,8 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
     private confirmService: ConfirmService,
     public dialog: Dialog,
     private translate: TranslateService,
-    private layoutService: UILayoutService
+    private layoutService: UILayoutService,
+    private downloadService: DownloadService
   ) {
     super();
   }
@@ -94,6 +106,14 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
           this.application = application;
           this.locked = this.application?.locked;
           this.lockedByUser = this.application?.lockedByUser;
+
+          this.loadingLogo = true;
+          this.applicationService
+            .getLogoBase64(this.application)
+            .then((logo) => {
+              this.logoBase64 = logo;
+              this.loadingLogo = false;
+            });
         }
       });
   }
@@ -240,5 +260,66 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
    */
   saveAccess(e: any): void {
     this.applicationService.editPermissions(e);
+  }
+
+  /**
+   * Uploads a logo image.
+   *
+   * @param e Event of file upload.
+   */
+  async onUpload(e: any): Promise<void> {
+    e.preventDefault();
+    if (e.files.length > 0) {
+      this.loadingLogo = true;
+      const logo = e.files[0].rawFile;
+      if (logo && this.application?.id) {
+        await this.downloadService.uploadBlob(
+          logo,
+          BlobType.LOGO,
+          this.application.id
+        );
+        this.applicationService.convertBlobToBase64(logo).then((base64) => {
+          this.logoBase64 = base64;
+          this.loadingLogo = false;
+        });
+      }
+    }
+  }
+
+  /**
+   * Deletes a logo image
+   */
+  onDeleteLogo(): void {
+    const dialogRef = this.confirmService.openConfirmModal({
+      title: this.translate.instant('common.deleteObject', {
+        name: this.translate.instant('common.logo.one'),
+      }),
+      content: this.translate.instant(
+        'components.logo.delete.confirmationMessage'
+      ),
+      confirmText: this.translate.instant('components.confirmModal.delete'),
+      confirmVariant: 'danger',
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
+      if (value) {
+        // Set the local logo to undefined
+        this.logoBase64 = undefined;
+        // Update the application service to remove the logo
+        if (this.application) {
+          this.applicationService.deleteApplicationLogo(this.application).then(
+            () => {
+              this.snackBar.openSnackBar(
+                this.translate.instant('common.notifications.objectDeleted', {
+                  value: this.translate.instant('common.logo.one'),
+                })
+              );
+            },
+            (err) => {
+              this.snackBar.openSnackBar(err.message, { error: true });
+            }
+          );
+        }
+      }
+    });
   }
 }

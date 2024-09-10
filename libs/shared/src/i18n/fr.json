@@ -286,6 +286,9 @@
       "one": "Mise en page"
     },
     "loading": "Chargement",
+    "logo": {
+      "one": "Logo"
+    },
     "modifiedOn": "Modifié le ",
     "name": "Nom",
     "next": "Suivant",
@@ -722,12 +725,17 @@
       },
       "update": {
         "hideMenu": "Cacher le menu vertical de navigation par défaut",
+        "logo": {
+          "current": "Logo actuel",
+          "upload": "Charger un nouveau logo"
+        },
         "placeholder": {
           "description": "Veuillez entrer une description pour l'application."
         },
         "sideMenu": "Afficher le menu sur le côté",
         "tooltip": {
-          "hideMenu": "Ne s'applique que lorsque le menu est sur le côté"
+          "hideMenu": "Ne s'applique que lorsque le menu est sur le côté",
+          "logo": "Ne s'applique que lorsque la variante est nouvelle"
         },
         "variants": {
           "label": "Variante du menu sur le côté",
@@ -1034,6 +1042,11 @@
       "modal": {
         "select": "Sélectionner une icône",
         "use": "Utiliser l'icône"
+      }
+    },
+    "logo": {
+      "delete": {
+        "confirmationMessage": "Confirmez-vous la suppression du logo ?"
       }
     },
     "logout": {
