@@ -22,7 +22,7 @@ import {
 } from './types/sidenavs';
 import { filter } from 'rxjs/operators';
 import { UILayoutService } from './layout/layout.service';
-import { NEW_SIDENAV_WIDTH_PX } from './const/sidenav.const';
+import { NEW_SIDENAV_WIDTH_PX } from './types/sidenavs';
 
 /**
  * UI Sidenav component
