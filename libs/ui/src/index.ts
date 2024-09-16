@@ -53,6 +53,7 @@ export * from './lib/types/category';
 export * from './lib/types/size';
 export * from './lib/button/types/button-icon-position';
 export * from './lib/toggle/types/toggle-type';
+export * from './lib/sidenav/types/sidenavs';
 export * from './lib/divider/types/divider-position';
 export * from './lib/divider/types/divider-orientation';
 export * from './lib/breadcrumbs/types/breadcrumb-display';

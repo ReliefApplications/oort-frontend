@@ -19,12 +19,14 @@ import {
 export enum BlobType {
   RECORD_FILE = 'file',
   APPLICATION_STYLE = 'style',
+  LOGO = 'logo',
 }
 
 /** Mapping of upload type to REST path */
 const BLOB_TYPE_TO_PATH: Record<BlobType, string> = {
   [BlobType.RECORD_FILE]: 'file',
   [BlobType.APPLICATION_STYLE]: 'style',
+  [BlobType.LOGO]: 'logo',
 };
 
 /** Snackbar duration in ms */
@@ -354,7 +356,7 @@ export class DownloadService {
    * Uploads a file to the blob storage
    *
    * @param file The file to upload
-   * @param type Either 'file' or 'style'
+   * @param type Either 'file', 'style' or 'logo'
    * @param entity ID of the entity the file is related to
    * @returns The path of the uploaded file
    */

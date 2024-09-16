@@ -18,6 +18,7 @@ import get from 'lodash/get';
 import { takeUntil, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
+import { SidenavVariantsTypes } from '@oort-front/ui';
 
 /**
  * Main component of Application view.
@@ -37,16 +38,30 @@ export class ApplicationComponent
   public navGroups: any[] = [];
   /** Admin pages */
   public adminNavItems: any[] = [];
+  /** Admin pages for new variant sidenav */
+  public adminNewVariantNavItems: any[] = [];
   /** Current application */
   public application?: Application;
   /** Use side menu or not */
   public sideMenu = false;
   /** Should hide menu by default ( only when vertical ) */
   public hideMenu = false;
+  /** Use side menu or not */
+  public variant: SidenavVariantsTypes = 'original';
   /** Is large device */
   public largeDevice: boolean;
   /** Loading indicator */
   public loading = true;
+  /** Logo base64 */
+  public logoBase64 = '';
+  /** Admin nav items to be included in new navbar by the last word from its path */
+  public filterPaths = [
+    'users',
+    'roles',
+    'templates',
+    'distribution-lists',
+    'notifications',
+  ];
 
   /**
    * Main component of application view
@@ -110,62 +125,10 @@ export class ApplicationComponent
                 },
               })) || [];
           if (application.canUpdate) {
-            this.adminNavItems = [
-              {
-                name: this.translate.instant('common.settings'),
-                path: './settings/edit',
-                icon: 'settings',
-              },
-              {
-                name: this.translate.instant('common.template.few'),
-                path: './settings/templates',
-                icon: 'description',
-              },
-              {
-                name: this.translate.instant('common.distributionList.few'),
-                path: './settings/distribution-lists',
-                icon: 'mail',
-              },
-              {
-                name: this.translate.instant('common.customNotification.few'),
-                path: './settings/notifications',
-                icon: 'schedule_send',
-              },
-              {
-                name: this.translate.instant('common.user.few'),
-                path: './settings/users',
-                icon: 'supervisor_account',
-              },
-              {
-                name: this.translate.instant('common.role.few'),
-                path: './settings/roles',
-                icon: 'verified_user',
-              },
-              {
-                name: this.translate.instant(
-                  'pages.application.positionAttributes.title'
-                ),
-                path: './settings/position',
-                icon: 'edit_attributes',
-              },
-              {
-                name: this.translate.instant('common.channel.few'),
-                path: './settings/channels',
-                icon: 'dns',
-              },
-              {
-                name: this.translate.instant('common.subscription.few'),
-                path: './settings/subscriptions',
-                icon: 'add_to_queue',
-              },
-            ];
-          }
-          if (application.canUpdate) {
-            this.adminNavItems.push({
-              name: this.translate.instant('common.archive.few'),
-              path: './settings/archive',
-              icon: 'delete',
-            });
+            this.configNavItems();
+            this.translate.onLangChange
+              .pipe(takeUntil(this.destroy$))
+              .subscribe(() => this.configNavItems());
           }
           this.navGroups = [
             {
@@ -194,12 +157,91 @@ export class ApplicationComponent
           }
           this.application = application;
           this.sideMenu = this.application?.sideMenu ?? true;
+          this.variant =
+            this.sideMenu && this.application?.variant
+              ? this.application.variant
+              : 'original';
           this.hideMenu = this.application?.hideMenu ?? false;
+          this.applicationService
+            .getLogoBase64(this.application)
+            .then((logo) => {
+              this.logoBase64 = logo;
+            });
+          // Admin nav items for new variant
+          if (this.variant === 'new') {
+            this.navGroups.push({
+              name: this.translate.instant('common.admin'),
+              navItems: this.adminNewVariantNavItems,
+            });
+          }
         } else {
           this.title = '';
           this.navGroups = [];
         }
       });
+  }
+
+  /**
+   * Config admin navigation items
+   */
+  private configNavItems(): void {
+    this.adminNavItems = [
+      {
+        name: this.translate.instant('common.settings'),
+        path: './settings/edit',
+        icon: 'settings',
+      },
+      {
+        name: this.translate.instant('common.template.few'),
+        path: './settings/templates',
+        icon: 'description',
+      },
+      {
+        name: this.translate.instant('common.distributionList.few'),
+        path: './settings/distribution-lists',
+        icon: 'mail',
+      },
+      {
+        name: this.translate.instant('common.customNotification.few'),
+        path: './settings/notifications',
+        icon: 'schedule_send',
+      },
+      {
+        name: this.translate.instant('common.user.few'),
+        path: './settings/users',
+        icon: 'supervisor_account',
+      },
+      {
+        name: this.translate.instant('common.role.few'),
+        path: './settings/roles',
+        icon: 'verified_user',
+      },
+      {
+        name: this.translate.instant(
+          'pages.application.positionAttributes.title'
+        ),
+        path: './settings/position',
+        icon: 'edit_attributes',
+      },
+      {
+        name: this.translate.instant('common.channel.few'),
+        path: './settings/channels',
+        icon: 'dns',
+      },
+      {
+        name: this.translate.instant('common.subscription.few'),
+        path: './settings/subscriptions',
+        icon: 'add_to_queue',
+      },
+      {
+        name: this.translate.instant('common.archive.few'),
+        path: './settings/archive',
+        icon: 'delete',
+      },
+    ];
+    this.adminNewVariantNavItems = this.adminNavItems.filter((item) =>
+      this.filterPaths.some((path) => item.path.includes(path))
+    );
   }
 
   /**
