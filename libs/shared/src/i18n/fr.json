@@ -5,6 +5,7 @@
     "account": "Compte",
     "actions": "Actions",
     "add": "Ajouter",
+    "admin": "Admin",
     "adminField": "Champ administrateur",
     "aggregation": {
       "add": "Ajouter une agrégation",
@@ -735,7 +736,7 @@
         "sideMenu": "Afficher le menu sur le côté",
         "tooltip": {
           "hideMenu": "Ne s'applique que lorsque le menu est sur le côté",
-          "logo": "Ne s'applique que lorsque la variante est nouvelle"
+          "logo": "Ne s'applique que lorsque la variante est nouvelle et que le menu est sur le côté"
         },
         "variants": {
           "label": "Variante du menu sur le côté",

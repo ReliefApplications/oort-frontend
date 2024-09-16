@@ -147,6 +147,16 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
   onSubmit(): void {
     this.applicationService.editApplication(this.settingsForm?.value);
     this.settingsForm?.markAsPristine();
+
+    // If !sideMenu or variant is original on save, clear logo
+    if (
+      this.application &&
+      (!this.settingsForm?.get('sideMenu')?.value ||
+        this.settingsForm?.get('variant')?.value === 'original')
+    ) {
+      this.logoBase64 = undefined;
+      this.applicationService.deleteApplicationLogo(this.application);
+    }
   }
 
   /**

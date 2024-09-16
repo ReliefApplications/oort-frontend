@@ -15,3 +15,10 @@ export type SidenavPositionTypes = (typeof sidenavPositions)[number];
  */
 export const sidenavVariants = ['original', 'new'] as const;
 export type SidenavVariantsTypes = (typeof sidenavVariants)[number];
+/**
+ * Sidenav widths
+ */
+export const NEW_SIDENAV_WIDTH_PX = {
+  expanded: '240px',
+  collapsed: '92px',
+};

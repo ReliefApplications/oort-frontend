@@ -5,6 +5,7 @@
     "account": "Account",
     "actions": "Actions",
     "add": "Add",
+    "admin": "Admin",
     "adminField": "Admin field",
     "aggregation": {
       "add": "Add aggregation",
@@ -729,7 +730,7 @@
         "sideMenu": "Show menu on the side",
         "tooltip": {
           "hideMenu": "Only applies when menu is located on the side",
-          "logo": "Only applies when variant is new"
+          "logo": "Only applies when variant is new and menu is on the side"
         },
         "variants": {
           "label": "Side menu variant",

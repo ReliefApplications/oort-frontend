@@ -118,7 +118,10 @@
 <!-- Logo -->
 <div
   *ngIf="
-    application && application.canUpdate && settingsForm.value.variant === 'new'
+    application &&
+    application.canUpdate &&
+    settingsForm.value.variant === 'new' &&
+    settingsForm.value.sideMenu
   "
   class="mt-2"
 >

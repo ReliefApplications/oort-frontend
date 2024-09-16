@@ -38,6 +38,8 @@ export class ApplicationComponent
   public navGroups: any[] = [];
   /** Admin pages */
   public adminNavItems: any[] = [];
+  /** Admin pages for new variant sidenav */
+  public adminNewVariantNavItems: any[] = [];
   /** Current application */
   public application?: Application;
   /** Use side menu or not */
@@ -52,6 +54,14 @@ export class ApplicationComponent
   public loading = true;
   /** Logo base64 */
   public logoBase64 = '';
+  /** Admin nav items to be included in new navbar by the last word from its path */
+  public filterPaths = [
+    'users',
+    'roles',
+    'templates',
+    'distribution-lists',
+    'notifications',
+  ];
 
   /**
    * Main component of application view
@@ -157,6 +167,13 @@ export class ApplicationComponent
             .then((logo) => {
               this.logoBase64 = logo;
             });
+          // Admin nav items for new variant
+          if (this.variant === 'new') {
+            this.navGroups.push({
+              name: this.translate.instant('common.admin'),
+              navItems: this.adminNewVariantNavItems,
+            });
+          }
         } else {
           this.title = '';
           this.navGroups = [];
@@ -222,6 +239,9 @@ export class ApplicationComponent
         icon: 'delete',
       },
     ];
+    this.adminNewVariantNavItems = this.adminNavItems.filter((item) =>
+      this.filterPaths.some((path) => item.path.includes(path))
+    );
   }
 
   /**
