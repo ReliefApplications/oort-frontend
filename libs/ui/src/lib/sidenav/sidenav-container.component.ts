@@ -210,6 +210,36 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Resolve content wrapper classes
+   */
+  resolveContentWrapperClasses(): string[] {
+    const classes = [
+      'py-[32px]',
+      'overflow-y-auto',
+      'overflow-x-hidden',
+      'h-full',
+      'px-[24px]',
+      'flex',
+      'flex-col',
+      'absolute',
+      'inset-0',
+    ];
+
+    if (this.fixedWrapperActionExist) {
+      classes.push('pb-[64px]');
+    }
+
+    // Update the class list for the wrapper element
+    const contentWrapperElement =
+      this.contentWrapper?.nativeElement.querySelector('app-workflow');
+    if (contentWrapperElement) {
+      contentWrapperElement.classList.add(...classes);
+    }
+
+    return classes;
+  }
+
+  /**
    * Set the transition properties to the content adjacent to the sidenav
    */
   private setTransitionForContent() {

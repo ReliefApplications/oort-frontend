@@ -25,9 +25,8 @@
     ></div>
     <div class="h-full w-full relative">
       <div
-        [ngClass]="{ 'pb-[64px]': fixedWrapperActionExist }"
+        [ngClass]="resolveContentWrapperClasses()"
         id="appPageContainer"
-        class="py-[32px] overflow-y-auto overflow-x-hidden h-full px-[24px] flex flex-col absolute inset-0"
         #contentWrapper
       >
         <ng-content select="content"></ng-content>
