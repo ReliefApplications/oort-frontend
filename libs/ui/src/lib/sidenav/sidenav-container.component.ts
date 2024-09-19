@@ -58,8 +58,6 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   fixedWrapperActionExist = false;
   /** Timeout to transitions */
   private transitionsTimeoutListener!: NodeJS.Timeout;
-  /** Tailwind classes for content wrapper */
-  public wrapperClasses: string[] = [];
 
   /** @returns height of element */
   get height() {
