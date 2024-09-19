@@ -58,6 +58,8 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   fixedWrapperActionExist = false;
   /** Timeout to transitions */
   private transitionsTimeoutListener!: NodeJS.Timeout;
+  /** Tailwind classes for content wrapper */
+  public wrapperClasses: string[] = [];
 
   /** @returns height of element */
   get height() {
@@ -206,6 +208,36 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
         'shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)]'
       );
     }
+    return classes;
+  }
+
+  /**
+   * Resolve content wrapper classes
+   */
+  resolveContentWrapperClasses(): string[] {
+    const classes = [
+      'py-[32px]',
+      'overflow-y-auto',
+      'overflow-x-hidden',
+      'h-full',
+      'px-[24px]',
+      'flex',
+      'flex-col',
+      'absolute',
+      'inset-0',
+    ];
+
+    if (this.fixedWrapperActionExist) {
+      classes.push('pb-[64px]');
+    }
+
+    // Update the class list for the wrapper element
+    const contentWrapperElement =
+      this.contentWrapper?.nativeElement.querySelector('app-workflow');
+    if (contentWrapperElement) {
+      contentWrapperElement.classList.add(...classes);
+    }
+
     return classes;
   }
 
