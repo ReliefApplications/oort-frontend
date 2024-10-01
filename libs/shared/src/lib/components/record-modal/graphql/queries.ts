@@ -1,7 +1,7 @@
 import { gql } from 'apollo-angular';
 
 /** Identifier for GraphQl requests */
-const COMPONENT_IDENTIFIER = 'RecordModal';
+const GRAPHQL_IDENTIFIER = 'RecordModal';
 
 /** GraphQl form fields for record modal queries */
 export const FORM_FIELDS = gql`
@@ -19,7 +19,7 @@ export const FORM_FIELDS = gql`
 
 /** Graphql request for getting a record by its id */
 export const GET_RECORD_BY_ID = gql`
-  query ${COMPONENT_IDENTIFIER}_GetRecordById(
+  query ${GRAPHQL_IDENTIFIER}_GetRecordById(
     $id: ID!
     $getForm: Boolean!
   ) {
@@ -44,7 +44,7 @@ export const GET_RECORD_BY_ID = gql`
 
 /** Graphql request for getting the form structure by its id */
 export const GET_FORM_STRUCTURE = gql`
-  query ${COMPONENT_IDENTIFIER}_GetFormById($id: ID!) {
+  query ${GRAPHQL_IDENTIFIER}_GetFormById($id: ID!) {
     form(id: $id) {
       ...FormFields
     }
