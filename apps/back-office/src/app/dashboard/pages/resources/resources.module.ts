@@ -23,6 +23,7 @@ import {
   DialogModule,
   ErrorMessageModule,
   SelectMenuModule,
+  DividerModule,
 } from '@oort-front/ui';
 import { IdShapeModalComponent } from './id-shape-modal/id-shape-modal.component';
 import { ImportFieldModalComponent } from './import-field-modal/import-field-modal.component';
@@ -59,6 +60,7 @@ import { AbilityModule } from '@casl/angular';
     DialogModule,
     ErrorMessageModule,
     SelectMenuModule,
+    DividerModule,
     AbilityModule,
   ],
   exports: [ResourcesComponent],

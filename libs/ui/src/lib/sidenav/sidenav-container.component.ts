@@ -15,9 +15,14 @@ import {
 import { NavigationEnd, Router } from '@angular/router';
 import { SidenavDirective } from './sidenav.directive';
 import { Subject, takeUntil } from 'rxjs';
-import { SidenavPositionTypes, SidenavTypes } from './types/sidenavs';
+import {
+  SidenavPositionTypes,
+  SidenavTypes,
+  SidenavVariantsTypes,
+} from './types/sidenavs';
 import { filter } from 'rxjs/operators';
 import { UILayoutService } from './layout/layout.service';
+import { NEW_SIDENAV_WIDTH_PX } from './types/sidenavs';
 
 /**
  * UI Sidenav component
@@ -29,6 +34,7 @@ import { UILayoutService } from './layout/layout.service';
   styleUrls: ['./sidenav-container.component.scss'],
 })
 export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
+  public NEW_SIDENAV_WIDTH_PX = NEW_SIDENAV_WIDTH_PX;
   /** A list of SidenavDirective children. */
   @ContentChildren(SidenavDirective)
   uiSidenavDirective!: QueryList<SidenavDirective>;
@@ -41,6 +47,8 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   /** Reference to the fixed wrapper actions. */
   @ViewChild('fixedWrapperActions', { read: ViewContainerRef })
   fixedWrapperActions?: ViewContainerRef;
+  /** Reference to the collapse button wrapper div */
+  @ViewChild('collapseButtonWrapper') collapseButtonWrapper!: ElementRef;
 
   /** Array indicating whether each side navigation menu should be shown. */
   public showSidenav: boolean[] = [];
@@ -48,6 +56,8 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   public mode: SidenavTypes[] = [];
   /** Array indicating the position of each side navigation menu. */
   public position: SidenavPositionTypes[] = [];
+  /** Array indicating the variant of each side navigation menu. */
+  public variant: SidenavVariantsTypes[] = [];
   /** Array indicating whether each side navigation menu is visible. */
   public visible: boolean[] = [];
   /** Subject to emit when the component is destroyed. */
@@ -58,6 +68,8 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   fixedWrapperActionExist = false;
   /** Timeout to transitions */
   private transitionsTimeoutListener!: NodeJS.Timeout;
+  /** Boolean array for hovered sidenavs */
+  public sidenavHovered: boolean[] = [];
 
   /** @returns height of element */
   get height() {
@@ -123,11 +135,13 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
       });
     // Initialize width and show sidenav value
     this.uiSidenavDirective.forEach((sidenavDirective, index) => {
+      this.sidenavHovered[index] = false;
       this.showSidenav[index] = sidenavDirective.visible
         ? sidenavDirective.opened
         : false;
       this.mode[index] = sidenavDirective.mode;
       this.position[index] = sidenavDirective.position;
+      this.variant[index] = sidenavDirective.variant;
       this.setRightSidenavHeight(
         this.sidenav.get(index).nativeElement,
         sidenavDirective
@@ -143,6 +157,7 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
           this.showSidenav[index] = sidenavDirective.visible ? opened : false;
           // Change the mode if it has changed since last opening/closure
           this.mode[index] = sidenavDirective.mode;
+          this.variant[index] = sidenavDirective.variant;
         });
     });
 
@@ -183,28 +198,38 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
    */
   resolveSidenavClasses(index: number): string[] {
     const classes = [];
-    if (this.position[index] === 'start') {
-      classes.push("data-[sidenav-show='false']:-translate-x-full");
-      classes.push("data-[sidenav-show='false']:w-0");
+    // Original variant
+    if (this.variant[index] === 'original') {
+      if (this.position[index] === 'start') {
+        classes.push("data-[sidenav-show='false']:-translate-x-full");
+        classes.push("data-[sidenav-show='false']:w-0");
+        classes.push('z-[1002]');
+        classes.push('w-60');
+        classes.push('border-r');
+        classes.push('border-gray-200');
+      }
+      if (this.mode[index] === 'over') {
+        classes.push('h-full');
+        classes.push('left-0');
+        classes.push('top-0');
+        classes.push('fixed');
+      }
+      if (this.position[index] === 'end') {
+        classes.push('absolute');
+        classes.push('right-0');
+        classes.push("data-[sidenav-show='false']:translate-x-full");
+        classes.push('z-[997]');
+        classes.push(
+          'shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)]'
+        );
+      }
+      classes.push('bg-white');
+    }
+    // New variant
+    if (this.variant[index] === 'new') {
       classes.push('z-[1002]');
-      classes.push('w-60');
-      classes.push('border-r');
-      classes.push('border-gray-200');
-    }
-    if (this.mode[index] === 'over') {
-      classes.push('h-full');
-      classes.push('left-0');
-      classes.push('top-0');
-      classes.push('fixed');
-    }
-    if (this.position[index] === 'end') {
-      classes.push('absolute');
-      classes.push('right-0');
-      classes.push("data-[sidenav-show='false']:translate-x-full");
-      classes.push('z-[997]');
-      classes.push(
-        'shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)]'
-      );
+      classes.push('text-white');
+      classes.push('bg-[#161215]');
     }
     return classes;
   }
@@ -218,6 +243,7 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
       this.sidenav.forEach((side) => {
         this.renderer.addClass(side.nativeElement, aClass);
       });
+      this.renderer.addClass(this.collapseButtonWrapper.nativeElement, aClass);
     });
   }
 
@@ -227,5 +253,32 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
     }
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Toggles the sidenav
+   *
+   * @param index index of the sidenav
+   */
+  toggleSidenav(index: number) {
+    this.uiSidenavDirective.get(index)?.toggle();
+  }
+
+  /**
+   * Handles the mouse enter event
+   *
+   * @param index index of the sidenav
+   */
+  onMouseEnter(index: number) {
+    this.sidenavHovered[index] = true;
+  }
+
+  /**
+   * Handles the mouse leave event
+   *
+   * @param index index of the sidenav
+   */
+  onMouseLeave(index: number) {
+    this.sidenavHovered[index] = false;
   }
 }

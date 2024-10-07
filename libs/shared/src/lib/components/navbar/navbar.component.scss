@@ -98,3 +98,18 @@
   max-height: calc(100vh - 48px);
   overflow: auto;
 }
+
+.new-variant {
+  & > li {
+    @apply min-h-[44px] text-white mb-2 px-2;
+
+    & > a {
+      @apply py-0;
+    }
+  }
+}
+
+.new-button ::ng-deep button:hover {
+  background-color: transparent !important;
+  filter: drop-shadow(0 0 3px white);
+}

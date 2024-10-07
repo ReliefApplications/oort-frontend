@@ -5,6 +5,7 @@
     "account": "******",
     "actions": "******",
     "add": "******",
+    "admin": "******",
     "adminField": "******",
     "aggregation": {
       "add": "******",
@@ -286,6 +287,9 @@
       "one": "******"
     },
     "loading": "******",
+    "logo": {
+      "one": "******"
+    },
     "modifiedOn": "******",
     "name": "******",
     "next": "******",
@@ -716,12 +720,22 @@
       },
       "update": {
         "hideMenu": "******",
+        "logo": {
+          "current": "******",
+          "upload": "******"
+        },
         "placeholder": {
           "description": "******"
         },
         "sideMenu": "******",
         "tooltip": {
-          "hideMenu": "******"
+          "hideMenu": "******",
+          "logo": "******"
+        },
+        "variants": {
+          "label": "******",
+          "new": "******",
+          "original": "******"
         }
       },
       "users": {
@@ -1018,6 +1032,11 @@
       "modal": {
         "select": "******",
         "use": "******"
+      }
+    },
+    "logo": {
+      "delete": {
+        "confirmationMessage": "******"
       }
     },
     "logout": {

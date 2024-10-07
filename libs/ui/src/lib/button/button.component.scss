@@ -194,6 +194,12 @@
   }
 }
 
+.button-lighter {
+  &.primary {
+    @apply bg-primary-50 text-neutral-900 hover:bg-primary-100;
+  }
+}
+
 button.ui-button:disabled {
   @apply text-neutral-400 bg-neutral-500 bg-opacity-20;
 }
