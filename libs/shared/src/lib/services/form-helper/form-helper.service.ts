@@ -466,7 +466,6 @@ export class FormHelpersService {
     if (!options.question.tooltip) {
       return;
     }
-    console.log(options.question.tooltip);
     const titleElement = (options.htmlElement as HTMLElement).querySelector(
       '.sd-question__title'
     );
@@ -509,9 +508,6 @@ export class FormHelpersService {
           'mousedown',
           tooltipDirective.onMouseDown
         );
-
-        // Store the directive on the component instance for later cleanup
-        (component.instance as any).__tooltipDirective = tooltipDirective;
 
         // Sets the tooltip text
         component.instance.tooltip = options.question.tooltip;
