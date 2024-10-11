@@ -196,7 +196,6 @@ export class FormComponent
    */
   public reset(): void {
     this.survey.clear();
-    this.survey.data = {};
     /** Clear temporary files */
     this.temporaryFilesStorage.clear();
     /** Force reload of the survey so default value are being applied */
