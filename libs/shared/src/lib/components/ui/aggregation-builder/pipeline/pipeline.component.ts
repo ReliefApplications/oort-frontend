@@ -1,4 +1,11 @@
-import { Component, HostListener, Input, OnInit } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+} from '@angular/core';
 import { UntypedFormArray } from '@angular/forms';
 import { AggregationBuilderService } from '../../../../services/aggregation-builder/aggregation-builder.service';
 import { Observable } from 'rxjs';
@@ -19,7 +26,10 @@ import { ResizeEvent } from 'angular-resizable-element';
   templateUrl: './pipeline.component.html',
   styleUrls: ['./pipeline.component.scss'],
 })
-export class PipelineComponent extends UnsubscribeComponent implements OnInit {
+export class PipelineComponent
+  extends UnsubscribeComponent
+  implements OnInit, OnChanges
+{
   /** Public variable for stage type. */
   public stageType = PipelineStage;
   /** Input array to hold the list of stages. */
@@ -81,9 +91,22 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
     this.pipelineForm.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntil(this.destroy$))
       .subscribe((pipeline: any[]) => {
-        console.log(pipeline);
         this.updateFieldsPerStage(pipeline);
       });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['showCheckboxes']) {
+      if (changes['showCheckboxes'].currentValue == true) {
+        this.style = {
+          width: `${(window.innerWidth * 2) / 3 - 100}px`,
+        };
+      } else {
+        this.style = {
+          width: `${window.innerWidth - 100}px`,
+        };
+      }
+    }
   }
 
   /**
@@ -106,10 +129,11 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
       } else {
         if (pipeline[index]?.type === PipelineStage.CUSTOM) {
           const rawData = pipeline[index].form.raw;
-          const parsed = JSON.parse(JSON.stringify(rawData)); // Validate JSON structure
-          pipeline[index].form.raw = JSON.stringify(parsed, null, 2); // Pretty-print with 2 spaces
+          // hide if json value is null
+          if (rawData == '') {
+            pipeline[index].preview = false;
+          }
         }
-        console.log(pipeline[index]);
         this.fieldsPerStage[index] = this.aggregationBuilder.fieldsAfter(
           this.initialFields,
           pipeline.slice(0, index)
