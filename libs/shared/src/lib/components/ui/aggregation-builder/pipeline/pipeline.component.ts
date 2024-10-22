@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, HostListener, Input, OnInit } from '@angular/core';
 import { UntypedFormArray } from '@angular/forms';
 import { AggregationBuilderService } from '../../../../services/aggregation-builder/aggregation-builder.service';
 import { Observable } from 'rxjs';
@@ -81,6 +81,7 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
     this.pipelineForm.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntil(this.destroy$))
       .subscribe((pipeline: any[]) => {
+        console.log(pipeline);
         this.updateFieldsPerStage(pipeline);
       });
   }
@@ -103,6 +104,12 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
           pipeline.slice(0, index)
         );
       } else {
+        if (pipeline[index]?.type === PipelineStage.CUSTOM) {
+          const rawData = pipeline[index].form.raw;
+          const parsed = JSON.parse(JSON.stringify(rawData)); // Validate JSON structure
+          pipeline[index].form.raw = JSON.stringify(parsed, null, 2); // Pretty-print with 2 spaces
+        }
+        console.log(pipeline[index]);
         this.fieldsPerStage[index] = this.aggregationBuilder.fieldsAfter(
           this.initialFields,
           pipeline.slice(0, index)
@@ -153,7 +160,6 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
    */
   onResizing(event: ResizeEvent): void {
     this.style = {
-      // width: `${event.rectangle.width}px`,
       height: `${event.rectangle.height}px`,
     };
   }
@@ -171,5 +177,17 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
     } else {
       return true;
     }
+  }
+
+  /**
+   * Change the custom editor depending on windows size.
+   *
+   * @param event Event that implies a change in window size
+   */
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: any): void {
+    this.style = {
+      width: `${event.target.innerWidth - 100}px`,
+    };
   }
 }
