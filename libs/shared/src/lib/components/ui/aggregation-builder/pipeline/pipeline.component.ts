@@ -1,4 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+} from '@angular/core';
 import { UntypedFormArray } from '@angular/forms';
 import { AggregationBuilderService } from '../../../../services/aggregation-builder/aggregation-builder.service';
 import { Observable } from 'rxjs';
@@ -9,6 +16,7 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { UnsubscribeComponent } from '../../../utils/unsubscribe/unsubscribe.component';
 import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
+import { ResizeEvent } from 'angular-resizable-element';
 
 /**
  * Aggregation pipeline component.
@@ -18,7 +26,10 @@ import { isEqual } from 'lodash';
   templateUrl: './pipeline.component.html',
   styleUrls: ['./pipeline.component.scss'],
 })
-export class PipelineComponent extends UnsubscribeComponent implements OnInit {
+export class PipelineComponent
+  extends UnsubscribeComponent
+  implements OnInit, OnChanges
+{
   /** Public variable for stage type. */
   public stageType = PipelineStage;
   /** Input array to hold the list of stages. */
@@ -31,6 +42,17 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
   @Input() public filterFields$!: Observable<any[]>;
   /** Array to hold the filter fields. */
   public filterFields: any[] = [];
+
+  /** Editor options */
+  public editorOptions = {
+    automaticLayout: true,
+    theme: 'vs-dark',
+    language: 'json',
+    formatOnPaste: true,
+    fixedOverflowWidgets: true,
+  };
+  /** size style of editor */
+  public style: any = {};
 
   /** Array to hold the meta fields. */
   public metaFields: any[] = [];
@@ -73,6 +95,20 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
       });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['showCheckboxes']) {
+      if (changes['showCheckboxes'].currentValue == true) {
+        this.style = {
+          width: `${(window.innerWidth * 2) / 3 - 100}px`,
+        };
+      } else {
+        this.style = {
+          width: `${window.innerWidth - 100}px`,
+        };
+      }
+    }
+  }
+
   /**
    * Updates fields for the stage.
    *
@@ -91,6 +127,13 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
           pipeline.slice(0, index)
         );
       } else {
+        if (pipeline[index]?.type === PipelineStage.CUSTOM) {
+          const rawData = pipeline[index].form.raw;
+          // hide if json value is null
+          if (rawData == '') {
+            pipeline[index].preview = false;
+          }
+        }
         this.fieldsPerStage[index] = this.aggregationBuilder.fieldsAfter(
           this.initialFields,
           pipeline.slice(0, index)
@@ -132,5 +175,43 @@ export class PipelineComponent extends UnsubscribeComponent implements OnInit {
 
     this.pipelineForm.removeAt(event.previousIndex);
     this.pipelineForm.insert(event.currentIndex, temp);
+  }
+
+  /**
+   * On resizing action
+   *
+   * @param event resize event
+   */
+  onResizing(event: ResizeEvent): void {
+    this.style = {
+      height: `${event.rectangle.height}px`,
+    };
+  }
+
+  /**
+   * Check if resize event is valid
+   *
+   * @param event resize event
+   * @returns boolean
+   */
+  validate(event: ResizeEvent): boolean {
+    const minHeight = 300;
+    if (event.rectangle.height && event.rectangle.height < minHeight) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  /**
+   * Change the custom editor depending on windows size.
+   *
+   * @param event Event that implies a change in window size
+   */
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: any): void {
+    this.style = {
+      width: `${event.target.innerWidth - 100}px`,
+    };
   }
 }
