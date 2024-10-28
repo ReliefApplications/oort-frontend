@@ -1,6 +1,6 @@
 {
   "name": "oort-front",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "scripts": {
     "check-i18n": "node .scripts/check-i18n",
@@ -192,6 +192,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ReliefApplications/ems-frontend.git"
+    "url": "https://github.com/ReliefApplications/oort-frontend.git"
   }
 }
