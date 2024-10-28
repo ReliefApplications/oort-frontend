@@ -29,16 +29,13 @@
 
 <!-- Application header -->
 <ng-template #header>
-  <!-- Title -->
-  <h2 class="!m-0 overflow-hidden text-ellipsis whitespace-nowrap">
-    {{ title }}
-  </h2>
   <!-- Settings -->
   <ui-button
     *ngIf="adminNavItems.length > 0"
     [isIcon]="true"
     icon="tune"
-    variant="light"
+    variant="dark"
+    category="primary"
     [uiMenuTriggerFor]="settingsMenu"
     [uiTooltip]="'common.settings' | translate"
   ></ui-button>
