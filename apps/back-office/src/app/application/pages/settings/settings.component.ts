@@ -107,6 +107,7 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
         }
       });
   }
+
   /**
    * Create Settings form
    *

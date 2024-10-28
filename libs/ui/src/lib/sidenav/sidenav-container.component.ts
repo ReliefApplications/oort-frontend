@@ -31,6 +31,7 @@ import { SIDENAV_WIDTH_PX } from './types/sidenavs';
   styleUrls: ['./sidenav-container.component.scss'],
 })
 export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
+  /** Width of the sidenav */
   public SIDENAV_WIDTH_PX = SIDENAV_WIDTH_PX;
   /** Header template */
   @Input() headerTemplate!: any;
@@ -63,8 +64,6 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   /** Array of classes for animations. */
   animationClasses = ['transition-all', 'duration-500', 'ease-in-out'] as const;
-  /** Should display fixed wrapper at bottom */
-  fixedWrapperActionExist = false;
   /** Timeout to transitions */
   private transitionsTimeoutListener!: NodeJS.Timeout;
   /** Boolean array for hovered sidenavs */
@@ -111,11 +110,9 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((view) => {
         if (view && this.fixedWrapperActions) {
-          this.fixedWrapperActionExist = true;
           this.fixedWrapperActions.createEmbeddedView(view);
         } else {
           if (this.fixedWrapperActions) {
-            this.fixedWrapperActionExist = false;
             this.fixedWrapperActions.clear();
           }
         }
@@ -222,6 +219,8 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
 
   /**
    * Resolve content wrapper classes
+   *
+   * @returns classes for the content wrapper
    */
   resolveContentWrapperClasses(): string[] {
     const classes = [

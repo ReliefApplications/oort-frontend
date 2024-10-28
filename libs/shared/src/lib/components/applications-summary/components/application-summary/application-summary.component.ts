@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Application } from '../../../../models/application.model';
-import { User } from 'libs/shared/src/lib/models/user.model';
+import { User } from '../../../../models/user.model';
 
 /**
  * This interface describes the data structure of the status of the application
@@ -87,6 +87,7 @@ export class ApplicationSummaryComponent {
    * Emits the favorite event
    *
    * @param application the application to favorite
+   * @param event the event
    */
   onSelectFavorite(application: Application, event: any): void {
     event?.stopPropagation();
