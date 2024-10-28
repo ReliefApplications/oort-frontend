@@ -42,7 +42,7 @@
   >
     <div *ngFor="let group of navGroups; let i = index">
       <ui-divider
-        *ngIf="i === navGroups.length - 1 && i != 0"
+        *ngIf="i === navGroups.length - 1 && i !== 0"
         color="#403d3f"
         class="w-2/5 pb-4 pt-3 mx-auto"
       ></ui-divider>
@@ -65,7 +65,7 @@
     <div *ngFor="let group of navGroups; let i = index">
       <div>
         <ui-divider
-          *ngIf="i === navGroups.length - 1 && i != 0 && vertical"
+          *ngIf="i === navGroups.length - 1 && i !== 0 && vertical"
           color="#403d3f"
           class="w-4/5 pb-4 pt-3 mx-auto"
         ></ui-divider>
