@@ -178,7 +178,7 @@ export class UserListComponent
     if (refetch) {
       this.cachedUsers = [];
       this.pageInfo.pageIndex = 0;
-      this.usersQuery.refetch({
+      this.usersQuery?.refetch({
         first: this.pageInfo.pageSize,
         afterCursor: null,
         filter: this.filter,

@@ -24,11 +24,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DateTranslateService } from '../../services/date-translate/date-translate.service';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
 import { takeUntil } from 'rxjs/operators';
-import {
-  Breadcrumb,
-  SidenavVariantsTypes,
-  UILayoutService,
-} from '@oort-front/ui';
+import { Breadcrumb, UILayoutService } from '@oort-front/ui';
 import { BreadcrumbService } from '../../services/breadcrumb/breadcrumb.service';
 
 /**
@@ -88,23 +84,18 @@ export class LayoutComponent
    */
   @Output() reorder: EventEmitter<any> = new EventEmitter();
   /**
-   * Event emitted when the user clicks on the profile button
+   * Route to the profile page
    */
   @Input() profileRoute = '/profile';
   /**
-   * Event emitted when the user clicks on the profile button
+   * Boolean indicating if menu is on the side
    */
   @Input() sideMenu = true;
 
   /**
-   * Event emitted when the user clicks on the profile button
+   * Boolean indicating if menu is opened
    */
   @Input() menuOpened = true;
-
-  /**
-   * Event emitted when the user clicks on the profile button
-   */
-  @Input() variant: SidenavVariantsTypes = 'original';
 
   /**
    * Languages available

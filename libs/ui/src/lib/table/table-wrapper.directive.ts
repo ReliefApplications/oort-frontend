@@ -40,6 +40,7 @@ export class TableWrapperDirective implements OnInit, AfterViewInit, OnDestroy {
   /** Table wrapper classes */
   private tableWrapperClasses = [
     'overflow-x-auto',
+    'overflow-y-hidden',
     'pt-2',
     'bg-white',
     'drop-shadow-xs',
@@ -47,7 +48,7 @@ export class TableWrapperDirective implements OnInit, AfterViewInit, OnDestroy {
   /** Table classes */
   private tableClasses = ['min-w-full', 'divide-y', 'divide-light-100'];
   /** Table body classes */
-  private tbodyClasses = ['divide-y', 'divide-light-100', 'bg-white'];
+  private tbodyClasses = ['divide-y', 'divide-light-100', '[&>tr]:bg-white'];
 
   /** Table wrapper element */
   private tableWrapperElement!: HTMLDivElement;
@@ -90,7 +91,6 @@ export class TableWrapperDirective implements OnInit, AfterViewInit, OnDestroy {
       this.tableWrapperElement
     );
     this.renderer.appendChild(this.tableWrapperElement, this.el.nativeElement);
-    // Check if
   }
 
   ngAfterViewInit(): void {

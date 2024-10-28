@@ -84,6 +84,10 @@ export class ButtonComponent {
     if (this.shape === 'square') {
       classes.push('rounded-md');
     }
+
+    // Animation classes
+    classes.push('transition-colors duration-200 ease-in-out');
+
     return classes;
   }
 }

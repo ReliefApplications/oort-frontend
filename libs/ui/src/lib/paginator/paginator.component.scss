@@ -1,3 +1,7 @@
+.paginator-wrapper {
+  clip-path: inset(0 -20px -20px -20px);
+}
+
 kendo-datapager {
   @apply p-3 bg-white border-l-0 border-b-0 border-r-0 border-t focus:shadow-none text-light-200;
 }

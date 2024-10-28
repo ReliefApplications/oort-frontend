@@ -17,7 +17,7 @@ import {
   UnsubscribeComponent,
   AppAbility,
 } from '@oort-front/shared';
-import { SidenavVariantsTypes, SnackbarService } from '@oort-front/ui';
+import { SnackbarService } from '@oort-front/ui';
 import { get } from 'lodash';
 import { takeUntil } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
@@ -52,8 +52,6 @@ export class ApplicationComponent
   public sideMenu = false;
   /** Should hide menu by default ( only when vertical ) */
   public hideMenu = false;
-  /** Dide menu variant */
-  public variant: SidenavVariantsTypes = 'original';
   /** Is large device */
   public largeDevice: boolean;
   /** Is loading */
@@ -156,10 +154,6 @@ export class ApplicationComponent
           this.application = application;
           this.sideMenu = this.application?.sideMenu ?? true;
           this.hideMenu = this.application?.hideMenu ?? false;
-          this.variant =
-            this.sideMenu && this.application?.variant
-              ? this.application.variant
-              : 'original';
           this.applicationService
             .getLogoBase64(this.application)
             .then((logo) => {
@@ -288,7 +282,6 @@ export class ApplicationComponent
         icon: 'schedule_send',
       });
     }
-    console.log(this.adminNavItems);
   }
 
   override ngOnDestroy(): void {

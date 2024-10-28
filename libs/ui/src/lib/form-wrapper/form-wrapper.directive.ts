@@ -34,7 +34,7 @@ export class FormWrapperDirective
   /**
    * Will the form field be wrapped ?
    */
-  @Input() outline = false;
+  @Input() outline = true;
   /**
    * Set default margin for separation in the current form field
    */
@@ -115,6 +115,7 @@ export class FormWrapperDirective
     'border-0',
     'p-0',
     'bg-gray-50',
+    'rounded-md',
     'text-neutral-850',
     'placeholder:text-neutral-350',
     'focus:ring-0',
@@ -123,14 +124,14 @@ export class FormWrapperDirective
   ] as const;
 
   /** Select classes with no outline*/
-  private selectClassesNoOutline = ['block', 'w-full', 'pr-1'] as const;
+  private selectClassesNoOutline = ['block', 'w-full', 'px-1'] as const;
 
   /** Select classes with outline*/
   private selectClassesOutline = [
     'block',
     'w-full',
     'border-0',
-    'pr-1',
+    'px-1',
     'bg-gray-50',
   ] as const;
 

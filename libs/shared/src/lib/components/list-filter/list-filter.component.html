@@ -3,6 +3,7 @@
   <!-- Search text filter -->
   <div
     uiFormFieldDirective
+    [outline]="false"
     [defaultMargin]="false"
     class="p-0 max-sm:flex-auto [&>div]:h-9 [&>div]:w-72 mr-2"
   >
@@ -25,6 +26,7 @@
       category="secondary"
       variant="dark"
       (click)="showSiblingFilters()"
+      class="[&>button]:h-9"
     >
       {{
         showSignal

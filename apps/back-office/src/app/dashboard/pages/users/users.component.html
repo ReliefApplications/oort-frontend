@@ -1,4 +1,4 @@
-<div class="mb-8 flex flex-col gap-2">
+<div class="mb-2 flex flex-col gap-2">
   <div class="flex gap-8 justify-between flex-col sm:flex-row">
     <shared-users-filter
       #filter
@@ -8,14 +8,16 @@
     >
     </shared-users-filter>
     <!-- Actions -->
-    <div class="flex gap-2">
+    <div class="flex">
       <!-- Actions when selected items -->
       <ng-container *ngIf="selection.selected.length > 0">
         <ui-button
           icon="delete"
           category="secondary"
           variant="danger"
+          shape="round"
           (click)="onDelete(selection.selected)"
+          class="mr-2"
         >
           {{
             'common.deleteObject'
@@ -29,7 +31,9 @@
         icon="file_download"
         category="secondary"
         variant="primary"
+        shape="round"
         [uiMenuTriggerFor]="menu"
+        class="mr-2"
       >
         {{
           'common.exportObject'
@@ -44,7 +48,9 @@
         icon="send"
         category="secondary"
         variant="primary"
+        shape="round"
         (click)="onInvite()"
+        class="mr-2"
       >
         {{ 'components.users.invite.confirm' | translate }}
       </ui-button>
@@ -114,8 +120,21 @@
             {{ 'common.role.few' | translate }}
           </span>
         </th>
-        <td uiCell *cdkCellDef="let element" class="max-w-[30vw]">
+        <td uiCell *cdkCellDef="let element" class="max-w-[25vw]">
           <span *ngFor="let role of element.roles"> {{ role.title }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container cdkColumnDef="applications">
+        <th uiCellHeader *cdkHeaderCellDef scope="col">
+          <span class="headerTitle">
+            {{ 'common.application.few' | translate }}
+          </span>
+        </th>
+        <td uiCell *cdkCellDef="let element" class="max-w-[25vw]">
+          <span *ngFor="let application of element.applications">
+            {{ application.name }}</span
+          >
         </td>
       </ng-container>
 
@@ -132,6 +151,8 @@
         <th uiCellHeader *cdkHeaderCellDef scope="col" class="w-16"></th>
         <td uiCell *cdkCellDef="let element">
           <ui-button
+            category="primary"
+            variant="dark"
             [isIcon]="true"
             icon="more_vert"
             [uiMenuTriggerFor]="menu"
@@ -163,7 +184,8 @@
         'common.name',
         'models.user.username',
         'common.id',
-        'common.role.one'
+        'common.role.one',
+        'common.application.few'
       ]"
       [actions]="true"
       [checkbox]="true"
@@ -179,5 +201,7 @@
   [totalItems]="pageInfo.length"
   [ariaLabel]="'components.users.paginator.ariaLabel' | translate"
   (pageChange)="onPage($event)"
+  [displayedPageNumbers]="5"
+  [hideFirstLastButtons]="false"
 >
 </ui-paginator>

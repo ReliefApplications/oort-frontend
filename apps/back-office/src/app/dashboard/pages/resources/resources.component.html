@@ -1,4 +1,4 @@
-<div class="mb-8 flex flex-col gap-2">
+<div class="mb-2 flex flex-col gap-2">
   <div class="flex gap-8 justify-between flex-col sm:flex-row">
     <!-- FILTERING -->
     <app-resources-filter
@@ -11,6 +11,7 @@
       icon="add"
       category="secondary"
       variant="primary"
+      shape="round"
       (click)="onAdd()"
       *ngIf="'create' | able : 'Resource'"
     >
@@ -75,6 +76,8 @@
         <th uiCellHeader *cdkHeaderCellDef scope="col" class="w-16"></th>
         <td uiCell *cdkCellDef="let element">
           <ui-button
+            category="primary"
+            variant="dark"
             [isIcon]="true"
             icon="more_vert"
             [uiMenuTriggerFor]="menu"
@@ -99,7 +102,7 @@
               {{ 'common.duplicate' | translate }}
             </button>
 
-            <ui-divider class="py-1"></ui-divider>
+            <ui-divider></ui-divider>
 
             <button uiMenuItem (click)="onDelete(element)">
               <ui-icon icon="delete" variant="danger"></ui-icon>
@@ -135,5 +138,7 @@
   [totalItems]="pageInfo.length"
   [ariaLabel]="'components.resource.paginator.ariaLabel' | translate"
   (pageChange)="onPage($event)"
+  [displayedPageNumbers]="5"
+  [hideFirstLastButtons]="false"
 >
 </ui-paginator>

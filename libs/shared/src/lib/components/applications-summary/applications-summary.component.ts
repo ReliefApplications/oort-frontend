@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Application } from '../../models/application.model';
+import { User } from '../../models/user.model';
 
 /**
  * This component is used to display the most recent applications and a button to create a new application
@@ -16,6 +17,10 @@ export class ApplicationsSummaryComponent {
   @Input() canCreate = false;
   /** Available applications */
   @Input() applications: Application[] = [];
+  /** Indicator for profile app summary */
+  @Input() isProfile = false;
+  /** Current user */
+  @Input() user!: User;
   /** Emits an event when a new application is added. */
   @Output() add = new EventEmitter();
   /** Emits an event with the application ID when an application is opened. */
@@ -28,4 +33,6 @@ export class ApplicationsSummaryComponent {
   @Output() clone = new EventEmitter<Application>();
   /** Emits an event with the application when a clone is requested. */
   @Output() editAccess = new EventEmitter<Application>();
+  /** Emits an event when application is favorited */
+  @Output() favorite = new EventEmitter<Application>();
 }

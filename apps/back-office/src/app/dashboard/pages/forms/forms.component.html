@@ -1,4 +1,4 @@
-<div class="mb-8 flex flex-col gap-2">
+<div class="mb-2 flex flex-col gap-2">
   <div class="flex gap-8 justify-between flex-col sm:flex-row">
     <!-- FILTERING -->
     <app-forms-filter
@@ -31,7 +31,6 @@
       [hasPagination]="true"
       (sortChange)="onSort($event)"
       [dataSource]="forms"
-      [hasPagination]="true"
     >
       <ng-container cdkColumnDef="name">
         <th uiCellHeader uiTableHeaderSort="name" *cdkHeaderCellDef scope="col">
@@ -122,6 +121,8 @@
           <ui-button
             *ngIf="!element.core && element.resource?.coreForm?.name"
             [routerLink]="[element.resource.coreForm.id + '/builder']"
+            variant="dark"
+            category="secondary"
           >
             {{ element.resource.coreForm.name }}
           </ui-button>
@@ -132,6 +133,7 @@
         <th uiCellHeader *cdkHeaderCellDef scope="col" class="w-16"></th>
         <td uiCell *cdkCellDef="let element">
           <ui-button
+            category="primary"
             variant="dark"
             [isIcon]="true"
             icon="more_vert"
@@ -176,7 +178,7 @@
               </button>
             </ng-container>
             <ng-container *ngIf="element.canDelete">
-              <ui-divider class="py-1"></ui-divider>
+              <ui-divider></ui-divider>
               <button uiMenuItem (click)="onDelete(element, $event)">
                 <ui-icon icon="delete" variant="danger"></ui-icon>
                 {{ 'common.delete' | translate }}

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Application } from '../../../../models/application.model';
+import { User } from 'libs/shared/src/lib/models/user.model';
 
 /**
  * This interface describes the data structure of the status of the application
@@ -8,8 +9,7 @@ import { Application } from '../../../../models/application.model';
 interface IStatus {
   name: string;
   short: string;
-  color: string;
-  focusColor: string;
+  class: string;
 }
 
 /**
@@ -23,6 +23,10 @@ interface IStatus {
 export class ApplicationSummaryComponent {
   /** Application input */
   @Input() application!: Application;
+  /** Is profile app summary */
+  @Input() isProfile = false;
+  /** Current user */
+  @Input() user!: User;
   /** Preview event emitter */
   @Output() preview = new EventEmitter();
   /** Delete event emitter */
@@ -31,25 +35,24 @@ export class ApplicationSummaryComponent {
   @Output() clone = new EventEmitter();
   /** Edit access event emitter */
   @Output() editAccess = new EventEmitter();
+  /** Favorite event emitter */
+  @Output() favorite = new EventEmitter();
   /** Statuses */
   statuses: IStatus[] = [
     {
       name: 'active',
       short: 'A',
-      color: 'rgba(149, 221, 101, 0.2)',
-      focusColor: '#95DD65',
+      class: 'bg-green-550',
     },
     {
       name: 'pending',
       short: 'P',
-      color: 'rgba(244, 174, 82, 0.2)',
-      focusColor: '#F4AE52',
+      class: 'bg-yellow-550',
     },
     {
       name: 'archived',
       short: 'D',
-      color: 'rgba(241, 67, 67, 0.19)',
-      focusColor: '#F14343',
+      class: 'bg-red-550',
     },
   ];
 
@@ -68,7 +71,7 @@ export class ApplicationSummaryComponent {
    *
    * @param translate the translating service
    */
-  constructor(translate: TranslateService) {
+  constructor(private translate: TranslateService) {
     this.statuses[0].short = translate
       .instant('common.status_active')[0]
       .toUpperCase();
@@ -78,5 +81,36 @@ export class ApplicationSummaryComponent {
     this.statuses[2].short = translate
       .instant('common.status_archived')[0]
       .toUpperCase();
+  }
+
+  /**
+   * Emits the favorite event
+   *
+   * @param application the application to favorite
+   */
+  onSelectFavorite(application: Application, event: any): void {
+    event?.stopPropagation();
+    this.favorite.emit(application);
+  }
+
+  /**
+   * Gets current user role for current application
+   *
+   * @returns the role of the current user
+   */
+  getRole(): string {
+    const role = this.user.roles?.find(
+      (role) => role.application?.id === this.application.id
+    );
+    return role?.title || this.translate.instant('common.none');
+  }
+
+  /**
+   * Gets current position attributes for current application
+   *
+   * @returns the position attributes of the current user
+   */
+  getPositionAttributes(): string | undefined {
+    return this.user.positionAttributes?.join(', ');
   }
 }

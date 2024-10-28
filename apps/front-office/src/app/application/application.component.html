@@ -13,7 +13,6 @@
   [menuOpened]="!hideMenu"
   [profileRoute]="appID ? '/' + appID + '/profile' : '/profile'"
   (openApplication)="onOpenApplication($event)"
-  [variant]="variant"
 ></shared-layout>
 <!--Need the nav variable, don't remove let-nav, used in layout-->
 <ng-template #pages let-nav>
@@ -22,13 +21,11 @@
     [appLayout]="true"
     [navGroups]="navGroups"
     [vertical]="!(!sideMenu && largeDevice)"
-    [variant]="variant"
     [appName]="application?.name!"
     [appLogo]="logoBase64"
     [bottomOptions]="adminNavItems"
   ></shared-navbar>
 </ng-template>
-<!--@TODO add application.logo from backend, this is just a placeholder example-->
 
 <!-- Application header -->
 <ng-template #header>
@@ -38,7 +35,7 @@
   </h2>
   <!-- Settings -->
   <ui-button
-    *ngIf="adminNavItems.length > 0 && !(sideMenu && variant === 'new')"
+    *ngIf="adminNavItems.length > 0"
     [isIcon]="true"
     icon="tune"
     variant="light"

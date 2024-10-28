@@ -9,7 +9,6 @@ import { DistributionList } from './distribution-list.model';
 import { Connection } from '../utils/graphql/connection.type';
 import { CustomNotification } from './custom-notification.model';
 import { GraphqlNodesResponse } from './graphql-query.model';
-import { SidenavVariantsTypes } from '@oort-front/ui';
 
 /** Model for Application object. */
 export interface Application {
@@ -17,7 +16,6 @@ export interface Application {
   name?: string;
   description?: string;
   sideMenu?: boolean;
-  variant?: SidenavVariantsTypes;
   hideMenu?: boolean;
   createdAt?: Date;
   modifiedAt?: Date;
@@ -40,7 +38,6 @@ export interface Application {
   templates?: Template[];
   distributionLists?: DistributionList[];
   customNotifications?: Connection<CustomNotification>;
-  // @TODO logo backend support has to be added
   logo?: string;
 }
 

@@ -1,6 +1,7 @@
 import {
   Component,
   EventEmitter,
+  Input,
   Output,
   TemplateRef,
   ViewChild,
@@ -19,4 +20,6 @@ export class MenuComponent {
   @ViewChild(TemplateRef) templateRef!: TemplateRef<any>;
   /** Event emitter for when the menu is closed. */
   @Output() closed = new EventEmitter<void>();
+  /** Input for menu width */
+  @Input() wide? = false;
 }

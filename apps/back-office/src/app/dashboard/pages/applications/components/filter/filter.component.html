@@ -26,7 +26,12 @@
         </div>
       </div>
       <!-- Status filter -->
-      <div uiFormFieldDirective [defaultMargin]="false" class="p-0 w-44">
+      <div
+        uiFormFieldDirective
+        [outline]="false"
+        [defaultMargin]="false"
+        class="p-0 w-44"
+      >
         <label>{{ 'common.status' | translate }}</label>
         <ui-select-menu
           formControlName="status"

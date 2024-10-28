@@ -18,7 +18,6 @@ import get from 'lodash/get';
 import { takeUntil, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
-import { SidenavVariantsTypes } from '@oort-front/ui';
 
 /**
  * Main component of Application view.
@@ -38,16 +37,14 @@ export class ApplicationComponent
   public navGroups: any[] = [];
   /** Admin pages */
   public adminNavItems: any[] = [];
-  /** Admin pages for new variant sidenav */
-  public adminNewVariantNavItems: any[] = [];
+  /** Admin pages for sidenav */
+  public adminSidenavItems: any[] = [];
   /** Current application */
   public application?: Application;
   /** Use side menu or not */
   public sideMenu = false;
   /** Should hide menu by default ( only when vertical ) */
   public hideMenu = false;
-  /** Use side menu or not */
-  public variant: SidenavVariantsTypes = 'original';
   /** Is large device */
   public largeDevice: boolean;
   /** Loading indicator */
@@ -157,10 +154,6 @@ export class ApplicationComponent
           }
           this.application = application;
           this.sideMenu = this.application?.sideMenu ?? true;
-          this.variant =
-            this.sideMenu && this.application?.variant
-              ? this.application.variant
-              : 'original';
           this.hideMenu = this.application?.hideMenu ?? false;
           this.applicationService
             .getLogoBase64(this.application)
@@ -168,12 +161,10 @@ export class ApplicationComponent
               this.logoBase64 = logo;
             });
           // Admin nav items for new variant
-          if (this.variant === 'new') {
-            this.navGroups.push({
-              name: this.translate.instant('common.admin'),
-              navItems: this.adminNewVariantNavItems,
-            });
-          }
+          this.navGroups.push({
+            name: this.translate.instant('common.admin'),
+            navItems: this.adminSidenavItems,
+          });
         } else {
           this.title = '';
           this.navGroups = [];
@@ -239,7 +230,7 @@ export class ApplicationComponent
         icon: 'delete',
       },
     ];
-    this.adminNewVariantNavItems = this.adminNavItems.filter((item) =>
+    this.adminSidenavItems = this.adminNavItems.filter((item) =>
       this.filterPaths.some((path) => item.path.includes(path))
     );
   }

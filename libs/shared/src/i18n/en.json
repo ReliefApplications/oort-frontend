@@ -730,7 +730,7 @@
         "sideMenu": "Show menu on the side",
         "tooltip": {
           "hideMenu": "Only applies when menu is located on the side",
-          "logo": "Only applies when variant is new and menu is on the side"
+          "logo": "Shown on side navigation only when \"Show menu on side\" is applied"
         },
         "variants": {
           "label": "Side menu variant",

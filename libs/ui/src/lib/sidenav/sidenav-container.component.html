@@ -1,29 +1,32 @@
 <!-- Never set as relative, while we use kendo tile layouts for widget grid
   todo(2.1.x): check if h-full should be removed -->
-<div class="w-full flex h-full overflow-y-auto">
+<div class="w-full flex h-full">
   <!-- SIDENAV CONTENT -->
   <div class="flex items-center">
     <ng-container *ngFor="let sidenav of uiSidenavDirective; let i = index">
       <!-- ngStyle prevent the left sidenav to have a fixed height -->
       <div
         #sidenav
-        class="will-change-transform overflow-y-auto translate-x-0 overflow-x-clip h-full"
+        class="will-change-transform overflow-y-auto overflow-x-clip"
         [attr.data-sidenav-show]="showSidenav[i]"
         [ngClass]="resolveSidenavClasses(i)"
         [ngStyle]="{
-          height: i > 0 ? height : null,
-          width: showSidenav[i]
-            ? NEW_SIDENAV_WIDTH_PX.expanded
-            : NEW_SIDENAV_WIDTH_PX.collapsed
+          width:
+            sidenav.position === 'start'
+              ? showSidenav[i]
+                ? SIDENAV_WIDTH_PX.expanded
+                : SIDENAV_WIDTH_PX.collapsed
+              : 'auto'
         }"
         (mouseenter)="onMouseEnter(i)"
         (mouseleave)="onMouseLeave(i)"
       >
         <div class="flex flex-col h-full"></div>
       </div>
-      <!-- Collapse button for new sidenav variant -->
+
+      <!-- Collapse button -->
       <ng-container
-        *ngIf="sidenav.variant === 'new' && sidenav.position === 'start'"
+        *ngIf="sidenav.position === 'start' && !horizontalNavTemplate"
       >
         <ng-container
           *ngTemplateOutlet="
@@ -35,23 +38,41 @@
     </ng-container>
   </div>
 
-  <!-- CONTENT -->
-  <div class="flex-1 w-full overflow-clip bg-light-50" #contentContainer>
+  <div class="flex flex-col w-full">
+    <!-- HEADER -->
+    <ng-container *ngIf="headerTemplate">
+      <ng-container [ngTemplateOutlet]="headerTemplate"></ng-container>
+      <ng-container
+        *ngIf="horizontalNavTemplate"
+        [ngTemplateOutlet]="horizontalNavTemplate"
+      ></ng-container>
+    </ng-container>
+
     <div
-      [ngClass]="{
-        'visible bg-black opacity-50': showSidenav[0] && mode[0] === 'over',
-        'invisible bg-transparent': !showSidenav[0] || mode[0] === 'side'
+      class="flex-1 w-full overflow-clip bg-light-50"
+      #contentContainer
+      [ngStyle]="{
+        'padding-left':
+          largeDevice || horizontalNavTemplate ? 0 : SIDENAV_WIDTH_PX.collapsed
       }"
-      class="block w-full overflow-y-auto min-h-full transition-visibility duration-500 transition-all ease-in-out absolute inset-0 pointer-events-none z-[1001]"
-    ></div>
-    <div class="h-full w-full relative">
+    >
+      <!-- Backdrop -->
       <div
-        [ngClass]="{ 'pb-[64px]': fixedWrapperActionExist }"
-        id="appPageContainer"
-        class="py-[32px] overflow-y-auto overflow-x-hidden h-full px-[24px] flex flex-col absolute inset-0"
-        #contentWrapper
-      >
-        <ng-content select="content"></ng-content>
+        [ngClass]="{
+          'visible bg-black opacity-50': showSidenav[0] && mode[0] === 'over',
+          'invisible bg-transparent': !showSidenav[0] || mode[0] === 'side'
+        }"
+        class="block w-full overflow-y-auto min-h-full transition-visibility duration-500 transition-all ease-in-out absolute inset-0 pointer-events-none z-[1001]"
+      ></div>
+      <div class="h-full w-full relative">
+        <!-- Page wrapper -->
+        <div
+          [ngClass]="resolveContentWrapperClasses()"
+          id="appPageContainer"
+          #contentWrapper
+        >
+          <ng-content select="content"></ng-content>
+        </div>
       </div>
     </div>
     <ng-template #fixedWrapperActions></ng-template>
@@ -68,8 +89,8 @@
     (mouseleave)="onMouseLeave(indexNav)"
     [ngStyle]="{
       transform: showSidenav[indexNav]
-        ? 'translateX(calc(' + NEW_SIDENAV_WIDTH_PX.expanded + ' - 50%))'
-        : 'translateX(calc(' + NEW_SIDENAV_WIDTH_PX.collapsed + ' - 50%))'
+        ? 'translateX(calc(' + SIDENAV_WIDTH_PX.expanded + ' - 50%))'
+        : 'translateX(calc(' + SIDENAV_WIDTH_PX.collapsed + ' - 50%))'
     }"
   >
     <div

@@ -62,6 +62,8 @@
         <th uiCellHeader *cdkHeaderCellDef scope="col" class="w-16"></th>
         <td uiCell *cdkCellDef="let element">
           <ui-button
+            category="primary"
+            variant="dark"
             [isIcon]="true"
             icon="more_vert"
             [uiMenuTriggerFor]="resMenu"
@@ -79,7 +81,7 @@
               <ui-icon icon="edit" variant="grey"></ui-icon>
               {{ 'common.edit' | translate }}
             </button>
-            <ui-divider class="py-1"></ui-divider>
+            <ui-divider></ui-divider>
             <button
               uiMenuItem
               (click)="deleteForm(element, $event)"

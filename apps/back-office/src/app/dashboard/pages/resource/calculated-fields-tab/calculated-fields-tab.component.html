@@ -41,6 +41,8 @@
           <td uiCell *cdkCellDef="let element">
             <ui-button
               [isIcon]="true"
+              category="primary"
+              variant="dark"
               icon="more_vert"
               [uiMenuTriggerFor]="resMenu"
               (click)="$event.stopPropagation()"
@@ -53,7 +55,7 @@
                 <ui-icon icon="edit" variant="grey"></ui-icon>
                 {{ 'common.edit' | translate }}
               </button>
-              <ui-divider class="py-1"></ui-divider>
+              <ui-divider></ui-divider>
               <button uiMenuItem (click)="onDeleteCalculatedField(element)">
                 <ui-icon icon="delete" variant="danger"></ui-icon>
                 {{ 'common.delete' | translate }}

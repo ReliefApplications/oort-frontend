@@ -1,4 +1,4 @@
-<div class="mb-8 flex flex-col gap-2">
+<div class="mb-2 flex flex-col gap-2">
   <div class="flex gap-8 justify-between flex-col sm:flex-row">
     <app-api-configuration-filter
       #filter
@@ -11,6 +11,7 @@
       icon="add"
       category="secondary"
       variant="primary"
+      shape="round"
       (click)="onAdd()"
       *ngIf="'create' | able : 'ApiConfiguration'"
     >
@@ -73,6 +74,8 @@
         <th uiCellHeader *cdkHeaderCellDef class="w-16"></th>
         <td uiCell *cdkCellDef="let element">
           <ui-button
+            category="primary"
+            variant="dark"
             [isIcon]="true"
             icon="more_vert"
             [uiMenuTriggerFor]="menu"
@@ -122,5 +125,7 @@
   [totalItems]="pageInfo.length"
   [ariaLabel]="'components.apiConfiguration.paginator.ariaLabel' | translate"
   (pageChange)="onPage($event)"
+  [displayedPageNumbers]="5"
+  [hideFirstLastButtons]="false"
 >
 </ui-paginator>

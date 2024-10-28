@@ -1,5 +1,5 @@
 .icon-primary {
-  @apply text-primary-400;
+  @apply text-primary-600;
 }
 .icon-danger {
   @apply text-red-400;
@@ -11,10 +11,10 @@
   @apply text-yellow-400;
 }
 .icon-light {
-  @apply text-white;
+  @apply text-light-50;
 }
 .icon-grey {
-  @apply text-neutral-400;
+  @apply text-light-200;
 }
 .icon-dark {
   @apply text-neutral-850;

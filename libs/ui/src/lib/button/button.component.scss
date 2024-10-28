@@ -13,7 +13,7 @@
 
 .ui-button {
   &.primary {
-    @apply text-sm font-medium shadow-sm ring-1 ring-inset ring-gray-300;
+    @apply text-sm font-medium bg-primary-100;
   }
   &.secondary {
     @apply text-sm font-medium shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2;
@@ -58,7 +58,7 @@
     @apply text-neutral-850;
   }
   &:not(:disabled) {
-    @apply hover:bg-gray-50;
+    @apply hover:bg-opacity-40;
   }
   &.secondary {
     @apply bg-gray-900 text-white;
@@ -73,7 +73,7 @@
 
 .button-primary {
   &.primary {
-    @apply text-primary-400;
+    @apply text-primary-600;
   }
   &:not(:disabled) {
     @apply hover:bg-primary-50;
@@ -196,7 +196,7 @@
 
 .button-lighter {
   &.primary {
-    @apply bg-primary-50 text-neutral-900 hover:bg-primary-100;
+    @apply bg-primary-100 text-neutral-900 hover:bg-primary-200;
   }
 }
 

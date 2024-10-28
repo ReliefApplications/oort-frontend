@@ -6,7 +6,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
-import { SidenavVariantsTypes, NEW_SIDENAV_WIDTH_PX } from '@oort-front/ui';
+import { SIDENAV_WIDTH_PX } from '@oort-front/ui';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 /**
@@ -28,7 +28,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class NavbarComponent {
   /** Width of the new sidenav */
-  public NEW_SIDENAV_WIDTH_PX = NEW_SIDENAV_WIDTH_PX;
+  public SIDENAV_WIDTH_PX = SIDENAV_WIDTH_PX;
   /** Application layout */
   @Input() appLayout = false;
   /** Does admin has permission to add a page */
@@ -39,15 +39,13 @@ export class NavbarComponent {
   @Input() navGroups: any[] = [];
   /** Navigation group selected */
   @Input() nav: any;
-  /** Variant style for the layout */
-  @Input() variant: SidenavVariantsTypes = 'original';
-  /** Application name displayed on top of the navbar when variant type is "new" */
+  /** Application name displayed on top of the navbar */
   @Input() appName = '';
   /** Application logo */
   @Input() appLogo = '';
   /** Variant style for the layout */
   @Input() bottomOptions: any[] = [];
-  /** Admin nav items to be displayed on the bottom for new variant */
+  /** Admin nav items to be displayed on the bottom */
   public adminNavItems: any[] = [];
 
   /** Event emitted when the navbar items are reordered. */

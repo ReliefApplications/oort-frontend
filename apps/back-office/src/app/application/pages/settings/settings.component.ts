@@ -88,36 +88,25 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
           // Create the form only once, on settings component load
           if (application.id !== this.application?.id) {
             this.settingsForm = this.createSettingsForm(application);
-            // Variant property should be editable and contain a value only if nav menu is set as a sidenav
-            this.settingsForm
-              .get('sideMenu')
-              ?.valueChanges.pipe(takeUntil(this.destroy$))
-              .subscribe({
-                next: (asSideMenu: boolean) => {
-                  if (asSideMenu) {
-                    this.settingsForm.get('variant')?.enable();
-                  } else {
-                    this.settingsForm.get('variant')?.setValue(null);
-                    this.settingsForm.get('variant')?.disable();
-                  }
-                },
-              });
           }
           this.application = application;
           this.locked = this.application?.locked;
           this.lockedByUser = this.application?.lockedByUser;
-
-          this.loadingLogo = true;
-          this.applicationService
-            .getLogoBase64(this.application)
-            .then((logo) => {
-              this.logoBase64 = logo;
-              this.loadingLogo = false;
-            });
+          // Reload logo if necessary
+          if (!this.logoBase64) {
+            this.loadingLogo = true;
+            this.applicationService
+              .getLogoBase64(this.application)
+              .then((logo) => {
+                this.logoBase64 = logo;
+              })
+              .finally(() => {
+                this.loadingLogo = false;
+              });
+          }
         }
       });
   }
-
   /**
    * Create Settings form
    *
@@ -125,20 +114,28 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
    * @returns form group
    */
   private createSettingsForm(application: Application): FormGroup<any> {
-    return this.fb.group({
+    const form = this.fb.group({
       id: [{ value: application.id, disabled: true }],
       name: [application.name, Validators.required],
       sideMenu: [application.sideMenu],
-      hideMenu: [application.hideMenu],
-      description: [application.description],
-      variant: [
-        {
-          value: application.variant || 'original',
-          disabled: !application.sideMenu,
-        },
+      hideMenu: [
+        { value: application.hideMenu, disabled: !application.sideMenu },
       ],
+      description: [application.description],
       status: [application.status],
     });
+
+    // Listen for changes on sideMenu and update hideMenu accordingly
+    form.get('sideMenu')?.valueChanges.subscribe((sideMenuValue) => {
+      const hideMenuControl = form.get('hideMenu');
+      if (sideMenuValue) {
+        hideMenuControl?.enable();
+      } else {
+        hideMenuControl?.disable();
+      }
+    });
+
+    return form;
   }
 
   /**
@@ -147,16 +144,6 @@ export class SettingsComponent extends UnsubscribeComponent implements OnInit {
   onSubmit(): void {
     this.applicationService.editApplication(this.settingsForm?.value);
     this.settingsForm?.markAsPristine();
-
-    // If !sideMenu or variant is original on save, clear logo
-    if (
-      this.application &&
-      (!this.settingsForm?.get('sideMenu')?.value ||
-        this.settingsForm?.get('variant')?.value === 'original')
-    ) {
-      this.logoBase64 = undefined;
-      this.applicationService.deleteApplicationLogo(this.application);
-    }
   }
 
   /**

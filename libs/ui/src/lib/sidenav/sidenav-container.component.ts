@@ -5,6 +5,7 @@ import {
   ContentChildren,
   ElementRef,
   HostListener,
+  Input,
   OnDestroy,
   QueryList,
   Renderer2,
@@ -15,14 +16,10 @@ import {
 import { NavigationEnd, Router } from '@angular/router';
 import { SidenavDirective } from './sidenav.directive';
 import { Subject, takeUntil } from 'rxjs';
-import {
-  SidenavPositionTypes,
-  SidenavTypes,
-  SidenavVariantsTypes,
-} from './types/sidenavs';
+import { SidenavPositionTypes, SidenavTypes } from './types/sidenavs';
 import { filter } from 'rxjs/operators';
 import { UILayoutService } from './layout/layout.service';
-import { NEW_SIDENAV_WIDTH_PX } from './types/sidenavs';
+import { SIDENAV_WIDTH_PX } from './types/sidenavs';
 
 /**
  * UI Sidenav component
@@ -34,7 +31,11 @@ import { NEW_SIDENAV_WIDTH_PX } from './types/sidenavs';
   styleUrls: ['./sidenav-container.component.scss'],
 })
 export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
-  public NEW_SIDENAV_WIDTH_PX = NEW_SIDENAV_WIDTH_PX;
+  public SIDENAV_WIDTH_PX = SIDENAV_WIDTH_PX;
+  /** Header template */
+  @Input() headerTemplate!: any;
+  /** Horizontal navbar template, if any */
+  @Input() horizontalNavTemplate!: any;
   /** A list of SidenavDirective children. */
   @ContentChildren(SidenavDirective)
   uiSidenavDirective!: QueryList<SidenavDirective>;
@@ -56,8 +57,6 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   public mode: SidenavTypes[] = [];
   /** Array indicating the position of each side navigation menu. */
   public position: SidenavPositionTypes[] = [];
-  /** Array indicating the variant of each side navigation menu. */
-  public variant: SidenavVariantsTypes[] = [];
   /** Array indicating whether each side navigation menu is visible. */
   public visible: boolean[] = [];
   /** Subject to emit when the component is destroyed. */
@@ -70,6 +69,8 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   private transitionsTimeoutListener!: NodeJS.Timeout;
   /** Boolean array for hovered sidenavs */
   public sidenavHovered: boolean[] = [];
+  /** Boolean for portview threshold */
+  public largeDevice: boolean;
 
   /** @returns height of element */
   get height() {
@@ -78,15 +79,12 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
 
   /**
    * Set the drawer height and width on resize
+   *
+   * @param event window resize event
    */
   @HostListener('window:resize', ['$event'])
-  onResize() {
-    this.uiSidenavDirective.forEach((sidenavDirective, index) => {
-      this.setRightSidenavHeight(
-        this.sidenav.get(index).nativeElement,
-        sidenavDirective
-      );
-    });
+  onResize(event: any): void {
+    this.largeDevice = event.target.innerWidth > 1024;
   }
 
   /**
@@ -104,7 +102,9 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
     public el: ElementRef,
     private router: Router,
     private layoutService: UILayoutService
-  ) {}
+  ) {
+    this.largeDevice = window.innerWidth > 1024;
+  }
 
   ngAfterViewInit() {
     this.layoutService.fixedWrapperActions$
@@ -141,11 +141,6 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
         : false;
       this.mode[index] = sidenavDirective.mode;
       this.position[index] = sidenavDirective.position;
-      this.variant[index] = sidenavDirective.variant;
-      this.setRightSidenavHeight(
-        this.sidenav.get(index).nativeElement,
-        sidenavDirective
-      );
       this.cdr.detectChanges();
       this.renderer.appendChild(
         this.sidenav.get(index).nativeElement.querySelector('div'),
@@ -157,7 +152,6 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
           this.showSidenav[index] = sidenavDirective.visible ? opened : false;
           // Change the mode if it has changed since last opening/closure
           this.mode[index] = sidenavDirective.mode;
-          this.variant[index] = sidenavDirective.variant;
         });
     });
 
@@ -182,11 +176,7 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   ) {
     if (sidenavDirective.position === 'end') {
       this.renderer.removeClass(sidenavElement, 'h-full');
-      this.renderer.setStyle(
-        sidenavElement,
-        'height',
-        `${this.el.nativeElement.clientHeight}px`
-      );
+      this.renderer.setStyle(sidenavElement, 'height', `500px`);
     }
   }
 
@@ -198,39 +188,53 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
    */
   resolveSidenavClasses(index: number): string[] {
     const classes = [];
-    // Original variant
-    if (this.variant[index] === 'original') {
-      if (this.position[index] === 'start') {
-        classes.push("data-[sidenav-show='false']:-translate-x-full");
-        classes.push("data-[sidenav-show='false']:w-0");
-        classes.push('z-[1002]');
-        classes.push('w-60');
-        classes.push('border-r');
-        classes.push('border-gray-200');
+    if (this.position[index] === 'start') {
+      // When there is a horizontal nav template, hide the left sidenav
+      if (this.horizontalNavTemplate) {
+        classes.push('hidden');
       }
-      if (this.mode[index] === 'over') {
-        classes.push('h-full');
-        classes.push('left-0');
-        classes.push('top-0');
-        classes.push('fixed');
-      }
-      if (this.position[index] === 'end') {
-        classes.push('absolute');
-        classes.push('right-0');
-        classes.push("data-[sidenav-show='false']:translate-x-full");
-        classes.push('z-[997]');
-        classes.push(
-          'shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)]'
-        );
-      }
-      classes.push('bg-white');
-    }
-    // New variant
-    if (this.variant[index] === 'new') {
+      classes.push('h-full');
       classes.push('z-[1002]');
+      classes.push('bg-neutral-950');
       classes.push('text-white');
-      classes.push('bg-[#161215]');
     }
+    if (this.mode[index] === 'over') {
+      classes.push('h-full');
+      classes.push('left-0');
+      classes.push('top-0');
+      classes.push('fixed');
+    }
+    if (this.position[index] === 'end') {
+      classes.push('overflow-y-hidden');
+      classes.push('flex');
+      classes.push('flex-col');
+      classes.push('h-full');
+      classes.push('text-white');
+      classes.push('bg-transparent');
+      classes.push('absolute');
+      classes.push('right-0');
+      classes.push("data-[sidenav-show='false']:translate-x-full");
+      classes.push('z-[997]');
+      classes.push('drop-shadow-xs');
+    }
+    return classes;
+  }
+
+  /**
+   * Resolve content wrapper classes
+   */
+  resolveContentWrapperClasses(): string[] {
+    const classes = [
+      'h-full',
+      'p-[24px]',
+      'overflow-y-auto',
+      'overflow-x-hidden',
+      'flex',
+      'flex-col',
+      'absolute',
+      'inset-0',
+    ];
+
     return classes;
   }
 

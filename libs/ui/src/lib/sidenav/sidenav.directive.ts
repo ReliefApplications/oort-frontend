@@ -11,11 +11,7 @@ import {
   OnChanges,
   Inject,
 } from '@angular/core';
-import {
-  SidenavPositionTypes,
-  SidenavTypes,
-  SidenavVariantsTypes,
-} from './types/sidenavs';
+import { SidenavPositionTypes, SidenavTypes } from './types/sidenavs';
 import { DOCUMENT } from '@angular/common';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal } from '@angular/cdk/portal';
@@ -39,8 +35,6 @@ export class SidenavDirective implements OnInit, OnDestroy, OnChanges {
   @Input() mode: SidenavTypes = 'side';
   /** Sidenav position */
   @Input() position: SidenavPositionTypes = 'start';
-  /** Sidenav variant */
-  @Input() variant: SidenavVariantsTypes = 'original';
   /** Event emitter for opened change */
   @Output() openedChange = new EventEmitter<boolean>();
   /** Timeout to toggle */
