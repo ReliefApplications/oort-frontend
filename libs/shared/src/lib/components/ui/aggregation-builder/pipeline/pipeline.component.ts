@@ -1,11 +1,4 @@
-import {
-  Component,
-  HostListener,
-  Input,
-  OnChanges,
-  OnInit,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormArray } from '@angular/forms';
 import { AggregationBuilderService } from '../../../../services/aggregation-builder/aggregation-builder.service';
 import { Observable } from 'rxjs';
@@ -26,10 +19,7 @@ import { ResizeEvent } from 'angular-resizable-element';
   templateUrl: './pipeline.component.html',
   styleUrls: ['./pipeline.component.scss'],
 })
-export class PipelineComponent
-  extends UnsubscribeComponent
-  implements OnInit, OnChanges
-{
+export class PipelineComponent extends UnsubscribeComponent implements OnInit {
   /** Public variable for stage type. */
   public stageType = PipelineStage;
   /** Input array to hold the list of stages. */
@@ -95,20 +85,6 @@ export class PipelineComponent
       });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['showCheckboxes']) {
-      if (changes['showCheckboxes'].currentValue == true) {
-        this.style = {
-          width: `${(window.innerWidth * 2) / 3 - 100}px`,
-        };
-      } else {
-        this.style = {
-          width: `${window.innerWidth - 100}px`,
-        };
-      }
-    }
-  }
-
   /**
    * Updates fields for the stage.
    *
@@ -127,13 +103,13 @@ export class PipelineComponent
           pipeline.slice(0, index)
         );
       } else {
-        if (pipeline[index]?.type === PipelineStage.CUSTOM) {
-          const rawData = pipeline[index].form.raw;
-          // hide if json value is null
-          if (rawData == '') {
-            pipeline[index].preview = false;
-          }
-        }
+        // if (pipeline[index]?.type === PipelineStage.CUSTOM) {
+        //   const rawData = pipeline[index].form.raw;
+        //   // hide if json value is null
+        //   if (rawData == '') {
+        //     pipeline[index].preview = false;
+        //   }
+        // }
         this.fieldsPerStage[index] = this.aggregationBuilder.fieldsAfter(
           this.initialFields,
           pipeline.slice(0, index)
@@ -201,17 +177,5 @@ export class PipelineComponent
     } else {
       return true;
     }
-  }
-
-  /**
-   * Change the custom editor depending on windows size.
-   *
-   * @param event Event that implies a change in window size
-   */
-  @HostListener('window:resize', ['$event'])
-  onWindowResize(event: any): void {
-    this.style = {
-      width: `${event.target.innerWidth - 100}px`,
-    };
   }
 }
