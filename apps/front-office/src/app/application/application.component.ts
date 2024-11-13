@@ -56,6 +56,8 @@ export class ApplicationComponent
   public largeDevice: boolean;
   /** Is loading */
   public loading = true;
+  /** Logo base64 */
+  public logoBase64 = '';
 
   /**
    * Front-office Application component.
@@ -152,6 +154,11 @@ export class ApplicationComponent
           this.application = application;
           this.sideMenu = this.application?.sideMenu ?? true;
           this.hideMenu = this.application?.hideMenu ?? false;
+          this.applicationService
+            .getLogoBase64(this.application)
+            .then((logo) => {
+              this.logoBase64 = logo;
+            });
         } else {
           this.title = '';
           this.navGroups = [];

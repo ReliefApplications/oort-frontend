@@ -22,11 +22,13 @@
       }"
     >
       <div
-        class="border-t border-gray-300"
+        class="border-t"
         [ngClass]="{
           'w-full': orientation === 'horizontal',
-          'h-full': orientation === 'vertical'
+          'h-full': orientation === 'vertical',
+          'border-light-75': !color
         }"
+        [ngStyle]="color ? { 'border-color': color } : {}"
       ></div>
     </div>
     <!-- TEXT -->

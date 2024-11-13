@@ -55,13 +55,14 @@
   </div>
   <ng-container *ngIf="!empty; else emptyTmpl">
     <!-- Table container -->
-    <div class="overflow-x-hidden shadow-2lg grow">
+    <div class="overflow-x-hidden grow">
       <!-- Table scroll container -->
       <div class="overflow-x-auto h-full">
         <!-- Records table -->
         <table
           cdk-table
           uiTableWrapper
+          [hasPagination]="true"
           [dataSource]="dataSource"
           class="h-full"
         >
@@ -90,6 +91,8 @@
               <th uiCellHeader *cdkHeaderCellDef></th>
               <td uiCell *cdkCellDef="let element">
                 <ui-button
+                  category="primary"
+                  variant="dark"
                   [isIcon]="true"
                   icon="more_vert"
                   [uiMenuTriggerFor]="menu"
@@ -106,7 +109,7 @@
                     <ui-icon icon="library_books" variant="grey"></ui-icon>
                     {{ 'common.history' | translate }}
                   </button>
-                  <ui-divider class="py-1"></ui-divider>
+                  <ui-divider></ui-divider>
                   <button
                     *ngIf="!showDeletedRecords"
                     uiMenuItem

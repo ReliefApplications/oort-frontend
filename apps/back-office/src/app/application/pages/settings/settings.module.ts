@@ -1,3 +1,4 @@
+import { UploadsModule } from '@progress/kendo-angular-upload';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SettingsComponent } from './settings.component';
@@ -13,6 +14,7 @@ import {
   FixedWrapperModule,
   IconModule,
   TooltipModule,
+  SpinnerModule,
 } from '@oort-front/ui';
 import { AccessModule, StatusOptionsComponent } from '@oort-front/shared';
 import { AbilityModule } from '@casl/angular';
@@ -39,6 +41,8 @@ import { AbilityModule } from '@casl/angular';
     AbilityModule,
     IconModule,
     TooltipModule,
+    UploadsModule,
+    SpinnerModule,
   ],
 })
 export class SettingsModule {}

@@ -1,74 +1,136 @@
 <!-- Main application block -->
 <div
-  class="w-48 h-48 bg-white flex flex-col justify-between items-center cursor-pointer rounded-lg box-border border"
+  class="w-52 h-48 bg-white flex flex-col justify-between items-center rounded-xl box-border p-4"
+  [ngClass]="{
+    'cursor-pointer hover:-translate-x-1 hover:-translate-y-1 transition-transform duration-150':
+      !isProfile
+  }"
 >
-  <!-- Top line -->
-  <div
-    class="flex flex-row justify-between items-center text-sm text-gray-600 w-full box-border pt-2 pb-2 px-2"
-  >
-    <div class="flex items-center gap-1">
-      <ui-icon icon="person"></ui-icon>
-      <span>{{ application.users?.totalCount }}</span>
-    </div>
-    <div
-      class="w-8 h-8 rounded-full flex flex-col justify-center items-center text-lg"
-      *ngIf="status"
-      [style.color]="status.focusColor"
-      [style.background]="status.color"
-    >
-      {{ status.short }}
-    </div>
-  </div>
-  <!-- Application name -->
-  <div
-    class="text-ellipsis box-border w-full py-1 px-2 overflow-hidden text-center text-lg font-medium text-gray-600"
-  >
-    {{ application.name }}
-  </div>
-  <!-- Bottom line -->
-  <div
-    class="flex flex-row justify-between items-center text-sm text-gray-600 w-full box-border pt-0 pr-0 pb-2 pl-2"
-  >
-    <!-- Edition date -->
-    <span
-      >{{ 'common.modifiedOn' | translate }}:
-      {{
-        application.modifiedAt ?? application.createdAt
-          | sharedDate : 'mediumDate'
-      }}</span
-    >
-    <!-- Actions -->
-    <ui-button
-      [isIcon]="true"
-      icon="more_vert"
-      [uiMenuTriggerFor]="menu"
-      (click)="$event.stopPropagation()"
-      [uiTooltip]="'common.actions' | translate"
-    >
-    </ui-button>
-    <ui-menu #menu>
-      <!-- Preview -->
-      <button uiMenuItem (click)="preview.emit()">
-        <ui-icon icon="preview" variant="grey"></ui-icon>
-        {{ 'common.preview' | translate }}
-      </button>
-      <!-- Duplication -->
-      <button
-        uiMenuItem
-        (click)="clone.emit()"
-        *ngIf="'create' | able : 'Application'"
+  <ng-container *ngIf="!isProfile; else profileTemplate">
+    <!-- isProfile = false -->
+    <ng-template #defaultTemplate>
+      <!-- Top line -->
+      <div
+        class="flex flex-row justify-between items-center text-sm text-light-200 w-full box-border"
       >
-        <ui-icon icon="file_copy" variant="grey"></ui-icon>
-        {{ 'common.duplicate' | translate }}
-      </button>
-      <!-- Delete -->
-      <ng-container *ngIf="application.canDelete">
-        <ui-divider class="py-1"></ui-divider>
-        <button uiMenuItem (click)="delete.emit()">
-          <ui-icon icon="delete" variant="danger"></ui-icon>
-          {{ 'common.delete' | translate }}
-        </button>
-      </ng-container>
-    </ui-menu>
-  </div>
+        <div class="flex items-center gap-1">
+          <ui-icon icon="person" class="flex items-center"></ui-icon>
+          <span class="text-xs">{{ application.users?.totalCount }}</span>
+        </div>
+        <div
+          class="w-6 h-6 rounded-full flex flex-col justify-center items-center text-sm text-white"
+          *ngIf="status"
+          [ngClass]="status.class"
+        >
+          {{ status.short }}
+        </div>
+      </div>
+
+      <!-- Application name -->
+      <div
+        class="text-ellipsis box-border w-full overflow-hidden text-lg font-medium text-neutral-850"
+      >
+        {{ application.name }}
+      </div>
+
+      <!-- Bottom line -->
+      <div
+        class="flex flex-row justify-between items-center text-xs w-full box-border pt-0 pr-0"
+      >
+        <!-- Edition date -->
+        <div class="flex flex-col">
+          <span class="text-light-200 text-xs font-medium"
+            >{{ 'common.modifiedOn' | translate }}: </span
+          ><span class="text-neutral-850 text-sm">
+            {{
+              application.modifiedAt ?? application.createdAt
+                | sharedDate : 'mediumDate'
+            }}</span
+          >
+        </div>
+
+        <!-- Actions -->
+        <ui-button
+          variant="dark"
+          category="primary"
+          [isIcon]="true"
+          icon="more_vert"
+          [uiMenuTriggerFor]="menu"
+          (click)="$event.stopPropagation()"
+          [uiTooltip]="'common.actions' | translate"
+        >
+        </ui-button>
+      </div>
+    </ng-template>
+    <!-- Render default template when isProfile = false -->
+    <ng-container *ngTemplateOutlet="defaultTemplate"></ng-container>
+  </ng-container>
+
+  <!-- isProfile = true -->
+  <ng-template #profileTemplate>
+    <div class="flex flex-col justify-between h-full w-full">
+      <div class="flex justify-between gap-2">
+        <span class="text-lg font-medium text-neutral-850 line-clamp-2">
+          {{ application.name }}
+        </span>
+        <ui-button
+          variant="dark"
+          (click)="onSelectFavorite(application, $event)"
+          class="h-7 w-7 [&>button]:!p-0 [&>button]:hover:!bg-transparent [&>button]:!bg-transparent"
+          ><span
+            class="material-symbols-outlined"
+            [ngClass]="{
+              'text-primary-500': application.id === user.favoriteApp,
+              'icon-filled': application.id === user.favoriteApp
+            }"
+          >
+            kid_star
+          </span></ui-button
+        >
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs text-light-200">
+          {{ 'common.role.one' | translate }}:
+        </span>
+        <span class="text-sm text-neutral-850">
+          {{ getRole() }}
+        </span>
+        <ng-container *ngIf="getPositionAttributes()">
+          <span class="text-xs text-light-200">
+            {{ 'common.positionAttribute.few' | translate }}:
+          </span>
+          <span class="text-sm text-neutral-850 truncate">
+            {{ getPositionAttributes() }}
+          </span>
+        </ng-container>
+      </div>
+    </div>
+  </ng-template>
 </div>
+
+<ui-menu #menu>
+  <!-- Preview -->
+  <button uiMenuItem (click)="preview.emit()">
+    <ui-icon icon="preview" variant="grey"></ui-icon>
+    {{ 'common.preview' | translate }}
+  </button>
+
+  <!-- Duplication -->
+  <button
+    uiMenuItem
+    (click)="clone.emit()"
+    *ngIf="'create' | able : 'Application'"
+  >
+    <ui-icon icon="file_copy" variant="grey"></ui-icon>
+    {{ 'common.duplicate' | translate }}
+  </button>
+
+  <!-- Delete -->
+  <ng-container *ngIf="application.canDelete">
+    <ui-divider></ui-divider>
+    <button uiMenuItem (click)="delete.emit()">
+      <ui-icon icon="delete" variant="danger"></ui-icon>
+      {{ 'common.delete' | translate }}
+    </button>
+  </ng-container>
+</ui-menu>

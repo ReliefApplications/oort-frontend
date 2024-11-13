@@ -82,6 +82,8 @@ export class CustomStyleComponent
   private timeoutListener!: NodeJS.Timeout;
   /** Navbar size style */
   public navbarStyle: any = {};
+  /** App header height */
+  public appHeaderHeight = '';
 
   /**
    * Creates an instance of CustomStyleComponent, form and updates.
@@ -150,6 +152,14 @@ export class CustomStyleComponent
           this.applicationId = application.id;
         }
       });
+
+    // Get header height to subtract from the height of the sidenav
+    this.appHeaderHeight =
+      this.document.getElementById('app-header')?.offsetHeight + 'px';
+    // Initialize navbarStyle
+    this.navbarStyle = {
+      height: `calc(100vh - ${this.appHeaderHeight})`,
+    };
   }
 
   /** When clicking on the close button */
@@ -269,7 +279,7 @@ export class CustomStyleComponent
   onResizing(event: ResizeEvent): void {
     this.navbarStyle = {
       width: `${event.rectangle.width}px`,
-      // height: `${event.rectangle.height}px`,
+      height: `calc(100vh - ${this.appHeaderHeight})`,
     };
   }
 
@@ -292,13 +302,11 @@ export class CustomStyleComponent
         dashboardNavbarWidth = (dashboardNavbars[0] as any).offsetWidth;
       }
     }
-    // set the min width as 30% of the screen size available
-    const minWidth = Math.round(
-      (this.document.documentElement.clientWidth - dashboardNavbarWidth) * 0.3
-    );
-    // set the max width as 95% of the screen size available
+    // set the min width as 270px
+    const minWidth = 270;
+    // set the max width as 80% of the screen size available
     const maxWidth = Math.round(
-      (this.document.documentElement.clientWidth - dashboardNavbarWidth) * 0.95
+      (this.document.documentElement.clientWidth - dashboardNavbarWidth) * 0.8
     );
     if (
       event.rectangle.width &&

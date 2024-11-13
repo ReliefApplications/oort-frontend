@@ -84,16 +84,16 @@ export class LayoutComponent
    */
   @Output() reorder: EventEmitter<any> = new EventEmitter();
   /**
-   * Event emitted when the user clicks on the profile button
+   * Route to the profile page
    */
   @Input() profileRoute = '/profile';
   /**
-   * Event emitted when the user clicks on the profile button
+   * Boolean indicating if menu is on the side
    */
   @Input() sideMenu = true;
 
   /**
-   * Event emitted when the user clicks on the profile button
+   * Boolean indicating if menu is opened
    */
   @Input() menuOpened = true;
 

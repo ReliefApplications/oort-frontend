@@ -46,11 +46,16 @@
   </div>
   <ng-container *ngIf="!empty; else emptyTmpl">
     <!-- Table container -->
-    <div class="overflow-x-hidden shadow-2lg">
+    <div class="overflow-x-hidden">
       <!-- Table scroll container -->
       <div class="overflow-x-scroll">
         <!-- Records table -->
-        <table cdk-table uiTableWrapper [dataSource]="dataSource">
+        <table
+          cdk-table
+          uiTableWrapper
+          [hasPagination]="true"
+          [dataSource]="dataSource"
+        >
           <ng-container
             *ngFor="let column of displayedColumnsRecords"
             [cdkColumnDef]="column"
@@ -72,6 +77,8 @@
               <th uiCellHeader *cdkHeaderCellDef scope="col"></th>
               <td uiCell *cdkCellDef="let element">
                 <ui-button
+                  category="primary"
+                  variant="dark"
                   [isIcon]="true"
                   icon="more_vert"
                   [uiMenuTriggerFor]="recMenu"
@@ -101,7 +108,7 @@
                     <ui-icon icon="edit_note" variant="grey"></ui-icon>
                     {{ 'common.child.edit' | translate }}
                   </button>
-                  <ui-divider class="py-1"></ui-divider>
+                  <ui-divider></ui-divider>
                   <button
                     *ngIf="!showDeletedRecords"
                     uiMenuItem

@@ -6,6 +6,9 @@ import {
   HostListener,
 } from '@angular/core';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
+import { SIDENAV_WIDTH_PX } from '@oort-front/ui';
+import { trigger, transition, style, animate } from '@angular/animations';
+
 /**
  * Navbar used in the main layout.
  * Can be horizontal or vertical.
@@ -14,8 +17,18 @@ import { moveItemInArray } from '@angular/cdk/drag-drop';
   selector: 'shared-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('0.3s 0.1s ease-in-out', style({ opacity: 1 })),
+      ]),
+    ]),
+  ],
 })
 export class NavbarComponent {
+  /** Width of the new sidenav */
+  public SIDENAV_WIDTH_PX = SIDENAV_WIDTH_PX;
   /** Application layout */
   @Input() appLayout = false;
   /** Does admin has permission to add a page */
@@ -26,10 +39,21 @@ export class NavbarComponent {
   @Input() navGroups: any[] = [];
   /** Navigation group selected */
   @Input() nav: any;
+  /** Application name displayed on top of the navbar */
+  @Input() appName = '';
+  /** Application logo */
+  @Input() appLogo = '';
+  /** Variant style for the layout */
+  @Input() bottomOptions: any[] = [];
+  /** Admin nav items to be displayed on the bottom */
+  public adminNavItems: any[] = [];
+
   /** Event emitted when the navbar items are reordered. */
   @Output() reorder: EventEmitter<any> = new EventEmitter();
   /** Boolean for portview threshold */
   public largeDevice: boolean;
+  /** Used to change text color on variant */
+  public hovered = '';
 
   /**
    * Navbar used in the main layout.

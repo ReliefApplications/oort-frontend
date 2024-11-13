@@ -58,6 +58,7 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
     'username',
     'oid',
     'roles',
+    'applications',
     'actions',
   ];
   /** Users selection */

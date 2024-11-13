@@ -1,15 +1,12 @@
 <div class="flex flex-row items-center justify-between gap-x-2">
   <div class="flex items-center gap-2 overflow-hidden">
-    <!-- Title -->
-    <h2 class="!m-0 truncate">
-      {{ title }}
-    </h2>
     <!-- Settings -->
     <ui-button
       *ngIf="navItems.length > 0"
       [isIcon]="true"
       icon="tune"
-      variant="light"
+      variant="dark"
+      category="primary"
       [uiMenuTriggerFor]="settingsMenu"
       [uiTooltip]="'common.settings' | translate"
     ></ui-button>
@@ -30,7 +27,7 @@
     <ui-button
       *ngIf="application && this.application.status !== 'active'"
       category="secondary"
-      variant="success"
+      variant="primary"
       (click)="onPublish()"
       [disabled]="!canPublish"
       >{{ 'common.publish' | translate }}</ui-button

@@ -12,12 +12,11 @@ export class MenuItemDirective {
     'flex',
     'flex-row',
     'gap-4',
-    'py-2',
+    'py-3',
     'px-3',
-    'text-gray-700',
-    'hover:text-gray-900',
+    'text-neutral-850',
     'cursor-pointer',
-    'hover:bg-gray-50',
+    'hover:bg-primary-50',
   ] as const;
 
   /**

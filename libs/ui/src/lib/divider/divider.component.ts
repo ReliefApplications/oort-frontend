@@ -19,4 +19,6 @@ export class DividerComponent {
   @Input() text!: string;
   /** The position of the text on the divider. */
   @Input() position: DividerPosition = 'center';
+  /** Optional coloring */
+  @Input() color!: string;
 }

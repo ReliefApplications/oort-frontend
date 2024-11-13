@@ -1,4 +1,4 @@
-<div class="mb-8 flex flex-col gap-2">
+<div class="mb-2 flex flex-col gap-2">
   <div class="flex gap-8 justify-between flex-col sm:flex-row">
     <!-- FILTERING -->
     <app-forms-filter
@@ -11,6 +11,7 @@
       icon="add"
       category="secondary"
       variant="primary"
+      shape="round"
       (click)="onAdd()"
       *ngIf="'create' | able : 'Form'"
     >
@@ -20,13 +21,14 @@
   <ng-container *ngTemplateOutlet="filter.expandedFilter"></ng-container>
 </div>
 <!-- Table container -->
-<div class="overflow-x-hidden shadow-2lg">
+<div class="overflow-x-hidden">
   <!-- Table scroll container -->
   <div class="overflow-x-auto">
     <table
       *ngIf="!loading"
       cdk-table
       uiTableWrapper
+      [hasPagination]="true"
       (sortChange)="onSort($event)"
       [dataSource]="forms"
     >
@@ -39,7 +41,7 @@
         <td
           uiCell
           *cdkCellDef="let element"
-          class="!text-gray-900 !font-medium max-w-[30vw]"
+          class="!text-neutral-850 !font-normal max-w-[30vw]"
         >
           {{ element.name }}
         </td>
@@ -100,9 +102,11 @@
         </th>
         <td uiCell *cdkCellDef="let element">
           <div uiChipList *ngIf="element.core">
-            <ui-chip class="!rounded-lg" variant="primary">{{
-              'models.form.core' | translate
-            }}</ui-chip>
+            <ui-chip
+              class="!rounded-lg [&>:first-child]:w-16 [&>:first-child]:justify-center"
+              variant="primary"
+              >{{ 'models.form.core' | translate }}</ui-chip
+            >
           </div>
         </td>
       </ng-container>
@@ -117,6 +121,8 @@
           <ui-button
             *ngIf="!element.core && element.resource?.coreForm?.name"
             [routerLink]="[element.resource.coreForm.id + '/builder']"
+            variant="dark"
+            category="secondary"
           >
             {{ element.resource.coreForm.name }}
           </ui-button>
@@ -127,6 +133,8 @@
         <th uiCellHeader *cdkHeaderCellDef scope="col" class="w-16"></th>
         <td uiCell *cdkCellDef="let element">
           <ui-button
+            category="primary"
+            variant="dark"
             [isIcon]="true"
             icon="more_vert"
             [uiMenuTriggerFor]="menu"
@@ -170,7 +178,7 @@
               </button>
             </ng-container>
             <ng-container *ngIf="element.canDelete">
-              <ui-divider class="py-1"></ui-divider>
+              <ui-divider></ui-divider>
               <button uiMenuItem (click)="onDelete(element, $event)">
                 <ui-icon icon="delete" variant="danger"></ui-icon>
                 {{ 'common.delete' | translate }}
@@ -220,5 +228,7 @@
   [totalItems]="pageInfo.length"
   [ariaLabel]="'components.forms.paginator.ariaLabel' | translate"
   (pageChange)="onPage($event)"
+  [displayedPageNumbers]="5"
+  [hideFirstLastButtons]="false"
 >
 </ui-paginator>

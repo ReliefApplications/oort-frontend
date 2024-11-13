@@ -383,6 +383,7 @@ export class ApplicationService {
             sideMenu: value.sideMenu,
             hideMenu: value.hideMenu,
             status: value.status,
+            logo: value.logo,
           },
         })
         .subscribe(({ errors, data }) => {
@@ -399,6 +400,7 @@ export class ApplicationService {
                 description: data.editApplication.description,
                 sideMenu: value.sideMenu,
                 hideMenu: value.hideMenu,
+                logo: value.logo,
                 status: data.editApplication.status,
               };
               this.application.next(newApplication);
@@ -2075,5 +2077,51 @@ export class ApplicationService {
           }
         });
     }
+  }
+
+  /**
+   * Get logo from application
+   *
+   * @param application application to open
+   * @returns logo loading as promise
+   */
+  getLogoBase64(application: Application): Promise<any> {
+    if (!application.logo) {
+      return Promise.resolve(undefined); // Return immediately if no logo
+    }
+    const path = `upload/logo/${application?.id}`;
+    return firstValueFrom(
+      this.restService.get(path, { responseType: 'blob' })
+    ).then((res) => {
+      return this.convertBlobToBase64(res);
+    });
+  }
+
+  /**
+   * Convert blob to base64
+   *
+   * @param blob Blob to convert to base64
+   * @returns Promise with base64 string
+   */
+  convertBlobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = reject;
+    });
+  }
+
+  /**
+   * Deletes the logo of the application
+   *
+   * @param application Application
+   * @returns Promise with the request
+   */
+  deleteApplicationLogo(application: Application): Promise<any> {
+    const path = `upload/logo/${application?.id}`;
+    return firstValueFrom(this.restService.delete(path));
   }
 }

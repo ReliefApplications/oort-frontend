@@ -1,166 +1,276 @@
 <!-- By default, vertical navigation -->
 <section
   [ngClass]="{
-    'border-b': !vertical,
-    'pt-2 flex-col gap-y-7': vertical
+    'drop-shadow-2sm bg-white h-fit w-full': !vertical,
+    'pt-2 flex-col h-full': vertical
   }"
   class="flex"
 >
-  <ng-container *ngFor="let group of navGroups; let i = index" class="h-full">
-    <!-- Vertical navigation -->
-    <ng-container *ngIf="vertical; else horizontalMenu">
-      <div class="pl-6">
-        <div
-          class="overflow-clip flex flex-row justify-between items-center text-xs font-semibold pt-2 leading-6 text-gray-400"
-        >
-          <div class="truncate">
-            {{ group.name }}
-          </div>
-          <ui-button
-            *ngIf="appLayout && canAddPage"
-            [isIcon]="true"
-            icon="add"
-            variant="grey"
-            [uiTooltip]="'models.page.add' | translate"
-            routerLink="./add-page"
-            (click)="largeDevice ? null : nav.toggle()"
-            class="overflow-visible"
-          ></ui-button>
-        </div>
-        <ng-container
-          *ngTemplateOutlet="navListTmpl; context: { $implicit: group }"
-        ></ng-container>
-      </div>
-      <ng-container *ngIf="appLayout && canAddPage">
-        <div class="flex flex-col items-center w-full absolute bottom-0">
-          <ui-divider class="m-0"></ui-divider>
-          <ng-container *ngTemplateOutlet="addPageButton"></ng-container>
-        </div>
-      </ng-container>
-    </ng-container>
-    <!-- Horizontal navigation -->
-    <ng-template #horizontalMenu>
-      <ng-container
-        *ngTemplateOutlet="navListTmpl; context: { $implicit: group }"
-      ></ng-container>
-      <ng-container *ngIf="appLayout && canAddPage">
-        <ng-container *ngTemplateOutlet="addPageButton"></ng-container>
-      </ng-container>
-    </ng-template>
+  <!-- If a logo is uploaded -->
+  <ng-container *ngIf="appLogo && vertical">
+    <div class="flex w-full px-4 mt-2 mb-1 h-14">
+      <img
+        class="object-contain transition-all duration-300 ease-in-out delay-100"
+        [ngStyle]="{
+          width: !nav?.opened
+            ? 'calc(' + SIDENAV_WIDTH_PX.collapsed + ' - 2rem)'
+            : '100%'
+        }"
+        [src]="appLogo"
+      />
+    </div>
+    <ui-divider
+      color="#403d3f"
+      class="pb-4 pt-3 mx-auto transition-all duration-500 ease-in-out"
+      [ngClass]="{ 'w-2/5': !nav?.opened, 'w-4/5': nav?.opened }"
+    ></ui-divider>
   </ng-container>
-</section>
+  <p
+    @fadeIn
+    class="font-semibold text-white text-lg pl-6"
+    [ngStyle]="{ width: SIDENAV_WIDTH_PX.expanded }"
+    *ngIf="nav?.opened"
+  >
+    {{ appName }}
+  </p>
 
-<!-- Shared templates for vertical and horizontal view -->
-<ng-template #navListTmpl let-group>
+  <!-- Collapsed content -->
   <div
-    cdkDropList
-    [cdkDropListOrientation]="vertical ? 'vertical' : 'horizontal'"
-    (cdkDropListDropped)="drop($event, group)"
-    [ngClass]="{
-      'nav-items-list': !vertical,
+    *ngIf="!nav?.opened && vertical"
+    @fadeIn
+    class="mt-4 flex flex-col h-full justify-between"
+  >
+    <div *ngFor="let group of navGroups; let i = index">
+      <ui-divider
+        *ngIf="i === navGroups.length - 1 && i !== 0"
+        color="#403d3f"
+        class="w-2/5 pb-4 pt-3 mx-auto"
+      ></ui-divider>
+      <ng-container
+        *ngTemplateOutlet="
+          collapsedNavTmpl;
+          context: { $implicit: group, index: i }
+        "
+      ></ng-container>
+    </div>
+  </div>
+
+  <!-- Opened content -->
+  <div
+    *ngIf="nav?.opened || !vertical"
+    @fadeIn
+    class="flex flex-col justify-between h-full"
+    [ngClass]="{ 'mt-4': vertical, 'mt-1.5 w-full': !vertical }"
+  >
+    <div *ngFor="let group of navGroups; let i = index">
+      <div>
+        <ui-divider
+          *ngIf="i === navGroups.length - 1 && i !== 0 && vertical"
+          color="#403d3f"
+          class="w-4/5 pb-4 pt-3 mx-auto"
+        ></ui-divider>
+        <div class="px-4 overflow-x-auto w-full h-full">
+          <ng-container
+            *ngTemplateOutlet="
+              navListTmpl;
+              context: { $implicit: group, index: i }
+            "
+          ></ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATES -->
+  <!-- Collapsed sidenav -->
+  <ng-template #collapsedNavTmpl let-group let-indexGroup="index">
+    <div class="flex w-full justify-center">
+      <ul class="flex flex-col gap-y-2">
+        <ng-container
+          *ngFor="let item of group.navItems; let indexGroupItems = index"
+        >
+          <li
+            class="group flex justify-center items-center h-11 w-11 rounded-lg hover:bg-primary-300 transition-colors duration-200 ease-in-out"
+            #rla="routerLinkActive"
+            routerLinkActive="!bg-primary-600"
+            (mouseover)="hovered = indexGroup + ':' + indexGroupItems"
+            (mouseout)="hovered = ''"
+            [uiTooltip]="item.name"
+          >
+            <a
+              class="flex justify-center items-center w-full h-full"
+              [routerLink]="item.path"
+            >
+              <ui-icon
+                [icon]="item.icon"
+                [fontFamily]="item.fontFamily"
+                [size]="24"
+                class="flex items-center"
+              >
+              </ui-icon>
+            </a>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+  </ng-template>
+
+  <!-- Template for add page button -->
+  <ng-template #addPageButtonTmpl let-group let-indexGroup="index">
+    <ng-container *ngIf="group.name === 'Pages'">
+      <div
+        class="overflow-clip flex flex-row justify-between items-center text-xs font-semibold pt-2 text-neutral-450"
+        *ngIf="group.name === 'Pages'"
+      >
+        <span class="truncate" *ngIf="vertical">
+          {{ group.name }}
+        </span>
+        <ui-button
+          *ngIf="appLayout && canAddPage"
+          [isIcon]="true"
+          icon="add"
+          variant="grey"
+          [uiTooltip]="'models.page.add' | translate"
+          routerLink="./add-page"
+          (click)="largeDevice ? null : nav.toggle()"
+          class="new-button overflow-visible"
+          size="small"
+        ></ui-button>
+      </div>
+    </ng-container>
+  </ng-template>
+
+  <!-- Template for navgroup items on vertical view when expanded and horizontal view -->
+  <ng-template #navListTmpl let-group let-indexGroup="index">
+    <div
+      cdkDropList
+      [cdkDropListOrientation]="vertical ? 'vertical' : 'horizontal'"
+      (cdkDropListDropped)="drop($event, group)"
+      [ngClass]="{
+      'nav-items-list w-full': !vertical,
       'app-sidenav-add-page': vertical && appLayout && canAddPage && largeDevice,
       'app-sidenav-phone-add-page': vertical && appLayout && canAddPage && !largeDevice,
       'app-sidenav-page': vertical && appLayout && !canAddPage && largeDevice,
       'app-sidenav-phone': vertical && appLayout && !canAddPage && !largeDevice,
     }"
-  >
-    <!-- Classes determine nav-list height for application layout -->
-    <ul [ngClass]="{ 'pr-6': vertical, flex: !vertical }">
-      <ng-container *ngFor="let item of group.navItems">
+      *ngIf="(!vertical && group.name === 'Pages') || vertical"
+    >
+      <!-- Classes determine nav-list height for application layout -->
+      <ul
+        [ngClass]="{
+      'flex gap-2 whitespace-nowrap w-full': !vertical,
+      }"
+      >
         <div
-          cdkDrag
-          [cdkDragDisabled]="!item.orderable"
-          [ngClass]="{ 'w-full max-w-[200px]': !vertical }"
-          class="show-icons"
+          class="mb-2"
+          [ngClass]="{ 'order-last': !vertical, 'pl-4': vertical }"
         >
-          <li routerLinkActive="text-primary-600 bg-gray-50">
-            <a
-              class="group"
-              (click)="largeDevice ? null : nav.toggle()"
-              [routerLink]="item.path"
-            >
-              <ui-icon
-                variant="grey"
-                [icon]="item.icon"
-                [fontFamily]="item.fontFamily"
-                [size]="vertical ? 24 : 18"
-              >
-              </ui-icon>
-              <p class="truncate m-0" [uiTooltip]="item.name">
-                {{ item.name }}
-              </p>
-            </a>
-            <div
-              class="flex flex-row items-center"
-              *ngIf="item.action || item.orderable || item.visible === false"
-            >
-              <ui-icon
-                variant="grey"
-                class="eye-icon"
-                [size]="18"
-                *ngIf="!item.visible"
-                icon="visibility_off"
-                >S
-              </ui-icon>
-              <ui-button
-                variant="danger"
-                class="hide-icons hover:text-primary-600"
-                [isIcon]="true"
-                *ngIf="item.action"
-                size="small"
-                (click)="onClick(item.action.callback, $event)"
-                [icon]="item.action.icon"
-                [uiTooltip]="item.action.toolTip"
-              >
-              </ui-button>
-              <ui-button
-                variant="grey"
-                [ngClass]="{ 'hide-icons': vertical }"
-                class="hover:text-primary-600"
-                [isIcon]="true"
-                size="small"
-                cdkDragHandle
-                *ngIf="item.orderable"
-                icon="drag_indicator"
-                [uiTooltip]="'common.tooltip.dragDrop' | translate"
-              >
-              </ui-button>
-            </div>
-          </li>
-          <!-- Preview when dragging element -->
-          <li
-            *cdkDragPreview
-            class="flex items-center flex-row text-gray-700 bg-white rounded-md px-2 py-3 shadow-2lg"
-          >
-            <a
-              class="group flex flex-row gap-x-3 text-sm leading-6 items-center font-semibold"
-            >
-              <ui-icon
-                variant="grey"
-                [icon]="item.icon"
-                [fontFamily]="item.fontFamily"
-              ></ui-icon>
-              <div class="pl-2">{{ item.name }}</div>
-            </a>
-          </li>
+          <ng-container
+            *ngTemplateOutlet="
+              addPageButtonTmpl;
+              context: { $implicit: group, index: indexGroup }
+            "
+          ></ng-container>
+          <ng-container *ngIf="group.showName">
+            <span class="text-xs font-semibold text-neutral-450">{{
+              group.name
+            }}</span>
+          </ng-container>
         </div>
-      </ng-container>
-    </ul>
-  </div>
-</ng-template>
-<ng-template #addPageButton>
-  <ui-button
-    [uiTooltip]="!vertical ? ('models.page.add' | translate) : ''"
-    [isIcon]="!vertical ? true : false"
-    [ngClass]="{ 'my-4': vertical, 'self-center': !vertical }"
-    icon="add"
-    [category]="vertical ? 'secondary' : 'primary'"
-    variant="primary"
-    routerLink="./add-page"
-    (click)="!vertical ? null : largeDevice ? null : nav.toggle()"
-  >
-    <span *ngIf="vertical">
-      {{ 'models.page.add' | translate }}
-    </span>
-  </ui-button>
-</ng-template>
+        <div *ngFor="let item of group.navItems; let indexGroupItems = index">
+          <div
+            cdkDrag
+            [cdkDragDisabled]="!item.orderable"
+            class="drag-wrapper show-icons"
+            [ngClass]="{
+            'w-full max-w-[200px]': !vertical,
+          }"
+          >
+            <li
+              #rla="routerLinkActive"
+              [routerLinkActive]="
+                vertical ? '!bg-primary-600 !text-white' : 'bg-primary-100'
+              "
+              (mouseover)="hovered = indexGroup + ':' + indexGroupItems"
+              (mouseout)="hovered = ''"
+              class="!rounded-lg transition-colors duration-200 ease-in-out"
+              [ngClass]="{
+                '!text-light-200 hover:!bg-primary-50': !vertical,
+                'hover:!bg-primary-300 !text-light-50': vertical
+              }"
+            >
+              <a
+                class="group !px-1"
+                (click)="largeDevice ? null : nav.toggle()"
+                [routerLink]="item.path"
+              >
+                <ui-icon
+                  [variant]="vertical ? 'light' : 'grey'"
+                  [icon]="item.icon"
+                  [fontFamily]="item.fontFamily"
+                  [size]="vertical ? 24 : 18"
+                  class="flex items-center"
+                >
+                </ui-icon>
+                <p class="truncate m-0" [uiTooltip]="item.name">
+                  {{ item.name }}
+                </p>
+              </a>
+              <div
+                class="flex flex-row items-center"
+                *ngIf="item.action || item.orderable || item.visible === false"
+              >
+                <ui-icon
+                  variant="grey"
+                  class="eye-icon"
+                  [size]="18"
+                  *ngIf="!item.visible"
+                  icon="visibility_off"
+                  >S
+                </ui-icon>
+                <ui-button
+                  variant="danger"
+                  class="new-button hide-icons hover:text-primary-600"
+                  [isIcon]="true"
+                  *ngIf="item.action"
+                  size="small"
+                  (click)="onClick(item.action.callback, $event)"
+                  [icon]="item.action.icon"
+                  [uiTooltip]="item.action.toolTip"
+                >
+                </ui-button>
+                <ui-button
+                  variant="grey"
+                  class="new-button hide-icons hover:text-primary-600"
+                  [isIcon]="true"
+                  size="small"
+                  cdkDragHandle
+                  *ngIf="item.orderable"
+                  icon="drag_indicator"
+                  [uiTooltip]="'common.tooltip.dragDrop' | translate"
+                >
+                </ui-button>
+              </div>
+            </li>
+            <!-- Preview when dragging element -->
+            <li
+              *cdkDragPreview
+              class="flex items-center flex-row px-4 py-3 shadow-2lg !bg-neutral-800 text-white !rounded-lg"
+            >
+              <a
+                class="group flex flex-row gap-x-3 text-sm leading-6 items-center font-semibold"
+              >
+                <ui-icon
+                  variant="grey"
+                  [icon]="item.icon"
+                  [fontFamily]="item.fontFamily"
+                ></ui-icon>
+                <div>{{ item.name }}</div>
+              </a>
+            </li>
+          </div>
+        </div>
+      </ul>
+    </div>
+  </ng-template>
+</section>

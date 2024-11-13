@@ -394,6 +394,7 @@ export const EDIT_APPLICATION = gql`
     $description: String
     $sideMenu: Boolean
     $hideMenu: Boolean
+    $logo: String
   ) {
     editApplication(
       id: $id
@@ -404,11 +405,13 @@ export const EDIT_APPLICATION = gql`
       description: $description
       sideMenu: $sideMenu
       hideMenu: $hideMenu
+      logo: $logo
     ) {
       id
       description
       sideMenu
       hideMenu
+      logo
       name
       createdAt
       modifiedAt

@@ -89,16 +89,13 @@ export class DatePickerDirective implements OnInit, OnDestroy {
 
   /** Div classes */
   private divClasses = [
+    'bg-white',
     'relative',
     'focus-within:ring-2',
     'focus-within:ring-inset',
     'focus-within:ring-primary-600',
-    'shadow-sm',
     'rounded-md',
     'border-0',
-    'ring-1',
-    'ring-inset',
-    'ring-gray-300',
     'pl-2',
     'flex',
     'items-center',

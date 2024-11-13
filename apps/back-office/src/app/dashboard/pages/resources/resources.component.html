@@ -1,4 +1,4 @@
-<div class="mb-8 flex flex-col gap-2">
+<div class="mb-2 flex flex-col gap-2">
   <div class="flex gap-8 justify-between flex-col sm:flex-row">
     <!-- FILTERING -->
     <app-resources-filter
@@ -11,7 +11,9 @@
       icon="add"
       category="secondary"
       variant="primary"
+      shape="round"
       (click)="onAdd()"
+      *ngIf="'create' | able : 'Resource'"
     >
       {{ 'models.resource.create' | translate }}
     </ui-button>
@@ -19,13 +21,14 @@
   <ng-container *ngTemplateOutlet="filter.expandedFilter"></ng-container>
 </div>
 <!-- Table container -->
-<div class="overflow-x-hidden shadow-2lg">
+<div class="overflow-x-hidden">
   <!-- Table scroll container -->
   <div class="overflow-x-auto">
     <table
       *ngIf="!loading"
       cdk-table
       uiTableWrapper
+      [hasPagination]="true"
       [dataSource]="resources"
       (sortChange)="onSort($event)"
     >
@@ -38,7 +41,7 @@
         <td
           uiCell
           *cdkCellDef="let element"
-          class="!text-gray-900 !font-medium max-w-[30vw]"
+          class="!text-neutral-850 !font-medium max-w-[30vw]"
         >
           {{ element.name }}
         </td>
@@ -73,6 +76,8 @@
         <th uiCellHeader *cdkHeaderCellDef scope="col" class="w-16"></th>
         <td uiCell *cdkCellDef="let element">
           <ui-button
+            category="primary"
+            variant="dark"
             [isIcon]="true"
             icon="more_vert"
             [uiMenuTriggerFor]="menu"
@@ -97,7 +102,7 @@
               {{ 'common.duplicate' | translate }}
             </button>
 
-            <ui-divider class="py-1"></ui-divider>
+            <ui-divider></ui-divider>
 
             <button uiMenuItem (click)="onDelete(element)">
               <ui-icon icon="delete" variant="danger"></ui-icon>
@@ -133,5 +138,7 @@
   [totalItems]="pageInfo.length"
   [ariaLabel]="'components.resource.paginator.ariaLabel' | translate"
   (pageChange)="onPage($event)"
+  [displayedPageNumbers]="5"
+  [hideFirstLastButtons]="false"
 >
 </ui-paginator>

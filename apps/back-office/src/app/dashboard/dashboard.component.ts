@@ -55,6 +55,7 @@ export class DashboardComponent extends UnsubscribeComponent {
       navGroups.push({
         name: this.translate.instant('pages.appBuilder.title'),
         navItems: siteBuilderItems,
+        showName: true,
       });
     }
     // Data items ( forms / resources / ref data )
@@ -84,6 +85,7 @@ export class DashboardComponent extends UnsubscribeComponent {
       navGroups.push({
         name: this.translate.instant('pages.formBuilder.title'),
         navItems: dataItems,
+        showName: true,
       });
     }
     // Administrative items ( users / roles / APIs / automated actions )

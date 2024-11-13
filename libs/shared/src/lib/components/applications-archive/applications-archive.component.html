@@ -4,7 +4,7 @@
 </ng-container>
 <ng-container *ngIf="pages?.length; else emptyTmpl">
   <!-- Table container -->
-  <div class="mt-4 overflow-x-hidden shadow-2lg">
+  <div class="mt-4 overflow-x-hidden">
     <!-- Table scroll container -->
     <div class="overflow-x-auto">
       <table cdk-table uiTableWrapper [dataSource]="visiblePages">
@@ -17,7 +17,7 @@
           <td
             uiCell
             *cdkCellDef="let element"
-            class="!text-gray-900 !font-medium"
+            class="!text-neutral-850 !font-medium"
           >
             {{ element.name }}
           </td>
@@ -48,7 +48,7 @@
                 <ui-icon icon="restore_page" variant="grey"></ui-icon>
                 {{ 'common.archive.restore' | translate }}
               </button>
-              <ui-divider class="py-1"></ui-divider>
+              <ui-divider></ui-divider>
               <button uiMenuItem (click)="onDelete(element)">
                 <ui-icon icon="delete" variant="danger"></ui-icon>
                 {{ 'common.archive.delete' | translate }}

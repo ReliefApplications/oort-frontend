@@ -1,25 +1,34 @@
 <div
-  class="h-full flex flex-col w-[30vw]"
+  class="relative flex flex-col bg-neutral-950"
   mwlResizable
   (resizing)="onResizing($event)"
   [ngStyle]="navbarStyle"
   [validateResize]="validate.bind(this)"
 >
+  <!-- Overlay when loading -->
+  <div
+    *ngIf="loading"
+    class="absolute inset-0 bg-black bg-opacity-50 z-20 flex justify-center items-center"
+  >
+    <ui-spinner></ui-spinner>
+  </div>
+
   <div
     class="cursor-col-resize absolute h-full left-0 w-1.5 z-10"
     mwlResizeHandle
     [resizeEdges]="{ left: true }"
   ></div>
+
   <!-- Header -->
-  <div class="items-center p-4 border-b">
+  <div class="items-center p-4 border-b border-stone-750">
     <div class="flex justify-between items-center mb-2">
-      <h2 class="mb-0">
+      <h2 class="mb-0 whitespace-nowrap mr-4">
         {{ 'components.application.customStyling' | translate }}
       </h2>
-      <div class="flex">
+      <div class="flex gap-2">
         <ui-button
           variant="primary"
-          category="tertiary"
+          category="secondary"
           [isIcon]="true"
           icon="check"
           (click)="onSave()"
@@ -37,7 +46,7 @@
       </div>
     </div>
   </div>
-  <ui-spinner class="my-2" *ngIf="loading"></ui-spinner>
+
   <!-- Style editor -->
   <div class="grow overflow-y-auto overflow-x-hidden">
     <ngx-monaco-editor

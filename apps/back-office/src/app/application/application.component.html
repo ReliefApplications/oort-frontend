@@ -27,7 +27,9 @@
     [navGroups]="navGroups"
     [appLayout]="true"
     [canAddPage]="application?.canUpdate!"
-    [vertical]="!(!sideMenu && largeDevice)"
+    [vertical]="sideMenu"
+    [appName]="application?.name!"
+    [appLogo]="logoBase64"
     (reorder)="onReorder($event)"
   ></shared-navbar>
 </ng-template>

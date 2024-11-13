@@ -5,6 +5,7 @@
     "account": "Account",
     "actions": "Actions",
     "add": "Add",
+    "admin": "Admin",
     "adminField": "Admin field",
     "aggregation": {
       "add": "Add aggregation",
@@ -287,6 +288,9 @@
       "one": "Layout"
     },
     "loading": "Loading",
+    "logo": {
+      "one": "Logo"
+    },
     "modifiedOn": "Modified On",
     "name": "Name",
     "next": "Next",
@@ -717,12 +721,22 @@
       },
       "update": {
         "hideMenu": "Hide menu by default",
+        "logo": {
+          "current": "Current Logo",
+          "upload": "Upload new logo"
+        },
         "placeholder": {
           "description": "Please enter a description for the application"
         },
         "sideMenu": "Show menu on the side",
         "tooltip": {
-          "hideMenu": "Only applies when menu is located on the side"
+          "hideMenu": "Only applies when menu is located on the side",
+          "logo": "Shown on side navigation only when \"Show menu on side\" is applied"
+        },
+        "variants": {
+          "label": "Side menu variant",
+          "new": "New",
+          "original": "Original"
         }
       },
       "users": {
@@ -1019,6 +1033,11 @@
       "modal": {
         "select": "Select an icon",
         "use": "Use icon"
+      }
+    },
+    "logo": {
+      "delete": {
+        "confirmationMessage": "Do you confirm the deletion of the logo?"
       }
     },
     "logout": {

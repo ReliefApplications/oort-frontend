@@ -32,6 +32,9 @@ export const GET_USERS = gql`
             title
           }
           oid
+          applications {
+            name
+          }
         }
         cursor
       }

@@ -50,7 +50,7 @@
   & > li {
     @apply min-h-[54px] flex justify-between items-center cursor-pointer flex-row text-gray-700 hover:bg-gray-50 hover:text-primary-600 rounded-md;
     & > a {
-      @apply flex flex-1 overflow-hidden flex-row gap-x-3 text-sm leading-6 items-center font-semibold px-2 py-3;
+      @apply flex flex-1 overflow-hidden flex-row gap-x-3 text-base leading-6 items-center font-medium px-2 py-3;
     }
   }
   .hide-icons {
@@ -97,4 +97,19 @@
   // Subtracts header height
   max-height: calc(100vh - 48px);
   overflow: auto;
+}
+
+.drag-wrapper {
+  & > li {
+    @apply min-h-[44px] text-white mb-2 px-2;
+
+    & > a {
+      @apply py-0;
+    }
+  }
+}
+
+.new-button ::ng-deep button:hover {
+  background-color: transparent !important;
+  filter: drop-shadow(0 0 3px white);
 }
