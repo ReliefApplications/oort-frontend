@@ -236,6 +236,7 @@
     },
     "errors": {
       "few": "Errors",
+      "invalidJson": "Please provide a valid JSON",
       "objectDuplicated": "{{type}} {{value}} already exists."
     },
     "exitFullscreen": "Exit Fullscreen",
