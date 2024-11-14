@@ -12,7 +12,7 @@ import DataLabelsPlugin from 'chartjs-plugin-datalabels';
 import { parseFontOptions } from '../../../../utils/graphs/parseFontString';
 import whiteBackgroundPlugin from '../../../../utils/graphs/plugins/background.plugin';
 import { ChartLegend, ChartTitle } from '../interfaces';
-import { generateMonochromePalette } from '../const/palette';
+import { DEFAULT_PALETTE_COLOR } from '../../../widgets/chart-settings/constants';
 import { getColor } from '../utils/color.util';
 import { isEqual, isNil, get } from 'lodash';
 import Color from 'color';
@@ -46,7 +46,7 @@ export class BarChartComponent implements OnChanges {
   @Input() series: any[] = [];
   /** Input decorator for options. */
   @Input() options: any = {
-    palette: generateMonochromePalette(this.environment.theme.primary),
+    palette: DEFAULT_PALETTE_COLOR,
     stack: false,
   };
   /** Input decorator for gap. */
@@ -82,9 +82,7 @@ export class BarChartComponent implements OnChanges {
       this.showValueLabels = get(this.options, 'labels.valueType', false);
     if (this.usePercentage) this.normalizeDataset();
     const series = get(this.options, 'series', []);
-    const palette =
-      get(this.options, 'palette') ||
-      generateMonochromePalette(this.environment.theme.primary);
+    const palette = get(this.options, 'palette') || DEFAULT_PALETTE_COLOR;
     // Build series and filter out the hidden series
     this.chartData.datasets = this.series
       .map((x, i) => {

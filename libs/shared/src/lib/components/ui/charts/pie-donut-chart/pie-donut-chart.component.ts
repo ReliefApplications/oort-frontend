@@ -7,7 +7,7 @@ import drawUnderlinePlugin from '../../../../utils/graphs/plugins/underline.plug
 import DataLabelsPlugin from 'chartjs-plugin-datalabels';
 import whiteBackgroundPlugin from '../../../../utils/graphs/plugins/background.plugin';
 import { ChartLegend, ChartTitle } from '../interfaces';
-import { generateMonochromePalette } from '../const/palette';
+import { DEFAULT_PALETTE_COLOR } from '../../../widgets/chart-settings/constants';
 import { getColor } from '../utils/color.util';
 import Color from 'color';
 
@@ -45,7 +45,7 @@ export class PieDonutChartComponent implements OnChanges {
   @Input() series: any[] = [];
   /** Input decorator for options.  */
   @Input() options: any = {
-    palette: generateMonochromePalette(this.environment.theme.primary),
+    palette: DEFAULT_PALETTE_COLOR,
   };
   /** ViewChild decorator for chart. */
   @ViewChild(BaseChartDirective) chart: BaseChartDirective | undefined;
@@ -81,9 +81,7 @@ export class PieDonutChartComponent implements OnChanges {
       ) || 0;
 
     const series = get(this.options, 'series', []);
-    const palette =
-      get(this.options, 'palette') ||
-      generateMonochromePalette(this.environment.theme.primary);
+    const palette = get(this.options, 'palette') || DEFAULT_PALETTE_COLOR;
 
     // Build series and filter out the hidden series
     this.chartData.datasets = this.series

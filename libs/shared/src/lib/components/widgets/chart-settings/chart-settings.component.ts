@@ -88,8 +88,7 @@ export class ChartSettingsComponent
   public buildSettingsForm() {
     this.widgetFormGroup = createChartWidgetForm(
       this.widget.id,
-      this.widget.settings,
-      this.environment.theme.primary
+      this.widget.settings
     );
   }
 }
