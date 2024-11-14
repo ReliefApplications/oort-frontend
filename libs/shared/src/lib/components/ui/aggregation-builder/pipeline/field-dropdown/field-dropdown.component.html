@@ -1,4 +1,4 @@
-<div uiFormFieldDirective [defaultMargin]="false" class="flex-1 w-44">
+<div uiFormFieldDirective [defaultMargin]="false" class="flex-1 w-44" customBackground="bg-light-50">
   <label>{{ label || 'common.field.one' | translate }}</label>
   <ui-select-menu [formControl]="fieldControl" #menu>
     <ui-select-option *ngIf="nullable">{{

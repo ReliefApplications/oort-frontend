@@ -39,6 +39,9 @@ export class FormWrapperDirective
    * Set default margin for separation in the current form field
    */
   @Input() defaultMargin = true;
+  /** Set custom background */
+  @Input() customBackground!: string;
+
   // === GET THE ELEMENTS ON WHICH SUFFIX/PREFIX ARE APPLIED ===
   /** Get all suffix directives */
   @ContentChildren(SuffixDirective)
@@ -153,8 +156,8 @@ export class FormWrapperDirective
     'bg-light-50',
     'border-0',
     'rounded-lg',
-    'px-3',
     'font-medium',
+    'px-3',
   ] as const;
   /** Select button classes to remove */
   private selectButtonRemove = [
@@ -335,8 +338,23 @@ export class FormWrapperDirective
     // Remove right padding for select
     if (this.currentSelectElement || this.currentGraphQLSelectComponent) {
       this.renderer.removeClass(this.beyondLabelContainer, 'px-2');
-      this.renderer.addClass(this.beyondLabelContainer, 'pl-2');
       this.renderer.addClass(this.beyondLabelContainer, 'bg-white');
+      if (this.customBackground) {
+        this.renderer.removeClass(this.beyondLabelContainer, 'bg-white');
+        if (
+          this.currentSelectElement &&
+          this.currentSelectElement.nativeElement
+        ) {
+          const selectButton =
+            this.currentSelectElement.nativeElement.querySelector('button');
+          this.renderer.addClass(
+            this.beyondLabelContainer,
+            this.customBackground
+          );
+          this.renderer.addClass(selectButton, this.customBackground);
+        }
+      }
+      this.renderer.removeClass(this.beyondLabelContainer, 'px-3');
     }
 
     if (this.currentInputElement && !this.dateWrapperElement) {

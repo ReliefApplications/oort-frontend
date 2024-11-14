@@ -1,4 +1,5 @@
 import {
+  AfterContentInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -55,7 +56,10 @@ const ITEMS_PER_PAGE = 10;
     },
   ],
 })
-export class ReferenceDataSelectComponent extends GraphQLSelectComponent {
+export class ReferenceDataSelectComponent
+  extends GraphQLSelectComponent
+  implements AfterContentInit
+{
   /**
    * Shared reference data select component.
    * Extends graphql select component.
@@ -83,6 +87,15 @@ export class ReferenceDataSelectComponent extends GraphQLSelectComponent {
     this.searchChange.pipe(takeUntil(this.destroy$)).subscribe((value) => {
       this.onSearchChange(value);
     });
+  }
+
+  ngAfterContentInit(): void {
+    // Apply correct background color to select
+    const selectButtons =
+      this.elementRef.nativeElement.getElementsByTagName('button');
+    if (selectButtons) {
+      this.renderer.addClass(selectButtons[0], 'bg-light-50');
+    }
   }
 
   /**
