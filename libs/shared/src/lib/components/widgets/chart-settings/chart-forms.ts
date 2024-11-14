@@ -1,7 +1,7 @@
 import { FormBuilder, Validators } from '@angular/forms';
 import { get } from 'lodash';
 import { createMappingForm } from '../../ui/aggregation-builder/aggregation-builder-forms';
-import { generateMonochromePalette } from '../../ui/charts/const/palette';
+import { DEFAULT_PALETTE_COLOR } from '../chart-settings/constants';
 import { extendWidgetForm } from '../common/display-settings/extendWidgetForm';
 import { createFilterGroup } from '../../query-builder/query-builder-forms';
 import { mutuallyExclusive } from '../../../utils/validators/mutuallyExclusive.validator';
@@ -16,7 +16,7 @@ const fb = new FormBuilder();
  * @param primary primary color to generate palette from
  * @returns chart form group
  */
-export const createChartForm = (value: any, primary: string) => {
+export const createChartForm = (value: any) => {
   const legend = get(value, 'legend', null);
   const title = get(value, 'title', null);
   const labels = get(value, 'labels', null);
@@ -85,10 +85,7 @@ export const createChartForm = (value: any, primary: string) => {
       enabled: get(value, 'palette.enabled', false),
       value: [
         {
-          value:
-            palette.length > 0
-              ? palette
-              : JSON.parse(JSON.stringify(generateMonochromePalette(primary))),
+          value: palette.length > 0 ? palette : DEFAULT_PALETTE_COLOR,
           disabled: !get(value, 'palette.enabled', false),
         },
       ],
@@ -339,15 +336,14 @@ const createFilterForm = (value: any) => {
  *
  * @param id widget id
  * @param value chart widget settings
- * @param primary primary color to generate palette from
  * @returns chart widget form group
  */
-export const createChartWidgetForm = (id: any, value: any, primary: string) => {
+export const createChartWidgetForm = (id: any, value: any) => {
   const form = fb.group(
     {
       id,
       title: [get(value, 'title', ''), Validators.required],
-      chart: createChartForm(get(value, 'chart'), primary),
+      chart: createChartForm(get(value, 'chart')),
       resource: [get(value, 'resource', null)],
       referenceData: [get(value, 'referenceData', null)],
       referenceDataVariableMapping: [

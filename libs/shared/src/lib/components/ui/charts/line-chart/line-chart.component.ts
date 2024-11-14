@@ -13,7 +13,7 @@ import drawUnderlinePlugin from '../../../../utils/graphs/plugins/underline.plug
 import { parseFontOptions } from '../../../../utils/graphs/parseFontString';
 import whiteBackgroundPlugin from '../../../../utils/graphs/plugins/background.plugin';
 import { ChartLegend, ChartTitle } from '../interfaces';
-import { generateMonochromePalette } from '../const/palette';
+import { DEFAULT_PALETTE_COLOR } from '../../../widgets/chart-settings/constants';
 import { getColor } from '../utils/color.util';
 import { isEqual, isNil, get } from 'lodash';
 import Color from 'color';
@@ -53,7 +53,7 @@ export class LineChartComponent implements OnChanges {
   @Input() series: any[] = [];
   /** Input decorator for options. */
   @Input() options: any = {
-    palette: generateMonochromePalette(this.environment.theme.primary),
+    palette: DEFAULT_PALETTE_COLOR,
     axes: null,
   };
   /** ViewChild decorator for chart. */
@@ -90,9 +90,7 @@ export class LineChartComponent implements OnChanges {
   ngOnChanges(): void {
     this.showValueLabels = get(this.options, 'labels.showValue', false);
     const series = get(this.options, 'series', []);
-    const palette =
-      get(this.options, 'palette') ||
-      generateMonochromePalette(this.environment.theme.primary);
+    const palette = get(this.options, 'palette') || DEFAULT_PALETTE_COLOR;
     // Build series and filter out the hidden series
     this.chartData.datasets = this.series
       .map((x, i) => {
