@@ -5,7 +5,7 @@
     <input formControlName="title" type="string" />
   </div>
   <ng-container formGroupName="chart">
-    <div uiFormFieldDirective>
+    <div uiFormFieldDirective customBackground="bg-light-50">
       <label>{{ 'components.widget.settings.chart.type' | translate }}</label>
       <ng-template #chartTemplate let-type>
         <img class="chart-icon" [src]="type?.icon" />{{
@@ -30,7 +30,7 @@
   </ng-container>
   <div class="flex-1 flex-col">
     <!-- Reference data selection  -->
-    <div uiFormFieldDirective class="flex-1" *ngIf="!formGroup.value.resource">
+    <div uiFormFieldDirective class="flex-1" *ngIf="!formGroup.value.resource" customBackground="bg-light-50">
       <label>{{ 'models.referenceData.select' | translate }}</label>
       <shared-reference-data-select
         formControlName="referenceData"
@@ -57,6 +57,7 @@
       uiFormFieldDirective
       class="flex-1"
       *ngIf="!formGroup.value.referenceData"
+      customBackground="bg-light-50"
     >
       <label>{{ 'models.resource.select' | translate }}</label>
       <shared-resource-select
@@ -78,7 +79,7 @@
   <ng-container *ngIf="resource || referenceData">
     <!-- Aggregation -->
     <ng-container *ngIf="formGroup.value.chart.aggregationId">
-      <div *ngIf="aggregation" uiFormFieldDirective>
+      <div *ngIf="aggregation" uiFormFieldDirective customBackground="bg-light-50">
         <label>{{ 'common.aggregation.one' | translate }}</label>
         <ui-select-menu [disabled]="true" [value]="aggregation.name">
           <ui-select-option [value]="aggregation.name">{{
@@ -104,7 +105,7 @@
       </div>
       <!-- GraphQL variable mapping for reference data graphql-->
       <shared-graphql-variables-mapping
-        class="mb-1"
+        class="mb-1 "
         *ngIf="referenceData && referenceData.type === 'graphql'"
         [referenceData]="referenceData"
         [control]="$any(formGroup.get('referenceDataVariableMapping'))"
