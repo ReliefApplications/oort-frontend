@@ -8,7 +8,6 @@ import { Question } from './types';
 export const initCreatorSettings = (): void => {
   const serializer: JsonMetadata = Serializer;
 
-  serializer.findProperty('question', 'name').readOnly = true;
   serializer.findProperty('question', 'name').onGetValue = (obj: Question) =>
     obj.valueName ? obj.valueName : obj.name;
   serializer.findProperty('question', 'valueName').isRequired = true;
