@@ -52,7 +52,14 @@ export class UsersDropdownComponent
   /** Initial selection of users */
   public initialSelection: User[] = [];
   /** Users query */
-  public query!: QueryRef<UsersNodeQueryResponse>;
+  public query: QueryRef<UsersNodeQueryResponse> =
+    this.apollo.watchQuery<UsersNodeQueryResponse>({
+      query: GET_USERS,
+      variables: {
+        first: ITEMS_PER_PAGE,
+        applications: this.applications ?? null,
+      },
+    });
   /** Form control that has selected users */
   public control = new FormControl<string[]>([]);
 
@@ -74,14 +81,6 @@ export class UsersDropdownComponent
 
   ngOnInit(): void {
     this.setupInitialSelection();
-    this.query = this.apollo.watchQuery<UsersNodeQueryResponse>({
-      query: GET_USERS,
-      variables: {
-        first: ITEMS_PER_PAGE,
-        applications: this.applications ?? null,
-      },
-    });
-
     this.control.valueChanges?.subscribe(() => {
       this.selectionChange.emit(this.control.value ?? []);
     });

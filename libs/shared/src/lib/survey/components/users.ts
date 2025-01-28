@@ -1,4 +1,9 @@
-import { ComponentCollection, Serializer, SvgRegistry } from 'survey-core';
+import {
+  ComponentCollection,
+  Serializer,
+  SurveyModel,
+  SvgRegistry,
+} from 'survey-core';
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
 import { QuestionUsers } from '../types';
@@ -14,7 +19,7 @@ import {
 import { ADD_USERS } from '../graphql/mutations';
 import { SnackbarService } from '@oort-front/ui';
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, takeUntil } from 'rxjs';
 import { GET_ROLES_FROM_APPLICATION } from '../graphql/queries';
 
 /**
@@ -203,6 +208,20 @@ export const init = (
       instance.selectionChange.subscribe((value: string[]) => {
         question.value = value;
       });
+
+      // Inject loaded users to the survey context as variables
+      instance.query.valueChanges
+        .pipe(takeUntil(instance.destroy$))
+        .subscribe(({ data }) => {
+          if (!Array.isArray(data?.users?.edges)) return;
+
+          const survey = question.survey as SurveyModel;
+
+          data.users.edges.forEach((edge) => {
+            const user = edge.node;
+            survey.setVariable(`__USER_NAME.${user.id}__`, user.name);
+          });
+        });
 
       // Update the dropdown value when the question value changes
       question.registerFunctionOnPropertyValueChanged(

@@ -51,6 +51,7 @@ import renameColumn from './matrices/renameColumn';
 import selectColumns from './matrices/selectColumns';
 import log from './log';
 import getFollowupSummary from './lift/getFollowupSummary';
+import username from './username';
 
 /** Generators for each custom function available  */
 export const functions = [
@@ -105,6 +106,7 @@ export const functions = [
   { fn: log, name: 'log' },
   { fn: getPrescriptionInfo, name: 'getPrescriptionInfo' },
   { fn: getFollowupSummary, name: 'getFollowupSummary' },
+  { fn: username, name: 'username' },
 ];
 
 /** Generators for each async custom function available  */
