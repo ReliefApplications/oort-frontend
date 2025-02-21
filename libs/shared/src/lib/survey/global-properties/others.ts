@@ -232,6 +232,15 @@ export const init = (environment: any): void => {
     visibleIndex: 1,
   });
 
+  // Adds property to display comment question with WYSIWYG editor
+  serializer.addProperty('comment', {
+    name: 'useRichTextEditor',
+    category: 'general',
+    type: 'boolean',
+    default: false,
+    visibleIndex: 1,
+  });
+
   // Adds a property to initialize new records with random OID
   serializer.addProperty('survey', {
     name: 'generateNewRecordOid',

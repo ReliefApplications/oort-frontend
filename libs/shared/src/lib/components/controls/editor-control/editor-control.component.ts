@@ -107,7 +107,7 @@ export class EditorControlComponent
    * @returns if an option is selected
    */
   get empty() {
-    return !this.ngControl.control?.value;
+    return !this.ngControl?.control?.value;
   }
 
   /**
