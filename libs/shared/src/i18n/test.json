@@ -1070,6 +1070,7 @@
       "value": "******"
     },
     "notifications": {
+      "markAsRead": "******",
       "noRecord": "******",
       "noRedirect": "******",
       "paginator": {

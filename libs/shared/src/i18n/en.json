@@ -1070,6 +1070,7 @@
       "value": "Value"
     },
     "notifications": {
+      "markAsRead": "Mark as read",
       "noRecord": "No record to be redirected",
       "noRedirect": "Can't redirect. Missing information.",
       "paginator": {

@@ -1081,6 +1081,7 @@
       "value": "Valeur"
     },
     "notifications": {
+      "markAsRead": "Marquer comme lu",
       "noRecord": "Aucun enregistrement à rediriger",
       "noRedirect": "Impossible de rediriger. Informations manquantes.",
       "paginator": {
