@@ -34,6 +34,7 @@ import {
   CustomQuestionTypes,
   InitCustomQuestionComponent,
 } from './custom-question-types';
+import { configureGlobalNumberFormatting } from './numberFormatting';
 
 /**
  * Executes all init methods of custom SurveyJS.
@@ -113,6 +114,9 @@ export const initCustomSurvey = (
   ReferenceDataProperties.init(referenceDataService);
   TooltipProperty.init();
   OtherProperties.init(environment);
+
+  // Initialize number formatting for right alignment and thousand separators
+  configureGlobalNumberFormatting();
 
   // enables POST requests for choicesByUrl
   // ChoicesByUrlProperties.init();

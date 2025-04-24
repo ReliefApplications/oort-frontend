@@ -1,4 +1,5 @@
 @import 'variables.scss';
+@import 'survey-number-format.scss';
 
 ::ng-deep .sv-boolean:not(.sv-boolean--checked) {
   .sv-boolean__switch {
