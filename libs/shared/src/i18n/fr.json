@@ -1081,6 +1081,7 @@
       "value": "Valeur"
     },
     "notifications": {
+      "markAsRead": "Marquer comme lu",
       "noRecord": "Aucun enregistrement à rediriger",
       "noRedirect": "Impossible de rediriger. Informations manquantes.",
       "paginator": {
@@ -1564,6 +1565,10 @@
           "questionToState": "Les modifications apportées à la question seront répercutées sur l'état",
           "stateToQuestion": "Les modifications apportées à l'état seront répercutées sur la question"
         },
+        "loadRecord": {
+          "title": "Charger l'enregistrement",
+          "tooltip": "Sélectionnez un état du tableau de bord. Lorsque l'état passe à un identifiant d'enregistrement valide, le formulaire sera rempli avec les données de l'enregistrement."
+        },
         "mapQuestionState": "Mappez la valeur de la question à l'état",
         "noMappingsTooltip": "Aucun mappage n'est configuré",
         "questionStateTab": {
@@ -1571,8 +1576,8 @@
           "tooltip": "Configurez le mappage d'état, permettant au widget d'interagir avec les états du tableau de bord"
         },
         "updateRecord": {
-          "title": "Mettre à jour l'enregistrement",
-          "tooltip": "Sélectionnez un état du tableau de bord. Lorsque l'état passe à un identifiant d'enregistrement valide, le formulaire sera rempli avec les données de l'enregistrement."
+          "title": "Charger l'enregistrement",
+          "tooltip": "Cochez si vous souhaitez que l'enregistrement soit mis à jour, sinon un nouvel enregistrement sera créé."
         }
       },
       "grid": {
@@ -1780,6 +1785,9 @@
               "target": {
                 "label": "Naviguez vers la page",
                 "placeholder": "Sélectionnez une page"
+              },
+              "urlParams": {
+                "label": "Parametres URL"
               }
             },
             "inline": "Modifier par ligne",

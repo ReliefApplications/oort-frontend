@@ -20,7 +20,7 @@ import {
   FilterDescriptor,
 } from '@progress/kendo-data-query';
 import { DashboardService } from '../../../services/dashboard/dashboard.service';
-import { isNil } from 'lodash';
+import { isNil, omit } from 'lodash';
 
 /**
  * Form widget component.
@@ -35,7 +35,7 @@ export class FormWidgetComponent
   implements OnInit
 {
   /** Widget settings */
-  @Input() settings: any = null;
+  @Input() settings: any;
   /** Should show padding */
   @Input() usePadding = true;
   /** Widget header template reference */
@@ -101,9 +101,9 @@ export class FormWidgetComponent
       await Promise.all(promises);
     }
 
-    // Load record from updateRecord state
-    if (this.settings.updateRecord?.enabled) {
-      const stateID = this.settings.updateRecord.state;
+    // Load record from loadRecord state
+    if (this.settings.loadRecord?.enabled) {
+      const stateID = this.settings.loadRecord.state;
       this.dashboardService.states$
         .pipe(takeUntil(this.destroy$))
         .subscribe((states) => {
@@ -121,7 +121,9 @@ export class FormWidgetComponent
               .subscribe(({ data }) => {
                 this.loading = false;
                 if (data) {
-                  this.record = data.record;
+                  this.record = this.settings.loadRecord.update
+                    ? data.record
+                    : omit(data.record, 'id');
                 }
               });
           }

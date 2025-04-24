@@ -1070,6 +1070,7 @@
       "value": "Value"
     },
     "notifications": {
+      "markAsRead": "Mark as read",
       "noRecord": "No record to be redirected",
       "noRedirect": "Can't redirect. Missing information.",
       "paginator": {
@@ -1552,6 +1553,10 @@
           "questionToState": "Changes on the question will be reflected on the state",
           "stateToQuestion": "Changes on the state will be reflected on the question"
         },
+        "loadRecord": {
+          "title": "Load record",
+          "tooltip": "Select a dashboard state. When the state changes to a valid record id, the form will be populated with the record's data."
+        },
         "mapQuestionState": "Map question value to state",
         "noMappingsTooltip": "No mappings configured",
         "questionStateTab": {
@@ -1560,7 +1565,7 @@
         },
         "updateRecord": {
           "title": "Update record",
-          "tooltip": "Select a dashboard state. When the state changes to a valid record id, the form will be populated with the record's data."
+          "tooltip": "Check if you want the record updated, else a new record will be created"
         }
       },
       "grid": {
@@ -1767,6 +1772,9 @@
               "target": {
                 "label": "Target page",
                 "placeholder": "Select a page"
+              },
+              "urlParams": {
+                "label": "URL params"
               }
             },
             "inline": "Inline edition",

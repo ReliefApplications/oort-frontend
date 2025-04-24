@@ -75,12 +75,32 @@
 
   <div
     class="flex flex-wrap items-start"
-    formGroupName="updateRecord"
+    formGroupName="loadRecord"
     *ngIf="form"
   >
-    <!-- update record with id -->
+    <!-- load record with id -->
     <div class="flex-1 mr-4 min-w-max">
       <ui-toggle formControlName="enabled">
+        <ng-container ngProjectAs="label">
+          {{ 'components.widget.form.loadRecord.title' | translate }}
+          <ui-icon
+            class="ml-1 cursor-help self-center"
+            icon="info_outline"
+            variant="grey"
+            [size]="18"
+            [uiTooltip]="
+              'components.widget.form.loadRecord.tooltip' | translate
+            "
+          ></ui-icon>
+        </ng-container>
+      </ui-toggle>
+    </div>
+
+    <div
+      class="flex-1 mr-4 min-w-max"
+      *ngIf="form && formGroup.get('loadRecord.enabled')?.value === true"
+    >
+      <ui-toggle formControlName="update">
         <ng-container ngProjectAs="label">
           {{ 'components.widget.form.updateRecord.title' | translate }}
           <ui-icon
@@ -100,18 +120,16 @@
     <div
       uiFormFieldDirective
       class="flex-1"
-      *ngIf="form && formGroup.get('updateRecord.enabled')?.value === true"
+      *ngIf="form && formGroup.get('loadRecord.enabled')?.value === true"
     >
       <label class="flex items-center">
-        {{ 'components.widget.form.updateRecord.title' | translate }}
+        {{ 'components.widget.settings.grid.actions.state' | translate }}
         <ui-icon
           class="ml-1 cursor-help self-center"
           icon="info_outline"
           variant="grey"
           [size]="18"
-          [uiTooltip]="
-            'components.widget.form.updateRecord.tooltip' | translate
-          "
+          [uiTooltip]="'components.widget.form.loadRecord.tooltip' | translate"
         ></ui-icon>
       </label>
 

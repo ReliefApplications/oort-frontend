@@ -474,8 +474,11 @@ export class FormBuilderService {
       });
     }
     survey.onTextMarkdown.add((_, options) => {
-      const str = marked(options.text);
-      options.html = str.substring(3, str.length - 5);
+      const str = marked(options.text).trim();
+      options.html =
+        str.startsWith('<p>') && str.endsWith('</p>')
+          ? str.substring(3, str.length - 4)
+          : str;
     });
     survey.showProgressBar = 'off';
     survey.focusFirstQuestionAutomatic = false;

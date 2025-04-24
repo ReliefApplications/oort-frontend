@@ -28,9 +28,10 @@ export const createFormWidgetFormGroup = (id: string, configuration: any) => {
     autoPopulateOmitQuestions: [
       get(configuration, 'autoPopulateOmitQuestions', []),
     ],
-    updateRecord: fb.group({
-      enabled: [get(configuration, 'updateRecord.enabled', false)],
-      state: [get(configuration, 'updateRecord.state', null)],
+    loadRecord: fb.group({
+      enabled: [get(configuration, 'loadRecord.enabled', false)],
+      update: [get(configuration, 'loadRecord.update', true)],
+      state: [get(configuration, 'loadRecord.state', null)],
     }),
   });
 
