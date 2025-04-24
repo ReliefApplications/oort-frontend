@@ -31,7 +31,7 @@ import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component
 import { SurveyCustomJSONEditorPlugin } from './custom-json-editor/custom-json-editor.component';
 import { updateModalChoicesAndValue } from '../../survey/global-properties/reference-data';
 import { MatrixManager } from '../../survey/controllers/matrixManager';
-
+import { initNumberFormatting } from '../../survey/numberFormatting';
 /**
  * Array containing the different types of questions.
  * Commented types are not yet implemented.
@@ -120,7 +120,11 @@ const CORE_FIELD_CLASS = 'core-question';
 @Component({
   selector: 'shared-form-builder',
   templateUrl: './form-builder.component.html',
-  styleUrls: ['../../style/survey.scss', './form-builder.component.scss'],
+  styleUrls: [
+    '../../style/survey.scss',
+    '../../style/survey-number-format.scss',
+    './form-builder.component.scss',
+  ],
 })
 export class FormBuilderComponent
   extends UnsubscribeComponent
@@ -272,6 +276,9 @@ export class FormBuilderComponent
           )
         );
         this.formHelpersService.addUserVariables(survey);
+
+        // Apply number formatting to the test survey
+        initNumberFormatting(survey);
       }
     );
     this.surveyCreator.haveCommercialLicense = true;
@@ -288,6 +295,9 @@ export class FormBuilderComponent
 
     // Add form model to builder survey
     this.surveyCreator.survey.form = this.form;
+
+    // Apply number formatting to the main survey
+    initNumberFormatting(this.surveyCreator.survey);
 
     // Manage copying rows/columns between matrixes
     new MatrixManager(this.surveyCreator.survey);

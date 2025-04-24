@@ -37,6 +37,7 @@ import {
 import { SnackbarService, UILayoutService } from '@oort-front/ui';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { DashboardState } from '../../models/dashboard.model';
+import { initNumberFormatting } from '../../survey/numberFormatting';
 
 /** Interface of the type of the mapping question o state rules */
 interface MapQuestionToState {
@@ -51,7 +52,11 @@ interface MapQuestionToState {
 @Component({
   selector: 'shared-form',
   templateUrl: './form.component.html',
-  styleUrls: ['../../style/survey.scss', './form.component.scss'],
+  styleUrls: [
+    '../../style/survey.scss',
+    '../../style/survey-number-format.scss',
+    './form.component.scss',
+  ],
 })
 export class FormComponent
   extends UnsubscribeComponent
@@ -477,118 +482,132 @@ export class FormComponent
    * fetches cached data from local storage, and sets the lookup data.
    */
   private initSurvey(): void {
-    addCustomFunctions({
-      record: this.record,
-      authService: this.authService,
-      apollo: this.apollo,
-      form: this.form,
-      translateService: this.translate,
-    });
+    this.surveyActive = false;
+    // Avoid rendering issues on first load by delaying slightly
+    setTimeout(() => {
+      // Parse form structure
+      const structure = JSON.parse(this.form.structure || '{}');
+      if (structure && !structure.completedHtml) {
+        structure.completedHtml = `<h3>${this.translate.instant(
+          'components.form.display.submissionMessage'
+        )}</h3>`;
+      }
 
-    const structure = JSON.parse(this.form.structure || '{}');
-    if (structure && !structure.completedHtml) {
-      structure.completedHtml = `<h3>${this.translate.instant(
-        'components.form.display.submissionMessage'
-      )}</h3>`;
-    }
+      // Create survey
+      this.survey = this.formBuilderService.createSurvey(
+        JSON.stringify(structure),
+        this.form.metadata,
+        this.record,
+        this.form
+      );
 
-    this.survey = this.formBuilderService.createSurvey(
-      JSON.stringify(structure),
-      this.form.metadata,
-      this.record,
-      this.form
-    );
-
-    const customSaveText = this.survey.getPropertyValue('saveButtonText');
-    if (customSaveText) {
-      this.saveButtonText = customSaveText;
-    }
-
-    this.survey.onAfterRenderSurvey.add(() => {
-      this.setupStateMappingListeners();
-    });
-
-    // After the survey is created we add common callback to survey events
-    this.formBuilderService.addEventsCallBacksToSurvey(
-      this.survey,
-      this.selectedPageIndex,
-      this.temporaryFilesStorage,
-      this.destroy$
-    );
-
-    this.survey.showCompletedPage = false;
-    if (!this.record && !this.form.canCreateRecords) {
-      this.survey.mode = 'display';
-    }
-    if (this.survey.autoSave) {
-      this.survey.onValueChanged.add(async (_, options) => {
-        if (options.question.omitField) {
-          return;
-        }
-        this.formHelpersService.autoSaveRecord(
-          options,
-          this.onComplete.bind(this, true),
-          this.temporaryFilesStorage,
-          this.form.id,
-          this.survey
-        );
+      // Add custom functions to survey
+      addCustomFunctions({
+        record: this.record,
+        authService: this.authService,
+        apollo: this.apollo,
+        form: this.form,
+        translateService: this.translate,
       });
-    }
-    this.survey.onComplete.add(() => {
-      this.onComplete();
-      this.formHelpersService.saveDebounced.cancel();
+
+      // Set custom save button text if specified
+      const customSaveText = this.survey.getPropertyValue('saveButtonText');
+      if (customSaveText) {
+        this.saveButtonText = customSaveText;
+      }
+
+      // Initialize number formatting for right alignment and thousand separators
+      initNumberFormatting(this.survey);
+
+      this.survey.onAfterRenderSurvey.add(() => {
+        this.setupStateMappingListeners();
+      });
+
+      this.selectedPageIndex.next(0);
+      this.pages.next([...this.survey.pages]);
+
+      // After the survey is created we add common callback to survey events
+      this.formBuilderService.addEventsCallBacksToSurvey(
+        this.survey,
+        this.selectedPageIndex,
+        this.temporaryFilesStorage,
+        this.destroy$
+      );
+
+      this.survey.showCompletedPage = false;
+      if (!this.record && !this.form.canCreateRecords) {
+        this.survey.mode = 'display';
+      }
+      if (this.survey.autoSave) {
+        this.survey.onValueChanged.add(async (_, options) => {
+          if (options.question.omitField) {
+            return;
+          }
+          this.formHelpersService.autoSaveRecord(
+            options,
+            this.onComplete.bind(this, true),
+            this.temporaryFilesStorage,
+            this.form.id,
+            this.survey
+          );
+        });
+      }
+      this.survey.onComplete.add(() => {
+        this.onComplete();
+        this.formHelpersService.saveDebounced.cancel();
+      });
+
+      // Set readOnly fields
+      this.form.fields?.forEach((field) => {
+        if (field.readOnly && this.survey.getQuestionByName(field.name))
+          this.survey.getQuestionByName(field.name).readOnly = true;
+      });
+      // Fetch cached data from local storage
+      //this.storageId = `record:${this.record ? 'update' : ''}:${this.form.id}`;
+      //const storedData = localStorage.getItem(this.storageId);
+      //const cachedData = storedData ? JSON.parse(storedData).data : null;
+      //this.storageDate = storedData
+      //? new Date(JSON.parse(storedData).date)
+      //: undefined;
+      // this.isFromCacheData = !!cachedData;
+      //if (this.isFromCacheData) {
+      //this.snackBar.openSnackBar(
+      //this.translate.instant('common.notifications.loadedFromCache', {
+      //type: this.translate.instant('common.record.one'),
+      //})
+      //);
+      //}
+
+      //if (cachedData) {
+      //this.survey.data = cachedData;
+      // this.setUserVariables();
+      //}
+      if (this.form.uniqueRecord && this.form.uniqueRecord.data) {
+        this.survey.data = this.form.uniqueRecord.data;
+        this.modifiedAt = this.form.uniqueRecord.modifiedAt || null;
+      } else if (this.record && this.record.data) {
+        this.survey.data = this.record.data;
+        this.modifiedAt = this.record.modifiedAt || null;
+      }
+
+      // if (this.survey.getUsedLocales().length > 1) {
+      //   this.survey.getUsedLocales().forEach((lang) => {
+      //     const nativeName = (LANGUAGES as any)[lang].nativeName.split(',')[0];
+      //     this.usedLocales.push({ value: lang, text: nativeName });
+      //     this.dropdownLocales.push(nativeName);
+      //   });
+      // }
+
+      // Sets default language as form language if it is in survey locales
+      // const currentLang = this.usedLocales.find(
+      //   (lang) => lang.value === this.translate.currentLang
+      // );
+      // if (currentLang) {
+      //   this.setLanguage(currentLang.text);
+      //   this.surveyLanguage = (LANGUAGES as any)[currentLang.value];
+      // } else {
+      //   this.survey.locale = this.translate.currentLang;
+      // }
     });
-
-    // Set readOnly fields
-    this.form.fields?.forEach((field) => {
-      if (field.readOnly && this.survey.getQuestionByName(field.name))
-        this.survey.getQuestionByName(field.name).readOnly = true;
-    });
-    // Fetch cached data from local storage
-    //this.storageId = `record:${this.record ? 'update' : ''}:${this.form.id}`;
-    //const storedData = localStorage.getItem(this.storageId);
-    //const cachedData = storedData ? JSON.parse(storedData).data : null;
-    //this.storageDate = storedData
-    //? new Date(JSON.parse(storedData).date)
-    //: undefined;
-    // this.isFromCacheData = !!cachedData;
-    //if (this.isFromCacheData) {
-    //this.snackBar.openSnackBar(
-    //this.translate.instant('common.notifications.loadedFromCache', {
-    //type: this.translate.instant('common.record.one'),
-    //})
-    //);
-    //}
-
-    //if (cachedData) {
-    //this.survey.data = cachedData;
-    // this.setUserVariables();
-    //}
-    if (this.form.uniqueRecord && this.form.uniqueRecord.data) {
-      this.survey.data = this.form.uniqueRecord.data;
-      this.modifiedAt = this.form.uniqueRecord.modifiedAt || null;
-    } else if (this.record && this.record.data) {
-      this.survey.data = this.record.data;
-      this.modifiedAt = this.record.modifiedAt || null;
-    }
-
-    // if (this.survey.getUsedLocales().length > 1) {
-    //   this.survey.getUsedLocales().forEach((lang) => {
-    //     const nativeName = (LANGUAGES as any)[lang].nativeName.split(',')[0];
-    //     this.usedLocales.push({ value: lang, text: nativeName });
-    //     this.dropdownLocales.push(nativeName);
-    //   });
-    // }
-
-    // Sets default language as form language if it is in survey locales
-    // const currentLang = this.usedLocales.find(
-    //   (lang) => lang.value === this.translate.currentLang
-    // );
-    // if (currentLang) {
-    //   this.setLanguage(currentLang.text);
-    //   this.surveyLanguage = (LANGUAGES as any)[currentLang.value];
-    // } else {
-    //   this.survey.locale = this.translate.currentLang;
-    // }
   }
 }
