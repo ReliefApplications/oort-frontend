@@ -61,7 +61,6 @@ export const init = (
       dropdownDiv.classList.add('flex', 'min-h-[36px]');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const dropdownInstance = createDropdownInstance(dropdownDiv, question);
-      console.log('created', dropdownInstance.wrapper.nativeElement);
       // Add a reference to the dropdown instance
       question.dropdownInstance = dropdownInstance;
       // Make sure the value is valid
@@ -159,7 +158,7 @@ export const init = (
    * @returns combobox component
    */
   const createDropdownInstance = (
-    element: any,
+    element: HTMLDivElement,
     question: QuestionDropdownModel
   ): ComboBoxComponent => {
     const dropdown = domService.appendComponentToBody(

@@ -45,6 +45,9 @@ export class DomService {
 
     // attach component to the appRef so that so that it will be dirty checked.
     this.applicationRef.attachView(componentRef.hostView);
+    setTimeout(() => {
+      this.applicationRef.tick();
+    });
 
     // get DOM element from component
     const domElem = (componentRef.hostView as EmbeddedViewRef<any>)
