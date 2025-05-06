@@ -53,6 +53,8 @@ import log from './log';
 import getFollowupSummary from './lift/getFollowupSummary';
 import onComplete from './onComplete';
 import onInit from './onInit';
+import getPreviouslyReported from './mab/getPreviouslyReported';
+import substr from './substr';
 
 /** Generators for each custom function available  */
 export const functions = [
@@ -109,10 +111,12 @@ export const functions = [
   { fn: getFollowupSummary, name: 'getFollowupSummary' },
   { fn: onComplete, name: 'onComplete' },
   { fn: onInit, name: 'onInit' },
+  { fn: substr, name: 'substr' },
 ];
 
 /** Generators for each async custom function available  */
 export const asyncFunctions = [
   { fn: getComplaintsByType, name: 'getComplaintsByType' },
   { fn: getCurrentYearAids, name: 'getCurrentYearAids' },
+  { fn: getPreviouslyReported, name: 'getPreviouslyReported' },
 ];

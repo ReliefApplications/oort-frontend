@@ -898,7 +898,10 @@ export const init = (
       el.parentElement
     );
 
-    const updateGrid = () => {
+    const updateGrid = (value?: string[]) => {
+      if (value) {
+        question.value = value;
+      }
       setGridInputs(grid.instance, question);
     };
     updateGrid();

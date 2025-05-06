@@ -884,8 +884,8 @@ export const init = (
         }
         header.style.display = 'flex';
         header.style.justifyContent = 'space-between';
-        header.style.alignItems = 'flex-end';
-        header.style.flexWrap = 'wrap';
+        header.style.alignItems = 'center';
+        header.style.gap = '1em';
       } else if (parentElement && !question.showButtonsInDropdown) {
         // If no header is found, add the buttons in the parent element
         parentElement.insertBefore(actionsButtons, parentElement.firstChild);
