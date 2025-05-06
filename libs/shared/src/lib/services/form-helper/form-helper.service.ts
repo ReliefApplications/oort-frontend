@@ -1057,20 +1057,25 @@ export class FormHelpersService {
       name: 'XLSX',
     });
 
-    const htmlEl = htmlElement.querySelector('.sd-element__header');
-    const title = htmlEl?.querySelector('.sd-element__title');
-
-    const div = document.createElement('div');
-    div.classList.add('flex', 'items-center');
-
-    if (title) {
-      div.appendChild(title.cloneNode(true));
-      htmlEl?.appendChild(div);
-      title.remove(); // remove original title
+    let panelHtml = htmlElement;
+    while (panelHtml && !panelHtml.classList.contains('sd-panel')) {
+      panelHtml = panelHtml.parentElement as HTMLElement;
     }
 
-    div.appendChild(uploadButton);
-    htmlEl?.appendChild(div);
+    const panelHeader = panelHtml?.querySelector('.sd-element__header');
+    const title = panelHeader?.querySelector('.sd-element__title');
+    const oldButton = panelHeader?.querySelector('#upload-btn');
+
+    if (title && !oldButton) {
+      const div = document.createElement('div');
+      div.classList.add('flex', 'items-center');
+      div.id = 'upload-btn';
+      div.appendChild(title.cloneNode(true));
+      panelHeader?.appendChild(div);
+      title.remove(); // remove original title
+      div.appendChild(uploadButton);
+      panelHeader?.appendChild(div);
+    }
   }
 
   /**
