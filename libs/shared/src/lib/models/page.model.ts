@@ -90,6 +90,8 @@ export interface Page {
     content: string;
   })[];
   autoDeletedAt?: Date;
+  /** Page to redirect to after form submission */
+  redirectTo?: string;
 }
 
 /** Model for page graphql query response */

@@ -61,6 +61,8 @@ export class FormComponent extends UnsubscribeComponent implements OnInit {
   /** Is form part of workflow step */
   public isStep = false;
 
+
+
   /**
    * Form page in application
    *
@@ -220,15 +222,71 @@ export class FormComponent extends UnsubscribeComponent implements OnInit {
    * @param e.hideNewRecord do we show new record button
    */
   onComplete(e: { completed: boolean; hideNewRecord?: boolean }): void {
-    this.completed = e.completed;
-    this.hideNewRecord = e.hideNewRecord || false;
-
-    // Checks if should go to next step if in an workflow
-    if (this.step?.nextStepOnSave) {
-      this.workflowService.nextStep.emit();
+    this.hideNewRecord = e.hideNewRecord ?? false;
+  
+    // If it's a step
+    if (this.isStep && this.step?.nextStepOnSave) {
+      const redirectId = this.page?.redirectTo;
+  
+      // Redirect takes priority over nextStep
+      if (redirectId) {
+        (async () => {
+          const targetPage = await this.getPageById(redirectId);
+          const targetType = targetPage?.type ?? 'form';
+          this.router.navigate([
+            '/applications',
+            this.applicationId,
+            targetType,
+            redirectId,
+          ]);
+        })();
+      } else {
+        this.workflowService.nextStep.emit();
+      }
+  
+      return;
     }
+  
+    // If it's a page and has redirect
+    if (!this.isStep && this.page?.redirectTo) {
+      const redirectId = this.page.redirectTo;
+  
+      (async () => {
+        const targetPage = await this.getPageById(redirectId);
+        const targetType = targetPage?.type ?? 'form';
+        this.router.navigate([
+          '/applications',
+          this.applicationId,
+          targetType,
+          redirectId,
+        ]);
+      })();
+  
+      return;
+    }
+  
+    // Otherwise, show completion
+    this.completed = e.completed;
   }
 
+  //** Get Pagge by id to check the type of it  */
+  private async getPageById(id: string): Promise<Page | undefined> {
+    try {
+      const result = await this.apollo
+        .query<PageQueryResponse>({
+          query: GET_PAGE_BY_ID,
+          variables: { id },
+          fetchPolicy: 'network-only',
+        })
+        .toPromise();
+  
+      return result?.data?.page; // safely access page
+    } catch (error) {
+      console.error('Failed to fetch page by ID:', error);
+      return undefined;
+    }
+  }
+  
   /**
    * Clear status of the form.
    */
@@ -311,4 +369,5 @@ export class FormComponent extends UnsubscribeComponent implements OnInit {
       subscription?.unsubscribe();
     });
   }
+
 }

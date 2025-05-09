@@ -2103,4 +2103,33 @@ export class ApplicationService {
       ? `${application.id}/${page.type}/${page.id}`
       : `${application.id}/${page.type}/${page.content}`;
   }
+   /**
+   * Update the redirectTo field of a page.
+   */
+   public updatePageRedirectTo(
+    page: Page,
+    redirectTo: string | null,
+    callback?: () => void
+  ): void {
+    console.log('updatePageRedirectTo called with:', { pageId: page.id, redirectTo });
+    if (!this.isUnlocked) {
+      console.warn('Application is locked');
+      return;
+    }
+
+    this.apollo
+      .mutate<EditPageMutationResponse>({
+        mutation: EDIT_PAGE,
+        variables: {
+          id: page.id,
+          redirectTo: redirectTo || null  // Make sure we're sending null, not undefined
+        },
+      })
+      .subscribe(({ errors, data }) => {
+        console.log('Mutation response:', { errors, data });
+        if (!errors && data && callback) {
+          callback();
+        }
+      });
+  }
 }

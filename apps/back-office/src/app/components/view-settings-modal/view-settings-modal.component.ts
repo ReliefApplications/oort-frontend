@@ -113,6 +113,8 @@ export class ViewSettingsModalComponent
   public showFilter!: boolean;
   /** Grid type */
   public gridType = GridType;
+  /** All pages for this application */
+  public pages: { id: string; name: string }[] = [];
 
   /**
    * Common settings of pages / steps.
@@ -147,6 +149,21 @@ export class ViewSettingsModalComponent
     if (!this.data.canUpdate) {
       this.settingsForm.disable();
     }
+
+    // Add logging to debug valueChanges
+    this.settingsForm.controls.redirectTo.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value: string | null) => {
+        console.log('redirectTo valueChanges:', value);
+        this.onUpdateRedirectTo(value);
+      });
+
+    // populate dropdown
+    this.applicationService.pages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((pages) => {
+        this.pages = pages.map((p: any) => ({ id: p.id, name: p.name }));
+      });
 
     // Listen to icon updates
     this.settingsForm?.controls.icon.valueChanges
@@ -261,9 +278,12 @@ export class ViewSettingsModalComponent
    */
   private createSettingsForm() {
     return this.fb.group({
-      // initializes icon field with data info
       icon: this.fb.control(this.data.icon ?? ''),
       visible: this.fb.control(this.data.visible ?? true),
+      redirectTo: this.fb.control(
+        (this.data.page as Page)?.redirectTo ?? null,
+        { updateOn: 'blur' }
+      ),
       ...(this.dashboard && {
         gridOptions: this.fb.group({
           minCols: this.fb.control(
@@ -396,5 +416,23 @@ export class ViewSettingsModalComponent
       gridOptions,
       callback
     );
+  }
+
+  /** Called whenever the dropdown changes */
+  public onUpdateRedirectTo(value: string | null) {
+    console.log('onUpdateRedirectTo called with:', value);
+    if (this.data.type === 'page' && this.data.page) {
+      const page = this.data.page;
+      console.log('Calling updatePageRedirectTo with page:', page);
+      this.applicationService.updatePageRedirectTo(
+        page,
+        value,
+        () => {
+          console.log('updatePageRedirectTo callback success');
+          page.redirectTo = value ?? undefined;
+          this.onUpdate.emit({ redirectTo: value });
+        }
+      );
+    }
   }
 }

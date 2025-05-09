@@ -25,4 +25,17 @@ export const environment: Environment = {
   availableLanguages: ['en', 'fr', 'test'],
   authConfig,
   theme,
+  availableWidgets: [
+    'form',
+    'donut-chart',
+    'line-chart',
+    'bar-chart',
+    'column-chart',
+    'pie-chart',
+    'grid',
+    'text',
+    'map',
+    'summaryCard',
+    'tabs',
+  ],
 };

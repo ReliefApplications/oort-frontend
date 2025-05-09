@@ -80,6 +80,23 @@
                     ></shared-search-menu>
                   </ng-template>
                 </ng-container>
+                <!-- Redirect To After Submission -->
+                <div uiFormFieldDirective class="w-full">
+                  <label>
+                    {{ 'common.settings.redirectAfterSubmission' | translate }}
+                  </label>
+                  <ui-select-menu
+                    formControlName="redirectTo"
+                    [placeholder]="'common.none' | translate"
+                  >
+                    <ui-select-option [value]="null">
+                      {{ 'common.none' | translate }}
+                    </ui-select-option>
+                    <ui-select-option *ngFor="let p of pages" [value]="p.id">
+                      {{ p.name }}
+                    </ui-select-option>
+                  </ui-select-menu>
+                </div> 
               </div>
             </ng-container>
           </div>

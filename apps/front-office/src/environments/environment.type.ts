@@ -20,6 +20,7 @@ export interface Environment {
   backOfficeUri: string;
   availableLanguages: string[];
   authConfig: AuthConfig;
+  availableWidgets: string[];
   esriApiKey: string;
   theme: any;
   sentry?: any;
