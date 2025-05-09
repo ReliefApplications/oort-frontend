@@ -6,6 +6,7 @@ import { Form, FormQueryResponse } from '../../../models/form.model';
 import { GET_SHORT_FORM_BY_ID } from './graphql/queries';
 import { Apollo } from 'apollo-angular';
 import { WidgetSettings } from '../../../models/dashboard.model';
+import { Router } from '@angular/router';
 
 /**
  * Settings of Form widget.
@@ -35,8 +36,9 @@ export class FormSettingsComponent
    * Settings of Form widget.
    *
    * @param apollo The apollo client
+   * @param router The router service
    */
-  constructor(private apollo: Apollo) {
+  constructor(private apollo: Apollo, private router: Router) {
     super();
   }
 

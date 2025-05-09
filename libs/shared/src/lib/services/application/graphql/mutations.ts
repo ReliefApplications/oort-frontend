@@ -18,6 +18,7 @@ export const ADD_PAGE = gql`
       id
       name
       type
+      redirectTo
       content
       createdAt
       canSee
@@ -36,6 +37,7 @@ export const DUPLICATE_PAGE = gql`
       id
       name
       type
+      redirectTo
       content
       createdAt
       canSee
@@ -63,6 +65,7 @@ export const RESTORE_PAGE = gql`
       id
       name
       type
+      redirectTo
       content
       createdAt
       canSee
@@ -79,6 +82,7 @@ export const EDIT_PAGE = gql`
     $id: ID!
     $name: String
     $icon: String
+    $redirectTo: String
     $permissions: JSON
     $visible: Boolean
   ) {
@@ -86,6 +90,7 @@ export const EDIT_PAGE = gql`
       id: $id
       name: $name
       icon: $icon
+      redirectTo: $redirectTo
       permissions: $permissions
       visible: $visible
     ) {

@@ -454,7 +454,9 @@
     "semicolon": "semicolon",
     "send": "Send",
     "separator": "Separator",
-    "settings": "Settings",
+    "settings": {
+      "redirectAfterSubmission": "Redirect After Submission"
+    },
     "status": "Status",
     "status_active": "Active",
     "status_archived": "Archived",
@@ -1854,7 +1856,7 @@
                 "selectDistributionList": "Select the distribution list that will set recipients of the email",
                 "selectTemplates": "Select the email templates users will be allowed to choose from when using the action"
               },
-              "notify": "When enabled, you must provide a channel and a message. All selected rows will be sent as a single notification on the specified channel. The provided message is used to define the notification’s action",
+              "notify": "When enabled, you must provide a channel and a message. All selected rows will be sent as a single notification on the specified channel. The provided message is used to define the notification's action",
               "publish": "When enabled, you must provide a channel. All selected rows will be sent as a single publication on the specified channel. Everyone listening to this channel can receive the records"
             }
           },

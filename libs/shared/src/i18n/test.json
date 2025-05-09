@@ -454,7 +454,9 @@
     "semicolon": "******",
     "send": "******",
     "separator": "******",
-    "settings": "******",
+    "settings": {
+      "redirectAfterSubmission": "******"
+    },
     "status": "******",
     "status_active": "******",
     "status_archived": "******",

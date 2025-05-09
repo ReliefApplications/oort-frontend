@@ -78,6 +78,7 @@ export const GET_PAGE_BY_ID = gql`
       canSee
       canUpdate
       canDelete
+      redirectTo
     }
   }
 `;
