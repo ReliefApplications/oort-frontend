@@ -1,14 +1,13 @@
 import { Apollo, QueryRef } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
-import { SEE_NOTIFICATION, SEE_NOTIFICATIONS } from './graphql/mutations';
+import { SEE_NOTIFICATIONS } from './graphql/mutations';
 import { GET_LAYOUT, GET_NOTIFICATIONS } from './graphql/queries';
 import { NOTIFICATION_SUBSCRIPTION } from './graphql/subscriptions';
 import {
   Notification,
   NotificationSubscriptionResponse,
   NotificationsQueryResponse,
-  SeeNotificationMutationResponse,
   SeeNotificationsMutationResponse,
 } from '../../models/notification.model';
 import { updateQueryUniqueValues } from '../../utils/update-queries';
@@ -89,7 +88,10 @@ export class NotificationService {
         });
 
       this.notificationsQuery.valueChanges.subscribe(({ data }) => {
-        this.updateValues(data);
+        this.updateValues(
+          data.notifications.edges.map((edge) => edge.node),
+          data.notifications.pageInfo
+        );
       });
 
       this.apollo
@@ -111,30 +113,6 @@ export class NotificationService {
           }
         });
     }
-  }
-
-  /**
-   * Marks the given notification as seen and remove it from the array of notifications.
-   *
-   * @param notification Notification to mark as seen.
-   */
-  public markAsSeen(notification: Notification): void {
-    const notifications = this.notifications.getValue();
-    this.apollo
-      .mutate<SeeNotificationMutationResponse>({
-        mutation: SEE_NOTIFICATION,
-        variables: {
-          id: notification.id,
-        },
-      })
-      .subscribe(({ data }) => {
-        if (data && data.seeNotification) {
-          const seeNotification = data.seeNotification;
-          this.notifications.next(
-            notifications.filter((x) => x.id !== seeNotification.id)
-          );
-        }
-      });
   }
 
   /**
@@ -201,9 +179,10 @@ export class NotificationService {
 
   /**
    * Marks all notifications as seen and remove it from the array of notifications.
+   *
+   * @param notificationsIds ids of the notifications to mark as seen
    */
-  public markAllAsSeen(): void {
-    const notificationsIds = this.notifications.getValue().map((x) => x.id);
+  public markAsSeen(notificationsIds: string[]): void {
     this.apollo
       .mutate<SeeNotificationsMutationResponse>({
         mutation: SEE_NOTIFICATIONS,
@@ -211,8 +190,10 @@ export class NotificationService {
           ids: notificationsIds,
         },
       })
-      .subscribe(() => {
-        this.fetchMore();
+      .subscribe(({ data }) => {
+        if (data) {
+          this.updateValues(data.seeNotifications);
+        }
       });
   }
 
@@ -227,22 +208,37 @@ export class NotificationService {
           afterCursor: this.pageInfo.endCursor,
         },
       })
-      .then(({ data }) => this.updateValues(data));
+      .then(({ data }) =>
+        this.updateValues(
+          data.notifications.edges.map((edge) => edge.node),
+          data.notifications.pageInfo
+        )
+      );
   }
 
   /**
    * Update notification data values
    *
-   * @param data query response data
+   * @param notifications query response data
+   * @param pageInfo Page info
+   * @param pageInfo.endCursor Cursor of the last element
+   * @param pageInfo.hasNextPage Whether there is still elements to load
    */
-  private updateValues(data: NotificationsQueryResponse) {
+  private updateValues(
+    notifications: Notification[],
+    pageInfo?: { endCursor: string; hasNextPage: boolean }
+  ) {
     this.cachedNotifications = updateQueryUniqueValues(
-      this.cachedNotifications,
-      data.notifications.edges.map((x) => x.node)
-    );
+      notifications,
+      this.cachedNotifications
+    ).sort((notifA, notifB) => {
+      return Number(notifB.createdAt) - Number(notifA.createdAt);
+    });
     this.notifications.next(this.cachedNotifications);
-    this.pageInfo.endCursor = data.notifications.pageInfo.endCursor;
-    this.hasNextPage.next(data.notifications.pageInfo.hasNextPage);
+    if (pageInfo) {
+      this.pageInfo.endCursor = pageInfo.endCursor;
+      this.hasNextPage.next(pageInfo.hasNextPage);
+    }
     this.firstLoad = false;
   }
 

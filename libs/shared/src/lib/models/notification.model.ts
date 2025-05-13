@@ -9,7 +9,7 @@ export interface Notification {
   id?: string;
   action?: string;
   content?: any;
-  createdAt?: Date;
+  createdAt?: string;
   channel?: Channel;
   seenBy?: User[];
   user?: User;
@@ -50,5 +50,5 @@ export interface SeeNotificationMutationResponse {
 
 /** Model for see notifications mutation response */
 export interface SeeNotificationsMutationResponse {
-  seeNotifications: boolean;
+  seeNotifications: Notification[];
 }

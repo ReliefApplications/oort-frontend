@@ -76,7 +76,7 @@
       themeColor="error"
       size="small"
       class="!-translate-x-1/4 !translate-y-full"
-      *ngIf="notifications.length > 0"
+      *ngIf="unseenNotifications > 0"
     ></kendo-badge>
   </kendo-badge-container>
   <ui-menu #accountMenu>
@@ -136,10 +136,10 @@
       <span class="flex items-center gap-2">
         <h2 class="mb-0">{{ 'components.notifications.title' | translate }}</h2>
         <span
-          *ngIf="notifications.length > 0"
+          *ngIf="unseenNotifications > 0"
           class="w-6 h-6 bg-red-500 text-white rounded-full grid place-items-center"
         >
-          {{ notifications.length }}
+          {{ unseenNotifications }}
         </span>
       </span>
       <ui-button class="w-full" icon="close" [isIcon]="true"></ui-button>
@@ -151,27 +151,43 @@
         class="border-b border-gray-100"
         *ngFor="let notification of notifications"
       >
-        <div class="flex flex-row items-center !p-3" uiMenuItem>
+        <div
+          class="flex items-start gap-4 px-4 py-3 hover:bg-gray-50 transition-colors rounded-lg group"
+          uiMenuItem
+        >
+          <div
+            *ngIf="!seenByUser(notification)"
+            class="mt-1 w-2 h-2 bg-primary-500 rounded-full shrink-0"
+          ></div>
           <button
+            class="w-full text-left flex-1"
             [ngClass]="{ 'cursor-auto': !notification.redirect?.active }"
             (click)="onNotificationClick(notification)"
-            class="w-full flex flex-col items-start"
           >
-            <div class="flex w-full justify-between items-center">
-              <span>
-                <span class="font-medium">{{ notification.action }}</span>
-                <span class="font-light text-gray-400">
-                  {{ notification.createdAt | sharedDate }}
-                </span>
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-medium text-sm text-gray-900">
+                {{ notification.action }}
               </span>
-              <div class="w-2 h-2 bg-primary-500 rounded-full">&nbsp;</div>
+              <span class="text-xs text-gray-400 whitespace-nowrap">
+                {{ notification.createdAt | sharedDate }}
+              </span>
             </div>
+
             <div
               *ngIf="shouldDisplayContentCard(notification)"
-              class="py-1.5 px-3 bg-white rounded-md w-full mt-2 border border-gray-200 text-start"
+              class="mt-1.5 px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 leading-snug"
               [innerHTML]="notification.content"
             ></div>
           </button>
+          <ui-button
+            *ngIf="!seenByUser(notification)"
+            [isIcon]="true"
+            icon="done"
+            class="m-auto"
+            size="small"
+            (click)="onNotificationRead($event, notification)"
+            [uiTooltip]="'components.notifications.markAsRead' | translate"
+          ></ui-button>
         </div>
       </div>
     </div>
@@ -180,7 +196,7 @@
     <div class="flex p-3 justify-between w-full">
       <!-- Remove visible notifications -->
       <button
-        (click)="onMarkAllNotificationsAsRead()"
+        (click)="onMarkAllNotificationsAsRead($event)"
         class="flex items-center text-gray-500 gap-2"
       >
         {{ 'components.notifications.readAll' | translate }}
@@ -188,13 +204,13 @@
       </button>
 
       <!-- Load more notifications -->
-      <button
+      <ui-button
         [disabled]="loadingNotifications || !hasMoreNotifications"
         (click)="onLoadMoreNotifications($event)"
         class="flex items-center text-primary-500 underline font-semibold"
       >
         {{ 'common.pagination.loadMore' | translate }}
-      </button>
+      </ui-button>
     </div>
   </ui-menu>
 </nav>

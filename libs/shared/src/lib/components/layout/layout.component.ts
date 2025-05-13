@@ -189,6 +189,18 @@ export class LayoutComponent
   }
 
   /**
+   * Returns number of unseen notifications
+   *
+   * @returns number of unseen notifications
+   */
+  get unseenNotifications() {
+    return this.notifications.filter(
+      (notification) =>
+        !notification.seenBy?.some((user) => user.id === this.user?.id)
+    ).length;
+  }
+
+  /**
    * The constructor function is a special function that is called when a new instance of the class is
    * created.
    *
@@ -386,19 +398,39 @@ export class LayoutComponent
   }
 
   /**
-   * Marks all the notifications as read
+   * Determines whether current user saw the notification
+   *
+   * @param notification current notification
+   * @returns whether the notification has been seen
    */
-  onMarkAllNotificationsAsRead(): void {
-    this.notificationService.markAllAsSeen();
+  public seenByUser(notification: Notification): boolean {
+    return (
+      notification.seenBy?.map((user) => user.id).includes(this.user?.id) ??
+      false
+    );
+  }
+
+  /**
+   * Marks all the notifications as read
+   *
+   * @param e event
+   */
+  onMarkAllNotificationsAsRead(e: any): void {
+    e.stopPropagation();
+    this.notificationService.markAsSeen(
+      this.notifications.map((notification) => notification.id ?? '')
+    );
   }
 
   /**
    * Marks notification as seen when clicking on the read button
    *
+   * @param event prevent modal closing
    * @param notification The notification that was clicked on
    */
-  onNotificationRead(notification: Notification): void {
-    this.notificationService.markAsSeen(notification);
+  onNotificationRead(event: Event, notification: Notification): void {
+    event.stopPropagation();
+    this.notificationService.markAsSeen([notification.id ?? '']);
   }
 
   /**
