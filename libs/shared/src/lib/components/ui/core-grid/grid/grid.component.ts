@@ -1338,7 +1338,10 @@ export class GridComponent
   public injectClasses(context: any): { [key: string]: boolean } {
     return (this.widget?.settings?.widgetDisplay?.addToRowClasses ?? []).reduce(
       (acc: { [key: string]: true }, item: string) => {
-        const value = get(context.dataItem, item);
+        let value = get(context.dataItem, item);
+        if (typeof value === 'string') {
+          value = value.replace(/ /g, '_');
+        }
         if (value) {
           acc[`${item}_${value}`] = true;
         }
