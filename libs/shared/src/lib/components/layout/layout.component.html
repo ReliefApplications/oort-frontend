@@ -175,7 +175,7 @@
 
             <div
               *ngIf="shouldDisplayContentCard(notification)"
-              class="mt-1.5 px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 leading-snug"
+              class="mt-1.5 px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 leading-snug break-words"
               [innerHTML]="notification.content"
             ></div>
           </button>
@@ -257,3 +257,4 @@
     <router-outlet></router-outlet>
   </ng-container>
 </ui-sidenav-container>
+
