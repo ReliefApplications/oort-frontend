@@ -1553,6 +1553,10 @@
           "questionToState": "******",
           "stateToQuestion": "******"
         },
+        "loadRecord": {
+          "title": "******",
+          "tooltip": "******"
+        },
         "mapQuestionState": "******",
         "noMappingsTooltip": "******",
         "questionStateTab": {
