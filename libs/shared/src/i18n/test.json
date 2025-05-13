@@ -1070,6 +1070,7 @@
       "value": "******"
     },
     "notifications": {
+      "markAsRead": "******",
       "noRecord": "******",
       "noRedirect": "******",
       "paginator": {
@@ -1552,6 +1553,10 @@
           "questionToState": "******",
           "stateToQuestion": "******"
         },
+        "loadRecord": {
+          "title": "******",
+          "tooltip": "******"
+        },
         "mapQuestionState": "******",
         "noMappingsTooltip": "******",
         "questionStateTab": {
@@ -1767,6 +1772,9 @@
               "target": {
                 "label": "******",
                 "placeholder": "******"
+              },
+              "urlParams": {
+                "label": "******"
               }
             },
             "inline": "******",
