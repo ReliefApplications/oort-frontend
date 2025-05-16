@@ -1,4 +1,4 @@
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Push a value to an array

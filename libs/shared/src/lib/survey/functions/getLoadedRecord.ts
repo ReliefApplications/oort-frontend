@@ -1,5 +1,5 @@
 import { SurveyModel } from 'survey-core';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Gets a record by id if loaded into cache.

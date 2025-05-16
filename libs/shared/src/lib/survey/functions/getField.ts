@@ -1,4 +1,4 @@
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 import { get } from 'lodash';
 
 /**

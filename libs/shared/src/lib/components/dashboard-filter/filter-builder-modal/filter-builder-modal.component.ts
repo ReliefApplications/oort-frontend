@@ -5,7 +5,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { PageModel, SurveyModel } from 'survey-core';
+import { PageModel, SurveyModel, Question } from 'survey-core';
 import { SurveyCreatorModel } from 'survey-creator-core';
 import { SurveyCreatorModule } from 'survey-creator-angular';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
@@ -18,7 +18,6 @@ import { DialogModule, AlertModule } from '@oort-front/ui';
 import { renderGlobalProperties } from '../../../survey/render-global-properties';
 import { ReferenceDataService } from '../../../services/reference-data/reference-data.service';
 import { FormHelpersService } from '../../../services/form-helper/form-helper.service';
-import { Question } from '../../../survey/types';
 import 'survey-core/survey.i18n.min.js';
 import { CustomQuestionTypes } from '../../../survey/custom-question-types';
 import { SurveyCustomJSONEditorPlugin } from '../../form-builder/custom-json-editor/custom-json-editor.component';

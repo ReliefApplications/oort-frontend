@@ -1,5 +1,4 @@
-import { JsonMetadata, Serializer } from 'survey-core';
-import { Question } from './types';
+import { JsonMetadata, Serializer, Question } from 'survey-core';
 
 /**
  * Edits general settings of the survey builder.

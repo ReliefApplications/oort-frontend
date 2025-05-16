@@ -1,4 +1,4 @@
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Returns the element at the specified index in the array.

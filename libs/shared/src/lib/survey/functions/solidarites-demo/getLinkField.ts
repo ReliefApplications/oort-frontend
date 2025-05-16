@@ -1,4 +1,4 @@
-import { GlobalOptions } from '../../types';
+import { GlobalOptions } from '../types';
 import { LINK_DATA } from './assets/link-data';
 
 /**

@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../typings/leaflet/index.d.ts" />
 import {
   Component,
   AfterViewInit,

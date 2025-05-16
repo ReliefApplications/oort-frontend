@@ -1,7 +1,12 @@
-import { ComponentCollection, Serializer, SvgRegistry } from 'survey-core';
+import {
+  ComponentCollection,
+  Serializer,
+  SvgRegistry,
+  QuestionUsers,
+} from 'survey-core';
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
-import { QuestionUsers } from '../types';
+
 import { DomService } from '../../services/dom/dom.service';
 import { UsersDropdownComponent } from './users-dropdown/users-dropdown.component';
 import { Dialog } from '@angular/cdk/dialog';
@@ -212,7 +217,6 @@ export const init = (
           instance.reloadSelectedUsers();
         }
       );
-
       if (question.isReadOnly) {
         instance.control.disable();
       }

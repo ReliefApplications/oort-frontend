@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import {
+  AfterRenderPanelEvent,
   AfterRenderQuestionEvent,
   IPanel,
   PageModel,
@@ -7,6 +8,7 @@ import {
   QuestionPanelDynamicModel,
   SurveyModel,
   ValueChangedEvent,
+  Question,
 } from 'survey-core';
 import { Apollo } from 'apollo-angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -38,7 +40,6 @@ import {
   RecordQueryResponse,
   Record as RecordModel,
 } from '../../models/record.model';
-import { Question } from '../../survey/types';
 import {
   ADD_DRAFT_RECORD,
   DELETE_DRAFT_RECORD,
@@ -493,61 +494,81 @@ export class FormHelpersService {
   /**
    * Add tooltip to the survey question if exists
    *
-   * @param _ current survey
+   * @param survey current survey
    * @param options current survey question options
    */
-  public addQuestionTooltips(_: any, options: any): void {
-    //Return if there is no description to show in popup
-    if (!options.question.tooltip) {
-      return;
-    }
-    const titleElement = (options.htmlElement as HTMLElement).querySelector(
-      '.sd-question__title'
+  public addQuestionTooltips(
+    survey: SurveyModel,
+    options: AfterRenderQuestionEvent | AfterRenderPanelEvent
+  ): void {
+    const element = 'question' in options ? options.question : options.panel;
+
+    const selector =
+      'panel' in options && options.panel
+        ? '.sd-panel__title'
+        : '.sd-question__title';
+    const titleElement = (options.htmlElement as HTMLElement)?.querySelector(
+      selector
     );
-    if (titleElement) {
-      titleElement.querySelectorAll('.sv-string-viewer').forEach((el: any) => {
-        // Create ui-icon
-        const component = this.domService.appendComponentToBody(
-          IconComponent,
-          el
-        );
-        component.instance.icon = 'help';
-        component.instance.variant = 'primary';
-        component.location.nativeElement.classList.add('ml-2', 'inline-flex'); // Add margin to the icon
+    titleElement?.classList.add('!flex', 'items-center');
 
-        // Create and apply the UiTooltipDirective
-        const tooltipDirective = new TooltipDirective(
-          'default',
-          component.location,
-          this.overlay,
-          this.overlayPositionBuilder
-        );
-        tooltipDirective.uiTooltip = options.question.tooltip;
+    if (!titleElement) return;
 
-        tooltipDirective.onMouseEnter =
-          tooltipDirective.onMouseEnter.bind(tooltipDirective);
-        tooltipDirective.onMouseLeave =
-          tooltipDirective.onMouseLeave.bind(tooltipDirective);
-        tooltipDirective.onMouseDown =
-          tooltipDirective.onMouseDown.bind(tooltipDirective);
+    // Create ui-icon
+    const component = this.domService.appendComponentToBody(
+      IconComponent,
+      titleElement
+    );
+    const iconHTMLEl = component.location.nativeElement;
+    component.instance.icon = 'help';
+    component.instance.variant = 'primary';
+    component.instance.size = 20;
+    iconHTMLEl.classList.add('ml-2', 'inline-flex', 'cursor-help');
 
-        component.location.nativeElement.addEventListener(
-          'mouseenter',
-          tooltipDirective.onMouseEnter
-        );
-        component.location.nativeElement.addEventListener(
-          'mouseleave',
-          tooltipDirective.onMouseLeave
-        );
-        component.location.nativeElement.addEventListener(
-          'mousedown',
-          tooltipDirective.onMouseDown
-        );
+    // Create and apply the UiTooltipDirective
+    const tooltipDirective = new TooltipDirective(
+      'default',
+      component.location,
+      this.overlay,
+      this.overlayPositionBuilder
+    );
+    tooltipDirective.uiTooltip = element.tooltip ?? '';
 
-        // Sets the tooltip text
-        component.instance.tooltip = options.question.tooltip;
-      });
-    }
+    const bindMouseEnter = tooltipDirective.onMouseEnter.bind(tooltipDirective);
+    const bindMouseLeave = tooltipDirective.onMouseLeave.bind(tooltipDirective);
+    const bindMouseDown = tooltipDirective.onMouseDown.bind(tooltipDirective);
+
+    iconHTMLEl.addEventListener('mouseenter', bindMouseEnter);
+    iconHTMLEl.addEventListener('mouseleave', bindMouseLeave);
+    iconHTMLEl.addEventListener('mousedown', bindMouseDown);
+
+    survey.onDispose.add(() => {
+      iconHTMLEl.removeEventListener('mouseenter', bindMouseEnter);
+      iconHTMLEl.removeEventListener('mouseleave', bindMouseLeave);
+      iconHTMLEl.removeEventListener('mousedown', bindMouseDown);
+    });
+
+    const updateTooltipVisibility = (
+      tooltip: string = element.tooltip ?? ''
+    ) => {
+      const visibleClass = tooltip ? 'block' : 'hidden';
+      iconHTMLEl.classList.remove('block', 'hidden');
+      iconHTMLEl.classList.add(visibleClass);
+    };
+
+    // Set initial visibility
+    updateTooltipVisibility();
+
+    // Register function to update tooltip when tooltip property changes (survey builder)
+    element.registerFunctionOnPropertyValueChanged(
+      'tooltip',
+      (newTooltip: string) => {
+        tooltipDirective.uiTooltip = newTooltip;
+        updateTooltipVisibility(newTooltip);
+      }
+    );
+
+    component.changeDetectorRef.detectChanges();
   }
 
   /**
@@ -1022,7 +1043,7 @@ export class FormHelpersService {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.xlsx';
-      input.addEventListener('change', (e) => {
+      const inputListener = (e: Event) => {
         const file = (e.target as HTMLInputElement)?.files?.[0];
         if (file) {
           this.downloadService
@@ -1048,9 +1069,12 @@ export class FormHelpersService {
                   matrix.expand();
                 }
               });
+              input.removeEventListener('change', inputListener);
+              input.remove();
             });
         }
-      });
+      };
+      input.addEventListener('change', inputListener);
       input.click();
     };
     uploadButton.innerHTML = this.translate.instant('common.uploadObject', {
@@ -1107,9 +1131,10 @@ export class FormHelpersService {
    */
   public setDownloadListener(e: AfterRenderQuestionEvent): void {
     const { question, htmlElement } = e;
+    const survey = question.survey as SurveyModel;
     const files = question.value;
     const fileElement = htmlElement.querySelector('a');
-    fileElement?.addEventListener('click', (event) => {
+    const listener = (event: MouseEvent) => {
       event.preventDefault();
       files.forEach((file: any) => {
         if (
@@ -1122,6 +1147,10 @@ export class FormHelpersService {
           this.downloadService.getFile(path, file.type, file.name);
         }
       });
+    };
+    fileElement?.addEventListener('click', listener);
+    survey.onDispose.add(() => {
+      fileElement?.removeEventListener('click', listener);
     });
   }
 }

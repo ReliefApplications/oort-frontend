@@ -1,4 +1,5 @@
 import {
+  Question,
   ChoicesRestful,
   JsonMetadata,
   QuestionFileModel,
@@ -7,7 +8,6 @@ import {
   matrixDropdownColumnTypes,
   settings,
 } from 'survey-core';
-import { Question } from '../types';
 import { SurveyModel, PageModel, surveyLocalization } from 'survey-core';
 import { MatrixManager } from '../controllers/matrixManager';
 import { CustomPropertyGridComponentTypes } from '../components/utils/components.enum';
@@ -249,6 +249,25 @@ export const init = (environment: any): void => {
     type: 'boolean',
     default: false,
     visibleIndex: 2,
+  });
+
+  // Adds property to skip "required" on survey level
+  serializer.addProperty('survey', {
+    name: 'skipRequiredValidation:expression',
+    category: 'logic',
+    onExecuteExpression: (obj: SurveyModel, res: boolean) => {
+      obj.getAllQuestions(false, false, true).forEach((q) => {
+        if (res === true) {
+          q._isRequired = q.isRequired;
+          q._requiredIf = q.requiredIf;
+          q.isRequired = false;
+          q.requiredIf = 'false';
+        } else {
+          q.requiredIf = q._requiredIf ?? q.requiredIf;
+          q.isRequired = q._isRequired ?? q.isRequired;
+        }
+      });
+    },
   });
 
   // Add ability to conditionally allow dynamic panel add new panel

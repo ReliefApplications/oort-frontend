@@ -1,5 +1,5 @@
 import { isNil } from 'lodash';
-import { GlobalOptions } from '../../types';
+import { GlobalOptions } from '../types';
 
 /**
  * Custom function to rename a column of a matrix

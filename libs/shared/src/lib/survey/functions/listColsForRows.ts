@@ -5,7 +5,7 @@ import {
   SurveyModel,
 } from 'survey-core';
 import { isArray, isNil } from 'lodash';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Custom function that given a question name for a matrix,

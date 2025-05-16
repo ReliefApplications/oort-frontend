@@ -1,9 +1,14 @@
 import { DomService } from '../../services/dom/dom.service';
 import { EmbeddedViewRef } from '@angular/core';
-import { Question, QuestionText } from '../types';
 import { ButtonComponent } from '@oort-front/ui';
 import { IconComponent } from '@oort-front/ui';
-import { CustomWidgetCollection, JsonMetadata, Serializer } from 'survey-core';
+import {
+  CustomWidgetCollection,
+  JsonMetadata,
+  Question,
+  QuestionTextModel,
+  Serializer,
+} from 'survey-core';
 import { CustomPropertyGridComponentTypes } from '../components/utils/components.enum';
 import { registerCustomPropertyEditor } from '../components/utils/component-register';
 import {
@@ -44,10 +49,12 @@ export const init = (
         visibleIndex: 7,
       });
       // hide the min and max property for date, datetime and time types
-      serializer.getProperty('text', 'min').visibleIf = (obj: QuestionText) =>
-        ['number', 'month', 'week'].includes(obj.inputType || '');
-      serializer.getProperty('text', 'max').visibleIf = (obj: QuestionText) =>
-        ['number', 'month', 'week'].includes(obj.inputType || '');
+      serializer.getProperty('text', 'min').visibleIf = (
+        obj: QuestionTextModel
+      ) => ['number', 'month', 'week'].includes(obj.inputType || '');
+      serializer.getProperty('text', 'max').visibleIf = (
+        obj: QuestionTextModel
+      ) => ['number', 'month', 'week'].includes(obj.inputType || '');
       // create new min and max properties for date, datetime and time types
       serializer.addProperty('text', {
         name: 'dateMin',
@@ -55,16 +62,19 @@ export const init = (
         category: 'general',
         visibleIndex: 8,
         dependsOn: 'inputType',
-        visibleIf: (obj: QuestionText) =>
+        visibleIf: (obj: QuestionTextModel) =>
           ['date', 'datetime', 'datetime-local', 'time'].includes(
             obj.inputType || ''
           ),
-        onPropertyEditorUpdate: (obj: QuestionText, propertyEditor: any) => {
+        onPropertyEditorUpdate: (
+          obj: QuestionTextModel,
+          propertyEditor: any
+        ) => {
           if (!!obj && !!obj.inputType) {
             propertyEditor.inputType = obj.inputType;
           }
         },
-        onSetValue: (obj: QuestionText, value: any) => {
+        onSetValue: (obj: QuestionTextModel, value: any) => {
           obj.setPropertyValue('dateMin', value);
           obj.setPropertyValue('min', value);
         },
@@ -75,16 +85,19 @@ export const init = (
         category: 'general',
         visibleIndex: 9,
         dependsOn: 'inputType',
-        visibleIf: (obj: QuestionText) =>
+        visibleIf: (obj: QuestionTextModel) =>
           ['date', 'datetime', 'datetime-local', 'time'].includes(
             obj.inputType || ''
           ),
-        onPropertyEditorUpdate: (obj: QuestionText, propertyEditor: any) => {
+        onPropertyEditorUpdate: (
+          obj: QuestionTextModel,
+          propertyEditor: any
+        ) => {
           if (!!obj && !!obj.inputType) {
             propertyEditor.inputType = obj.inputType;
           }
         },
-        onSetValue: (obj: QuestionText, value: any) => {
+        onSetValue: (obj: QuestionTextModel, value: any) => {
           obj.setPropertyValue('dateMax', value);
           obj.setPropertyValue('max', value);
         },
@@ -93,22 +106,22 @@ export const init = (
       serializer.addProperty('text', {
         name: 'searchSimilarRecords:boolean',
         category: 'general',
-        visibleIf: (obj: QuestionText) => obj.inputType === 'text',
+        visibleIf: (obj: QuestionTextModel) => obj.inputType === 'text',
       });
       serializer.addProperty('text', {
         name: 'searchTableTitle:string',
         category: 'general',
-        visibleIf: (obj: QuestionText) => obj.searchSimilarRecords,
+        visibleIf: (obj: QuestionTextModel) => obj.searchSimilarRecords,
       });
       serializer.addProperty('text', {
         name: 'searchTableEmpty:string',
         category: 'general',
-        visibleIf: (obj: QuestionText) => obj.searchSimilarRecords,
+        visibleIf: (obj: QuestionTextModel) => obj.searchSimilarRecords,
       });
       serializer.addProperty('text', {
         name: 'searchTableOpenRecord:string',
         category: 'general',
-        visibleIf: (obj: QuestionText) => obj.searchSimilarRecords,
+        visibleIf: (obj: QuestionTextModel) => obj.searchSimilarRecords,
       });
       // register the editor for type "date" with kendo date picker
       registerCustomPropertyEditor(
@@ -116,7 +129,7 @@ export const init = (
       );
     },
     isDefaultRender: true,
-    afterRender: (question: QuestionText, el: HTMLInputElement): void => {
+    afterRender: (question: QuestionTextModel, el: HTMLInputElement): void => {
       let pickerDiv: HTMLDivElement | null = null;
       // add kendo date pickers for text inputs with dates types
       const updateTextInput = () => {
@@ -399,7 +412,11 @@ export const init = (
       }
 
       // Adding search table below the input
-      if (question.searchSimilarRecords && question.inputType === 'text') {
+      if (
+        question.searchSimilarRecords &&
+        question.inputType === 'text' &&
+        el.parentElement
+      ) {
         const table = domService.appendComponentToBody(
           FieldSearchTableComponent,
           el.parentElement

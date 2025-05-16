@@ -1,5 +1,5 @@
 import { flatten as lodash_flatten } from 'lodash';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Flattens an array

@@ -1,5 +1,5 @@
 import { Question, SurveyModel } from 'survey-core';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 import { isArray } from 'lodash';
 
 /**

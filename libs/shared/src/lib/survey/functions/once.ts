@@ -1,5 +1,5 @@
 import { QuestionCustomModel } from 'survey-core';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Always returns the value expression if the question's value is empty.

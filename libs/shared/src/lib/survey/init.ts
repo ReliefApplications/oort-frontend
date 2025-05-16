@@ -1,6 +1,5 @@
 // This is needed for compilation of some packages with strict option enabled.
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../typings/extract-files/index.d.ts" />
 
 import { Apollo } from 'apollo-angular';
 import { DomService } from '../services/dom/dom.service';

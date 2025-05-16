@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { Application } from '../../models/application.model';
-import { CustomNotification } from '../../models/custom-notification.model';
-import { ApplicationService } from '../application/application.service';
 import {
   AddCustomNotificationMutationResponse,
-  ADD_CUSTOM_NOTIFICATION,
+  CustomNotification,
   DeleteCustomNotificationMutationResponse,
-  DELETE_CUSTOM_NOTIFICATION,
   UpdateCustomNotificationMutationResponse,
+} from '../../models/custom-notification.model';
+import { ApplicationService } from '../application/application.service';
+import {
+  ADD_CUSTOM_NOTIFICATION,
+  DELETE_CUSTOM_NOTIFICATION,
   UPDATE_CUSTOM_NOTIFICATION,
 } from './graphql/mutations';
 import { TranslateService } from '@ngx-translate/core';

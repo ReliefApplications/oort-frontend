@@ -5,6 +5,7 @@ import {
   EmbeddedViewRef,
   Injectable,
   Injector,
+  Type,
 } from '@angular/core';
 
 /**
@@ -37,7 +38,10 @@ export class DomService {
    * @param parent parent element
    * @returns Ref of the new component
    */
-  appendComponentToBody(component: any, parent: any): ComponentRef<any> {
+  appendComponentToBody<T>(
+    component: Type<T>,
+    parent: Element
+  ): ComponentRef<T> {
     // create a component reference
     const componentRef = this.componentFactoryResolver
       .resolveComponentFactory(component)

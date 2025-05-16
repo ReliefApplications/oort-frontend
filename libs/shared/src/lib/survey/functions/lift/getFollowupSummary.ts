@@ -1,5 +1,5 @@
 import { SurveyModel } from 'survey-core';
-import { GlobalOptions } from '../../types';
+import { GlobalOptions } from '../types';
 
 /**
  *  Generator for the custom function getFollowupSummary.

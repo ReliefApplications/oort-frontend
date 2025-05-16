@@ -12,7 +12,6 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { QuestionAngular } from 'survey-angular-ui';
 import { QuestionDateTypeDisplayerModel } from './date-type-displayer.model';
 import { DomService } from '../../../services/dom/dom.service';
-import { QuestionText } from '../../types';
 import {
   DateInputFormat,
   createPickerInstance,
@@ -20,6 +19,7 @@ import {
 } from '../utils/create-picker-instance';
 import { v4 as uuidv4 } from 'uuid';
 import { TranslateService } from '@ngx-translate/core';
+import { QuestionTextModel } from 'survey-core';
 
 /**
  * Component for the selection of the interest fields from date type question
@@ -94,9 +94,9 @@ export class DateTypeDisplayerComponent
       this.translateService
     );
     if (pickerInstance) {
-      if (this.model.obj[this.model.obj.name as keyof QuestionText]) {
+      if (this.model.obj[this.model.obj.name as keyof QuestionTextModel]) {
         pickerInstance.value = getDateDisplay(
-          this.model.obj[this.model.name as keyof QuestionText],
+          this.model.obj[this.model.name as keyof QuestionTextModel],
           this.model.inputType
         );
       }

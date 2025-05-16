@@ -1,5 +1,5 @@
 import { asyncFunctions, functions } from './functions';
-import { GlobalOptions } from './types';
+import { GlobalOptions } from './functions/types';
 import { FunctionFactory } from 'survey-core';
 /**
  * Registration of new custom functions for the survey.

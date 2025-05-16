@@ -1,9 +1,13 @@
 import { Apollo } from 'apollo-angular';
-import { ComponentCollection, Serializer, SvgRegistry } from 'survey-core';
+import {
+  ComponentCollection,
+  Serializer,
+  SvgRegistry,
+  QuestionOwner,
+} from 'survey-core';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { GET_ROLES_FROM_APPLICATIONS } from '../graphql/queries';
-import { QuestionOwner } from '../types';
 import { RolesFromApplicationsQueryResponse } from '../../models/user.model';
 
 /**

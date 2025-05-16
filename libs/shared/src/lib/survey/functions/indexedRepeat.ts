@@ -1,5 +1,5 @@
 import { get } from 'lodash';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Returns the value of the field from the dynamic panel, in iteration index

@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Custom function that gets two arrays and returns the intersection of them.

@@ -8,13 +8,14 @@ import {
   ItemValue,
   surveyLocalization,
   QuestionMatrixDropdownModel,
+  Question,
 } from 'survey-core';
 import { SurveyQuestionEditorDefinition } from 'survey-creator-core';
-import {
-  CustomMatrixDropdownColumn,
-  Question,
-  QuestionSelectBase,
-} from '../types';
+// import {
+//   CustomMatrixDropdownColumn,
+//   Question,
+//   QuestionSelectBase,
+// } from '../types';
 import { DomService } from '../../services/dom/dom.service';
 import { MultiSelectComponent } from '@progress/kendo-angular-dropdowns';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
@@ -78,204 +79,203 @@ export const init = (
   // );
 
   // Custom property to columns edition: reference data
-  serializer.addProperty('matrixdropdowncolumn', {
-    name: 'referenceData',
-    showMode: 'form',
-    category: 'Choices from Reference data',
-    type: CustomPropertyGridComponentTypes.referenceDataDropdown,
-    visibleIndex: 1,
-  });
+  // serializer.addProperty('matrixdropdowncolumn', {
+  //   name: 'referenceData',
+  //   showMode: 'form',
+  //   category: 'Choices from Reference dataxd',
+  //   type: CustomPropertyGridComponentTypes.referenceDataDropdown,
+  //   visibleIndex: 1,
+  // });
 
-  serializer.addProperty('matrixdropdowncolumn', {
-    displayName: 'Display field',
-    showMode: 'form',
-    name: 'referenceDataDisplayField',
-    category: 'Choices from Reference data',
-    isRequired: true,
-    dependsOn: 'referenceData',
-    visibleIf: (obj: null | Question): boolean => {
-      const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
-      if (colObj?.getType() !== 'matrixdropdowncolumn') {
-        return false;
-      }
-      return Boolean(colObj?.referenceData);
-    },
-    visibleIndex: 2,
-    choices: (
-      obj: null | CustomMatrixDropdownColumn,
-      choicesCallback: (choices: any[]) => void
-    ) => {
-      if (obj?.referenceData) {
-        referenceDataService
-          .loadReferenceData(obj.referenceData)
-          .then((referenceData) =>
-            choicesCallback(
-              referenceData.fields?.map((x) => x?.name ?? x) || []
-            )
-          );
-      }
-    },
-  });
+  // serializer.addProperty('matrixdropdowncolumn', {
+  //   displayName: 'Display field',
+  //   showMode: 'form',
+  //   name: 'referenceDataDisplayField',
+  //   isRequired: true,
+  //   dependsOn: 'referenceData',
+  //   visibleIf: (obj: null | Question): boolean => {
+  //     const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
+  //     if (colObj?.getType() !== 'matrixdropdowncolumn') {
+  //       return false;
+  //     }
+  //     return Boolean(colObj?.referenceData);
+  //   },
+  //   visibleIndex: 2,
+  //   choices: (
+  //     obj: null | CustomMatrixDropdownColumn,
+  //     choicesCallback: (choices: any[]) => void
+  //   ) => {
+  //     if (obj?.referenceData) {
+  //       referenceDataService
+  //         .loadReferenceData(obj.referenceData)
+  //         .then((referenceData) =>
+  //           choicesCallback(
+  //             referenceData.fields?.map((x) => x?.name ?? x) || []
+  //           )
+  //         );
+  //     }
+  //   },
+  // });
 
-  serializer.addProperty('matrixdropdowncolumn', {
-    displayName: 'Is primitive value',
-    showMode: 'form',
-    name: 'isPrimitiveValue',
-    type: 'boolean',
-    category: 'Choices from Reference data',
-    dependsOn: 'referenceData',
-    visibleIf: (obj: null | Question): boolean => {
-      const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
-      if (colObj?.getType() !== 'matrixdropdowncolumn') {
-        return false;
-      }
-      return Boolean(colObj?.referenceData);
-    },
-    visibleIndex: 3,
-    default: true,
-  });
+  // serializer.addProperty('matrixdropdowncolumn', {
+  //   displayName: 'Is primitive value',
+  //   showMode: 'form',
+  //   name: 'isPrimitiveValue',
+  //   type: 'boolean',
+  //   category: 'Choices from Reference dataxd',
+  //   dependsOn: 'referenceData',
+  //   visibleIf: (obj: null | Question): boolean => {
+  //     const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
+  //     if (colObj?.getType() !== 'matrixdropdowncolumn') {
+  //       return false;
+  //     }
+  //     return Boolean(colObj?.referenceData);
+  //   },
+  //   visibleIndex: 3,
+  //   default: true,
+  // });
 
-  serializer.addProperty('matrixdropdowncolumn', {
-    displayName: 'Filter from question',
-    showMode: 'form',
-    name: 'referenceDataFilterFilterFromQuestion',
-    type: 'dropdown',
-    category: 'Choices from Reference data',
-    dependsOn: 'referenceData',
-    visibleIf: (obj: null | Question): boolean => {
-      const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
-      if (colObj?.getType() !== 'matrixdropdowncolumn') {
-        return false;
-      }
-      return Boolean(colObj?.referenceData);
-    },
-    visibleIndex: 3,
-    choices: (
-      obj: null | QuestionMatrixDropdownModel,
-      choicesCallback: (choices: any[]) => void
-    ) => {
-      const defaultOption = new ItemValue(
-        '',
-        surveyLocalization.getString('pe.conditionSelectQuestion')
-      );
-      const survey = obj?.colOwnerValue?.survey as SurveyModel;
-      if (!survey) return choicesCallback([defaultOption]);
-      const questions = survey
-        .getAllQuestions()
-        .filter((question) => isSelectQuestion(question) && question !== obj)
-        .map((question) => question as QuestionSelectBase)
-        .filter((question) => question.referenceData);
-      const qItems = questions.map((q) => {
-        const text = q.locTitle.renderedHtml || q.name;
-        return new ItemValue(q.name, text);
-      });
-      qItems.sort((el1, el2) => el1.text.localeCompare(el2.text));
-      qItems.unshift(defaultOption);
-      choicesCallback(qItems);
-    },
-  });
+  // serializer.addProperty('matrixdropdowncolumn', {
+  //   displayName: 'Filter from question',
+  //   showMode: 'form',
+  //   name: 'referenceDataFilterFilterFromQuestion',
+  //   type: 'dropdown',
+  //   category: 'Choices from Reference dataxd',
+  //   dependsOn: 'referenceData',
+  //   visibleIf: (obj: null | Question): boolean => {
+  //     const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
+  //     if (colObj?.getType() !== 'matrixdropdowncolumn') {
+  //       return false;
+  //     }
+  //     return Boolean(colObj?.referenceData);
+  //   },
+  //   visibleIndex: 3,
+  //   choices: (
+  //     obj: null | QuestionMatrixDropdownModel,
+  //     choicesCallback: (choices: any[]) => void
+  //   ) => {
+  //     const defaultOption = new ItemValue(
+  //       '',
+  //       surveyLocalization.getString('pe.conditionSelectQuestion')
+  //     );
+  //     const survey = obj?.colOwnerValue?.survey as SurveyModel;
+  //     if (!survey) return choicesCallback([defaultOption]);
+  //     const questions = survey
+  //       .getAllQuestions()
+  //       .filter((question) => isSelectQuestion(question) && question !== obj)
+  //       .map((question) => question as QuestionSelectBase)
+  //       .filter((question) => question.referenceData);
+  //     const qItems = questions.map((q) => {
+  //       const text = q.locTitle.renderedHtml || q.name;
+  //       return new ItemValue(q.name, text);
+  //     });
+  //     qItems.sort((el1, el2) => el1.text.localeCompare(el2.text));
+  //     qItems.unshift(defaultOption);
+  //     choicesCallback(qItems);
+  //   },
+  // });
 
-  serializer.addProperty('matrixdropdowncolumn', {
-    displayName: 'Foreign field',
-    showMode: 'form',
-    name: 'referenceDataFilterForeignField',
-    category: 'Choices from Reference data',
-    isRequired: true,
-    dependsOn: 'referenceDataFilterFilterFromQuestion',
-    visibleIf: (obj: null | Question): boolean => {
-      const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
-      if (colObj?.getType() !== 'matrixdropdowncolumn') {
-        return false;
-      }
-      return Boolean(colObj?.referenceDataFilterFilterFromQuestion);
-    },
-    visibleIndex: 4,
-    choices: (
-      obj: null | Question,
-      choicesCallback: (choices: any[]) => void
-    ) => {
-      if (obj?.referenceDataFilterFilterFromQuestion) {
-        const foreignQuestion = (obj.colOwnerValue?.survey as SurveyModel)
-          .getAllQuestions()
-          .find((q) => q.name === obj.referenceDataFilterFilterFromQuestion) as
-          | QuestionSelectBase
-          | undefined;
-        if (foreignQuestion?.referenceData) {
-          referenceDataService
-            .loadReferenceData(foreignQuestion.referenceData)
-            .then((referenceData) =>
-              choicesCallback(
-                referenceData.fields?.map((x) => x?.name ?? x) || []
-              )
-            );
-        }
-      }
-    },
-  });
+  // serializer.addProperty('matrixdropdowncolumn', {
+  //   displayName: 'Foreign field',
+  //   showMode: 'form',
+  //   name: 'referenceDataFilterForeignField',
+  //   category: 'Choices from Reference dataxd',
+  //   isRequired: true,
+  //   dependsOn: 'referenceDataFilterFilterFromQuestion',
+  //   visibleIf: (obj: null | Question): boolean => {
+  //     const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
+  //     if (colObj?.getType() !== 'matrixdropdowncolumn') {
+  //       return false;
+  //     }
+  //     return Boolean(colObj?.referenceDataFilterFilterFromQuestion);
+  //   },
+  //   visibleIndex: 4,
+  //   choices: (
+  //     obj: null | Question,
+  //     choicesCallback: (choices: any[]) => void
+  //   ) => {
+  //     if (obj?.referenceDataFilterFilterFromQuestion) {
+  //       const foreignQuestion = (obj.colOwnerValue?.survey as SurveyModel)
+  //         .getAllQuestions()
+  //         .find((q) => q.name === obj.referenceDataFilterFilterFromQuestion) as
+  //         | QuestionSelectBase
+  //         | undefined;
+  //       if (foreignQuestion?.referenceData) {
+  //         referenceDataService
+  //           .loadReferenceData(foreignQuestion.referenceData)
+  //           .then((referenceData) =>
+  //             choicesCallback(
+  //               referenceData.fields?.map((x) => x?.name ?? x) || []
+  //             )
+  //           );
+  //       }
+  //     }
+  //   },
+  // });
 
-  serializer.addProperty('matrixdropdowncolumn', {
-    displayName: 'Filter condition',
-    showMode: 'form',
-    name: 'referenceDataFilterFilterCondition',
-    category: 'Choices from Reference data',
-    isRequired: true,
-    dependsOn: 'referenceDataFilterFilterFromQuestion',
-    visibleIf: (obj: null | Question): boolean => {
-      const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
-      if (colObj?.getType() !== 'matrixdropdowncolumn') {
-        return false;
-      }
-      return Boolean(colObj?.referenceDataFilterFilterFromQuestion);
-    },
-    visibleIndex: 5,
-    choices: [
-      { value: 'eq', text: '==' },
-      { value: 'neq', text: '!=' },
-      { value: 'gte', text: '>=' },
-      { value: 'gt', text: '>' },
-      { value: 'lte', text: '<=' },
-      { value: 'lt', text: '<' },
-      { value: 'contains', text: 'contains' },
-      { value: 'doesnotcontain', text: 'does not contain' },
-      { value: 'iscontained', text: 'is contained in' },
-      { value: 'isnotcontained', text: 'is not contained in' },
-    ],
-  });
+  // serializer.addProperty('matrixdropdowncolumn', {
+  //   displayName: 'Filter condition',
+  //   showMode: 'form',
+  //   name: 'referenceDataFilterFilterCondition',
+  //   category: 'Choices from Reference dataxd',
+  //   isRequired: true,
+  //   dependsOn: 'referenceDataFilterFilterFromQuestion',
+  //   visibleIf: (obj: null | Question): boolean => {
+  //     const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
+  //     if (colObj?.getType() !== 'matrixdropdowncolumn') {
+  //       return false;
+  //     }
+  //     return Boolean(colObj?.referenceDataFilterFilterFromQuestion);
+  //   },
+  //   visibleIndex: 5,
+  //   choices: [
+  //     { value: 'eq', text: '==' },
+  //     { value: 'neq', text: '!=' },
+  //     { value: 'gte', text: '>=' },
+  //     { value: 'gt', text: '>' },
+  //     { value: 'lte', text: '<=' },
+  //     { value: 'lt', text: '<' },
+  //     { value: 'contains', text: 'contains' },
+  //     { value: 'doesnotcontain', text: 'does not contain' },
+  //     { value: 'iscontained', text: 'is contained in' },
+  //     { value: 'isnotcontained', text: 'is not contained in' },
+  //   ],
+  // });
 
-  serializer.addProperty('matrixdropdowncolumn', {
-    displayName: 'Local field',
-    showMode: 'form',
-    name: 'referenceDataFilterLocalField',
-    category: 'Choices from Reference data',
-    isRequired: true,
-    dependsOn: 'referenceDataFilterFilterFromQuestion',
-    visibleIf: (obj: null | Question): boolean => {
-      const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
-      if (colObj?.getType() !== 'matrixdropdowncolumn') {
-        return false;
-      }
-      return Boolean(colObj?.referenceDataFilterFilterFromQuestion);
-    },
-    visibleIndex: 6,
-    choices: (
-      obj: null | CustomMatrixDropdownColumn,
-      choicesCallback: (choices: any[]) => void
-    ) => {
-      if (obj?.referenceData) {
-        referenceDataService
-          .loadReferenceData(obj.referenceData)
-          .then((referenceData) =>
-            choicesCallback(
-              referenceData.fields?.map((x) => x?.name ?? x) || []
-            )
-          );
-      }
-    },
-  });
+  // serializer.addProperty('matrixdropdowncolumn', {
+  //   displayName: 'Local field',
+  //   showMode: 'form',
+  //   name: 'referenceDataFilterLocalField',
+  //   category: 'Choices from Reference dataxd',
+  //   isRequired: true,
+  //   dependsOn: 'referenceDataFilterFilterFromQuestion',
+  //   visibleIf: (obj: null | Question): boolean => {
+  //     const colObj = obj?.locOwner as CustomMatrixDropdownColumn;
+  //     if (colObj?.getType() !== 'matrixdropdowncolumn') {
+  //       return false;
+  //     }
+  //     return Boolean(colObj?.referenceDataFilterFilterFromQuestion);
+  //   },
+  //   visibleIndex: 6,
+  //   choices: (
+  //     obj: null | CustomMatrixDropdownColumn,
+  //     choicesCallback: (choices: any[]) => void
+  //   ) => {
+  //     if (obj?.referenceData) {
+  //       referenceDataService
+  //         .loadReferenceData(obj.referenceData)
+  //         .then((referenceData) =>
+  //           choicesCallback(
+  //             referenceData.fields?.map((x) => x?.name ?? x) || []
+  //           )
+  //         );
+  //     }
+  //   },
+  // });
 
-  SurveyQuestionEditorDefinition.definition[
-    'matrixdropdowncolumn'
-  ].properties?.push('referenceData');
+  // SurveyQuestionEditorDefinition.definition[
+  //   'matrixdropdowncolumn'
+  // ].properties?.push('referenceData');
 };
 
 /**

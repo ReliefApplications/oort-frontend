@@ -16,7 +16,6 @@ import {
   processNewCreatedRecords,
   setUpActionsButtonWrapper,
 } from './utils';
-import { QuestionResource } from '../types';
 import { ComponentRef, Injector, NgZone } from '@angular/core';
 import {
   ComponentCollection,
@@ -24,6 +23,7 @@ import {
   Serializer,
   SurveyModel,
   SvgRegistry,
+  QuestionResource,
 } from 'survey-core';
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';

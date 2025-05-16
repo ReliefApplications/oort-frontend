@@ -1,11 +1,11 @@
 import { MultiSelectComponent } from '@progress/kendo-angular-dropdowns';
 import { DomService } from '../../services/dom/dom.service';
-import { Question } from '../types';
 import {
   CustomWidgetCollection,
   Serializer,
   SvgRegistry,
   DropdownMultiSelectListModel,
+  Question,
 } from 'survey-core';
 import { debounceTime, map, tap } from 'rxjs';
 import updateChoices from './utils/common-list-filters';

@@ -151,9 +151,9 @@ export class ReferenceDataService {
             ]
         );
       } else {
-        selectedForeignValue = foreignItems.find(
+        selectedForeignValue = (foreignItems || []).find(
           (item) => get(item, foreignValueField) === filter.foreignValue
-        )[filter.foreignField];
+        )?.[filter.foreignField];
       }
       return items
         .filter((item) =>

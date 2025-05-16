@@ -1,5 +1,9 @@
-import { ComponentCollection, Serializer, SvgRegistry } from 'survey-core';
-import { Question } from '../types';
+import {
+  ComponentCollection,
+  Serializer,
+  SvgRegistry,
+  Question,
+} from 'survey-core';
 import { DomService } from '../../services/dom/dom.service';
 import { EditorQuestionComponent } from '../../components/editor-question/editor-question.component';
 import { cloneDeep, isNil } from 'lodash';

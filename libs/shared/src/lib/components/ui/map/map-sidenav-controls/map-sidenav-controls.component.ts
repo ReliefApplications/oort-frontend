@@ -6,6 +6,8 @@ import { UILayoutService } from '@oort-front/ui';
 import { SidenavControlsMenuComponent } from './sidenav-controls-menu/sidenav-controls-menu.component';
 import { MapComponent } from '../map.component';
 
+type TreeObject = L.Control.Layers.TreeObject;
+
 /**
  * Map layers component
  */
@@ -18,11 +20,38 @@ import { MapComponent } from '../map.component';
 })
 export class MapSidenavControlsComponent {
   /** Layers tree */
-  private layersTree!: L.Control.Layers.TreeObject[];
+  private layersTree!: TreeObject[];
   /** Basemaps tree */
-  private basemaps!: L.Control.Layers.TreeObject[];
+  private basemaps!: TreeObject[];
   /** Map component */
   private mapComponent!: MapComponent;
+
+  /**
+   * Sets the layers tree
+   *
+   * @param layersTree The layers tree to set
+   */
+  public setLayersTree(layersTree: TreeObject[]): void {
+    this.layersTree = layersTree;
+  }
+
+  /**
+   * Sets the basemaps tree
+   *
+   * @param basemaps The basemaps tree to set
+   */
+  public setBasemaps(basemaps: TreeObject[]): void {
+    this.basemaps = basemaps;
+  }
+
+  /**
+   * Sets the map component
+   *
+   * @param mapComponent The map component to set
+   */
+  public setMapComponent(mapComponent: MapComponent): void {
+    this.mapComponent = mapComponent;
+  }
 
   /**
    * Map layers component

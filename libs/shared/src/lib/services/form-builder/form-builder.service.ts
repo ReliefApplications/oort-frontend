@@ -11,6 +11,9 @@ import {
   UploadFilesEvent,
   PanelModelBase,
   QuestionPanelDynamicModel,
+  MatrixDropdownCell,
+  MatrixDropdownColumn,
+  Event,
 } from 'survey-core';
 import { ReferenceDataService } from '../reference-data/reference-data.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
@@ -269,6 +272,13 @@ export class FormBuilderService {
     const survey = new Model(structure);
     survey.checkErrorsMode = 'onComplete';
 
+    // Cleanup callbacks
+    const onDispose = new Event<() => void, SurveyModel, undefined>();
+    survey.onDispose = onDispose;
+    survey.disposeCallback = () => {
+      onDispose.fire(survey, undefined);
+    };
+
     // Adds function to survey to be able to get the current parsed data
     survey.getParsedData = () => {
       return transformSurveyData(survey);
@@ -299,11 +309,13 @@ export class FormBuilderService {
       survey.setVariable('record.id', createNewObjectId());
     }
 
+    const addQuestionTooltips =
+      this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService);
     survey.onAfterRenderQuestion.add((survey, options) => {
       renderGlobalProperties(this.referenceDataService)(survey, options);
 
       //Add tooltips to questions if exist
-      this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService);
+      addQuestionTooltips(survey, options);
 
       const questionType = options.question.getType();
       switch (questionType) {
@@ -324,7 +336,7 @@ export class FormBuilderService {
       if (options.question.getType() === 'file') {
         const files = options.question.value;
         const fileElement = options.htmlElement.querySelector('a');
-        fileElement?.addEventListener('click', (event) => {
+        const listener = (event: MouseEvent) => {
           event.preventDefault();
           files.forEach((file: any) => {
             if (
@@ -338,6 +350,10 @@ export class FormBuilderService {
               this.downloadService.getFile(path, file.type, file.name);
             }
           });
+        };
+        fileElement?.addEventListener('click', listener);
+        survey.onDispose.add(() => {
+          fileElement?.removeEventListener('click', listener);
         });
       }
     });
@@ -438,7 +454,17 @@ export class FormBuilderService {
         return;
       }
     });
-    survey.onAfterRenderPanel.add((_, options) => {
+
+    // Add an array of cells to the matrix obj
+    survey.onMatrixAfterCellRender.add((_, options) => {
+      options.question.cells ||= new Map<string, MatrixDropdownCell>();
+      const col = options.column as MatrixDropdownColumn;
+      const row = options.row.rowName;
+      options.question.cells.set(`${row}:${col.name}`, options.cell);
+    });
+
+    survey.onAfterRenderPanel.add((survey, options) => {
+      addQuestionTooltips(survey, options);
       const htmlClass = options.panel.getPropertyValue('elementClasses');
       if (htmlClass) {
         options.htmlElement.classList.add(...htmlClass.split(' '));

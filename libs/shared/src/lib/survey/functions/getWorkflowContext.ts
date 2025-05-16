@@ -1,5 +1,5 @@
 import { QuestionCustomModel, SurveyModel } from 'survey-core';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Returns the specified workflow context variable

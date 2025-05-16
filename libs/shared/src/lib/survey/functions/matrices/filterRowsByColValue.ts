@@ -1,5 +1,5 @@
 import { cloneDeep, isEqual, isNil } from 'lodash';
-import { GlobalOptions } from '../../types';
+import { GlobalOptions } from '../types';
 
 /**
  * Custom function to return only the rows that meet a certain condition.
