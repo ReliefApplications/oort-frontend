@@ -11,6 +11,7 @@ import {
   Serializer,
   SurveyModel,
   SvgRegistry,
+  QuestionResource,
 } from 'survey-core';
 import { resourceConditions } from './resources';
 import { Dialog } from '@angular/cdk/dialog';
@@ -21,7 +22,6 @@ import {
   buildUpdateButton,
 } from './utils';
 import { get, isNil } from 'lodash';
-import { Question as SharedQuestion, QuestionResource } from '../types';
 import { Record, RecordQueryResponse } from '../../models/record.model';
 import { Injector, NgZone } from '@angular/core';
 import { registerCustomPropertyEditor } from './utils/component-register';
@@ -158,9 +158,17 @@ export const init = (
     }
 
     const data = record?.data || {};
+
+    // Creates strStruct once if doesn't exist
+    if (!survey.strStructure) {
+      survey.strStructure = JSON.stringify(survey.toJSON());
+    }
+
     for (const field in data) {
-      // create survey expression in the format {[questionName].[fieldName]} = [value]
-      survey.setVariable(`${question.name}.${field}`, data[field]);
+      const varUsed = new RegExp(`{\\s*${question.name}\\.${field}\\s*}`);
+      if (varUsed.test(survey.strStructure)) {
+        survey.setVariable(`${question.name}.${field}`, data[field]);
+      }
     }
   };
 
@@ -527,7 +535,7 @@ export const init = (
             ];
             (obj.survey as SurveyModel)
               .getAllQuestions()
-              .forEach((question: SharedQuestion) => {
+              .forEach((question: Question) => {
                 if (question.id !== obj.id) {
                   questions.push(question.name);
                 }

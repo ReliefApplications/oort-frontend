@@ -1,12 +1,12 @@
-import { QuestionSelectBase } from './../types';
 import { ComboBoxComponent } from '@progress/kendo-angular-dropdowns';
 import { DomService } from '../../services/dom/dom.service';
-import { Question } from '../types';
 import {
   CustomWidgetCollection,
   ItemValue,
   QuestionDropdownModel,
   Serializer,
+  Question,
+  QuestionSelectBase,
 } from 'survey-core';
 import { has, isArray, isEqual, isObject, isNil } from 'lodash';
 import { debounceTime, map, tap } from 'rxjs';

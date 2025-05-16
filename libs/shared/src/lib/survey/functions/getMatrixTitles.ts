@@ -5,7 +5,7 @@ import {
   SurveyModel,
 } from 'survey-core';
 import { isNil } from 'lodash';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Custom function to get row/col titles given a list of the row/col names.

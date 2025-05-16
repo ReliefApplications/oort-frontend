@@ -3,8 +3,8 @@ import {
   JsonMetadata,
   Serializer,
   SvgRegistry,
+  Question,
 } from 'survey-core';
-import { Question } from '../types';
 import { GeospatialMapComponent } from '../../components/geospatial-map/geospatial-map.component';
 import { DomService } from '../../services/dom/dom.service';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';

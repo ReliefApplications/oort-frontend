@@ -1,5 +1,5 @@
 import { isNil } from 'lodash';
-import { GlobalOptions } from '../../types';
+import { GlobalOptions } from '../types';
 
 /**
  * Custom function that gets a matrix object and returns a new one with only the columns specified.

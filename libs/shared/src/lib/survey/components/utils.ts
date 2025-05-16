@@ -1,8 +1,12 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { NgZone } from '@angular/core';
 // todo: as it something to do with survey-angular
-import { SurveyModel, surveyLocalization, ItemValue } from 'survey-core';
-import { Question } from '../types';
+import {
+  SurveyModel,
+  surveyLocalization,
+  ItemValue,
+  Question,
+} from 'survey-core';
 import { BehaviorSubject } from 'rxjs';
 
 /**

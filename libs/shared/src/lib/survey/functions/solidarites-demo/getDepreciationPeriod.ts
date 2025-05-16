@@ -1,4 +1,4 @@
-import { GlobalOptions } from '../../types';
+import { GlobalOptions } from '../types';
 import { DEPRECATION_DATA } from './assets/deprecation-data';
 
 /**

@@ -7,10 +7,13 @@ import { JsonMetadata, Serializer } from 'survey-core';
 export const init = (): void => {
   const serializer: JsonMetadata = Serializer;
 
-  // add tooltip property
-  serializer.addProperty('question', {
+  const tooltipProp = {
     name: 'tooltip:text',
     category: 'general',
     isLocalizable: true,
-  });
+  };
+
+  // add tooltip property
+  serializer.addProperty('question', tooltipProp);
+  serializer.addProperty('panel', tooltipProp);
 };

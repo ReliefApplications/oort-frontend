@@ -22,14 +22,18 @@ import {
   Question as QuestionModel,
   SurveyModel,
   surveyLocalization,
+  MatrixDropdownColumn,
+  Question,
 } from 'survey-core';
 import { SurveyCreatorModel } from 'survey-creator-core';
-import { Question } from '../../survey/types';
 import { DOCUMENT } from '@angular/common';
 import { takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
 import { SurveyCustomJSONEditorPlugin } from './custom-json-editor/custom-json-editor.component';
-import { updateModalChoicesAndValue } from '../../survey/global-properties/reference-data';
+import {
+  REF_DATA_SECTION_TITLE,
+  updateModalChoicesAndValue,
+} from '../../survey/global-properties/reference-data';
 import { MatrixManager } from '../../survey/controllers/matrixManager';
 
 /**
@@ -251,6 +255,29 @@ export class FormBuilderComponent
 
     this.surveyCreator = new SurveyCreatorModel(creatorOptions);
 
+    // Fix for matrix columns property-grid
+    this.surveyCreator.onSurveyInstanceCreated.add(
+      (sender: SurveyCreatorModel, options) => {
+        const col = sender.selectedElement as MatrixDropdownColumn;
+        if (
+          options.reason !== 'property-grid' ||
+          col?.getType() !== 'matrixdropdowncolumn'
+        ) {
+          return;
+        }
+
+        const colJSON = (options.model as any).objValue.toJSON();
+        options.survey.onAfterRenderPanel.add((_, { panel }) => {
+          if (panel.name === REF_DATA_SECTION_TITLE) {
+            panel.questions.forEach((q) => {
+              const value = colJSON[q.name];
+              value && options.survey.setValue(q.name, value);
+            });
+          }
+        });
+      }
+    );
+
     // Disable navigation properties
     this.surveyCreator.onShowingProperty.add(function (sender, options) {
       if (NAVIGATION_PROPERTIES.includes(options.property.name)) {
@@ -354,7 +381,7 @@ export class FormBuilderComponent
     }
 
     // Scroll to question when added
-    this.surveyCreator.onQuestionAdded.add((sender: any, options: any) => {
+    this.surveyCreator.onQuestionAdded.add((_: any, options: any) => {
       const name = options.question.name;
       if (this.timeoutListener) {
         clearTimeout(this.timeoutListener);
@@ -497,7 +524,6 @@ export class FormBuilderComponent
         }
       })
       .catch((error) => {
-        console.log('Saving survey failed:', error);
         this.snackBar.openSnackBar(error.message, {
           error: true,
           duration: 15000,

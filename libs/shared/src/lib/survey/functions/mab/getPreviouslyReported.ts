@@ -1,4 +1,4 @@
-import { GlobalOptions } from '../../types';
+import { GlobalOptions } from '../types';
 import { gql } from 'apollo-angular';
 import { QuestionPanelDynamicModel, SurveyModel } from 'survey-core';
 import { firstValueFrom } from 'rxjs';

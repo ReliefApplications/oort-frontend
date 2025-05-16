@@ -5,7 +5,7 @@ import {
   SurveyModel,
 } from 'survey-core';
 import { isEqual } from 'lodash';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Custom function that given a name for a matrix question, a column name and a column value,

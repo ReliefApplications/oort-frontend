@@ -225,10 +225,10 @@ export class DashboardFilterComponent
 
     this.survey.onAfterRenderSurvey.add(this.onAfterRenderSurvey.bind(this));
     // we should render the custom questions somewhere, let's do it here
-    this.survey.onAfterRenderQuestion.add((_, options: any) => {
+    this.survey.onAfterRenderQuestion.add((_, options) => {
       const parent = options.htmlElement.parentElement;
       if (parent) {
-        parent.style['min-width'] = '0px';
+        parent.style.minWidth = '0px';
       }
       renderGlobalProperties(this.referenceDataService);
     });
@@ -312,7 +312,7 @@ export class DashboardFilterComponent
     const surveyData = this.getSurveyValues();
     // Get the plain data of the form in order to handle it easier
     const displayValues = this.survey.getPlainData();
-    /* Get the isPrimitiveValue property of the questions involved in the filter 
+    /* Get the isPrimitiveValue property of the questions involved in the filter
     with the question name as key to set the correct label in the dashboard selection
     */
     const isValuePrimitiveKeys = this.survey

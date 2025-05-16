@@ -150,6 +150,10 @@ export class TooltipDirective implements OnDestroy {
         this.overlayRef.attach(tooltipPortal);
       // Pass content to tooltip component instance
       tooltipRef.instance.uiTooltip = this.uiTooltip;
+
+      // Update orverlay position and tirgger tooltip change detection (needed for survey tooltips)
+      tooltipRef.changeDetectorRef.detectChanges();
+      this.overlayRef.updatePosition();
     }
   }
 

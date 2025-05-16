@@ -1,7 +1,6 @@
 import { Injectable, ComponentRef, Inject, Renderer2 } from '@angular/core';
 import { Feature } from 'geojson';
 
-/// <reference path="../../../../typings/leaflet/index.d.ts" />
 import * as L from 'leaflet';
 import { takeUntil } from 'rxjs';
 import { DomService } from '../../../../services/dom/dom.service';

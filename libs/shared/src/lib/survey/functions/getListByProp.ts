@@ -1,5 +1,5 @@
 import { SurveyModel } from 'survey-core';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 
 /**
  * Registration of new custom functions for the survey.

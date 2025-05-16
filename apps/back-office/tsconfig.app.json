@@ -5,7 +5,7 @@
     "types": []
   },
   "files": ["src/main.ts", "src/polyfills.ts"],
-  "include": ["src/**/*.d.ts"],
+  "include": ["src/**/*.d.ts", "../../libs/shared/src/typings/**/*.d.ts"],
   "exclude": [
     "jest.config.ts",
     "src/**/*.test.ts",

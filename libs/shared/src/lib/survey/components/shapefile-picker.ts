@@ -4,8 +4,8 @@ import {
   SurveyModel,
   SvgRegistry,
   ValueChangedEvent,
+  Question,
 } from 'survey-core';
-import { Question } from '../types';
 import { DomService } from '../../services/dom/dom.service';
 import { ComponentRef } from '@angular/core';
 import {
@@ -52,6 +52,9 @@ export const init = (
       }
 
       const setUpMap = (value: FeatureCollection<Polygon>) => {
+        if (!file) {
+          return;
+        }
         const map: ComponentRef<ShapeFileMapComponent> =
           domService.appendComponentToBody(ShapeFileMapComponent, file);
         const instance = map.instance;

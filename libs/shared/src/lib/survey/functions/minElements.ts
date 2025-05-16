@@ -1,5 +1,5 @@
 import { get, min } from 'lodash';
-import { GlobalOptions } from '../types';
+import { GlobalOptions } from './types';
 import { SurveyModel } from 'survey-core';
 import { getPanelDynamicData } from './getPanelDynamicData';
 

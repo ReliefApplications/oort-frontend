@@ -10,7 +10,6 @@ import { MARKER_OPTIONS } from '../../components/ui/map/const/marker-options';
 import { MapDownloadComponent } from '../../components/ui/map/map-download/map-download.component';
 import { DomService } from '../dom/dom.service';
 // import { GeoJsonObject } from 'geojson';
-/// <reference path="../../../../typings/leaflet/index.d.ts" />
 import * as L from 'leaflet';
 import 'esri-leaflet';
 import 'leaflet-fullscreen';
@@ -99,9 +98,9 @@ export class MapControlsService {
         MapSidenavControlsComponent,
         container
       );
-      mapSidenavControlsComponent.instance.layersTree = layers;
-      mapSidenavControlsComponent.instance.mapComponent = mapComponent;
-      mapSidenavControlsComponent.instance.basemaps = basemaps;
+      mapSidenavControlsComponent.instance.setLayersTree(layers);
+      mapSidenavControlsComponent.instance.setMapComponent(mapComponent);
+      mapSidenavControlsComponent.instance.setBasemaps(basemaps);
       return container;
     };
     layerControl.onRemove = () => {

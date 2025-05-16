@@ -2,9 +2,11 @@ import {
   CustomWidgetCollection,
   Serializer,
   SurveyModel,
+  Question,
+  QuestionCommentModel,
   surveyLocalization,
 } from 'survey-core';
-import { Question, QuestionComment } from '../types';
+
 /**
  * Custom definition for overriding the comment question. Add edit functionality.
  *
@@ -26,11 +28,11 @@ export const init = (
         dependsOn: ['readOnly'],
         default: false,
         category: 'general',
-        visibleIf: (obj: null | QuestionComment) => Boolean(obj?.readOnly),
+        visibleIf: (obj: null | QuestionCommentModel) => Boolean(obj?.readOnly),
       });
     },
     isDefaultRender: true,
-    afterRender: (question: QuestionComment, el: HTMLElement): void => {
+    afterRender: (question: QuestionCommentModel, el: HTMLElement): void => {
       // Display of edit button for comment question
       if (question.allowEdition) {
         el.parentElement?.querySelector('#editComment')?.remove();

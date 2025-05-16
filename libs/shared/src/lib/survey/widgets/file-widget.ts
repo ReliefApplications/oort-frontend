@@ -1,9 +1,9 @@
-import { Question } from '../types';
 import {
   CustomWidgetCollection,
   JsonMetadata,
   QuestionFileModel,
   Serializer,
+  Question,
 } from 'survey-core';
 
 /**

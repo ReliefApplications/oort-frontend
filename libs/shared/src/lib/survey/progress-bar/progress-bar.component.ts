@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { AngularComponentFactory } from 'survey-angular-ui';
-import { SurveyModel } from 'survey-core';
-import { Question } from '../types';
+import { SurveyModel, Question } from 'survey-core';
 import { CommonModule } from '@angular/common';
 import { getVisibleQuestions } from '../../services/form-builder/form-builder.service';
 
