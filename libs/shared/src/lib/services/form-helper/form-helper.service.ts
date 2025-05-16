@@ -542,7 +542,7 @@ export class FormHelpersService {
     iconHTMLEl.addEventListener('mouseleave', bindMouseLeave);
     iconHTMLEl.addEventListener('mousedown', bindMouseDown);
 
-    survey.onDispose.add(() => {
+    survey.onDispose?.add?.(() => {
       iconHTMLEl.removeEventListener('mouseenter', bindMouseEnter);
       iconHTMLEl.removeEventListener('mouseleave', bindMouseLeave);
       iconHTMLEl.removeEventListener('mousedown', bindMouseDown);
@@ -1149,7 +1149,7 @@ export class FormHelpersService {
       });
     };
     fileElement?.addEventListener('click', listener);
-    survey.onDispose.add(() => {
+    survey.onDispose?.add?.(() => {
       fileElement?.removeEventListener('click', listener);
     });
   }

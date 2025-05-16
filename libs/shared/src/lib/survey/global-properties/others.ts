@@ -258,13 +258,14 @@ export const init = (environment: any): void => {
     onExecuteExpression: (obj: SurveyModel, res: boolean) => {
       obj.getAllQuestions(false, false, true).forEach((q) => {
         if (res === true) {
-          q._isRequired = q.isRequired;
-          q._requiredIf = q.requiredIf;
+          // q._requiredIf = q.requiredIf;
           q.isRequired = false;
-          q.requiredIf = 'false';
+          // if (!isNil(q.requiredIf)) {
+          //   q.requiredIf = 'false';
+          // }
         } else {
-          q.requiredIf = q._requiredIf ?? q.requiredIf;
-          q.isRequired = q._isRequired ?? q.isRequired;
+          // q.requiredIf = q._requiredIf ?? q.requiredIf;
+          q.isRequired = true;
         }
       });
     },

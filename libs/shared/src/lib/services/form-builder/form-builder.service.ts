@@ -352,7 +352,7 @@ export class FormBuilderService {
           });
         };
         fileElement?.addEventListener('click', listener);
-        survey.onDispose.add(() => {
+        survey.onDispose.add?.(() => {
           fileElement?.removeEventListener('click', listener);
         });
       }
