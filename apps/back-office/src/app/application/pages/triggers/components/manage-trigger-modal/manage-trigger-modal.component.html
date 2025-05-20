@@ -136,6 +136,44 @@
                 </ui-select-option>
               </ui-select-menu>
             </div>
+            <div
+              *ngIf="formGroup.value.redirect.type === 'url'"
+              uiFormFieldDirective
+              class="w-full"
+            >
+              {{
+                'components.widget.settings.grid.actions.goTo.field.label'
+                  | translate
+              }}
+              <ui-select-menu
+                formControlName="field"
+                [filterable]="true"
+                [placeholder]="
+                  'components.widget.settings.grid.actions.goTo.field.placeholder'
+                    | translate
+                "
+              >
+                <ng-container *ngFor="let field of data.resource.metadata">
+                  <ui-select-option *ngIf="!field.fields" [value]="field.name">
+                    {{ field.name }}
+                  </ui-select-option>
+
+                  <ui-select-option *ngIf="field.fields" [isGroup]="true">
+                    {{ field.name }}
+                    <ui-select-option
+                      *ngFor="let subField of field.fields"
+                      [value]="field.name + '.' + subField.name"
+                    >
+                      {{
+                        field.name === '$attribute'
+                          ? subField.name
+                          : field.name + ' - ' + subField.name
+                      }}
+                    </ui-select-option>
+                  </ui-select-option>
+                </ng-container>
+              </ui-select-menu>
+            </div>
           </ng-container>
         </div>
       </ng-container>
@@ -333,7 +371,14 @@
       [uiDialogClose]="formGroup.getRawValue()"
       [disabled]="!formGroup.valid || formGroup.pristine"
     >
-      {{ (data.trigger ? 'common.update' : 'common.create') | translate }}
+      {{
+        (data.trigger
+          ? data.trigger.id
+            ? 'common.update'
+            : 'common.duplicate'
+          : 'common.create'
+        ) | translate
+      }}
     </ui-button>
   </ng-container>
 </ui-dialog>

@@ -68,6 +68,7 @@ import {
   ADD_CUSTOM_NOTIFICATION,
   DELETE_CUSTOM_NOTIFICATION,
   RESTORE_PAGE,
+  EDIT_CUSTOM_NOTIFICATION_FILTERS,
 } from './graphql/mutations';
 import { GET_APPLICATION_BY_ID } from './graphql/queries';
 import { PositionAttributeCategory } from '../../models/position-attribute-category.model';
@@ -1898,7 +1899,7 @@ export class ApplicationService {
           },
         })
         .subscribe((res) => {
-          if (callback) callback(res);
+          if (callback) callback(res.data?.addCustomNotification);
         });
     }
   }
@@ -1936,7 +1937,7 @@ export class ApplicationService {
   updateCustomNotification(
     id: string,
     notification: CustomNotification,
-    callback?: any
+    callback?: () => any
   ): void {
     const application = this.application.getValue();
     if (application) {
@@ -1949,8 +1950,50 @@ export class ApplicationService {
             notification,
           },
         })
-        .subscribe((res) => {
-          if (callback) callback(res);
+        .subscribe(() => {
+          if (callback) callback();
+        });
+    }
+  }
+
+  /**
+   * Edits custom notifications filters
+   *
+   * @param id id of custom notification
+   * @param triggersFilters filters to apply to custom notification
+   * @param callback callback method
+   */
+  editCustomNotificationFilters(
+    id: string,
+    triggersFilters: any,
+    callback?: (data: UpdateCustomNotificationMutationResponse) => any
+  ) {
+    const application = this.application.getValue();
+    if (application) {
+      this.apollo
+        .mutate<UpdateCustomNotificationMutationResponse>({
+          mutation: EDIT_CUSTOM_NOTIFICATION_FILTERS,
+          variables: {
+            id,
+            triggersFilters,
+            application: application.id,
+          },
+        })
+        .subscribe({
+          next: ({ errors, data }) => {
+            if (data?.editCustomNotification) {
+              if (callback) {
+                callback(data);
+              }
+            }
+            if (errors) {
+              this.snackBar.openSnackBar(errors[0].message, { error: true });
+            }
+            return;
+          },
+          error: (err) => {
+            this.snackBar.openSnackBar(err.message, { error: true });
+          },
         });
     }
   }

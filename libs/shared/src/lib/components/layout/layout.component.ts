@@ -26,6 +26,10 @@ import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component
 import { takeUntil } from 'rxjs/operators';
 import { Breadcrumb, UILayoutService } from '@oort-front/ui';
 import { BreadcrumbService } from '../../services/breadcrumb/breadcrumb.service';
+import { RecordQueryResponse } from '../../models/record.model';
+import { Apollo } from 'apollo-angular';
+import { get } from 'lodash';
+import { GET_RECORD_BY_ID } from './graphql/queries';
 
 /**
  * Component for the main layout of the platform
@@ -214,6 +218,7 @@ export class LayoutComponent
    * @param translate This is the Angular service that translates text
    * @param dateTranslate Service used for date formatting
    * @param breadcrumbService Shared breadcrumb service
+   * @param apollo Angular Apollo query service
    */
   constructor(
     @Inject('environment') environment: any,
@@ -225,7 +230,8 @@ export class LayoutComponent
     public dialog: Dialog,
     private translate: TranslateService,
     private dateTranslate: DateTranslateService,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private apollo: Apollo
   ) {
     super();
     this.largeDevice = window.innerWidth > 1024;
@@ -444,12 +450,43 @@ export class LayoutComponent
       if (redirect.type === 'recordIds' && redirect.recordIds) {
         this.notificationService.redirectToRecords(notification);
       } else if (redirect.type === 'url' && redirect.url) {
-        // Redirect to page
-        const fullUrl =
-          this.environment.module === 'backoffice'
-            ? `applications/${redirect.url}`
-            : `${redirect.url}`;
-        this.router.navigateByUrl(fullUrl);
+        console.log(notification);
+        if (
+          redirect.field &&
+          redirect.recordIds &&
+          redirect.recordIds.length > 0
+        ) {
+          this.apollo
+            .query<RecordQueryResponse>({
+              query: GET_RECORD_BY_ID,
+              variables: {
+                id: redirect.recordIds[0],
+              },
+            })
+            .subscribe(({ data }) => {
+              if (data) {
+                console.log(data.record);
+                const fieldValue =
+                  get(data, `record.${redirect.field}`) ??
+                  get(data, `record.data.${redirect.field}`);
+                const redirectUrl = `${redirect.url}?${redirect.field}=${
+                  fieldValue ?? ''
+                }`;
+                const fullUrl =
+                  this.environment.module === 'backoffice'
+                    ? `applications/${redirectUrl}`
+                    : redirectUrl;
+
+                this.router.navigateByUrl(fullUrl);
+              }
+            });
+        } else {
+          const fullUrl =
+            this.environment.module === 'backoffice'
+              ? `applications/${redirect.url}`
+              : `${redirect.url}`;
+          this.router.navigateByUrl(fullUrl);
+        }
       }
     }
   }

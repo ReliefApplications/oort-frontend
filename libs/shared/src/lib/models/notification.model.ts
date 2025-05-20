@@ -20,6 +20,7 @@ export interface Notification {
     recordIds?: string[];
     layout?: string;
     resource?: string;
+    field?: string;
   };
 }
 

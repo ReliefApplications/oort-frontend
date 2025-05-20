@@ -8,16 +8,13 @@ import {
 } from '@angular/core';
 import { triggers, Triggers, TriggersType } from '../../triggers.types';
 import {
+  ApplicationService,
   CustomNotification,
   Resource,
   UnsubscribeComponent,
-  UpdateCustomNotificationMutationResponse,
 } from '@oort-front/shared';
-import { SnackbarService } from '@oort-front/ui';
-import { Apollo } from 'apollo-angular';
 import { Dialog } from '@angular/cdk/dialog';
 import { takeUntil } from 'rxjs';
-import { EDIT_CUSTOM_NOTIFICATION_FILTERS } from '../../graphql/mutations';
 
 type TriggerTableElement = {
   name: string;
@@ -52,6 +49,12 @@ export class TriggersListComponent
     trigger: CustomNotification;
     type: TriggersType;
   }>();
+  /** Event emitter for edit trigger */
+  // eslint-disable-next-line @angular-eslint/no-output-on-prefix
+  @Output() onDuplicate = new EventEmitter<{
+    trigger: CustomNotification;
+    type: TriggersType;
+  }>();
   /** Event emitter for delete trigger */
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
   @Output() onDelete = new EventEmitter<{
@@ -78,14 +81,12 @@ export class TriggersListComponent
   /**
    * Triggers list component.
    *
-   * @param apollo Apollo client service
-   * @param snackBar shared snackbar service
    * @param dialog Dialog service
+   * @param applicationService Shared application service
    */
   constructor(
-    private apollo: Apollo,
-    private snackBar: SnackbarService,
-    public dialog: Dialog
+    public dialog: Dialog,
+    public applicationService: ApplicationService
   ) {
     super();
   }
@@ -114,31 +115,14 @@ export class TriggersListComponent
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
       if (value) {
         this.updating.emit(true);
-        this.apollo
-          .mutate<UpdateCustomNotificationMutationResponse>({
-            mutation: EDIT_CUSTOM_NOTIFICATION_FILTERS,
-            variables: {
-              id: trigger.id,
-              triggersFilters: value,
-              application: this.applicationId,
-            },
-          })
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: ({ errors, data }) => {
-              if (data?.editCustomNotification) {
-                this.edited.emit({ trigger: data.editCustomNotification });
-              }
-              if (errors) {
-                this.snackBar.openSnackBar(errors[0].message, { error: true });
-              }
-              this.updating.emit(false);
-            },
-            error: (err) => {
-              this.snackBar.openSnackBar(err.message, { error: true });
-              this.updating.emit(false);
-            },
-          });
+        this.applicationService.editCustomNotificationFilters(
+          trigger.id ?? '',
+          value,
+          (value) => {
+            this.edited.emit({ trigger: value.editCustomNotification });
+            this.updating.emit(false);
+          }
+        );
       }
     });
   }
