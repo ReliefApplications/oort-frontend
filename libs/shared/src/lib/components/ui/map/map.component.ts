@@ -145,6 +145,7 @@ export class MapComponent
       },
     },
     controls: DefaultMapControls,
+    autoZoomToFeatures: true,
   };
   /** Current arcgis web map */
   private arcGisWebMap: any;
@@ -328,6 +329,34 @@ export class MapComponent
       });
     });
 
+    if (this.extractSettings().autoZoomToFeatures) {
+      this.map.on('layeradd', (e) => {
+        const addingBasemap = !!(e.layer as any)._url;
+        if (addingBasemap) return;
+
+        // Initialize an empty LatLngBounds object.
+        const allLayersCombinedBounds = L.latLngBounds([]);
+
+        this.map.eachLayer((currentMapLayer) => {
+          const layerSpecificBoundsData = (
+            currentMapLayer as any
+          ).getBounds?.();
+
+          if (layerSpecificBoundsData) {
+            const currentLayerBounds = L.latLngBounds(layerSpecificBoundsData);
+            if (currentLayerBounds.isValid()) {
+              // Add this layer's bounds to the combined total.
+              allLayersCombinedBounds.extend(currentLayerBounds);
+            }
+          }
+        });
+
+        if (allLayersCombinedBounds.isValid()) {
+          this.map.flyToBounds(allLayersCombinedBounds);
+        }
+      });
+    }
+
     // The scroll jump issue only happens on chrome client browser
     // The following line would overwrite default behavior(preventDefault does not work for this purpose in chrome)
     if (this.platform.WEBKIT || this.platform.BLINK) {
@@ -380,6 +409,7 @@ export class MapComponent
     const arcGisWebMap = get(mapSettings, 'arcGisWebMap', undefined);
     const geographicExtents = get(mapSettings, 'geographicExtents', []);
     const layers = get(mapSettings, 'layers', []);
+    const autoZoomToFeatures = get(mapSettings, 'autoZoomToFeatures', false);
 
     return {
       initialState,
@@ -393,6 +423,7 @@ export class MapComponent
       controls,
       arcGisWebMap,
       geographicExtents,
+      autoZoomToFeatures,
     };
   }
 

@@ -39,6 +39,29 @@
             formControlName="arcGisWebMap"
           ></shared-webmap-select>
           <ui-divider></ui-divider>
+          <!-- Auto zoom on feature -->
+          <ui-toggle formControlName="autoZoomToFeatures">
+            <ng-container ngProjectAs="label">
+              <span class="flex items-center gap-1">
+                {{
+                  'components.widget.settings.map.properties.autoZoomToFeatures.title'
+                    | translate
+                }}
+                <ui-icon
+                  icon="info_outline"
+                  class="cursor-pointer"
+                  [uiTooltip]="
+                    'components.widget.settings.map.properties.autoZoomToFeatures.tooltip'
+                      | translate
+                  "
+                  [size]="18"
+                  variant="grey"
+                ></ui-icon>
+              </span>
+            </ng-container>
+          </ui-toggle>
+          <ui-divider></ui-divider>
+
           <!-- Default view -->
           <div class="w-full" formGroupName="initialState">
             <div class="flex flex-col flex-1" formGroupName="viewpoint">
