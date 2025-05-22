@@ -11,6 +11,7 @@ import {
 import { has, isArray, isEqual, isObject, isNil } from 'lodash';
 import { debounceTime, map, tap } from 'rxjs';
 import updateChoices from './utils/common-list-filters';
+import { ComponentRef } from '@angular/core';
 
 /**
  * Init dropdown widget
@@ -59,8 +60,8 @@ export const init = (
       let dropdownDiv: HTMLDivElement | null = null;
       dropdownDiv = document.createElement('div');
       dropdownDiv.classList.add('flex', 'min-h-[36px]');
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const dropdownInstance = createDropdownInstance(dropdownDiv, question);
+      const dropdownRef = createDropdownInstance(dropdownDiv, question);
+      const dropdownInstance = dropdownRef.instance;
       // Add a reference to the dropdown instance
       question.dropdownInstance = dropdownInstance;
       // Make sure the value is valid
@@ -70,13 +71,13 @@ export const init = (
       dropdownInstance.placeholder = question.placeholder;
       dropdownInstance.readonly = question.isReadOnly;
       dropdownInstance.registerOnChange((value: any) => {
-        // Make sure the value is valid
-        if (question.isPrimitiveValue) {
-          if (!isObject(value) && !isArray(value)) {
-            question.value = value;
-          }
-        } else {
+        // Make sure the value is valid if it's primitive
+        const validPrimitiveValue = !isObject(value) && !isArray(value);
+        const isComplexValue = !question.isPrimitiveValue;
+
+        if (isComplexValue || validPrimitiveValue) {
           question.value = value;
+          dropdownRef?.changeDetectorRef.detectChanges();
         }
       });
 
@@ -160,7 +161,7 @@ export const init = (
   const createDropdownInstance = (
     element: HTMLDivElement,
     question: QuestionDropdownModel
-  ): ComboBoxComponent => {
+  ): ComponentRef<ComboBoxComponent> => {
     const dropdown = domService.appendComponentToBody(
       ComboBoxComponent,
       element
@@ -177,7 +178,7 @@ export const init = (
     dropdownInstance.valueField = 'value';
     dropdownInstance.popupSettings = { appendTo: 'component' };
     dropdownInstance.fillMode = 'none';
-    return dropdownInstance;
+    return dropdown;
   };
 
   customWidgetCollectionInstance.addCustomWidget(widget, 'customwidget');

@@ -257,15 +257,15 @@ export const init = (environment: any): void => {
     category: 'logic',
     onExecuteExpression: (obj: SurveyModel, res: boolean) => {
       obj.getAllQuestions(false, false, true).forEach((q) => {
+        // Save the original values
+        q.isRequiredCpy ??= q.isRequired;
+        q.requiredIfCpy ??= q.requiredIf;
         if (res === true) {
-          // q._requiredIf = q.requiredIf;
           q.isRequired = false;
-          // if (!isNil(q.requiredIf)) {
-          //   q.requiredIf = 'false';
-          // }
+          q.requiredIf = '';
         } else {
-          // q.requiredIf = q._requiredIf ?? q.requiredIf;
-          q.isRequired = true;
+          q.isRequired = q.isRequiredCpy;
+          q.requiredIf = q.requiredIfCpy;
         }
       });
     },
