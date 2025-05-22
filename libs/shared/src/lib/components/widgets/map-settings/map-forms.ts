@@ -560,6 +560,7 @@ export const createMapWidgetFormGroup = (id: any, value?: any): FormGroup => {
   const formGroup = fb.group({
     id,
     title: [get(value, 'title', DEFAULT_MAP.title)],
+    autoZoomToFeatures: [get(value, 'autoZoomToFeatures', false)],
     initialState: fb.group({
       viewpoint: fb.group({
         zoom: [

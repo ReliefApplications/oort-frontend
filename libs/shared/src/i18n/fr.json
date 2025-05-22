@@ -2100,6 +2100,10 @@
             "zoomTo": "Zoomer sur"
           },
           "properties": {
+            "autoZoomToFeatures": {
+              "title": "Zoom automatique",
+              "tooltip": "Chaque fois qu'une couche est ajoutée, ajuster ses limites à la vue cartographique"
+            },
             "basemap": "Fond de carte",
             "controls": {
               "download": "Télécharger",

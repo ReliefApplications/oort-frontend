@@ -11,11 +11,13 @@ import {
   DividerModule,
   CheckboxModule,
   AlertModule,
+  TooltipModule,
+  ErrorMessageModule,
+  ToggleModule,
 } from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { MapControlsModule } from './map-controls/map-controls.module';
 import { WebmapSelectComponent } from './webmap-select/webmap-select.component';
-import { TooltipModule, ErrorMessageModule } from '@oort-front/ui';
 import { PortalModule } from '@angular/cdk/portal';
 
 /**
@@ -45,6 +47,7 @@ import { PortalModule } from '@angular/cdk/portal';
     ErrorMessageModule,
     PortalModule,
     AlertModule,
+    ToggleModule,
   ],
   exports: [MapPropertiesComponent],
 })

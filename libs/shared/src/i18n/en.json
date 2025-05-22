@@ -2087,6 +2087,10 @@
             "zoomTo": "Zoom to"
           },
           "properties": {
+            "autoZoomToFeatures": {
+              "title": "Automatic zoom",
+              "tooltip": "Whenever a layer is added, fit its bounds in the map view"
+            },
             "basemap": "Base map",
             "controls": {
               "download": "Download",

@@ -2087,6 +2087,10 @@
             "zoomTo": "******"
           },
           "properties": {
+            "autoZoomToFeatures": {
+              "title": "******",
+              "tooltip": "******"
+            },
             "basemap": "******",
             "controls": {
               "download": "******",
