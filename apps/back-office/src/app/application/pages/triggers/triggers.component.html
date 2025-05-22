@@ -95,6 +95,7 @@
             [triggersList]="$any(openedResource.customNotifications)"
             (onAdd)="onCreateTrigger($event.type)"
             (onEdit)="onEditTrigger($event.trigger, $event.type)"
+            (onDuplicate)="onDuplicateTrigger($event.trigger, $event.type)"
             (onDelete)="onDeleteTrigger($event.trigger)"
             (edited)="handleTriggerEdition($event.trigger)"
             (updating)="updating = $event"

@@ -175,9 +175,18 @@
 
             <div
               *ngIf="shouldDisplayContentCard(notification)"
-              class="mt-1.5 px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 leading-snug break-words"
-              [innerHTML]="notification.content"
-            ></div>
+              class="mt-1.5 px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-700 leading-snug flex items-center"
+            >
+              <div
+                [innerHTML]="notification.content"
+                class="mr-2 break-words text-sm w-[calc(100%-24px)]"
+              ></div>
+              <ui-icon
+                icon="arrow_right_alt"
+                class="transition-transform duration-200 group-hover:translate-x-1"
+                [size]="18"
+              ></ui-icon>
+            </div>
           </button>
           <ui-button
             *ngIf="!seenByUser(notification)"
@@ -257,4 +266,3 @@
     <router-outlet></router-outlet>
   </ng-container>
 </ui-sidenav-container>
-

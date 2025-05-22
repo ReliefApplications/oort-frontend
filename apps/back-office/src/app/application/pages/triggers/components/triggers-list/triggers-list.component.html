@@ -99,6 +99,18 @@
               >
               </ui-button>
               <ui-button
+                icon="file_copy"
+                [isIcon]="true"
+                variant="primary"
+                (click)="
+                  $event.stopPropagation();
+                  onDuplicate.emit({ trigger: element.trigger, type: element.type })
+                "
+                [disabled]="disabled"
+                [uiTooltip]="'common.duplicate' | translate"
+              >
+              </ui-button>
+              <ui-button
                 icon="delete"
                 [isIcon]="true"
                 variant="danger"

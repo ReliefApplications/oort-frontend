@@ -26,7 +26,7 @@ import {
 import { takeUntil } from 'rxjs';
 import { GET_RESOURCE, GET_RESOURCES } from './graphql/queries';
 import { Triggers, TriggersType } from './triggers.types';
-import { clone, get, isEqual, isNil } from 'lodash';
+import { clone, get, isEqual, isNil, omit } from 'lodash';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
 import { TranslateService } from '@ngx-translate/core';
@@ -260,7 +260,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
           trigger.id as string,
           value,
           () => {
-            this.handleTriggerEdition(value);
+            this.handleTriggerEdition({ ...value, id: trigger.id });
           }
         );
       }
@@ -287,6 +287,62 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
       customNotifications[index] = updatedTrigger;
       this.refreshResourcesOnCustomNotificationUpdate(customNotifications);
     }
+  }
+
+  /**
+   * Open modal to duplicate selected trigger
+   *
+   * @param trigger Selected trigger
+   * @param triggerType Trigger type
+   */
+  public async onDuplicateTrigger(
+    trigger: CustomNotification,
+    triggerType: TriggersType
+  ): Promise<void> {
+    const triggerFormGroup = await this.getTriggerForm(trigger, triggerType);
+    const { ManageTriggerModalComponent } = await import(
+      './components/manage-trigger-modal/manage-trigger-modal.component'
+    );
+    const dialogRef = this.dialog.open(ManageTriggerModalComponent, {
+      data: {
+        trigger: omit(trigger, 'id'),
+        triggerType,
+        formGroup: triggerFormGroup,
+        resource: this.openedResource,
+      },
+    });
+
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      if (value) {
+        this.applicationService.addCustomNotification(
+          value,
+          (newTrigger: CustomNotification) => {
+            if (newTrigger) {
+              const newValue = {
+                ...value,
+                ...newTrigger,
+                filter: trigger.filter,
+              };
+              const customNotifications = (
+                (this.openedResource?.customNotifications || []).concat([
+                  newValue,
+                ]) as CustomNotification[]
+              ).sort((a, b) =>
+                (a.name ?? '').localeCompare(b.name ?? '')
+              ) as CustomNotification[];
+
+              this.applicationService.editCustomNotificationFilters(
+                newTrigger.id ?? '',
+                trigger.filter
+              );
+              this.refreshResourcesOnCustomNotificationUpdate(
+                customNotifications
+              );
+            }
+          }
+        );
+      }
+    });
   }
 
   /**
@@ -319,8 +375,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
               };
 
               const customNotifications = (
-                this.openedResource?.customNotifications || []
-              ).concat([newValue]) as CustomNotification[];
+                (this.openedResource?.customNotifications || []).concat([
+                  newValue,
+                ]) as CustomNotification[]
+              ).sort((a, b) =>
+                (a.name ?? '').localeCompare(b.name ?? '')
+              ) as CustomNotification[];
 
               this.refreshResourcesOnCustomNotificationUpdate(
                 customNotifications
@@ -401,6 +461,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
           active: [get(trigger, 'redirect.active', '')],
           type: [get(trigger, 'redirect.type', '')],
           url: [get(trigger, 'redirect.url', '')],
+          field: [get(trigger, 'redirect.field', '')],
         }),
       });
 
