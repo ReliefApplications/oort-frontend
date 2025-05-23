@@ -39,6 +39,7 @@ import { RecordQueryResponse } from '../../models/record.model';
 import { GET_RECORD_BY_ID } from './graphql/queries';
 import { DashboardState } from '../../models/dashboard.model';
 import { DashboardService } from '../dashboard/dashboard.service';
+import { AuthService } from '../auth/auth.service';
 
 /**
  * Dashboard context service
@@ -69,6 +70,8 @@ export class ContextService {
   public filterValueRegex = /(?<={{filter\.)(.*?)(?=}})/gim;
   /** Context regex */
   public contextRegex = /{{context\.(.*?)}}/;
+  /** User regex */
+  public userAttributesRegex = /{{user.attributes\.(.*?)}}/;
   /** Available filter positions */
   public positionList = [
     FilterPosition.LEFT,
@@ -153,6 +156,7 @@ export class ContextService {
    * @param applicationService Shared application service
    * @param router Angular router
    * @param dashboardService Shared dashboard service
+   * @param authService shared Auth service
    */
   constructor(
     private dialog: Dialog,
@@ -162,7 +166,8 @@ export class ContextService {
     private formBuilderService: FormBuilderService,
     private applicationService: ApplicationService,
     private router: Router,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private authService: AuthService
   ) {
     this.filterPosition$.subscribe(
       (value: { position: FilterPosition; dashboardId: string } | null) => {
@@ -238,6 +243,31 @@ export class ContextService {
         (match) => {
           const field = match.replace('{{context.', '').replace('}}', '');
           return get(context, field) || match;
+        }
+      )
+    );
+  }
+
+  /**
+   * Replace {{user.attributes}} placeholders in object, with user attributes values
+   *
+   * @param object object with placeholders
+   * @returns object with replaced placeholders
+   */
+  public replaceUserAttributes(object: any): any {
+    const context = this.context;
+    const user = this.authService.user.getValue();
+    if (!context) {
+      return object;
+    }
+    return JSON.parse(
+      JSON.stringify(object).replace(
+        new RegExp(this.userAttributesRegex, 'g'),
+        (match) => {
+          const field = match
+            .replace('{{user.attributes', '')
+            .replace('}}', '');
+          return get(user?.attributes, field) || match;
         }
       )
     );
@@ -350,6 +380,8 @@ export class ContextService {
     const filterRegex = this.filterValueRegex;
     // Regex to detect {{context.}} in object
     const contextRegex = /(?<={{context\.)(.*?)(?=}})/gim;
+    // Regex to detect {{user.attributes.}} in object
+    const userAttributesRegex = /(?<={{user.attributes\.)(.*?)(?=}})/gim;
     // Regex to detect {{application.}} in object
     const applicationRegex = /(?<={{application\.)(.*?)(?=}})/gim;
 
@@ -359,11 +391,18 @@ export class ContextService {
         const stateName = filter.value?.match(this.dashboardStateRegex)?.[0];
         const filterName = filter.value?.match(filterRegex)?.[0];
         const contextName = filter.value?.match(contextRegex)?.[0];
+        const userAttributesName =
+          filter.value?.match(userAttributesRegex)?.[0];
         const appField = filter.value?.match(applicationRegex)?.[0];
         if (filterName) {
           filter.value = get(filterValue, filterName);
         } else if (contextName) {
           filter.value = get(this.context, contextName);
+        } else if (userAttributesName) {
+          filter.value = get(
+            this.authService.user.getValue()?.attributes,
+            userAttributesName
+          );
         } else if (appField) {
           filter.value = get(
             this.applicationService.application.getValue(),

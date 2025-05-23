@@ -208,6 +208,7 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
     try {
       let mapping = JSON.parse(aggregation.referenceDataVariableMapping || '');
       mapping = this.contextService.replaceContext(mapping);
+      mapping = this.contextService.replaceUserAttributes(mapping);
       mapping = this.contextService.replaceFilter(mapping);
       this.contextService.removeEmptyPlaceholders(mapping);
       return mapping;

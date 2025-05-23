@@ -1252,6 +1252,7 @@ export class MapComponent
     if (geographicExtents && geographicExtents.length > 0) {
       let mapping = clone(geographicExtents);
       mapping = this.contextService.replaceContext(mapping);
+      mapping = this.contextService.replaceUserAttributes(mapping);
       mapping = this.contextService.replaceFilter(mapping);
       this.contextService.removeEmptyPlaceholders(mapping);
       return mapping;

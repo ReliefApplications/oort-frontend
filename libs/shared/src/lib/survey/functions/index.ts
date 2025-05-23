@@ -37,6 +37,7 @@ import concat from './concat';
 import indexedRepeat from './indexedRepeat';
 import string from './string';
 import sumElements from './sumElements';
+import getUsersWithRoleAndAttribute from './getUsersWithRoleAndAttribute';
 import maxElements from './maxElements';
 import minElements from './minElements';
 import regex from './regex';
@@ -119,4 +120,5 @@ export const asyncFunctions = [
   { fn: getComplaintsByType, name: 'getComplaintsByType' },
   { fn: getCurrentYearAids, name: 'getCurrentYearAids' },
   { fn: getPreviouslyReported, name: 'getPreviouslyReported' },
+  { fn: getUsersWithRoleAndAttribute, name: 'getUsersWithRoleAndAttribute' },
 ];
