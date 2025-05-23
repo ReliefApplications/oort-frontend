@@ -36,6 +36,7 @@ interface DialogData {
 const emailRecipientsOptions = [
   customNotificationRecipientsType.distributionList,
   customNotificationRecipientsType.email,
+  customNotificationRecipientsType.channel,
   customNotificationRecipientsType.userField,
   customNotificationRecipientsType.emailField,
 ];

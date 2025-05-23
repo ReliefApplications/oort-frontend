@@ -1,14 +1,13 @@
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
-  Access,
   CustomNotification,
   FiltersService,
   Resource,
 } from '@oort-front/shared';
 import { TranslateService } from '@ngx-translate/core';
 import { get } from 'lodash';
-import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
+import { DIALOG_DATA } from '@angular/cdk/dialog';
 
 /**
  * Dialog data interface.
@@ -44,14 +43,12 @@ export class TriggersResourceFiltersComponent implements OnInit {
    * @param translate Angular translate service
    * @param fb Angular form builder
    * @param filtersService  Filters service
-   * @param dialogRef This is the reference of the dialog that will be opened.
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
     public translate: TranslateService,
     private fb: FormBuilder,
-    public filtersService: FiltersService,
-    private dialogRef: DialogRef<Access[]>
+    public filtersService: FiltersService
   ) {}
 
   async ngOnInit(): Promise<void> {

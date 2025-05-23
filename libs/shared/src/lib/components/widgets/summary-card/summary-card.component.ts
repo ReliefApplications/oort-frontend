@@ -236,6 +236,7 @@ export class SummaryCardComponent
         this.settings.card?.referenceDataVariableMapping || ''
       );
       mapping = this.contextService.replaceContext(mapping);
+      mapping = this.contextService.replaceUserAttributes(mapping);
       mapping = this.contextService.replaceFilter(mapping);
       mapping = this.replaceWidgetVariables(mapping);
       this.contextService.removeEmptyPlaceholders(mapping);

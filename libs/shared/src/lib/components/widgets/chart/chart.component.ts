@@ -124,6 +124,7 @@ export class ChartComponent
         this.settings.referenceDataVariableMapping || ''
       );
       mapping = this.contextService.replaceContext(mapping);
+      mapping = this.contextService.replaceUserAttributes(mapping);
       mapping = this.contextService.replaceFilter(mapping);
       this.contextService.removeEmptyPlaceholders(mapping);
       return mapping;
