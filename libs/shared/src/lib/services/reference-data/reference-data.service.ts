@@ -122,6 +122,15 @@ export class ReferenceDataService {
       }
     };
 
+    const translateOptions = (item: any) => ({
+      value: storePrimitiveValue ? item[valueField] : item,
+      text: tryLoadTranslations
+        ? item[`${displayField}_${lang}`] ??
+          item[`${displayField.slice(0, -3)}_${lang}`] ??
+          item[displayField]
+        : item[displayField],
+    });
+
     // get items
     const { items, referenceData } = await this.cacheItems(referenceDataID);
     const valueField = referenceData?.valueField || '';
@@ -163,20 +172,10 @@ export class ReferenceDataService {
             item[filter.localField]
           )
         )
-        .map((item) => ({
-          value: storePrimitiveValue ? item[valueField] : item,
-          text: tryLoadTranslations
-            ? item[`${displayField}_${lang}`] ?? item[displayField]
-            : item[displayField],
-        }));
+        .map(translateOptions);
     }
     // if we don't have to filter
-    return items.map((item) => ({
-      value: storePrimitiveValue ? item[valueField] : item,
-      text: tryLoadTranslations
-        ? item[`${displayField}_${lang}`] ?? item[displayField]
-        : item[displayField],
-    }));
+    return items.map(translateOptions);
   }
 
   /**

@@ -55,7 +55,6 @@ import { CommonModule } from '@angular/common';
 import { IconModule } from '@oort-front/ui';
 import { ButtonModule, SnackbarService, TabsModule } from '@oort-front/ui';
 import { RecordSummaryModule } from '../record-summary/record-summary.module';
-import { FormActionsModule } from '../form-actions/form-actions.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { SpinnerModule } from '@oort-front/ui';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
@@ -106,7 +105,6 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
     IconModule,
     TabsModule,
     RecordSummaryModule,
-    FormActionsModule,
     TranslateModule,
     DialogModule,
     ButtonModule,

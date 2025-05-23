@@ -5,7 +5,6 @@ import { FormModalComponent } from '../form-modal/form-modal.component';
 import { BlockScrollStrategy, Overlay } from '@angular/cdk/overlay';
 import { CommonModule } from '@angular/common';
 import { RecordSummaryModule } from '../record-summary/record-summary.module';
-import { FormActionsModule } from '../form-actions/form-actions.module';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   ButtonModule,
@@ -45,7 +44,6 @@ export function scrollFactory(overlay: Overlay): () => BlockScrollStrategy {
     ButtonModule,
     IconModule,
     RecordSummaryModule,
-    FormActionsModule,
     TranslateModule,
     DialogModule,
     SpinnerModule,

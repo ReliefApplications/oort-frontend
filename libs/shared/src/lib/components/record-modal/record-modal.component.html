@@ -7,11 +7,6 @@
           [record]="record"
           (showHistory)="onShowHistory()"
         ></shared-record-summary>
-
-        <shared-form-actions
-          [survey]="survey"
-          [surveyNext]="surveyNext || undefined"
-        ></shared-form-actions>
       </div>
       <div class="versions-info" *ngIf="data.compareTo">
         <div class="version-info">

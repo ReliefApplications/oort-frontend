@@ -260,7 +260,7 @@ export const init = (environment: any): void => {
         // Save the original values
         q.isRequiredCpy ??= q.isRequired;
         q.requiredIfCpy ??= q.requiredIf;
-        if (res === true) {
+        if (res && !obj.isDesignMode) {
           q.isRequired = false;
           q.requiredIf = '';
         } else {

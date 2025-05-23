@@ -676,7 +676,7 @@ export const render = (
           if (isMatrixCol && qAsMatrix && targetColName) {
             // Non-row-filtered matrix column
             (columnOrQuestionDefinition as QuestionSelectBase).choices =
-              choiceItems;
+              removeDuplicateOptions(choiceItems);
 
             qAsMatrix.visibleRows?.forEach((row: any) => {
               const rowData = row.value;

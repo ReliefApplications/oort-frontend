@@ -538,38 +538,38 @@ export class FormBuilderComponent
    */
   private async validateValueNames(): Promise<boolean> {
     this.relatedNames = [];
-    const survey = new SurveyModel(this.surveyCreator.JSON);
-    const canCreate = survey.pages.every((page: PageModel) => {
-      const verifiedQuestions = page.questions.every((question: Question) =>
-        this.setQuestionNames(question, page)
-      );
-      if (verifiedQuestions) {
-        // If questions verified, search for duplicated value names
-        const duplicatedFields = difference(
-          page.questions,
-          uniqBy(page.questions, 'valueName')
+    const canCreate = this.surveyCreator.survey.pages.every(
+      (page: PageModel) => {
+        const verifiedQuestions = page.questions.every((question: Question) =>
+          this.setQuestionNames(question, page)
         );
-        if (duplicatedFields.length > 0) {
-          this.snackBar.openSnackBar(
-            this.translate.instant(
-              'pages.formBuilder.errors.dataFieldDuplicated',
-              {
-                name: duplicatedFields[0].valueName,
-              }
-            ),
-            {
-              error: true,
-              duration: 15000,
-            }
+        if (verifiedQuestions) {
+          // If questions verified, search for duplicated value names
+          const duplicatedFields = difference(
+            page.questions,
+            uniqBy(page.questions, 'valueName')
           );
+          if (duplicatedFields.length > 0) {
+            this.snackBar.openSnackBar(
+              this.translate.instant(
+                'pages.formBuilder.errors.dataFieldDuplicated',
+                {
+                  name: duplicatedFields[0].valueName,
+                }
+              ),
+              {
+                error: true,
+                duration: 15000,
+              }
+            );
+            return false;
+          }
+        } else {
           return false;
         }
-      } else {
-        return false;
+        return true;
       }
-      return true;
-    });
-    this.surveyCreator.JSON = survey.toJSON();
+    );
     return canCreate;
   }
 

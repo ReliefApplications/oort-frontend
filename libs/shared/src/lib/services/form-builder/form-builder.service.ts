@@ -273,10 +273,13 @@ export class FormBuilderService {
     survey.checkErrorsMode = 'onComplete';
 
     // Cleanup callbacks
+    const dispose$ = new Subject<boolean>();
     const onDispose = new Event<() => void, SurveyModel, undefined>();
     survey.onDispose = onDispose;
     survey.disposeCallback = () => {
       onDispose.fire(survey, undefined);
+      dispose$.next(true);
+      dispose$.unsubscribe();
     };
 
     // Adds function to survey to be able to get the current parsed data
@@ -471,19 +474,19 @@ export class FormBuilderService {
       }
     });
 
-    // set the lang of the survey
-    const surveyLang = localStorage.getItem('surveyLang');
     const surveyLocales = survey.getUsedLocales();
-    if (surveyLang && surveyLocales.includes(surveyLang)) {
-      survey.locale = surveyLang;
-    } else {
-      const lang = this.translate.currentLang || this.translate.defaultLang;
+    const onLangChange = (lang: string) => {
       if (surveyLocales.includes(lang)) {
         survey.locale = lang;
       } else {
-        survey.locale = surveyLocales[0] ?? survey.locale;
+        survey.locale = surveyLocales[0];
       }
-    }
+    };
+
+    onLangChange(this.translate.currentLang || this.translate.defaultLang);
+    this.translate.onLangChange.pipe(takeUntil(dispose$)).subscribe((e) => {
+      onLangChange(e.lang);
+    });
 
     // Set query params as variables
     this.formHelpersService.addQueryParamsVariables(survey);

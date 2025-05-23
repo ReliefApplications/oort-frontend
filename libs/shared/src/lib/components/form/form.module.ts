@@ -8,7 +8,6 @@ import {
 } from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormComponent } from './form.component';
-import { FormActionsModule } from '../form-actions/form-actions.module';
 import { RecordSummaryModule } from '../record-summary/record-summary.module';
 import { ButtonModule } from '@oort-front/ui';
 import { SurveyModule } from 'survey-angular-ui';
@@ -27,7 +26,6 @@ import { DateModule } from '../../pipes/date/date.module';
     TabsModule,
     IconModule,
     RecordSummaryModule,
-    FormActionsModule,
     TranslateModule,
     ButtonModule,
     SurveyModule,
