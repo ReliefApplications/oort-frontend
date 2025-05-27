@@ -152,51 +152,65 @@
         *ngFor="let notification of notifications"
       >
         <div
-          class="flex items-start gap-4 px-4 py-3 hover:bg-gray-50 transition-colors rounded-lg group"
+          class="flex items-start gap-4 px-4 py-3 hover:bg-gray-50 transition-colors rounded-lg"
           uiMenuItem
         >
           <div
-            *ngIf="!seenByUser(notification)"
-            class="mt-1 w-2 h-2 bg-primary-500 rounded-full shrink-0"
-          ></div>
-          <button
-            class="w-full text-left flex-1"
-            [ngClass]="{ 'cursor-auto': !notification.redirect?.active }"
-            (click)="onNotificationClick(notification)"
+            class="w-full"
+            [ngClass]="{
+              'bg-gray-100 rounded-md p-3': !seenByUser(notification)
+            }"
           >
-            <div class="flex justify-between items-center mb-1">
-              <span class="font-medium text-sm text-gray-900">
-                {{ notification.action }}
-              </span>
-              <span class="text-xs text-gray-400 whitespace-nowrap">
+            <button
+              class="w-full text-left flex items-start"
+              [ngClass]="{
+                'cursor-auto': !notification.redirect?.active
+              }"
+              (click)="onNotificationClick(notification)"
+            >
+              <div class="flex-1 w-full group">
+                <div class="font-medium text-sm text-gray-900 w-full">
+                  {{ notification.action }}
+                </div>
+
+                <div
+                  *ngIf="shouldDisplayContentCard(notification)"
+                  class="py-2 text-gray-700 w-full"
+                >
+                  <div
+                    [innerHTML]="notification.content"
+                    [ngClass]="{
+                      'group-hover:underline': notification.redirect?.active
+                    }"
+                    class="break-words text-sm w-full"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Blue dot -->
+              <div
+                *ngIf="!seenByUser(notification)"
+                class="ml-2 mt-1 w-3 h-3 bg-primary-500 rounded-full shrink-0"
+              ></div>
+            </button>
+
+            <!-- Bottom row: date + mark as read -->
+            <div class="flex justify-between items-center mt-2">
+              <span class="text-xs text-gray-500 font-semibold">
                 {{ notification.createdAt | sharedDate }}
               </span>
+              <button
+                *ngIf="!seenByUser(notification)"
+                class="flex text-primary-500 group/markAsRead"
+                (click)="onNotificationRead($event, notification)"
+              >
+                <ui-icon icon="done"></ui-icon>
+                <p class="group-hover/markAsRead:underline">
+                  {{ 'components.notifications.markAsRead' | translate }}
+                </p>
+              </button>
             </div>
-
-            <div
-              *ngIf="shouldDisplayContentCard(notification)"
-              class="mt-1.5 px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-700 leading-snug flex items-center"
-            >
-              <div
-                [innerHTML]="notification.content"
-                class="mr-2 break-words text-sm w-[calc(100%-24px)]"
-              ></div>
-              <ui-icon
-                icon="arrow_right_alt"
-                class="transition-transform duration-200 group-hover:translate-x-1"
-                [size]="18"
-              ></ui-icon>
-            </div>
-          </button>
-          <ui-button
-            *ngIf="!seenByUser(notification)"
-            [isIcon]="true"
-            icon="done"
-            class="m-auto"
-            size="small"
-            (click)="onNotificationRead($event, notification)"
-            [uiTooltip]="'components.notifications.markAsRead' | translate"
-          ></ui-button>
+          </div>
         </div>
       </div>
     </div>
@@ -213,13 +227,13 @@
       </button>
 
       <!-- Load more notifications -->
-      <ui-button
+      <button
         [disabled]="loadingNotifications || !hasMoreNotifications"
         (click)="onLoadMoreNotifications($event)"
-        class="flex items-center text-primary-500 underline font-semibold"
+        class="flex items-center text-primary-500 font-semibold underline"
       >
         {{ 'common.pagination.loadMore' | translate }}
-      </ui-button>
+      </button>
     </div>
   </ui-menu>
 </nav>
