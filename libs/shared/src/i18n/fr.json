@@ -1565,6 +1565,10 @@
           "questionToState": "Les modifications apportées à la question seront répercutées sur l'état",
           "stateToQuestion": "Les modifications apportées à l'état seront répercutées sur la question"
         },
+        "floatingActions": {
+          "label": "Actions flottantes",
+          "tooltip": "Si les actions (précédent, suivant, enregistrer) doivent être flottantes au bas de la page"
+        },
         "loadRecord": {
           "title": "Charger l'enregistrement",
           "tooltip": "Sélectionnez un état du tableau de bord. Lorsque l'état passe à un identifiant d'enregistrement valide, le formulaire sera rempli avec les données de l'enregistrement."

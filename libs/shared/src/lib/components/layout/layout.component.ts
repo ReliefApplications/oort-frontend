@@ -450,7 +450,6 @@ export class LayoutComponent
       if (redirect.type === 'recordIds' && redirect.recordIds) {
         this.notificationService.redirectToRecords(notification);
       } else if (redirect.type === 'url' && redirect.url) {
-        console.log(notification);
         if (
           redirect.field &&
           redirect.recordIds &&

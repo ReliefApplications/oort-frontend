@@ -474,7 +474,6 @@ export class FormHelpersService {
     survey.setVariable('user.lastName', user?.lastName ?? '');
     survey.setVariable('user.email', user?.username ?? '');
 
-    console.log(this.environment);
     // Set user attributes
     for (const attribute of this.environment.user?.attributes || []) {
       survey.setVariable(

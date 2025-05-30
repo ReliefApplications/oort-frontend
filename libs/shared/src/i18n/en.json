@@ -1553,6 +1553,10 @@
           "questionToState": "Changes on the question will be reflected on the state",
           "stateToQuestion": "Changes on the state will be reflected on the question"
         },
+        "floatingActions": {
+          "label": "Floating actions",
+          "tooltip": "Whether the actions (previous, next, save) should be floating at the bottom of the page"
+        },
         "loadRecord": {
           "title": "Load record",
           "tooltip": "Select a dashboard state. When the state changes to a valid record id, the form will be populated with the record's data."
