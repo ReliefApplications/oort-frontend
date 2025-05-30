@@ -12,7 +12,7 @@
 <ng-container *ngIf="!loading && form">
   <shared-form
     [form]="form"
-    [floatingActions]="false"
+    [floatingActions]="settings?.floatingActions"
     [record]="record"
     [mapQuestionState]="settings?.mapQuestionState"
     (save)="onComplete($event)"

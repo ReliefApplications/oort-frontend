@@ -539,13 +539,13 @@ export class FormBuilderService {
 
     // Logic to initialize the survey on a specific page
     if (survey.openOnPageByQuestionValue) {
-      const question = survey.getQuestionByName(
-        survey.openOnPageByQuestionValue
+      const page = survey.getPageByName(
+        survey.record?.data[survey.openOnPageByQuestionValue] ?? ''
       );
-      const page = survey.getPageByName(question?.value);
       if (page) {
         const setInitialPage = () => {
           selectedPageIndex.next(page.visibleIndex);
+          survey.render();
           survey.onAfterRenderSurvey.remove(setInitialPage);
         };
         survey.onAfterRenderSurvey.add(setInitialPage);
