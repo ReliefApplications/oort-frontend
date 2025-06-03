@@ -190,8 +190,8 @@ export class SelectMenuComponent
           if (isNil(value) || value.length === 0) {
             this.selectedValues = [];
             this.optionList.forEach((option) => (option.selected = false));
-            this.setDisplayTriggerText();
           }
+          this.setDisplayTriggerText();
         },
       });
     }

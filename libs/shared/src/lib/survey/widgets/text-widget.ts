@@ -129,7 +129,7 @@ export const init = (
       );
     },
     isDefaultRender: true,
-    afterRender: (question: QuestionTextModel, el: HTMLInputElement): void => {
+    afterRender: (question: QuestionTextModel, el: HTMLDivElement): void => {
       let pickerDiv: HTMLDivElement | null = null;
       // add kendo date pickers for text inputs with dates types
       const updateTextInput = () => {
@@ -285,6 +285,15 @@ export const init = (
         } else {
           el.classList.add('flex-1', 'min-h-[36px]');
           el.style.display = 'initial';
+          const input = el.querySelector('input');
+          question.registerFunctionOnPropertyValueChanged(
+            'value',
+            (value: string) => {
+              if (input) {
+                input.value = value;
+              }
+            }
+          );
         }
       };
       question.registerFunctionOnPropertyValueChanged(
