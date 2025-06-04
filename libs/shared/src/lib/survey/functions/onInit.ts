@@ -1,19 +1,25 @@
-import { Question } from 'survey-core';
+import { Question, SurveyModel } from 'survey-core';
 import { GlobalOptions } from './types';
-import { isNull } from 'lodash';
+import { isArray, isNull } from 'lodash';
 
 /**
  * Registration of new custom functions for the survey.
  *
  * @param this Survey instance
  * @param this.question Question instance
+ * @param this.survey this survey
  * @param params Params passed to the function
  * @returns The question value
  */
-function onInit(this: { question: Question }, params: any[]) {
-  if (!this.question.onInit && !isNull(params[0])) {
-    this.question.onInit = true;
-    return params;
+function onInit(
+  this: { question: Question; survey: SurveyModel },
+  params: any[]
+) {
+  if (!this.question._initDone && !isNull(params[0])) {
+    this.survey.onAfterRenderSurvey.add(() => {
+      this.question._initDone = true;
+      this.question.value = isArray(this.question.value) ? params : params[0];
+    });
   }
   return this.question.value;
 }

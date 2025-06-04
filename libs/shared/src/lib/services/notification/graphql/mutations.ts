@@ -9,6 +9,7 @@ export const SEE_NOTIFICATION = gql`
       id
       action
       content
+      redirect
       createdAt
       channel {
         id
@@ -34,6 +35,7 @@ export const SEE_NOTIFICATIONS = gql`
       id
       action
       content
+      redirect
       createdAt
       channel {
         id
