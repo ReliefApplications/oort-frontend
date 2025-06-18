@@ -11,7 +11,7 @@ import { Question } from 'survey-core';
  * @returns The same value that was logged.
  */
 function log(this: { question: Question }, params: any[]) {
-  console.log(`${this.question.name}:`, ...params);
+  console.log(`${this.question?.name}:`, ...params);
   return params[0];
 }
 

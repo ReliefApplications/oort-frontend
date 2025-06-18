@@ -76,8 +76,8 @@ export const InitCustomQuestionComponent: {
     GeospatialComponent.init(domService, instance);
   },
   editor: (options) => {
-    const { injector, instance } = options;
-    EditorComponent.init(injector, instance);
+    const { injector, instance, document } = options;
+    EditorComponent.init(injector, instance, document);
   },
   shapeFile: (options) => {
     const { injector, instance } = options;

@@ -7,7 +7,7 @@ import {
   DropdownMultiSelectListModel,
   Question,
 } from 'survey-core';
-import { debounceTime, map, tap } from 'rxjs';
+import { debounceTime, map, Subject, takeUntil, tap } from 'rxjs';
 import updateChoices from './utils/common-list-filters';
 
 /**
@@ -29,6 +29,28 @@ export const init = (
     'tagbox',
     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><g><path d="M15,11H0V5h15V11z M1,10h13V6H1V10z"/></g><rect x="2" y="7" width="4" height="2"/><rect x="7" y="7" width="4" height="2"/></svg>'
   );
+  const unRegisterRelatedPropertyChangeCallbacks = (question: any) => {
+    question.unRegisterFunctionOnPropertyValueChanged(
+      'visibleChoices',
+      question._propertyValueChangedVirtual
+    );
+    question.unRegisterFunctionOnPropertyValueChanged(
+      'isPrimitiveValue',
+      question._primitiveValueChangeCallback
+    );
+    question.unRegisterFunctionOnPropertyValueChanged(
+      'value',
+      question._valueChangeCallback
+    );
+    question.unRegisterFunctionOnPropertyValueChanged(
+      'readOnly',
+      question._readOnlyChangeCallback
+    );
+    question.unRegisterFunctionOnPropertyValueChanged(
+      'useSummaryTagMode',
+      question._useSummaryTagModeChangeCallback
+    );
+  };
   const componentName = 'tagbox';
   const widget = {
     name: 'tagbox',
@@ -43,38 +65,50 @@ export const init = (
       return question.getType() === componentName;
     },
     init: () => {
-      if (Serializer.findClass(componentName)) return;
-      Serializer.addClass(
-        componentName,
-        [
-          { name: 'hasOther:boolean', visible: false },
-          { name: 'hasSelectAll:boolean', visible: false },
-          { name: 'hasNone:boolean', visible: false },
-          { name: 'otherText', visible: false },
-          { name: 'selectAllText', visible: false },
-          { name: 'noneText', visible: false },
-        ],
-        () => null,
-        'checkbox'
-      );
-      Serializer.addProperty(componentName, {
-        name: 'placeholder',
-        category: 'general',
-        default: '',
-      });
-      Serializer.addProperty(componentName, {
-        name: 'allowAddNewTag:boolean',
-        category: 'general',
-        default: false,
-      });
-    },
-    isDefaultRender: false,
-    afterRender: (question: any, el: HTMLElement): void => {
-      let currentSearchValue = '';
-      const defaultTagbox = el.querySelector('sv-ng-tagbox-question');
-      if (defaultTagbox) {
-        el.removeChild(defaultTagbox);
+      if (Serializer.findClass(componentName)) {
+        Serializer.addProperty(componentName, {
+          name: 'useSummaryTagMode',
+          type: 'boolean',
+          category: 'general',
+          default: false,
+        });
+      } else {
+        Serializer.addClass(
+          componentName,
+          [
+            { name: 'hasOther:boolean', visible: false },
+            { name: 'hasSelectAll:boolean', visible: false },
+            { name: 'hasNone:boolean', visible: false },
+            { name: 'otherText', visible: false },
+            { name: 'selectAllText', visible: false },
+            { name: 'noneText', visible: false },
+          ],
+          () => null,
+          'checkbox'
+        );
+        Serializer.addProperty(componentName, {
+          name: 'placeholder',
+          category: 'general',
+          default: '',
+        });
+        Serializer.addProperty(componentName, {
+          name: 'useSummaryTagMode',
+          type: 'boolean',
+          category: 'general',
+          default: false,
+        });
+        Serializer.addProperty(componentName, {
+          name: 'allowAddNewTag:boolean',
+          category: 'general',
+          default: false,
+        });
       }
+    },
+    isDefaultRender: true,
+    afterRender: (question: any, el: HTMLElement): void => {
+      unRegisterRelatedPropertyChangeCallbacks(question);
+      let currentSearchValue = '';
+      const defaultTagbox = el.querySelector('sv-ng-tagbox');
       const parentQuestion = question.parentQuestion;
       if (
         parentQuestion &&
@@ -86,14 +120,17 @@ export const init = (
       // Remove previous input if already rendered
       el.parentElement?.querySelector('.k-input')?.parentElement?.remove();
       widget.willUnmount(question);
+      question.destroy$ = new Subject<void>();
       let tagboxDiv: HTMLDivElement | null = null;
       tagboxDiv = document.createElement('div');
       tagboxDiv.classList.add('flex', 'min-h-[36px]');
       tagboxDiv.id = 'tagbox';
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const tagboxInstance = createTagboxInstance(tagboxDiv, question);
       // Make sure the value is valid
       try {
         tagboxInstance.value = question.value;
+        tagboxInstance.setState(question.value);
         tagboxInstance.verifySettings();
       } catch (err) {
         console.error(err);
@@ -111,23 +148,13 @@ export const init = (
         .pipe(
           debounceTime(500), // Debounce time to limit quantity of updates
           tap(() => (tagboxInstance.loading = true)),
-          map((searchValue: string) => searchValue?.toLowerCase()) // Make the filter non-case sensitive
+          map((searchValue: string) => searchValue?.toLowerCase()), // Make the filter non-case sensitive
+          takeUntil(question.destroy$)
         )
         .subscribe((searchValue: string) => {
           currentSearchValue = searchValue;
           updateChoices(tagboxInstance, question, searchValue);
         });
-
-      // On change, we update the value of the select
-      question._onValueChanged = () => {
-        if (question.value !== tagboxInstance.value) {
-          tagboxInstance.value = question.value;
-        }
-      };
-      question.registerFunctionOnPropertyValueChanged(
-        'value',
-        question._onValueChanged
-      );
       question._propertyValueChangedVirtual = () => {
         updateChoices(tagboxInstance, question, currentSearchValue);
       };
@@ -135,28 +162,60 @@ export const init = (
         'visibleChoices',
         question._propertyValueChangedVirtual
       );
+      question._primitiveValueChangeCallback = (newValue: boolean) => {
+        tagboxInstance.clearAll();
+        tagboxInstance.valuePrimitive = newValue;
+        question.value = null;
+        question.defaultValue = null;
+      };
       question.registerFunctionOnPropertyValueChanged(
         'isPrimitiveValue',
-        (newValue: boolean) => {
-          tagboxInstance.clearAll();
-          tagboxInstance.valuePrimitive = newValue;
-          question.value = null;
-          question.defaultValue = null;
-        }
+        question._primitiveValueChangeCallback
       );
+
+      question._valueChangeCallback = () => {
+        if (!question.isPrimitiveValue) {
+          tagboxInstance.value = question.value;
+          updateChoices(tagboxInstance, question, currentSearchValue);
+        }
+      };
+      question.registerFunctionOnPropertyValueChanged(
+        'value',
+        question._valueChangeCallback
+      );
+
+      question._readOnlyChangeCallback = (value: boolean) => {
+        tagboxInstance.readonly = value;
+        tagboxInstance.disabled = value;
+      };
       question.registerFunctionOnPropertyValueChanged(
         'readOnly',
-        (value: boolean) => {
-          tagboxInstance.readonly = value;
-          tagboxInstance.disabled = value;
-        }
+        question._readOnlyChangeCallback
       );
+
+      question._useSummaryTagModeChangeCallback = (value: boolean) => {
+        if (value) {
+          tagboxInstance.tagMapper = (tags: any[]) => {
+            return tags.length < 2 ? tags : [tags];
+          };
+        } else {
+          tagboxInstance.tagMapper = () => null;
+        }
+      };
+      question.registerFunctionOnPropertyValueChanged(
+        'useSummaryTagMode',
+        question._useSummaryTagModeChangeCallback
+      );
+
       if (question.visibleChoices.length) {
         updateChoices(tagboxInstance, question, currentSearchValue);
       }
-      el.parentElement?.appendChild(tagboxDiv);
+      question._instance = tagboxInstance;
+      defaultTagbox?.replaceWith(tagboxDiv);
     },
     willUnmount: (question: any): void => {
+      question.destroy$?.next();
+      question.destroy$?.complete();
       if (!question._propertyValueChangedVirtual) return;
       question.readOnlyChangedCallback = null;
       question.valueChangedCallback = null;
@@ -164,11 +223,9 @@ export const init = (
         'visibleChoices',
         question._propertyValueChangedVirtual
       );
+      unRegisterRelatedPropertyChangeCallbacks(question);
+      question._instance = undefined;
       question._propertyValueChangedVirtual = undefined;
-      question.unRegisterFunctionOnPropertyValueChanged(
-        'value',
-        question._onValueChanged
-      );
     },
   };
 
@@ -197,11 +254,17 @@ export const init = (
     tagboxInstance.disabled = true;
     tagboxInstance.textField = 'text';
     tagboxInstance.valueField = 'value';
-    tagboxInstance.popupSettings = { appendTo: 'component' };
-    tagboxInstance.fillMode = 'none';
-    tagboxInstance.tagMapper = (tags: any[]) => {
-      return tags.length < 2 ? tags : [tags];
+    tagboxInstance.popupSettings = {
+      appendTo: 'component',
+      width: question.popupWidth,
     };
+    tagboxInstance.fillMode = 'none';
+    if (question.useSummaryTagMode) {
+      tagboxInstance.tagMapper = (tags: any[]) => {
+        return tags.length < 2 ? tags : [tags];
+      };
+    }
+
     return tagboxInstance;
   };
   // ⚠ danger ⚠

@@ -18,24 +18,24 @@
     </ui-graphql-select>
   </div>
 
-  <div class="flex flex-wrap items-start" *ngIf="form">
-    <div class="flex">
-      <ui-toggle formControlName="floatingActions">
-        <ng-container ngProjectAs="label">
-          {{ 'components.widget.form.floatingActions.label' | translate }}
-          <ui-icon
-            class="ml-1 cursor-help self-center"
-            icon="info_outline"
-            variant="grey"
-            [size]="18"
-            [uiTooltip]="
-              'components.widget.form.floatingActions.tooltip' | translate
-            "
-          ></ui-icon>
-        </ng-container>
-      </ui-toggle>
-    </div>
+  <div class="flex" *ngIf="form">
+    <ui-toggle formControlName="floatingActions">
+      <ng-container ngProjectAs="label">
+        {{ 'components.widget.form.floatingActions.label' | translate }}
+        <ui-icon
+          class="ml-1 cursor-help self-center"
+          icon="info_outline"
+          variant="grey"
+          [size]="18"
+          [uiTooltip]="
+            'components.widget.form.floatingActions.tooltip' | translate
+          "
+        ></ui-icon>
+      </ng-container>
+    </ui-toggle>
+  </div>
 
+  <div class="flex flex-wrap items-start" *ngIf="form">
     <!-- re-populate just submitted records -->
     <div class="flex-1 mr-4 min-w-max">
       <ui-toggle formControlName="autoPopulateOnSubmit">

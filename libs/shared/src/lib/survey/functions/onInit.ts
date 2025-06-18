@@ -17,6 +17,9 @@ function onInit(
 ) {
   if (!this.question._initDone && !isNull(params[0])) {
     this.survey.onAfterRenderSurvey.add(() => {
+      if (this.question._initDone) {
+        return;
+      }
       this.question._initDone = true;
       this.question.value = isArray(this.question.value) ? params : params[0];
     });
