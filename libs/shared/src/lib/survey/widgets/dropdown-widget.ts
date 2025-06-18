@@ -9,9 +9,8 @@ import {
   QuestionSelectBase,
 } from 'survey-core';
 import { has, isArray, isEqual, isObject, isNil } from 'lodash';
-import { debounceTime, map, tap } from 'rxjs';
+import { debounceTime, map, Subject, takeUntil, tap } from 'rxjs';
 import updateChoices from './utils/common-list-filters';
-import { ComponentRef } from '@angular/core';
 
 /**
  * Init dropdown widget
@@ -48,22 +47,19 @@ export const init = (
       el: HTMLInputElement
     ): void => {
       let currentSearchValue = '';
-      const defaultDropdown = el.querySelector('sv-ng-dropdown-question');
-      if (defaultDropdown) {
-        el.removeChild(defaultDropdown);
-      }
+      const defaultDropdown = el.querySelector('sv-ng-dropdown');
       // Remove previous input if already rendered
       el.parentElement?.querySelector('.k-input')?.parentElement?.remove();
       widget.willUnmount(question);
+      question.destroy$ = new Subject<void>();
+      question.abortSignal = new AbortController();
       // remove default render
       el.parentElement?.querySelector('.sv_select_wrapper')?.remove();
       let dropdownDiv: HTMLDivElement | null = null;
       dropdownDiv = document.createElement('div');
       dropdownDiv.classList.add('flex', 'min-h-[36px]');
-      const dropdownRef = createDropdownInstance(dropdownDiv, question);
-      const dropdownInstance = dropdownRef.instance;
-      // Add a reference to the dropdown instance
-      question.dropdownInstance = dropdownInstance;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const dropdownInstance = createDropdownInstance(dropdownDiv, question);
       // Make sure the value is valid
       if (!isObject(question.value) && !isArray(question.value)) {
         dropdownInstance.value = question.value;
@@ -71,13 +67,13 @@ export const init = (
       dropdownInstance.placeholder = question.placeholder;
       dropdownInstance.readonly = question.isReadOnly;
       dropdownInstance.registerOnChange((value: any) => {
-        // Make sure the value is valid if it's primitive
-        const validPrimitiveValue = !isObject(value) && !isArray(value);
-        const isComplexValue = !question.isPrimitiveValue;
-
-        if (isComplexValue || validPrimitiveValue) {
+        // Make sure the value is valid
+        if (question.isPrimitiveValue) {
+          if (!isObject(value) && !isArray(value)) {
+            question.value = value;
+          }
+        } else {
           question.value = value;
-          dropdownRef?.changeDetectorRef.detectChanges();
         }
       });
 
@@ -86,7 +82,8 @@ export const init = (
         .pipe(
           debounceTime(500), // Debounce time to limit quantity of updates
           tap(() => (dropdownInstance.loading = true)),
-          map((searchValue: string) => searchValue?.toLowerCase()) // Make the filter non-case sensitive
+          map((searchValue: string) => searchValue?.toLowerCase()), // Make the filter non-case sensitive
+          takeUntil(question.destroy$)
         )
         .subscribe((searchValue: string) => {
           currentSearchValue = searchValue;
@@ -137,9 +134,13 @@ export const init = (
       if (question.visibleChoices.length) {
         updateChoices(dropdownInstance, question, currentSearchValue);
       }
-      el.parentElement?.appendChild(dropdownDiv);
+      question._instance = dropdownInstance;
+      defaultDropdown?.replaceWith(dropdownDiv);
     },
     willUnmount: (question: any): void => {
+      question.destroy$?.next();
+      question.destroy$?.complete();
+      question.abortSignal?.abort();
       if (!question._propertyValueChangedVirtual) return;
       question.readOnlyChangedCallback = null;
       question.valueChangedCallback = null;
@@ -147,6 +148,7 @@ export const init = (
         'visibleChoices',
         question._propertyValueChangedVirtual
       );
+      question._instance = undefined;
       question._propertyValueChangedVirtual = undefined;
     },
   };
@@ -161,7 +163,7 @@ export const init = (
   const createDropdownInstance = (
     element: HTMLDivElement,
     question: QuestionDropdownModel
-  ): ComponentRef<ComboBoxComponent> => {
+  ): ComboBoxComponent => {
     const dropdown = domService.appendComponentToBody(
       ComboBoxComponent,
       element
@@ -176,9 +178,24 @@ export const init = (
     dropdownInstance.disabled = true;
     dropdownInstance.textField = 'text';
     dropdownInstance.valueField = 'value';
-    dropdownInstance.popupSettings = { appendTo: 'component' };
+    dropdownInstance.popupSettings = {
+      appendTo: 'component',
+      width: question.popupWidth,
+    };
+    // Automatic display of dropdown panel on element focus by default
+    dropdownInstance.wrapper.nativeElement
+      .querySelector('input')
+      ?.addEventListener(
+        'click',
+        () => {
+          if (!dropdownInstance.isOpen) {
+            dropdownInstance.toggle(true);
+          }
+        },
+        { signal: question.abortSignal.signal }
+      );
     dropdownInstance.fillMode = 'none';
-    return dropdown;
+    return dropdownInstance;
   };
 
   customWidgetCollectionInstance.addCustomWidget(widget, 'customwidget');
