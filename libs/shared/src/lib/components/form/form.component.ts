@@ -12,7 +12,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
-import { SurveyModel } from 'survey-core';
+import {
+  PanelModel,
+  Question,
+  QuestionPanelDynamicModel,
+  SurveyModel,
+} from 'survey-core';
 import { ADD_RECORD, EDIT_RECORD } from './graphql/mutations';
 import { Form } from '../../models/form.model';
 import {
@@ -110,6 +115,38 @@ export class FormComponent
   // public storageDate?: Date;
 
   /**
+   * Gets the error questions for current page
+   *
+   * @returns the error questions for current page
+   */
+  get errorQuestions() {
+    return this.formBuilderService.errorsSummary.filter(
+      (error) => error.page === this.selectedPageIndex.value
+    );
+  }
+
+  /**
+   * Returns a list of the panel and dynamic panel questions from current page
+   *
+   * @returns a list of the panel and dynamic panel questions from current page
+   */
+  get panels(): (PanelModel | QuestionPanelDynamicModel)[] {
+    return this.survey.currentPage.elements.filter(
+      (el: Question) =>
+        el.getType() === 'panel' || el.getType() === 'paneldynamic'
+    );
+  }
+
+  /**
+   * Whether all panels are collapsed or not
+   *
+   * @returns the collapsed state
+   */
+  get collapsed() {
+    return this.panels.every((panel) => panel.isCollapsed);
+  }
+
+  /**
    * The constructor function is a special function that is called when a new instance of the class is
    * created.
    *
@@ -129,7 +166,7 @@ export class FormComponent
     private snackBar: SnackbarService,
     private authService: AuthService,
     private layoutService: UILayoutService,
-    private formBuilderService: FormBuilderService,
+    public formBuilderService: FormBuilderService,
     public formHelpersService: FormHelpersService,
     private translate: TranslateService,
     private dashboardService: DashboardService
@@ -342,9 +379,10 @@ export class FormComponent
                 }
                 // localStorage.removeItem(this.storageId);
                 if (
-                  data.editRecord ||
-                  data.addRecord.form.uniqueRecord ||
-                  autoSave
+                  !this.survey.alwaysShowCompletedPage &&
+                  (data.editRecord ||
+                    data.addRecord.form.uniqueRecord ||
+                    autoSave)
                 ) {
                   this.survey.clear(false, false);
                   if (data.addRecord) {
@@ -422,6 +460,26 @@ export class FormComponent
   }
 
   /**
+   * Scrolls to the error
+   *
+   * @param questionName Question name
+   */
+  onErrorClick(questionName: string) {
+    const question = this.survey.getQuestionByName(questionName);
+    if (question) {
+      question.focus();
+    }
+  }
+
+  /**
+   * Toggles the expansion/collapsion of all panels
+   */
+  toggleAllPanels() {
+    const toggle = this.collapsed ? 'expand' : 'collapse';
+    this.panels.forEach((panel) => panel[toggle]());
+  }
+
+  /**
    * Open a dialog modal to confirm the recovery of data
    *
    * @param record The record whose data we need to recover
@@ -486,7 +544,11 @@ export class FormComponent
     });
 
     const structure = JSON.parse(this.form.structure || '{}');
-    if (structure && !structure.completedHtml) {
+    if (
+      structure &&
+      !structure.completedHtml &&
+      !structure.completedHtmlOnCondition
+    ) {
       structure.completedHtml = `<h3>${this.translate.instant(
         'components.form.display.submissionMessage'
       )}</h3>`;
@@ -516,7 +578,7 @@ export class FormComponent
       this.destroy$
     );
 
-    this.survey.showCompletedPage = false;
+    //this.survey.showCompletedPage = false;
     if (!this.record && !this.form.canCreateRecords) {
       this.survey.mode = 'display';
     }

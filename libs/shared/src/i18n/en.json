@@ -841,6 +841,7 @@
           "confirmationMessage": "Do you confirm the deletion of the aggregation {{name}}?"
         }
       },
+      "collapseAll": "Collapse all",
       "create": {
         "choice": {
           "inherit": "Create from template",
@@ -910,6 +911,7 @@
         "successEdit": "Successfully edited draft",
         "successSave": "Successfully saved as draft"
       },
+      "expandAll": "Expand all",
       "lastSavedAt": "Last saved at {{date}}",
       "layout": {
         "delete": {

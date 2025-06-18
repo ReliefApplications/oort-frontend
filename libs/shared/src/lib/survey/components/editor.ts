@@ -17,10 +17,12 @@ import { CustomPropertyGridComponentTypes } from './utils/components.enum';
  *
  * @param injector Parent instance angular injector containing all needed services and directives
  * @param componentCollectionInstance ComponentCollection
+ * @param document Document
  */
 export const init = (
   injector: Injector,
-  componentCollectionInstance: ComponentCollection
+  componentCollectionInstance: ComponentCollection,
+  document: Document
 ): void => {
   // get services
   const domService = injector.get(DomService);
@@ -50,6 +52,13 @@ export const init = (
       });
       return;
     },
+    onCreated: (question: Question) => {
+      question.focus = () => {
+        document
+          .getElementById(question.inputId.slice(0, -1))
+          ?.scrollIntoView({ block: 'start' });
+      };
+    },
     onAfterRender: (question: Question, el: HTMLElement): void => {
       // hides the input element
       const element = el.getElementsByTagName('input')[0].parentElement;
@@ -69,6 +78,11 @@ export const init = (
         el
       );
       const instance: EditorQuestionComponent = editor.instance;
+      const readonly =
+        question.isReadOnly ||
+        question.survey.isDesignMode ||
+        question.survey.isDisplayMode;
+
       instance.config = {
         ...JSON.parse(question.tinymceConfig),
         base_url: editorService.url,
@@ -77,14 +91,14 @@ export const init = (
           toolbar: false,
           menubar: false,
         }),
+        ...(readonly && {
+          editable_root: false,
+        }),
       };
       instance.cdr.detectChanges();
 
       // Set readonly mode of instance based on readonly & survey mode
-      instance.readonly =
-        question.isReadOnly ||
-        question.survey.isDesignMode ||
-        question.survey.isDisplayMode;
+      instance.readonly = readonly;
 
       instance.editorLoaded.subscribe((value) => {
         if (!value) {

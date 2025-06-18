@@ -14,6 +14,7 @@ import {
   MatrixDropdownCell,
   MatrixDropdownColumn,
   Event,
+  PageModel,
 } from 'survey-core';
 import { ReferenceDataService } from '../reference-data/reference-data.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
@@ -226,6 +227,13 @@ const getUpdateData = (
 export class FormBuilderService {
   /** If updating record, saves recordId if necessary gets files from questions */
   public recordId?: string;
+  /** Summary of the errors of the form */
+  public errorsSummary: {
+    label: string;
+    message: string;
+    page: number;
+    questionName: string;
+  }[] = [];
 
   /**
    * Constructor of the service
@@ -263,6 +271,7 @@ export class FormBuilderService {
     record?: RecordModel,
     form?: Form
   ): SurveyModel {
+    this.errorsSummary = [];
     settings.useCachingForChoicesRestful = false;
     settings.useCachingForChoicesRestfull = false;
     settings.lazyRender = {
@@ -368,6 +377,23 @@ export class FormBuilderService {
     //     survey.onQuestionValueChanged[options.name](options);
     //   }
     // });
+    survey.onSettingQuestionErrors.add((_, options) => {
+      const existingError = this.errorsSummary.find(
+        (error) => error.questionName == options.question.name
+      );
+      if (options.errors.length && !existingError) {
+        this.errorsSummary.push({
+          label: options.question.title,
+          message: options.errors[0].getText(),
+          page: survey.visiblePages.indexOf(options.question.page as PageModel),
+          questionName: options.question.name,
+        });
+      } else if (existingError) {
+        this.errorsSummary = this.errorsSummary.filter(
+          (error) => error != existingError
+        );
+      }
+    });
 
     // Handles logic for after record creation, selection and deselection on resource type questions
     survey.onCompleting.add(() => {

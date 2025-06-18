@@ -96,6 +96,21 @@ export const init = (environment: any): void => {
     visibleIndex: 4,
     default: false,
   });
+
+  // Show errors on side when validating
+  serializer.addProperty('survey', {
+    name: 'showErrorsOnSide:boolean',
+    displayName:
+      'Show errors on side of each page on survey/question validation',
+    category: 'validation',
+    default: false,
+  });
+  // Show errors on side when validating
+  serializer.addProperty('survey', {
+    name: 'alwaysShowCompletedPage:boolean',
+    category: 'validation',
+    default: false,
+  });
   // Adds a property to the survey settings to open the form on a specific page using the question value
   // of the selected question (the value must be a page name)
   serializer.addProperty('survey', {
@@ -207,6 +222,13 @@ export const init = (environment: any): void => {
     category: 'general',
     type: 'dropdown',
     choices: yesNoChoices,
+    default: false,
+  });
+
+  //Whether to show a button to expand/collapse all panels
+  serializer.addProperty('survey', {
+    name: 'showToggleExpansion:boolean',
+    category: 'general',
     default: false,
   });
 
