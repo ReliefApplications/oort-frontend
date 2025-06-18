@@ -912,6 +912,7 @@
         "successSave": "Successfully saved as draft"
       },
       "expandAll": "Expand all",
+      "fixErrors": "Please fix the following errors:",
       "lastSavedAt": "Last saved at {{date}}",
       "layout": {
         "delete": {

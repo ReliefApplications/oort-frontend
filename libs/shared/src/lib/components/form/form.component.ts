@@ -578,7 +578,7 @@ export class FormComponent
       this.destroy$
     );
 
-    //this.survey.showCompletedPage = false;
+    this.survey.showCompletedPage = false;
     if (!this.record && !this.form.canCreateRecords) {
       this.survey.mode = 'display';
     }

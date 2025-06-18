@@ -923,6 +923,7 @@
         "successSave": "Enregistré dans les brouillons avec succès"
       },
       "expandAll": "Tout deplier",
+      "fixErrors": "Veuillez corriger les erreurs suivantes :",
       "lastSavedAt": "Dernière sauvegarde à {{date}}",
       "layout": {
         "delete": {

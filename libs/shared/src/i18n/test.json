@@ -912,6 +912,7 @@
         "successSave": "******"
       },
       "expandAll": "******",
+      "fixErrors": "******",
       "lastSavedAt": "****** {{date}}",
       "layout": {
         "delete": {
