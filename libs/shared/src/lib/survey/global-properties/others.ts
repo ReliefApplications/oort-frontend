@@ -13,7 +13,6 @@ import { MatrixManager } from '../controllers/matrixManager';
 import { CustomPropertyGridComponentTypes } from '../components/utils/components.enum';
 import { registerCustomPropertyEditor } from '../components/utils/component-register';
 
-
 /**
  * Add support for custom properties to the survey
  *
@@ -471,10 +470,7 @@ export const init = (environment: any): void => {
       else if (!res && obj.collapse) obj.collapse();
     },
   });
-
-}
-;
-
+};
 
 /**
  * Render the other global properties
