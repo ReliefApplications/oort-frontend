@@ -13,6 +13,7 @@ import { MatrixManager } from '../controllers/matrixManager';
 import { CustomPropertyGridComponentTypes } from '../components/utils/components.enum';
 import { registerCustomPropertyEditor } from '../components/utils/component-register';
 
+
 /**
  * Add support for custom properties to the survey
  *
@@ -459,7 +460,21 @@ export const init = (environment: any): void => {
   // Add a property that allows copying columns from another matrix
   serializer.addProperty('matrixdropdown', copyColumnsOtherMatrixProp);
   serializer.addProperty('matrixdynamic', copyColumnsOtherMatrixProp);
-};
+
+  // Add ability to conditionally expand/collapse a panel
+  serializer.addProperty('panel', {
+    name: 'expandIf:expression',
+    displayName: 'Expand the panel if',
+    category: 'logic',
+    onExecuteExpression: (obj: any, res: boolean) => {
+      if (res && obj.collapse) obj.expand();
+      else if (!res && obj.collapse) obj.collapse();
+    },
+  });
+
+}
+;
+
 
 /**
  * Render the other global properties
