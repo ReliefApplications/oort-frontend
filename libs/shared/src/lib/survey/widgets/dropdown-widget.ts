@@ -11,6 +11,7 @@ import {
 import { has, isArray, isEqual, isObject, isNil } from 'lodash';
 import { debounceTime, map, Subject, takeUntil, tap } from 'rxjs';
 import updateChoices from './utils/common-list-filters';
+import { ComponentRef } from '@angular/core';
 
 /**
  * Init dropdown widget
@@ -59,7 +60,8 @@ export const init = (
       dropdownDiv = document.createElement('div');
       dropdownDiv.classList.add('flex', 'min-h-[36px]');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const dropdownInstance = createDropdownInstance(dropdownDiv, question);
+      const dropdown = createDropdownInstance(dropdownDiv, question);
+      const dropdownInstance = dropdown.instance;
       // Make sure the value is valid
       if (!isObject(question.value) && !isArray(question.value)) {
         dropdownInstance.value = question.value;
@@ -75,6 +77,7 @@ export const init = (
         } else {
           question.value = value;
         }
+        dropdown?.changeDetectorRef.detectChanges();
       });
 
       // We subscribe to whatever you write on the field so we can filter the data accordingly
@@ -163,7 +166,7 @@ export const init = (
   const createDropdownInstance = (
     element: HTMLDivElement,
     question: QuestionDropdownModel
-  ): ComboBoxComponent => {
+  ): ComponentRef<ComboBoxComponent> => {
     const dropdown = domService.appendComponentToBody(
       ComboBoxComponent,
       element
@@ -195,7 +198,7 @@ export const init = (
         { signal: question.abortSignal.signal }
       );
     dropdownInstance.fillMode = 'none';
-    return dropdownInstance;
+    return dropdown;
   };
 
   customWidgetCollectionInstance.addCustomWidget(widget, 'customwidget');

@@ -9,6 +9,7 @@ import {
 } from 'survey-core';
 import { debounceTime, map, Subject, takeUntil, tap } from 'rxjs';
 import updateChoices from './utils/common-list-filters';
+import { ComponentRef } from '@angular/core';
 
 /**
  * Init tagbox question
@@ -126,7 +127,8 @@ export const init = (
       tagboxDiv.classList.add('flex', 'min-h-[36px]');
       tagboxDiv.id = 'tagbox';
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const tagboxInstance = createTagboxInstance(tagboxDiv, question);
+      const tagbox = createTagboxInstance(tagboxDiv, question);
+      const tagboxInstance = tagbox.instance;
       // Make sure the value is valid
       try {
         tagboxInstance.value = question.value;
@@ -141,6 +143,7 @@ export const init = (
       tagboxInstance.readonly = question.isReadOnly;
       tagboxInstance.registerOnChange((value: any) => {
         question.value = value;
+        tagbox.changeDetectorRef.detectChanges();
       });
 
       // We subscribe to whatever you write on the field so we can filter the data accordingly
@@ -239,7 +242,7 @@ export const init = (
   const createTagboxInstance = (
     element: any,
     question: Question
-  ): MultiSelectComponent => {
+  ): ComponentRef<MultiSelectComponent> => {
     const tagbox = domService.appendComponentToBody(
       MultiSelectComponent,
       element
@@ -265,7 +268,7 @@ export const init = (
       };
     }
 
-    return tagboxInstance;
+    return tagbox;
   };
   // ⚠ danger ⚠
   /**
