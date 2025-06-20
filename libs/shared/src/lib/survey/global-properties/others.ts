@@ -463,11 +463,16 @@ export const init = (environment: any): void => {
   // Add ability to conditionally expand/collapse a panel
   serializer.addProperty('panel', {
     name: 'expandIf:expression',
-    displayName: 'Expand the panel if',
+    displayName: 'Expand the panel if (on form init)',
     category: 'logic',
-    onExecuteExpression: (obj: any, res: boolean) => {
-      if (res && obj.collapse) obj.expand();
-      else if (!res && obj.collapse) obj.collapse();
+    onExecuteExpression: (question: Question, res: boolean) => {
+      if (!question._initial_expand_done) {
+        (question.survey as SurveyModel).onAfterRenderSurvey.add(() => {
+          question._initial_expand_done = true;
+          if (res) question.expand();
+          else question.collapse();
+        });
+      }
     },
   });
 };
