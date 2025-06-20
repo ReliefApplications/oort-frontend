@@ -481,6 +481,22 @@ export const init = (environment: any): void => {
   // Add a property that allows copying columns from another matrix
   serializer.addProperty('matrixdropdown', copyColumnsOtherMatrixProp);
   serializer.addProperty('matrixdynamic', copyColumnsOtherMatrixProp);
+
+  // Add ability to conditionally expand/collapse a panel
+  serializer.addProperty('panel', {
+    name: 'expandIf:expression',
+    displayName: 'Expand the panel if (on form init)',
+    category: 'logic',
+    onExecuteExpression: (question: Question, res: boolean) => {
+      if (!question._initial_expand_done) {
+        (question.survey as SurveyModel).onAfterRenderSurvey.add(() => {
+          question._initial_expand_done = true;
+          if (res) question.expand();
+          else question.collapse();
+        });
+      }
+    },
+  });
 };
 
 /**
