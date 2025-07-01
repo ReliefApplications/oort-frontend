@@ -784,9 +784,8 @@ export const init = (
       if (header) {
         header.appendChild(actionsButtons);
         header.style.display = 'flex';
+        header.style.flexDirection = 'column';
         header.style.justifyContent = 'space-between';
-        header.style.alignItems = 'flex-end';
-        header.style.flexWrap = 'wrap';
       } else if (parentElement) {
         parentElement.insertBefore(actionsButtons, parentElement.firstChild);
       }
