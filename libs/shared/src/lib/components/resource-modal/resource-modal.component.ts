@@ -58,10 +58,8 @@ export function scrollFactory(overlay: Overlay): () => BlockScrollStrategy {
 export class ResourceModalComponent extends FormModalComponent {
   /**
    * We override this method to not directly save new records
-   *
-   * @param survey current survey
    */
-  public override async onUpdate(survey: any): Promise<void> {
+  public override async onUpdate(): Promise<void> {
     // If question propriety alwaysCreateRecord set to true, don't use override method and create new record
     if (this.data.alwaysCreateRecord) {
       super.onUpdate(true);
@@ -76,9 +74,9 @@ export class ResourceModalComponent extends FormModalComponent {
               this.form?.id
             );
             if (this.isMultiEdition) {
-              this.updateMultipleData(this.data.recordId, survey, true);
+              this.updateMultipleData(this.data.recordId, this.survey, true);
             } else {
-              this.updateData(this.data.recordId, survey, true);
+              this.updateData(this.data.recordId, this.survey, true);
             }
           } else {
             this.snackBar.openSnackBar(
@@ -94,7 +92,7 @@ export class ResourceModalComponent extends FormModalComponent {
             template: this.data.template,
             data: {
               id: details.id,
-              data: survey.getParsedData?.() ?? survey.data,
+              data: this.survey.getParsedData?.() ?? this.survey.data,
             },
           } as any);
         });

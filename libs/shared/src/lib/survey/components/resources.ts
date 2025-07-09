@@ -898,10 +898,11 @@ export const init = (
       el.parentElement
     );
 
-    const updateGrid = (value?: string[]) => {
-      if (value) {
-        question.value = value;
-      }
+    const updateGrid = () => {
+      /** Commenting as it breaks displaying as a grid because of infinite recursion */
+      // if (value) {
+      //   question.value = value;
+      // }
       setGridInputs(grid.instance, question);
     };
     updateGrid();

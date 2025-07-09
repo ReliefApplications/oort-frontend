@@ -32,6 +32,7 @@
   ></shared-form-pages-layout>
   <div
     *ngIf="survey.showErrorsOnSide && errorQuestions.length"
+    @fadeInOut
     class="border border-red-500 bg-red-50 p-4 rounded-lg mr-4 h-fit sticky top-4 max-h-[calc(100vh-220px)] overflow-y-auto"
   >
     <h3 class="text-red-700 font-semibold text-lg mb-2">

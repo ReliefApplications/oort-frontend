@@ -6,7 +6,7 @@
     class="w-60"
   >
     <label>{{ 'common.cronEditor.question.one' | translate }}</label>
-    <ui-select-menu formControlName="question">
+    <ui-select-menu formControlName="question" [filterable]="true">
       <ui-select-option *ngFor="let question of questions" [value]="question">
         {{ question }}
       </ui-select-option>

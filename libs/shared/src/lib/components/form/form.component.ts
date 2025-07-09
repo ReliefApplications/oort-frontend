@@ -42,6 +42,7 @@ import {
 import { SnackbarService, UILayoutService } from '@oort-front/ui';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { DashboardState } from '../../models/dashboard.model';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 /** Interface of the type of the mapping question o state rules */
 interface MapQuestionToState {
@@ -57,6 +58,38 @@ interface MapQuestionToState {
   selector: 'shared-form',
   templateUrl: './form.component.html',
   styleUrls: ['../../style/survey.scss', './form.component.scss'],
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({
+          opacity: 0,
+          width: '0px',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+        }),
+        animate(
+          '300ms ease-in',
+          style({
+            opacity: 1,
+            width: '*',
+          })
+        ),
+      ]),
+      transition(':leave', [
+        style({
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+        }),
+        animate(
+          '300ms ease-out',
+          style({
+            opacity: 0,
+            width: '0px',
+          })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class FormComponent
   extends UnsubscribeComponent
