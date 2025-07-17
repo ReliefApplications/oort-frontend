@@ -10,7 +10,7 @@ const authConfig: AuthConfig = {
   issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
   redirectUri: 'https://mab.unesco.oortcloud.tech/',
   postLogoutRedirectUri: 'https://mab.unesco.oortcloud.tech/auth/',
-  clientId: 'oort-client',
+  clientId: 'mab-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,

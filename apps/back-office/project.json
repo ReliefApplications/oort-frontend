@@ -322,6 +322,31 @@
             "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
           }
         },
+        "oort-immt": {
+          "fileReplacements": [
+            {
+              "replace": "apps/back-office/src/environments/environment.ts",
+              "with": "apps/back-office/src/environments/environment.oort.immt.ts"
+            }
+          ],
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "12mb",
+              "maximumError": "15mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb",
+              "maximumError": "14kb"
+            }
+          ],
+          "baseHref": "/admin/",
+          "outputHashing": "all",
+          "stylePreprocessorOptions": {
+            "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
+          }
+        },
         "oort-expertisefr": {
           "fileReplacements": [
             {
@@ -392,6 +417,9 @@
         },
         "oort-mab": {
           "browserTarget": "back-office:build:oort-mab"
+        },
+        "oort-immt": {
+          "browserTarget": "back-office:build:oort-immt"
         }
       },
       "defaultConfiguration": "development"
