@@ -304,10 +304,12 @@ export const buildUpdateButton = (
           if (result) {
             const { data } = result;
             question.template = result.template;
-            question.draftData = {
-              ...question.draftData,
-              [data.id]: data.data,
-            };
+
+            // todo: had to disable it because it was causing duplicated records issue on MAB
+            // question.draftData = {
+            //   ...question.draftData,
+            //   [data.id]: data.data,
+            // };
 
             const updatedItem = {
               value: data.id,
