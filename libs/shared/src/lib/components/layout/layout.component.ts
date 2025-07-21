@@ -464,7 +464,6 @@ export class LayoutComponent
             })
             .subscribe(({ data }) => {
               if (data) {
-                console.log(data.record);
                 const fieldValue =
                   get(data, `record.${redirect.field}`) ??
                   get(data, `record.data.${redirect.field}`);

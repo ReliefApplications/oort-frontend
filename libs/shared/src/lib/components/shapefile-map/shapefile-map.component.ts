@@ -130,7 +130,6 @@ export class ShapeFileMapComponent
         )
       ); // Check for gaps
       if (others && booleanDisjoint(polygonA, others)) {
-        console.log(polygonA.properties?.Zonation);
         errors.gaps = true;
       }
       for (let j = i + 1; j < features.length; j++) {
@@ -140,7 +139,6 @@ export class ShapeFileMapComponent
         // Check for intersection (overlap)
         const intersection = intersect(polygons);
         if (intersection) {
-          console.log(intersection, area(intersection));
           overlaps.push(intersection);
         }
       }
@@ -197,7 +195,6 @@ export class ShapeFileMapComponent
       );
       if (merged && convexHull) {
         const gap = difference(featureCollection([convexHull, merged]));
-        console.log(gap);
         if (gap) {
           addLayerToMap(featureCollection([gap]), '#000000', 'Gaps');
         }
