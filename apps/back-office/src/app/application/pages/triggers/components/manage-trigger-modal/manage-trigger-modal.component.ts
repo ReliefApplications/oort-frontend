@@ -15,10 +15,10 @@ import {
   Channel,
   ChannelsQueryResponse,
   ResourceQueryResponse,
+  QueryBuilderService,
 } from '@oort-front/shared';
 import { NotificationType, Triggers, TriggersType } from '../../triggers.types';
 import { takeUntil } from 'rxjs';
-import { get } from 'lodash';
 import { Apollo } from 'apollo-angular';
 import { GET_CHANNELS, GET_LAYOUT } from './graphql/queries';
 
@@ -86,19 +86,11 @@ export class ManageTriggerModalComponent
     );
   }
 
-  /** @returns available users fields */
-  get userFields(): any[] {
-    return get(this.data.resource, 'metadata', []).filter(
-      (x) => x.type === 'users'
-    );
-  }
+  /** Available users fields */
+  public userFields: any[] = [];
 
-  /** @returns available email fields */
-  get emailFields(): any[] {
-    return get(this.data.resource, 'metadata', []).filter(
-      (x) => x.type === 'email'
-    );
-  }
+  /** Available email fields */
+  public emailFields: any[] = [];
 
   /** Indicates if initiating component */
   private init = true;
@@ -111,13 +103,15 @@ export class ManageTriggerModalComponent
    * @param applicationService Shared application service
    * @param dialog Dialog service
    * @param apollo The apollo client
+   * @param queryBuilder Query builder service
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
     private gridLayoutService: GridLayoutService,
     private applicationService: ApplicationService,
     private dialog: Dialog,
-    private apollo: Apollo
+    private apollo: Apollo,
+    private queryBuilder: QueryBuilderService
   ) {
     super();
     this.formGroup = this.data.formGroup;
@@ -166,8 +160,7 @@ export class ManageTriggerModalComponent
         if (typeof value === 'string') {
           this.getLayout(value);
         } else {
-          this.layout = value;
-          this.formGroup.get('layout')?.setValue(value.id);
+          this.getLayout(value.id);
         }
       }
     });
@@ -190,7 +183,8 @@ export class ManageTriggerModalComponent
         this.gridLayoutService
           .editLayout(this.layout, value, this.data.resource?.id)
           .subscribe((res: any) => {
-            this.layout = res.data?.editLayout;
+            this.formGroup.get('layout')?.markAsDirty();
+            this.getLayout(res.data?.editLayout.id);
           });
       }
     });
@@ -337,6 +331,60 @@ export class ManageTriggerModalComponent
       .subscribe(({ data }) => {
         this.layout = data.resource.layouts?.edges[0]?.node;
         this.formGroup.get('layout')?.setValue(this.layout?.id);
+        this.queryBuilder
+          .buildMetaQuery(this.layout?.query)
+          ?.pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: ({ data }) => {
+              this.userFields = [];
+              this.emailFields = [];
+              for (const field in data) {
+                if (Object.prototype.hasOwnProperty.call(data, field)) {
+                  this.extractFieldsFromMetadata(data[field]);
+                }
+              }
+            },
+          });
       });
+  }
+
+  /**
+   * Extract fields from metadata recursively.
+   *
+   * @param metaData Query metadata
+   * @param path Current path in the metadata object
+   */
+  private extractFieldsFromMetadata(metaData: any, path = '') {
+    for (const field in metaData) {
+      if (
+        Object.prototype.hasOwnProperty.call(metaData, field) &&
+        field !== '__typename'
+      ) {
+        const fieldData = metaData[field];
+
+        if (fieldData && typeof fieldData === 'object') {
+          // Check if this is a field definition (has a 'type' property)
+          const currentPath = path ? `${path}.${field}` : field;
+
+          if (fieldData.type && fieldData.name) {
+            const fieldInfo = {
+              ...fieldData,
+              name: currentPath,
+            };
+
+            if (fieldData.type === 'users') {
+              this.userFields.push(fieldInfo);
+            } else if (fieldData.type === 'email') {
+              this.emailFields.push(fieldInfo);
+            }
+          } else {
+            if (!Array.isArray(fieldData)) {
+              // Extract fields from nested objects
+              this.extractFieldsFromMetadata(fieldData, currentPath);
+            }
+          }
+        }
+      }
+    }
   }
 }
