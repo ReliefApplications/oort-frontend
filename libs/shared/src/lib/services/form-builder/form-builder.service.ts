@@ -115,7 +115,7 @@ export const transformSurveyData = (survey: SurveyModel) => {
     }
   });
   if (survey.showPercentageProgressBar) {
-    const visibleQuestions = getVisibleQuestions(survey.getAllQuestions());
+    const visibleQuestions = getVisibleQuestions(survey.getAllQuestions(true));
     data._progress =
       (visibleQuestions.filter((question: Question) => !question.isEmpty())
         .length *
