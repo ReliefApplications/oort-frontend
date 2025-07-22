@@ -144,7 +144,9 @@ export const getVisibleQuestions = (questions: Question[]): Question[] => {
       );
     }
     // Include questions that are not read-only and are visible
-    return !question.readOnly && question.isVisible ? [question] : [];
+    return !question.readOnly && question.hasInput && question.isVisible
+      ? [question]
+      : [];
   });
 };
 
