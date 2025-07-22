@@ -224,6 +224,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
               this.refreshResourcesOnCustomNotificationUpdate(
                 customNotifications
               );
+
+              this.snackBar.openSnackBar(
+                this.translate.instant('common.notifications.objectDeleted', {
+                  value: this.translate.instant('common.trigger.one'),
+                })
+              );
             }
           }
         );
@@ -260,6 +266,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
           trigger.id as string,
           value,
           () => {
+            this.snackBar.openSnackBar(
+              this.translate.instant('common.notifications.objectUpdated', {
+                type: this.translate.instant('common.trigger.one'),
+                value: '',
+              })
+            );
             this.handleTriggerEdition({ ...value, id: trigger.id });
           }
         );
@@ -331,12 +343,26 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
                 (a.name ?? '').localeCompare(b.name ?? '')
               ) as CustomNotification[];
 
-              this.applicationService.editCustomNotificationFilters(
-                newTrigger.id ?? '',
-                trigger.filter
-              );
+              if (trigger.filter) {
+                // Avoid duplicating filter if empty
+                this.applicationService.editCustomNotificationFilters(
+                  newTrigger.id ?? '',
+                  trigger.filter
+                );
+              }
+
               this.refreshResourcesOnCustomNotificationUpdate(
                 customNotifications
+              );
+
+              this.snackBar.openSnackBar(
+                this.translate.instant(
+                  'common.notifications.objectDuplicated',
+                  {
+                    type: this.translate.instant('common.trigger.one'),
+                    value: '',
+                  }
+                )
               );
             }
           }
@@ -384,6 +410,13 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
 
               this.refreshResourcesOnCustomNotificationUpdate(
                 customNotifications
+              );
+
+              this.snackBar.openSnackBar(
+                this.translate.instant('common.notifications.objectCreated', {
+                  type: this.translate.instant('common.trigger.one'),
+                  value: '',
+                })
               );
             }
           }

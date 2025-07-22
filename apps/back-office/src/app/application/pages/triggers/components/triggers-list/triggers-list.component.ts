@@ -15,6 +15,8 @@ import {
 } from '@oort-front/shared';
 import { Dialog } from '@angular/cdk/dialog';
 import { takeUntil } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { SnackbarService } from '@oort-front/ui';
 
 type TriggerTableElement = {
   name: string;
@@ -83,10 +85,14 @@ export class TriggersListComponent
    *
    * @param dialog Dialog service
    * @param applicationService Shared application service
+   * @param translate Angular translate service
+   * @param snackBar shared snackbar service
    */
   constructor(
     public dialog: Dialog,
-    public applicationService: ApplicationService
+    public applicationService: ApplicationService,
+    private translate: TranslateService,
+    private snackBar: SnackbarService
   ) {
     super();
   }
@@ -121,6 +127,12 @@ export class TriggersListComponent
           (value) => {
             this.edited.emit({ trigger: value.editCustomNotification });
             this.updating.emit(false);
+            this.snackBar.openSnackBar(
+              this.translate.instant('common.notifications.objectUpdated', {
+                type: this.translate.instant('common.trigger.one'),
+                value: '',
+              })
+            );
           }
         );
       }
