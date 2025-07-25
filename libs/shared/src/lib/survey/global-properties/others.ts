@@ -290,6 +290,18 @@ export const init = (environment: any): void => {
           q.requiredIf = q.requiredIfCpy;
         }
       });
+      obj.getAllPanels(false, false).forEach((panel) => {
+        // Save the original values
+        (panel as any).isRequiredCpy ??= (panel as any).isRequired;
+        (panel as any).requiredIfCpy ??= (panel as any).requiredIf;
+        if (res && !obj.isDesignMode) {
+          (panel as any).isRequired = false;
+          (panel as any).requiredIf = '';
+        } else {
+          (panel as any).isRequired = (panel as any).isRequiredCpy;
+          (panel as any).requiredIf = (panel as any).requiredIfCpy;
+        }
+      });
     },
   });
 
