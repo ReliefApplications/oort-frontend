@@ -43,6 +43,8 @@ declare module 'survey-core' {
 
   interface QuestionUsers extends QuestionCustomModel {
     applications?: any;
+    inviteUsers?: boolean;
+    availableRoles?: string[];
   }
 
   interface QuestionResource extends QuestionCustomModel {

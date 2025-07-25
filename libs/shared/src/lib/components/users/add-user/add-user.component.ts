@@ -22,7 +22,10 @@ export class AddUserComponent extends UnsubscribeComponent {
   /** Form for the add user modal */
   form = this.fb.group({
     email: ['', Validators.minLength(1)],
-    roles: [[], Validators.required],
+    roles: [
+      this.data.roles.length === 0 ? [this.data.roles[0].id] : [],
+      Validators.required,
+    ],
     ...(this.data.positionAttributeCategories && {
       positionAttributes: this.fb.array(
         this.data.positionAttributeCategories.map((x) =>

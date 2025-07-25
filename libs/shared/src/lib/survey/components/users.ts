@@ -6,7 +6,6 @@ import {
 } from 'survey-core';
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
-
 import { DomService } from '../../services/dom/dom.service';
 import { UsersDropdownComponent } from './users-dropdown/users-dropdown.component';
 import { Dialog } from '@angular/cdk/dialog';
@@ -43,21 +42,29 @@ export const init = (
   /**
    * Opens the invite users modal for the selected application.
    *
-   * @param applicationId The id of the application to open the invite users modal for.
+   * @param question Current question
    * @returns The list of user ids that were invited.
    */
   const inviteUserFromApplication = async (
-    applicationId: string
+    question: QuestionUsers
   ): Promise<User[]> => {
     // Get the roles from the application ID
     const res = await firstValueFrom(
       apollo.query<RolesFromApplicationsQueryResponse>({
         query: GET_ROLES_FROM_APPLICATION,
-        variables: { application: applicationId },
+        variables: { application: question.applications[0] },
       })
     );
 
-    const roles = res.data.rolesFromApplications ?? [];
+    let roles = res.data.rolesFromApplications ?? [];
+
+    if (question.availableRoles?.length) {
+      // Filter roles based on availableRoles
+      roles = roles.filter(
+        (role) =>
+          role.id && (question.availableRoles as string[]).includes(role.id)
+      );
+    }
 
     const { InviteUsersModalComponent } = await import(
       '../../components/users/public-api'
@@ -69,6 +76,7 @@ export const init = (
         users: [],
         downloadPath: 'download/invite',
         uploadPath: 'upload/invite',
+        showTemplate: false,
       },
     });
 
@@ -80,7 +88,7 @@ export const init = (
               mutation: ADD_USERS,
               variables: {
                 users: value,
-                application: applicationId,
+                application: question.applications[0],
               },
             })
             .subscribe({
@@ -167,12 +175,25 @@ export const init = (
           !!obj?.applications && obj.applications.length === 1,
       });
 
+      // Limit possible roles users can be assigned to
+      Serializer.addProperty('users', {
+        name: 'availableRoles',
+        category: 'Users properties',
+        type: CustomPropertyGridComponentTypes.rolesDropdown,
+        visibleIndex: 5,
+        visibleIf: (obj: null | QuestionUsers) => obj?.inviteUsers || false,
+      });
+
+      registerCustomPropertyEditor(
+        CustomPropertyGridComponentTypes.rolesDropdown
+      );
+
       // Can select multiple users
       Serializer.addProperty('users', {
         name: 'selectMultiple:boolean',
         category: 'Users properties',
         default: true,
-        visibleIndex: 5,
+        visibleIndex: 6,
       });
     },
     onAfterRender: async (question: QuestionUsers, el: HTMLElement) => {
@@ -242,8 +263,7 @@ export const init = (
         );
 
         inviteButton.onclick = async () => {
-          const applicationId = question.applications[0];
-          const addedUser = await inviteUserFromApplication(applicationId);
+          const addedUser = await inviteUserFromApplication(question);
           const addedUserIds = addedUser.map((user) => user.id);
           // Update the questions value and the dropdown selection
           question.value = question.value.concat(addedUserIds);

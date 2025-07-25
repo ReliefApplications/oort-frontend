@@ -75,7 +75,9 @@ export class RoleDetailsComponent implements OnInit {
       .query<PermissionsQueryResponse>({
         query: GET_PERMISSIONS,
         variables: {
-          application: this.role.application !== null,
+          ...(this.role.application && {
+            application: this.role.application.id,
+          }),
         },
       })
       .subscribe(({ data }) => {

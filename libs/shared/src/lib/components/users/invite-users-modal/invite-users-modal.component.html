@@ -5,31 +5,38 @@
     </h3>
   </ng-container>
   <ng-container ngProjectAs="content">
-    <div class="mb-6">
-      {{ 'components.users.invite.description' | translate }}
-    </div>
-    <!-- DOWNLOAD TEMPLATE / UPLOAD -->
-    <div class="flex justify-between gap-2 mb-4 flex-wrap items-center">
-      <kendo-upload
-        class="grow"
-        #fileReader
-        name="Upload XLSX"
-        (upload)="onUpload($event)"
-        accept=".xlsx"
-        [multiple]="false"
-        [restrictions]="{ maxFileSize: maxFileSize * 1024 * 1024 }"
-      >
-      </kendo-upload>
-      <ui-button (click)="onDownload()" variant="primary" icon="file_download">
-        {{ 'common.downloadTemplate' | translate }}
-      </ui-button>
-      <span class="text-gray-700 text-xs">
-        {{
-          'common.notifications.file.upload.maxFileSize'
-            | translate : { size: maxFileSize }
-        }}
-      </span>
-    </div>
+    <ng-container *ngIf="showTemplate">
+      <div class="mb-6">
+        {{ 'components.users.invite.description' | translate }}
+      </div>
+      <!-- DOWNLOAD TEMPLATE / UPLOAD -->
+      <div class="flex justify-between gap-2 mb-4 flex-wrap items-center">
+        <kendo-upload
+          class="grow"
+          #fileReader
+          name="Upload XLSX"
+          (upload)="onUpload($event)"
+          accept=".xlsx"
+          [multiple]="false"
+          [restrictions]="{ maxFileSize: maxFileSize * 1024 * 1024 }"
+        >
+        </kendo-upload>
+        <ui-button
+          (click)="onDownload()"
+          variant="primary"
+          icon="file_download"
+        >
+          {{ 'common.downloadTemplate' | translate }}
+        </ui-button>
+        <span class="text-gray-700 text-xs">
+          {{
+            'common.notifications.file.upload.maxFileSize'
+              | translate : { size: maxFileSize }
+          }}
+        </span>
+      </div>
+    </ng-container>
+
     <kendo-grid
       [data]="gridData"
       (cellClick)="cellClickHandler($event)"
