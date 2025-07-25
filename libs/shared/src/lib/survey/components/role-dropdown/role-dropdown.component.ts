@@ -14,6 +14,9 @@ import { Apollo } from 'apollo-angular';
 import { Subject, takeUntil } from 'rxjs';
 import { GET_ROLES } from './graphql/queries';
 
+/**
+ * Role dropdown component for selecting roles in a survey.
+ */
 @Component({
   selector: 'shared-role-dropdown',
   standalone: true,
@@ -71,6 +74,9 @@ export class RoleDropdownComponent
     this.changeDetectorRef.detectChanges();
   }
 
+  /**
+   * Fetches roles from the server based on the application ID.
+   */
   private getRoles(): void {
     this.loading = true;
     this.roles = [];
