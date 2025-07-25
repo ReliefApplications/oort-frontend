@@ -27,6 +27,7 @@ interface DialogData {
   positionAttributeCategories?: PositionAttributeCategory[];
   uploadPath: string;
   downloadPath: string;
+  showTemplate?: boolean;
 }
 
 /** Invite users modal component */
@@ -53,6 +54,8 @@ interface DialogData {
   ],
 })
 export class InviteUsersModalComponent extends UnsubscribeComponent {
+  /** Should show template download button */
+  public showTemplate = true;
   /** Grid data */
   public gridData: GridDataResult = { data: [], total: 0 };
   /** Form group */
@@ -100,6 +103,7 @@ export class InviteUsersModalComponent extends UnsubscribeComponent {
   ) {
     super();
     this.maxFileSize = environment.maxFileSize;
+    this.showTemplate = data.showTemplate ?? true;
   }
 
   /**

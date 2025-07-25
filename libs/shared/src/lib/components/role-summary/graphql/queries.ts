@@ -26,7 +26,7 @@ export const GET_ROLE = gql`
 
 /** Graphql request for getting permissions */
 export const GET_PERMISSIONS = gql`
-  query GetPermissions($application: Boolean) {
+  query GetPermissions($application: ID) {
     permissions(application: $application) {
       id
       type

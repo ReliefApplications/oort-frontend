@@ -287,7 +287,6 @@ export const buildUpdateButton = (
           },
           {}
         );
-        console.log('hey', prefillData);
         const dialogRef = dialog.open(ResourceModalComponent, {
           disableClose: true,
           data: {

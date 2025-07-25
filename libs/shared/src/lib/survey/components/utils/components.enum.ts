@@ -37,6 +37,8 @@ import {
 } from '../date-type-displayer/public-api';
 import { JSONEditorComponent } from '../json-editor/json-editor.component';
 import { JSONEditorModel } from '../json-editor/json-editor.model';
+import { RoleDropdownComponent } from '../role-dropdown/role-dropdown.component';
+import { QuestionRoleDropdownModel } from '../role-dropdown/role-dropdown.model';
 
 /**
  * Custom component types for the survey creator property grid editor
@@ -53,6 +55,7 @@ export enum CustomPropertyGridComponentTypes {
   resourceSelectText = 'selectResourceText',
   resourceTestService = 'resourceTestService',
   jsonEditor = 'json-editor',
+  rolesDropdown = 'rolesDropdown',
 }
 
 /**
@@ -105,5 +108,9 @@ export const CustomPropertyGridEditors: Record<
   [CustomPropertyGridComponentTypes.jsonEditor]: {
     component: JSONEditorComponent,
     model: JSONEditorModel,
+  },
+  [CustomPropertyGridComponentTypes.rolesDropdown]: {
+    component: RoleDropdownComponent,
+    model: QuestionRoleDropdownModel,
   },
 };
