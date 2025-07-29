@@ -363,8 +363,6 @@ export const processNewCreatedRecords = (
     promises.push(promise);
   });
 
-  const uuidRegExpr =
-    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
   const settings = {
     query: {
       ...query,
@@ -376,11 +374,7 @@ export const processNewCreatedRecords = (
             {
               field: 'ids',
               operator: 'eq',
-              value:
-                // Was used exclude the temporary records by excluding id in UUID format
-                // But we not longer use UUID or local storage for the temporary records
-                question.value.filter((id: string) => !uuidRegExpr.test(id)) ||
-                [],
+              value: question.value || [],
             },
           ],
         }),
