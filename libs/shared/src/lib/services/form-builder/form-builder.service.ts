@@ -115,13 +115,15 @@ export const transformSurveyData = (survey: SurveyModel) => {
     }
   });
   if (survey.showPercentageProgressBar) {
-    const visibleQuestions = getVisibleQuestions(survey.getAllQuestions(true));
+    // isRequiredCpy is declared in the form builder service, and copy the isRequired property of the question we build when using skipRequiredValidation
+    const requiredQuestions = getVisibleQuestions(
+      survey.getAllQuestions(true)
+    ).filter((q) => q.isRequired || q.isRequiredCpy);
     data._progress =
-      (visibleQuestions.filter(
-        (question: Question) => !question.isEmpty() && question.isRequired
-      ).length *
+      (requiredQuestions.filter((question: Question) => !question.isEmpty())
+        .length *
         100) /
-      visibleQuestions.length;
+      requiredQuestions.length;
   }
   return data;
 };

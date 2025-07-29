@@ -15,8 +15,8 @@ import { getVisibleQuestions } from '../../services/form-builder/form-builder.se
 export class ProgressBarComponent implements OnInit {
   /** Current survey model */
   @Input() model!: SurveyModel;
-  /** Current page questions */
-  public currentPageQuestions: Question[] = [];
+  /** Current page required questions */
+  public currentPageRequiredQuestions: Question[] = [];
   /** Progress bar percentage value */
   public value = 0;
   /** Title shown above percentage */
@@ -31,10 +31,11 @@ export class ProgressBarComponent implements OnInit {
 
   ngOnInit() {
     this.title = this.model.data.form_and_br;
+    // isRequiredCpy is declared in the form builder service, and copy the isRequired property of the question we build when using skipRequiredValidation
     const updateCurrentPageQuestions = () => {
-      this.currentPageQuestions = getVisibleQuestions(
+      this.currentPageRequiredQuestions = getVisibleQuestions(
         this.model.currentPage.questions
-      );
+      ).filter((q) => q.isRequired || q.isRequiredCpy);
       this.updateValue();
     };
     updateCurrentPageQuestions();
@@ -52,11 +53,11 @@ export class ProgressBarComponent implements OnInit {
    */
   private updateValue() {
     this.value =
-      (this.currentPageQuestions.filter(
+      (this.currentPageRequiredQuestions.filter(
         (question: Question) => !question.isEmpty()
       ).length *
         100) /
-      this.currentPageQuestions.length;
+      this.currentPageRequiredQuestions.length;
 
     this.cdr.detectChanges();
   }
