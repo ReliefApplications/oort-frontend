@@ -158,6 +158,11 @@ export const init = (
           currentSearchValue = searchValue;
           updateChoices(tagboxInstance, question, searchValue);
         });
+
+      question._focus = () => {
+        tagboxInstance.focus();
+      };
+
       question._propertyValueChangedVirtual = () => {
         updateChoices(tagboxInstance, question, currentSearchValue);
       };

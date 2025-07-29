@@ -123,6 +123,8 @@ export const init = (
         });
       });
 
+      question._focus = () => instance.editor.editor.editor.focus();
+
       // Only activate listener on readonly if outside of form builder
       if (!question.survey.isDesignMode) {
         question.registerFunctionOnPropertyValueChanged(

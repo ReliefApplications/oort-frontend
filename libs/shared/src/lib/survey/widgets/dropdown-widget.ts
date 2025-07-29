@@ -93,6 +93,8 @@ export const init = (
           updateChoices(dropdownInstance, question, searchValue);
         });
 
+      question._focus = () => dropdownInstance.focus();
+
       question._propertyValueChangedVirtual = () => {
         updateChoices(dropdownInstance, question, currentSearchValue);
       };

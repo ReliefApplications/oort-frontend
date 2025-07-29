@@ -500,7 +500,10 @@ export class FormComponent
   onErrorClick(questionName: string) {
     const question = this.survey.getQuestionByName(questionName);
     if (question) {
-      question.focus();
+      question.focus(false, true);
+      setTimeout(() => {
+        question._focus?.();
+      }, 100);
     }
   }
 
