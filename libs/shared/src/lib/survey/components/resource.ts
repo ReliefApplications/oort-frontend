@@ -803,26 +803,14 @@ export const init = (
       // Create a div that will hold the buttons
       const actionsButtons = setUpActionsButtonWrapper();
 
-      // Make it so when the question is read only the buttons are not displayed
-      // Also add a listener to keep it updated
-      if (question.isReadOnly) {
-        actionsButtons.style.display = 'none';
-      }
-
-      // If the survey is not fillable or the config is missing, return
-      if (survey.mode === 'display' || !question.resource) {
+      // If configuration is missing, do not add any buttons
+      if (!question.resource) {
         return;
       }
 
       const dropdownInstance = question.contentQuestion.dropdownInstance;
 
-      question.registerFunctionOnPropertyValueChanged(
-        'readOnly',
-        (value: boolean) => {
-          actionsButtons.style.display = value ? 'none' : 'block';
-          dropdownInstance.disabled = value;
-        }
-      );
+      // === SEARCH BUTTON ===
       const searchBtn = buildSearchButton(
         question,
         false,
@@ -844,6 +832,7 @@ export const init = (
         }
       });
 
+      // === ADD BUTTON ===
       const addBtn = buildAddButton(question, false, dialog, ngZone, document);
       if (question.addRecord && question.addTemplate) {
         actionsButtons.appendChild(addBtn);
@@ -857,6 +846,7 @@ export const init = (
           actionsButtons.removeChild(addBtn);
         }
       };
+
       question.registerFunctionOnPropertyValueChanged(
         'addRecord',
         removeAddBtn
@@ -866,6 +856,7 @@ export const init = (
         removeAddBtn
       );
 
+      // === UPDATE BUTTON ===
       const updateBtn = buildUpdateButton(question, dialog, ngZone, document);
       if (question.updateRecord) {
         actionsButtons.appendChild(updateBtn);
@@ -880,7 +871,20 @@ export const init = (
         }
       });
 
-      // actionsButtons.style.display = ((!question.addRecord || !question.addTemplate) && !question.gridFieldsSettings) ? 'none' : '';
+      // Make it so when the question is read only the buttons are not displayed
+      // Also add a listener to keep it updated
+      if (question.isReadOnly) {
+        addBtn.style.display = 'none';
+        searchBtn.style.display = 'none';
+      }
+      question.registerFunctionOnPropertyValueChanged(
+        'readOnly',
+        (value: boolean) => {
+          addBtn.style.display = value ? 'none' : 'block';
+          searchBtn.style.display = value ? 'none' : 'block';
+          dropdownInstance.disabled = value;
+        }
+      );
 
       const header = el.querySelector('.sd-question__header') as HTMLDivElement;
       const parentElement = el.querySelector('.sd-question__content');
