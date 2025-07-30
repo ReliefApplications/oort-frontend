@@ -7,7 +7,6 @@ import {
   QuestionMatrixDynamicModel,
   QuestionPanelDynamicModel,
   SurveyModel,
-  ValueChangedEvent,
   Question,
 } from 'survey-core';
 import { Apollo } from 'apollo-angular';
@@ -868,26 +867,32 @@ export class FormHelpersService {
   /**
    * Saves the record automatically after some time
    *
-   * @param valueChangedEvent surveyjs value changed event
    * @param callback Function to execute once debounce time has passed
    * @param temporaryFilesStorage Form to save the record from
    * @param formId Id of the form
    * @param survey Survey being saved
    */
   public async autoSaveRecord(
-    valueChangedEvent: ValueChangedEvent,
     callback: () => Promise<void>,
     temporaryFilesStorage: TemporaryFilesStorage,
     formId: string | undefined,
     survey: SurveyModel
   ) {
-    if (
-      valueChangedEvent.question.getType() === 'file' &&
-      valueChangedEvent.value.length &&
-      !valueChangedEvent.value.every(
-        (file: File & { readyToSave?: boolean }) => file.readyToSave
-      )
-    ) {
+    let canSave = true;
+    // First, check the form is ready to be saved
+    survey.getAllQuestions().forEach((question) => {
+      if (question.getType() === 'file' && question.value?.length) {
+        // Exclude file questions that are using expression or static REST endpoints
+        if (!question.downloadFileFrom && !question.downloadFileFromExp) {
+          question.value.forEach((file: File & { readyToSave?: boolean }) => {
+            if (!file.readyToSave) {
+              canSave = false;
+            }
+          });
+        }
+      }
+    });
+    if (canSave) {
       const questions = survey.getAllQuestions(false, false, true);
       const initialStates = questions.reduce((acc, q) => {
         acc[q.name] = q.readOnly;
@@ -899,9 +904,8 @@ export class FormHelpersService {
       await this.uploadFiles(temporaryFilesStorage, formId);
       temporaryFilesStorage.clear();
       questions.forEach((q) => (q.readOnly = initialStates[q.name]));
-      return;
+      this.saveDebounced(callback);
     }
-    this.saveDebounced(callback);
   }
 
   /**
