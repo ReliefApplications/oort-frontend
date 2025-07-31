@@ -283,7 +283,7 @@ export const init = (environment: any): void => {
     onExecuteExpression: (obj: SurveyModel, res: boolean) => {
       // Set a custom flag on the survey object. This is how we'll pass the
       // evaluated result of the expression to the onValidateQuestion handler.
-      (obj as any).__oortSkipRequiredValidationActive = res;
+      (obj as any)._skipRequiredValidation = res;
     },
   });
 
