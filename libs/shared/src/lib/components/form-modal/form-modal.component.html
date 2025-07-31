@@ -96,9 +96,9 @@
       (click)="submit()"
       cdkFocusInitial
     >
-      <p *ngIf="!autosaving">
-        {{ 'components.record.modal.update' | translate }}
-      </p>
+      <ng-container *ngIf="!autosaving">
+        {{ 'components.record.modal.saveClose' | translate }}
+      </ng-container>
       <ui-spinner *ngIf="autosaving" [size]="'small'" />
     </ui-button>
   </ng-container>

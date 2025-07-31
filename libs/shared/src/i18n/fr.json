@@ -1254,8 +1254,8 @@
         }
       },
       "modal": {
-        "closeConfirmation": "Fermer sans enregistrer les modifications ?",
-        "update": "Sauvegarder et fermer"
+        "closeConfirmation": "Fermer sans enregistrer les modifications ?",
+        "saveClose": "Sauvegarder et fermer"
       },
       "recovery": {
         "confirmationMessage": "Souhaitez-vous appliquer les données du {{date}} à l'enregistrement ?",

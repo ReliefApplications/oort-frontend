@@ -46,7 +46,13 @@ import {
   FormBuilderService,
   TemporaryFilesStorage,
 } from '../../services/form-builder/form-builder.service';
-import { BehaviorSubject, firstValueFrom, takeUntil } from 'rxjs';
+import {
+  BehaviorSubject,
+  firstValueFrom,
+  interval,
+  Subscription,
+  takeUntil,
+} from 'rxjs';
 import isNil from 'lodash/isNil';
 import omitBy from 'lodash/omitBy';
 import { TranslateService } from '@ngx-translate/core';
@@ -172,6 +178,8 @@ export class FormModalComponent
   public comments: { [key: string]: Comment[] } = {};
   /** Comments loaded event */
   protected commentsLoaded = new EventEmitter();
+  /** Auto save interval */
+  private autoSaveInterval?: Subscription;
 
   /**
    * Modal to edit or add a record.
@@ -357,15 +365,22 @@ export class FormModalComponent
           this.survey.getQuestionByName(field.name).readOnly = true;
       });
     }
-    if (this.survey.autoSave) {
-      this.survey.onValueChanged.add((_, options) => {
-        this.formHelpersService.autoSaveRecord(
-          options,
-          this.onUpdate.bind(this, false, true),
-          this.temporaryFilesStorage,
-          this.form?.id,
-          this.survey
-        );
+    // Auto save survey
+    if (this.survey.autoSave && this.survey.mode !== 'display') {
+      this.autoSaveInterval = interval(15000).subscribe(() => {
+        if (
+          !this.saving &&
+          !this.autosaving &&
+          this.survey.data &&
+          Object.keys(this.survey.data).length > 0
+        ) {
+          this.formHelpersService.autoSaveRecord(
+            this.onUpdate.bind(this, false, true),
+            this.temporaryFilesStorage,
+            this.form?.id,
+            this.survey
+          );
+        }
       });
     }
     this.survey.onComplete.add(() => {
@@ -668,6 +683,7 @@ export class FormModalComponent
         if (response.verified) {
           this.loading = !autoSave;
           this.autosaving = autoSave;
+          this.saving = true;
           await this.formHelpersService.uploadFiles(
             this.temporaryFilesStorage,
             this.form?.id
@@ -750,6 +766,7 @@ export class FormModalComponent
             this.translate.instant('components.form.display.cancelMessage')
           );
           this.survey.clear(false);
+          this.autosaving = false;
           this.saving = false;
         }
       });
@@ -1125,6 +1142,9 @@ export class FormModalComponent
    */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
+    if (this.autoSaveInterval) {
+      this.autoSaveInterval.unsubscribe();
+    }
     this.survey?.dispose();
   }
 }
