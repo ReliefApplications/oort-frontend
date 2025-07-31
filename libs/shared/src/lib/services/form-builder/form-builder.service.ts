@@ -382,7 +382,17 @@ export class FormBuilderService {
     //     survey.onQuestionValueChanged[options.name](options);
     //   }
     // });
-    survey.onSettingQuestionErrors.add((_, options) => {
+    survey.onSettingQuestionErrors.add((sender: SurveyModel, options) => {
+      // Skip required validation if the survey has the _skipRequiredValidation flag set
+      // Flag is built by the skipRequiredValidation expression
+      if (sender._skipRequiredValidation) {
+        for (let i = options.errors.length - 1; i >= 0; i--) {
+          const error = options.errors[i];
+          if (error.getErrorType() === 'required') {
+            options.errors.splice(i, 1);
+          }
+        }
+      }
       const existingError = this.errorsSummary.find(
         (error) => error.questionName == options.question.name
       );
