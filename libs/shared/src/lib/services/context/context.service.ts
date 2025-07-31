@@ -504,6 +504,23 @@ export class ContextService {
 
     survey.onValueChanged.add(handleValueChanged);
 
+    // handler to skip validator if SkipRequiredValidationActive === true
+    survey.onValidateQuestion.add((sender: SurveyModel, options: any) => {
+      // Access the custom flag we set in the skipRequiredValidation expression's onExecuteExpression
+      const isSkipValidationActive = (sender as any)
+        .__oortSkipRequiredValidationActive;
+      if (isSkipValidationActive && !sender.isDesignMode) {
+        if (options.question.isRequired) {
+          if (
+            options.question.isEmpty() ||
+            !options.question.isAnswerCorrect()
+          ) {
+            options.error = null; // bypassing validation.
+          }
+        }
+      }
+    });
+
     return survey;
   }
 
