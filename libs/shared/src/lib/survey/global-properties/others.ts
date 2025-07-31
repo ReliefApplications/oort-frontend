@@ -7,8 +7,11 @@ import {
   Serializer,
   matrixDropdownColumnTypes,
   settings,
+  SurveyModel,
+  PageModel,
+  surveyLocalization,
 } from 'survey-core';
-import { SurveyModel, PageModel, surveyLocalization } from 'survey-core';
+// Assuming these are your local imports
 import { MatrixManager } from '../controllers/matrixManager';
 import { CustomPropertyGridComponentTypes } from '../components/utils/components.enum';
 import { registerCustomPropertyEditor } from '../components/utils/component-register';
@@ -278,30 +281,9 @@ export const init = (environment: any): void => {
     name: 'skipRequiredValidation:expression',
     category: 'logic',
     onExecuteExpression: (obj: SurveyModel, res: boolean) => {
-      obj.getAllQuestions(false, false, true).forEach((q) => {
-        // Save the original values
-        q.isRequiredCpy ??= q.isRequired;
-        q.requiredIfCpy ??= q.requiredIf;
-        if (res && !obj.isDesignMode) {
-          q.isRequired = false;
-          q.requiredIf = '';
-        } else {
-          q.isRequired = q.isRequiredCpy;
-          q.requiredIf = q.requiredIfCpy;
-        }
-      });
-      obj.getAllPanels(false, false).forEach((panel) => {
-        // Save the original values
-        (panel as any).isRequiredCpy ??= (panel as any).isRequired;
-        (panel as any).requiredIfCpy ??= (panel as any).requiredIf;
-        if (res && !obj.isDesignMode) {
-          (panel as any).isRequired = false;
-          (panel as any).requiredIf = '';
-        } else {
-          (panel as any).isRequired = (panel as any).isRequiredCpy;
-          (panel as any).requiredIf = (panel as any).requiredIfCpy;
-        }
-      });
+      // Set a custom flag on the survey object. This is how we'll pass the
+      // evaluated result of the expression to the onValidateQuestion handler.
+      (obj as any).__oortSkipRequiredValidationActive = res;
     },
   });
 
