@@ -367,8 +367,9 @@ export class FormModalComponent
     }
     // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {
-      this.autoSaveInterval = interval(60000).subscribe(() => {
+      this.autoSaveInterval = interval(15000).subscribe(() => {
         if (
+          !this.saving &&
           !this.autosaving &&
           this.survey.data &&
           Object.keys(this.survey.data).length > 0
@@ -682,6 +683,7 @@ export class FormModalComponent
         if (response.verified) {
           this.loading = !autoSave;
           this.autosaving = autoSave;
+          this.saving = true;
           await this.formHelpersService.uploadFiles(
             this.temporaryFilesStorage,
             this.form?.id
@@ -764,6 +766,7 @@ export class FormModalComponent
             this.translate.instant('components.form.display.cancelMessage')
           );
           this.survey.clear(false);
+          this.autosaving = false;
           this.saving = false;
         }
       });

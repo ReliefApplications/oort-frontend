@@ -225,23 +225,17 @@ export class FormHelpersService {
         )
       );
 
-      const questionFiles =
-        (question.value as Array<File & { readyToSave: boolean }>) || [];
-
       // Maps the files array, replacing the content with the path from the blob storage
-      const mappedFiles = questionFiles
-        .filter((f) => !f.readyToSave)
-        .map((f: File, idx: number) => {
+      const mappedFiles = ((question.value as any[]) || []).map(
+        (f: File, idx: number) => {
           return {
             ...f,
             content: paths[idx],
-            readyToSave: true, //used to autosave only once
           };
-        });
+        }
+      );
 
-      question.value = questionFiles
-        .filter((f) => f.readyToSave)
-        .concat(mappedFiles);
+      question.value = mappedFiles;
     }
   }
 
@@ -878,34 +872,18 @@ export class FormHelpersService {
     formId: string | undefined,
     survey: SurveyModel
   ) {
-    let canSave = true;
-    // First, check the form is ready to be saved
-    survey.getAllQuestions().forEach((question) => {
-      if (question.getType() === 'file' && question.value?.length) {
-        // Exclude file questions that are using expression or static REST endpoints
-        if (!question.downloadFileFrom && !question.downloadFileFromExp) {
-          question.value.forEach((file: File & { readyToSave?: boolean }) => {
-            if (!file.readyToSave) {
-              canSave = false;
-            }
-          });
-        }
-      }
-    });
-    if (canSave) {
-      const questions = survey.getAllQuestions(false, false, true);
-      const initialStates = questions.reduce((acc, q) => {
-        acc[q.name] = q.readOnly;
-        return acc;
-      }, {} as { [key: string]: boolean });
-      //Set everything as readonly during the upload of the files
-      questions.forEach((q) => (q.readOnly = true));
-      //Avoids editing the record multiple times for file questions
-      await this.uploadFiles(temporaryFilesStorage, formId);
-      temporaryFilesStorage.clear();
-      questions.forEach((q) => (q.readOnly = initialStates[q.name]));
-      this.saveDebounced(callback);
-    }
+    const questions = survey.getAllQuestions(false, false, true);
+    const initialStates = questions.reduce((acc, q) => {
+      acc[q.name] = q.readOnly;
+      return acc;
+    }, {} as { [key: string]: boolean });
+    //Set everything as readonly during the upload of the files
+    questions.forEach((q) => (q.readOnly = true));
+    //Avoids editing the record multiple times for file questions
+    await this.uploadFiles(temporaryFilesStorage, formId);
+    temporaryFilesStorage.clear();
+    questions.forEach((q) => (q.readOnly = initialStates[q.name]));
+    this.saveDebounced(callback);
   }
 
   /**

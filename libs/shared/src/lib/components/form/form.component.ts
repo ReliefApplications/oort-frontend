@@ -625,8 +625,9 @@ export class FormComponent
     }
     // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {
-      this.autoSaveInterval = interval(60000).subscribe(() => {
+      this.autoSaveInterval = interval(15000).subscribe(() => {
         if (
+          !this.saving &&
           !this.autosaving &&
           this.survey.data &&
           Object.keys(this.survey.data).length > 0
