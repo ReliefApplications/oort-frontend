@@ -11,7 +11,6 @@ import {
   PageModel,
   surveyLocalization,
 } from 'survey-core';
-// Assuming these are your local imports
 import { MatrixManager } from '../controllers/matrixManager';
 import { CustomPropertyGridComponentTypes } from '../components/utils/components.enum';
 import { registerCustomPropertyEditor } from '../components/utils/component-register';
@@ -281,8 +280,7 @@ export const init = (environment: any): void => {
     name: 'skipRequiredValidation:expression',
     category: 'logic',
     onExecuteExpression: (obj: SurveyModel, res: boolean) => {
-      // Set a custom flag on the survey object. This is how we'll pass the
-      // evaluated result of the expression to the onValidateQuestion handler.
+      // Add a property to the survey settings to store if validation should be skipped
       (obj as any)._skipRequiredValidation = res;
     },
   });
