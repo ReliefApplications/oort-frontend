@@ -324,6 +324,7 @@ export class CoreGridComponent
       field: '',
       pageUrl: '',
       title: '',
+      queryParam: '',
       copyLink: false,
       copyLinkLabel: '',
     },
@@ -474,6 +475,11 @@ export class CoreGridComponent
         field: get(this.settings, 'actions.navigateSettings.field', false),
         pageUrl: get(this.settings, 'actions.navigateSettings.pageUrl', ''),
         title: get(this.settings, 'actions.navigateSettings.title', ''),
+        queryParam: get(
+          this.settings,
+          'actions.navigateSettings.queryParam',
+          ''
+        ),
         copyLink: get(
           this.settings,
           'actions.navigateSettings.copyLink',
