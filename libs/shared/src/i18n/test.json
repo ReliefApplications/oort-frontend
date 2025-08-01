@@ -1776,6 +1776,10 @@
                 "title": "******"
               },
               "label": "******",
+              "queryParam": {
+                "label": "******",
+                "placeholder": "******"
+              },
               "target": {
                 "label": "******",
                 "placeholder": "******"

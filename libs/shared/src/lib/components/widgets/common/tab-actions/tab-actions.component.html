@@ -156,6 +156,23 @@
             </ng-container>
           </ui-select-menu>
         </div>
+        <div uiFormFieldDirective class="w-80">
+          <ng-container ngProjectAs="label">
+            <label>
+              {{
+                'components.widget.settings.grid.actions.goTo.queryParam.label'
+                  | translate
+              }}
+            </label>
+          </ng-container>
+          <input
+            formControlName="queryParam"
+            [placeholder]="
+              'components.widget.settings.grid.actions.goTo.queryParam.placeholder'
+                | translate
+            "
+          />
+        </div>
         <div class="flex flex-col gap-1">
           <ui-toggle formControlName="copyLink">
             <ng-container ngProjectAs="label">

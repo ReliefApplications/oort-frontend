@@ -1776,6 +1776,10 @@
                 "title": "Query parameter"
               },
               "label": "Navigate to page",
+              "queryParam": {
+                "label": "Query parameter name",
+                "placeholder": "Type a name for the parameter..."
+              },
               "target": {
                 "label": "Target page",
                 "placeholder": "Select a page"

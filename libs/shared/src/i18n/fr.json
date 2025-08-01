@@ -1789,6 +1789,10 @@
                 "title": "Paramètre de requête"
               },
               "label": "Accédez à la page",
+              "queryParam": {
+                "label": "Nom du paramètre",
+                "placeholder": "Entrez un nom pour le paramètre..."
+              },
               "target": {
                 "label": "Naviguez vers la page",
                 "placeholder": "Sélectionnez une page"
