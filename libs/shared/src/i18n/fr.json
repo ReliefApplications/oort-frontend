@@ -436,11 +436,11 @@
       "one": "Rangée",
       "update": {
         "few": {
-          "content": "Souhaitez vous mettre à jour les {{count}} enregistrements?",
+          "content": "Souhaitez vous mettre à jour les {{count}} enregistrements ?",
           "title": "Mise à jour des enregistrements"
         },
         "one": {
-          "content": "Souhaitez vous mettre à jour l’enregistrement?",
+          "content": "Êtes-vous sûr de vouloir sauvegarder et fermer ce formulaire ?",
           "title": "Mise à jour de l’enregistrement"
         }
       }

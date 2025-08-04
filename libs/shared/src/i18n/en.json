@@ -440,8 +440,8 @@
           "title": "Update rows"
         },
         "one": {
-          "content": "Do you really want to update this row?",
-          "title": "Update row"
+          "content": "Are you sure you want to save and close this form?",
+          "title": "Update record"
         }
       }
     },
