@@ -144,6 +144,7 @@ export class GridComponent
       field: '',
       pageUrl: '',
       title: '',
+      queryParam: '',
       copyLink: false,
     },
     remove: false,

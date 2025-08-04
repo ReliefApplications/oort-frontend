@@ -1789,6 +1789,11 @@
                 "title": "Paramètre de requête"
               },
               "label": "Accédez à la page",
+              "queryParam": {
+                "label": "Nom du paramètre",
+                "placeholder": "Entrez un nom pour le paramètre...",
+                "tooltip": "Si non spécifié, le nom du paramètre sera le même que le nom de la colonne"
+              },
               "target": {
                 "label": "Naviguez vers la page",
                 "placeholder": "Sélectionnez une page"

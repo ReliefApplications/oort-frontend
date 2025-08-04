@@ -103,6 +103,7 @@ export const DEFAULT_ACTIONS: GridActions = {
     field: '',
     pageUrl: '',
     title: '',
+    queryParam: '',
     copyLink: false,
   },
   remove: false,
