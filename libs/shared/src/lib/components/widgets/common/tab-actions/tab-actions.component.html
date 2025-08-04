@@ -158,11 +158,22 @@
         </div>
         <div uiFormFieldDirective class="w-80">
           <ng-container ngProjectAs="label">
-            <label>
+            <label class="flex">
               {{
                 'components.widget.settings.grid.actions.goTo.queryParam.label'
                   | translate
               }}
+              <ui-icon
+                class="ml-1 cursor-help self-center"
+                variant="grey"
+                icon="info_outline"
+                [size]="18"
+                [uiTooltip]="
+                  'components.widget.settings.grid.actions.goTo.queryParam.tooltip'
+                    | translate
+                "
+                uiTooltipPosition="right"
+              ></ui-icon>
             </label>
           </ng-container>
           <input

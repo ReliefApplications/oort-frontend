@@ -1039,7 +1039,7 @@ export class CoreGridComponent
         const field = get(event, 'field', '');
         const value = get(event, `item.${field}`);
         const queryParam = get(event, 'queryParam', '');
-        fullUrl = `${fullUrl}?${queryParam ?? field}=${value}`;
+        fullUrl = `${fullUrl}?${queryParam || field}=${value}`;
       }
 
       return fullUrl;

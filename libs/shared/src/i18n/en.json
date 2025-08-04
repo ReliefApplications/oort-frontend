@@ -1778,7 +1778,8 @@
               "label": "Navigate to page",
               "queryParam": {
                 "label": "Query parameter name",
-                "placeholder": "Type a name for the parameter..."
+                "placeholder": "Type a name for the parameter...",
+                "tooltip": "Default parameter name is name of the field"
               },
               "target": {
                 "label": "Target page",
