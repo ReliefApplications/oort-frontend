@@ -1244,7 +1244,7 @@
       },
       "modal": {
         "closeConfirmation": "Close without saving changes?",
-        "update": "Save and close"
+        "saveClose": "Save and close"
       },
       "recovery": {
         "confirmationMessage": "Do you confirm recovery the data from {{date}} to the current register?",

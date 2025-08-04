@@ -1244,7 +1244,7 @@
       },
       "modal": {
         "closeConfirmation": "******",
-        "update": "******"
+        "saveClose": "******"
       },
       "recovery": {
         "confirmationMessage": "****** {{date}} ******",

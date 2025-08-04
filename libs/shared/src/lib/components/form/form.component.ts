@@ -25,7 +25,7 @@ import {
   EditRecordMutationResponse,
   Record as RecordModel,
 } from '../../models/record.model';
-import { BehaviorSubject, takeUntil } from 'rxjs';
+import { BehaviorSubject, interval, Subscription, takeUntil } from 'rxjs';
 import addCustomFunctions from '../../survey/custom-functions';
 import { AuthService } from '../../services/auth/auth.service';
 import {
@@ -146,6 +146,8 @@ export class FormComponent
   // private storageId = '';
   /** Date of local storage */
   // public storageDate?: Date;
+  /** Auto save interval */
+  private autoSaveInterval?: Subscription;
 
   /**
    * Gets the error questions for current page
@@ -560,6 +562,9 @@ export class FormComponent
   /** It removes the item from local storage, clears cached records, and discards the search. */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
+    if (this.autoSaveInterval) {
+      this.autoSaveInterval.unsubscribe();
+    }
     if (this.resetTimeoutListener) {
       clearTimeout(this.resetTimeoutListener);
     }
@@ -618,18 +623,22 @@ export class FormComponent
     if (!this.record && !this.form.canCreateRecords) {
       this.survey.mode = 'display';
     }
-    if (this.survey.autoSave) {
-      this.survey.onValueChanged.add(async (_, options) => {
-        if (options.question.omitField) {
-          return;
+    // Auto save survey
+    if (this.survey.autoSave && this.survey.mode !== 'display') {
+      this.autoSaveInterval = interval(15000).subscribe(() => {
+        if (
+          !this.saving &&
+          !this.autosaving &&
+          this.survey.data &&
+          Object.keys(this.survey.data).length > 0
+        ) {
+          this.formHelpersService.autoSaveRecord(
+            this.onComplete.bind(this, true),
+            this.temporaryFilesStorage,
+            this.form.id,
+            this.survey
+          );
         }
-        this.formHelpersService.autoSaveRecord(
-          options,
-          this.onComplete.bind(this, true),
-          this.temporaryFilesStorage,
-          this.form.id,
-          this.survey
-        );
       });
     }
     this.survey.onComplete.add(() => {

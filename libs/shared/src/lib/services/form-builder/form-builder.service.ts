@@ -740,7 +740,7 @@ export class FormBuilderService {
           console.error('Error downloading file:', error);
           options.callback('error', error);
         });
-    } else if (this.recordId || options.fileValue.readyToSave) {
+    } else if (this.recordId) {
       options.callback('success', '');
     }
   }
