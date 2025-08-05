@@ -79,6 +79,16 @@ export class UsersDropdownComponent
       variables: {
         first: ITEMS_PER_PAGE,
         applications: this.applications ?? null,
+        filter: {
+          logic: 'and',
+          filters: [
+            {
+              field: 'ids',
+              operator: 'eq',
+              value: this.initialSelectionIDs,
+            },
+          ],
+        },
       },
     });
 
@@ -127,11 +137,9 @@ export class UsersDropdownComponent
    * @param searchValue New search value
    */
   public onSearchChange(searchValue: string) {
-    const searchUsername = searchValue.includes('@')
-      ? searchValue.split('@')[0]
-      : searchValue;
-
-    if (searchUsername.length > 3) {
+    const sanitizedSearchValue = searchValue.replace(/@/g, '');
+    const sentValue = `^(?=[^@]*${sanitizedSearchValue})[^@]+@`;
+    if (sanitizedSearchValue.length >= 3) {
       this.query.refetch({
         filter: {
           logic: 'and',
@@ -139,7 +147,20 @@ export class UsersDropdownComponent
             {
               field: 'username',
               operator: 'contains',
-              value: searchUsername,
+              value: sentValue,
+            },
+          ],
+        } as CompositeFilterDescriptor,
+      });
+    } else {
+      this.query.refetch({
+        filter: {
+          logic: 'and',
+          filters: [
+            {
+              field: 'ids',
+              operator: 'eq',
+              value: this.initialSelectionIDs,
             },
           ],
         } as CompositeFilterDescriptor,

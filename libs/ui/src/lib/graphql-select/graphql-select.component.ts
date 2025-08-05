@@ -65,6 +65,8 @@ export class GraphQLSelectComponent
   @Input() filterable = false;
   /** Placeholder text for the select */
   @Input() placeholder = '';
+  /** Can scroll */
+  @Input() scrollable = true;
   /**
    *  Input decorator for aria-label
    */
@@ -333,11 +335,6 @@ export class GraphQLSelectComponent
       .pipe(debounceTime(500), distinctUntilChanged())
       .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
-        const atIndex = value.indexOf('@');
-        if (atIndex !== -1) {
-          const filteredValue = value.substring(0, atIndex);
-          this.searchControl.setValue(filteredValue, { emitEvent: false });
-        }
         this.cachedElements = [];
         this.searchChange.emit(value);
       });
@@ -436,18 +433,20 @@ export class GraphQLSelectComponent
   onOpenSelect(): void {
     // focus on search input, if filterable
     if (this.filterable) this.searchInput?.nativeElement.focus();
-    const panel =
-      this.shadowDomService.currentHost.getElementById('optionList');
-    if (this.scrollListener) {
-      this.scrollListener();
-    }
-    this.scrollListener = this.renderer.listen(
-      panel,
-      'scroll',
-      (event: any) => {
-        this.loadOnScroll(event);
+    if (this.scrollable) {
+      const panel =
+        this.shadowDomService.currentHost.getElementById('optionList');
+      if (this.scrollListener) {
+        this.scrollListener();
       }
-    );
+      this.scrollListener = this.renderer.listen(
+        panel,
+        'scroll',
+        (event: any) => {
+          this.loadOnScroll(event);
+        }
+      );
+    }
   }
 
   /**
