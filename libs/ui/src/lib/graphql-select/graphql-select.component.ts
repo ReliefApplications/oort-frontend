@@ -331,7 +331,13 @@ export class GraphQLSelectComponent
     // this way we can wait for 0.5s before sending an update
     this.searchControl.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged())
+      .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
+        const atIndex = value.indexOf('@');
+        if (atIndex !== -1) {
+          const filteredValue = value.substring(0, atIndex);
+          this.searchControl.setValue(filteredValue, { emitEvent: false });
+        }
         this.cachedElements = [];
         this.searchChange.emit(value);
       });
