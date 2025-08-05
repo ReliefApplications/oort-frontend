@@ -1,6 +1,5 @@
 import { Question, SurveyModel } from 'survey-core';
 import { GlobalOptions } from './types';
-import { isArray, isNull } from 'lodash';
 
 /**
  * Registration of new custom functions for the survey.
@@ -15,13 +14,14 @@ function onInit(
   this: { question: Question; survey: SurveyModel },
   params: any[]
 ) {
-  if (!this.question._initDone && !isNull(params[0])) {
+  const [questionName] = params;
+  if (!this.question._initDone) {
     this.survey.onAfterRenderSurvey.add(() => {
       if (this.question._initDone) {
         return;
       }
       this.question._initDone = true;
-      this.question.value = isArray(this.question.value) ? params : params[0];
+      this.question.value = this.survey.data[questionName];
     });
   }
   return this.question.value;
