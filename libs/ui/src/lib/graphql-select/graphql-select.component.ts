@@ -65,6 +65,8 @@ export class GraphQLSelectComponent
   @Input() filterable = false;
   /** Placeholder text for the select */
   @Input() placeholder = '';
+  /** Can scroll */
+  @Input() scrollable = true;
   /**
    *  Input decorator for aria-label
    */
@@ -331,6 +333,7 @@ export class GraphQLSelectComponent
     // this way we can wait for 0.5s before sending an update
     this.searchControl.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged())
+      .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
         this.cachedElements = [];
         this.searchChange.emit(value);
@@ -430,18 +433,20 @@ export class GraphQLSelectComponent
   onOpenSelect(): void {
     // focus on search input, if filterable
     if (this.filterable) this.searchInput?.nativeElement.focus();
-    const panel =
-      this.shadowDomService.currentHost.getElementById('optionList');
-    if (this.scrollListener) {
-      this.scrollListener();
-    }
-    this.scrollListener = this.renderer.listen(
-      panel,
-      'scroll',
-      (event: any) => {
-        this.loadOnScroll(event);
+    if (this.scrollable) {
+      const panel =
+        this.shadowDomService.currentHost.getElementById('optionList');
+      if (this.scrollListener) {
+        this.scrollListener();
       }
-    );
+      this.scrollListener = this.renderer.listen(
+        panel,
+        'scroll',
+        (event: any) => {
+          this.loadOnScroll(event);
+        }
+      );
+    }
   }
 
   /**

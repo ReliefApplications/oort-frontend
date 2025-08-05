@@ -18,7 +18,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs';
 
 /** Default page size */
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 /**
  * Component to pick users from the list of users
@@ -79,6 +79,16 @@ export class UsersDropdownComponent
       variables: {
         first: ITEMS_PER_PAGE,
         applications: this.applications ?? null,
+        filter: {
+          logic: 'and',
+          filters: [
+            {
+              field: 'ids',
+              operator: 'eq',
+              value: this.initialSelectionIDs,
+            },
+          ],
+        },
       },
     });
 
@@ -127,18 +137,35 @@ export class UsersDropdownComponent
    * @param searchValue New search value
    */
   public onSearchChange(searchValue: string) {
-    this.query.refetch({
-      filter: {
-        logic: 'and',
-        filters: [
-          {
-            field: 'username',
-            operator: 'contains',
-            value: searchValue,
-          },
-        ],
-      } as CompositeFilterDescriptor,
-    });
+    const sanitizedSearchValue = searchValue.replace(/@/g, '');
+    const sentValue = `^(?=[^@]*${sanitizedSearchValue})[^@]+@`;
+    if (sanitizedSearchValue.length >= 3) {
+      this.query.refetch({
+        filter: {
+          logic: 'and',
+          filters: [
+            {
+              field: 'username',
+              operator: 'contains',
+              value: sentValue,
+            },
+          ],
+        } as CompositeFilterDescriptor,
+      });
+    } else {
+      this.query.refetch({
+        filter: {
+          logic: 'and',
+          filters: [
+            {
+              field: 'ids',
+              operator: 'eq',
+              value: this.initialSelectionIDs,
+            },
+          ],
+        } as CompositeFilterDescriptor,
+      });
+    }
   }
 
   /** Reloads selected users */
