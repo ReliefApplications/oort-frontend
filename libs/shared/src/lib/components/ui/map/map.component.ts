@@ -170,7 +170,7 @@ export class MapComponent
   /** Whether the zoom is greater than 7 */
   private highZoom = false;
   /** Zoom switcher */
-  private zoomSwitcher?: () => void;
+  // private zoomSwitcher?: () => void;
 
   /**
    * Map widget component
@@ -1065,26 +1065,29 @@ export class MapComponent
     let basemapLayer: L.Layer;
     if (basemap === 'Unesco') {
       this.highZoom = map.getZoom() > 7;
-      const url = this.highZoom
-        ? 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg'
-        : 'https://www.unesco.org/tiles/clearmap/{z}/{x}/{y}.png';
+      const url =
+        'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg';
+      // Disabled as per UNESCO request
+      // const url = this.highZoom
+      //   ? 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg'
+      //   : 'https://www.unesco.org/tiles/clearmap/{z}/{x}/{y}.png';
       basemapLayer = L.tileLayer(url);
 
-      this.zoomSwitcher = () => {
-        if (
-          (!this.highZoom && map.getZoom() > 7) ||
-          (this.highZoom && map.getZoom() <= 7) //Changing zoom level
-        ) {
-          this.basemap.removeFrom(this.map);
-          this.setBasemap(map, 'Unesco');
-        }
-      };
+      // this.zoomSwitcher = () => {
+      //   if (
+      //     (!this.highZoom && map.getZoom() > 7) ||
+      //     (this.highZoom && map.getZoom() <= 7) //Changing zoom level
+      //   ) {
+      //     this.basemap.removeFrom(this.map);
+      //     this.setBasemap(map, 'Unesco');
+      //   }
+      // };
 
-      map.on('zoomend', this.zoomSwitcher);
+      // map.on('zoomend', this.zoomSwitcher);
     } else {
-      if (this.zoomSwitcher) {
-        map.off('zoomend', this.zoomSwitcher);
-      }
+      // if (this.zoomSwitcher) {
+      //   map.off('zoomend', this.zoomSwitcher);
+      // }
       basemapLayer = Vector.vectorBasemapLayer(basemapName, {
         apiKey: this.esriApiKey,
       });
