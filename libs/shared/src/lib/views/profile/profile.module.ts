@@ -10,6 +10,7 @@ import {
   IconModule,
   FixedWrapperModule,
   TooltipModule,
+  SelectMenuModule,
 } from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProfileRoutingModule } from './profile-routing.module';
@@ -32,6 +33,7 @@ import { ProfileRoutingModule } from './profile-routing.module';
     TableModule,
     FixedWrapperModule,
     TooltipModule,
+    SelectMenuModule,
   ],
   exports: [ProfileComponent],
 })

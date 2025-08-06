@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { Validators, FormBuilder } from '@angular/forms';
+import { Validators, FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Apollo } from 'apollo-angular';
 import { EDIT_USER_PROFILE } from './graphql/mutations';
 import { AuthService } from '../../services/auth/auth.service';
@@ -8,6 +8,9 @@ import { UnsubscribeComponent } from '../../components/utils/unsubscribe/unsubsc
 import { takeUntil } from 'rxjs/operators';
 import { SnackbarService } from '@oort-front/ui';
 import { EditUserProfileMutationResponse, User } from '../../models/user.model';
+import { RestService } from '../../services/rest/rest.service';
+import { ReferenceDataService } from '../../services/reference-data/reference-data.service';
+import { get } from 'lodash';
 
 /**
  * Shared profile page.
@@ -22,7 +25,7 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
   /** Current user */
   public user: any;
   /** Form to edit the user */
-  public userForm!: ReturnType<typeof this.createUserForm>;
+  public userForm!: UntypedFormGroup;
   /** Displayed columns of table */
   public displayedColumnsApps = [
     'name',
@@ -32,6 +35,14 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
   ];
   /** URL for updating user password */
   public updatePasswordUrl: string;
+  /** Attributes */
+  public attributes: {
+    text: string;
+    value: string;
+    choices?: any[];
+    valueField?: string;
+    textField?: string;
+  }[] = [];
 
   /**
    * Shared profile page.
@@ -43,6 +54,8 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
    * @param authService Shared authentication service
    * @param fb Angular form builder
    * @param translate Translation service
+   * @param restService Shared rest service
+   * @param refDataService Reference data service
    */
   constructor(
     @Inject('environment') environment: any,
@@ -50,7 +63,9 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
     private snackBar: SnackbarService,
     private authService: AuthService,
     private fb: FormBuilder,
-    public translate: TranslateService
+    public translate: TranslateService,
+    private restService: RestService,
+    private refDataService: ReferenceDataService
   ) {
     super();
 
@@ -69,6 +84,7 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
       if (user) {
         this.user = { ...user };
         this.userForm = this.createUserForm(user);
+        this.getAttributes();
       }
     });
   }
@@ -81,10 +97,7 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
       .mutate<EditUserProfileMutationResponse>({
         mutation: EDIT_USER_PROFILE,
         variables: {
-          profile: {
-            firstName: this.userForm?.value.firstName,
-            lastName: this.userForm?.value.lastName,
-          },
+          profile: this.userForm.value,
         },
       })
       .subscribe({
@@ -173,5 +186,71 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
   public updatePassword(): void {
     // Redirect to update password URL
     window.location.href = this.updatePasswordUrl;
+  }
+
+  /**
+   * Get attributes from back-end, and set controls if any
+   */
+  private getAttributes(): void {
+    this.restService.get('/permissions/configuration').subscribe((config) => {
+      // can user edit attributes
+      const manualCreation = get(config, 'attributes.local', true);
+      this.restService
+        .get('/permissions/attributes')
+        .subscribe((attributes: any) => {
+          this.userForm.addControl(
+            'attributes',
+            this.fb.group(
+              attributes.reduce(
+                (group: any, attribute: any) => ({
+                  ...group,
+                  [attribute.value]: this.fb.control({
+                    value: get(
+                      this.user,
+                      `attributes.${attribute.value}`,
+                      null
+                    ),
+                    disabled: !manualCreation,
+                  }),
+                }),
+                {}
+              )
+            )
+          );
+          this.attributes = attributes.filter((x: any) => x.userCanEdit);
+          for (const attribute of attributes.filter(
+            (x: any) => x.userCanEdit
+          )) {
+            // Fetch reference data from attribute field
+            if (attribute.referenceData) {
+              this.fetchAttributeChoices(attribute);
+            }
+          }
+        });
+    });
+  }
+
+  /**
+   * Fetch attribute choices from attribute definition
+   *
+   * @param attribute Current attribute
+   */
+  private fetchAttributeChoices(attribute: any): void {
+    this.refDataService
+      .loadReferenceData(attribute.referenceData)
+      .then((refData) => {
+        if (refData) {
+          this.refDataService.fetchItems(refData).then(({ items }) => {
+            const target = this.attributes.find(
+              (x) => x.value === attribute.value
+            );
+            if (target) {
+              target.textField = attribute.textField;
+              target.valueField = refData.valueField;
+              target.choices = items;
+            }
+          });
+        }
+      });
   }
 }
