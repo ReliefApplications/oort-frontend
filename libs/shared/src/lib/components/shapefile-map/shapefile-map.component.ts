@@ -174,8 +174,7 @@ export class ShapeFileMapComponent
             >,
           ]
         : overlaps;
-
-    if (overlapsLayer) {
+    if (overlapsLayer.length > 0) {
       addLayerToMap(
         featureCollection(overlapsLayer),
         '#ff0000',
