@@ -8,6 +8,7 @@ import { get } from 'lodash';
 import { User } from '../../../models/user.model';
 import { AppAbility } from '../../../services/auth/auth.service';
 import { RestService } from '../../../services/rest/rest.service';
+import { ReferenceDataService } from '../../../services/reference-data/reference-data.service';
 
 /**
  * User summary details component.
@@ -37,7 +38,13 @@ export class UserDetailsComponent implements OnInit {
   /** Form */
   public form!: UntypedFormGroup;
   /** Attributes */
-  public attributes: { text: string; value: string }[] = [];
+  public attributes: {
+    text: string;
+    value: string;
+    choices?: any[];
+    valueField?: string;
+    textField?: string;
+  }[] = [];
 
   /**
    * User summary details component
@@ -45,11 +52,13 @@ export class UserDetailsComponent implements OnInit {
    * @param fb Angular form builder
    * @param restService Shared rest service
    * @param ability user ability
+   * @param refDataService Reference data service
    */
   constructor(
     private fb: UntypedFormBuilder,
     private restService: RestService,
-    private ability: AppAbility
+    private ability: AppAbility,
+    private refDataService: ReferenceDataService
   ) {}
 
   ngOnInit(): void {
@@ -102,7 +111,37 @@ export class UserDetailsComponent implements OnInit {
             )
           );
           this.attributes = attributes;
+          for (const attribute of attributes) {
+            // Fetch reference data from attribute field
+            if (attribute.referenceData) {
+              this.fetchAttributeChoices(attribute);
+            }
+          }
         });
     });
+  }
+
+  /**
+   * Fetch attribute choices from attribute definition
+   *
+   * @param attribute Current attribute
+   */
+  private fetchAttributeChoices(attribute: any): void {
+    this.refDataService
+      .loadReferenceData(attribute.referenceData)
+      .then((refData) => {
+        if (refData) {
+          this.refDataService.fetchItems(refData).then(({ items }) => {
+            const target = this.attributes.find(
+              (x) => x.value === attribute.value
+            );
+            if (target) {
+              target.textField = attribute.textField;
+              target.valueField = refData.valueField;
+              target.choices = items;
+            }
+          });
+        }
+      });
   }
 }
