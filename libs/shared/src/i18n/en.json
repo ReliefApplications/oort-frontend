@@ -1884,6 +1884,7 @@
               "title": "Inject values as CSS classes",
               "tooltip": "When a field is selected, it's value will be added to to <tr> element as a class, allowing it to be targeted by custom styling"
             },
+            "inlineActionsTitle": "Display inline actions title",
             "showSingleActionAsButton": "Show single action as button",
             "singleSelection": "Single selection"
           },

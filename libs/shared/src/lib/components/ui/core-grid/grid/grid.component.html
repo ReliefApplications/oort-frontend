@@ -1098,13 +1098,13 @@
         </ng-container>
       </kendo-grid-column-group>
     </ng-container>
-    <!-- Go to page ( navigateToPage action ) -->
+    <!-- Inline floating buttons -->
     <kendo-grid-column
       *ngIf="inlineActionButtons.length > 0"
       [columnMenu]="false"
       [width]="floatingButtonsWidth"
       [resizable]="true"
-      [title]="''"
+      [title]="widget?.settings?.widgetDisplay?.inlineActionsTitle || ''"
       [sticky]="true"
     >
       <ng-template kendoGridCellTemplate let-dataItem="dataItem">
@@ -1128,7 +1128,7 @@
         </div>
       </ng-template>
     </kendo-grid-column>
-    <!-- Inline floating buttons -->
+     <!-- Go to page ( navigateToPage action ) -->
     <kendo-grid-column
       *ngIf="actions.navigateToPage"
       [columnMenu]="false"
