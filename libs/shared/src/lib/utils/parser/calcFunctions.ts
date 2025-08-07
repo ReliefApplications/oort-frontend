@@ -1,4 +1,5 @@
 import { ceil, floor, max, min, round } from 'lodash';
+import { formatNumber } from '@angular/common';
 
 /**
  * Check that all arguments are number
@@ -128,6 +129,12 @@ const calcFunctions: Record<
      */
     call: (...values) => {
       return max(values)?.toString() || '';
+    },
+  },
+  number: {
+    signature: 'number( value )',
+    call: (value) => {
+      return formatNumber(Number(value), 'en') || '';
     },
   },
 };
