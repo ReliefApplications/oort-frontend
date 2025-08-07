@@ -683,7 +683,7 @@ export class FormModalComponent
         if (response.verified) {
           this.loading = !autoSave;
           this.autosaving = autoSave;
-          this.saving = true;
+          this.saving = !autoSave;
           await this.formHelpersService.uploadFiles(
             this.temporaryFilesStorage,
             this.form?.id
