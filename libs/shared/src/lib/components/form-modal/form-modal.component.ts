@@ -812,12 +812,14 @@ export class FormModalComponent
           }
           this.loading = false;
           this.autosaving = false;
+          this.saving = false;
           this.latestSaveDate = new Date();
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
           this.loading = false;
           this.autosaving = false;
+          this.saving = false;
         },
       });
   }
@@ -871,10 +873,14 @@ export class FormModalComponent
             );
           }
           this.loading = false;
+          this.autosaving = false;
+          this.saving = false;
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
           this.loading = false;
+          this.autosaving = false;
+          this.saving = false;
         },
       });
   }
