@@ -864,25 +864,15 @@ export class FormHelpersService {
    * @param callback Function to execute once debounce time has passed
    * @param temporaryFilesStorage Form to save the record from
    * @param formId Id of the form
-   * @param survey Survey being saved
    */
   public async autoSaveRecord(
     callback: () => Promise<void>,
     temporaryFilesStorage: TemporaryFilesStorage,
-    formId: string | undefined,
-    survey: SurveyModel
+    formId: string | undefined
   ) {
-    const questions = survey.getAllQuestions(false, false, true);
-    const initialStates = questions.reduce((acc, q) => {
-      acc[q.name] = q.readOnly;
-      return acc;
-    }, {} as { [key: string]: boolean });
-    //Set everything as readonly during the upload of the files
-    questions.forEach((q) => (q.readOnly = true));
-    //Avoids editing the record multiple times for file questions
+    // Avoids editing the record multiple times for file questions
     await this.uploadFiles(temporaryFilesStorage, formId);
     temporaryFilesStorage.clear();
-    questions.forEach((q) => (q.readOnly = initialStates[q.name]));
     this.saveDebounced(callback);
   }
 

@@ -637,8 +637,7 @@ export class FormComponent
             this.formHelpersService.autoSaveRecord(
               this.onComplete.bind(this, true),
               this.temporaryFilesStorage,
-              this.form.id,
-              this.survey
+              this.form.id
             );
           }
         });

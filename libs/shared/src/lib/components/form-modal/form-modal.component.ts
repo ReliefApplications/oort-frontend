@@ -379,8 +379,7 @@ export class FormModalComponent
             this.formHelpersService.autoSaveRecord(
               this.onUpdate.bind(this, false, true),
               this.temporaryFilesStorage,
-              this.form?.id,
-              this.survey
+              this.form?.id
             );
           }
         });
