@@ -55,6 +55,8 @@ export class FormWidgetComponent
     logic: 'and',
     filters: [],
   };
+  /** Form mode */
+  public mode: 'edit' | 'display' = 'display';
 
   /** Form component */
   @ViewChild(FormComponent)
@@ -83,6 +85,7 @@ export class FormWidgetComponent
     const promises: Promise<FormQueryResponse | RecordQueryResponse | void>[] =
       [];
 
+    // Fetch template
     if (this.settings.form) {
       promises.push(
         firstValueFrom(
@@ -103,10 +106,12 @@ export class FormWidgetComponent
 
     // Load record from loadRecord state
     if (this.settings.loadRecord?.enabled) {
+      this.hideNewRecord = true;
       const stateID = this.settings.loadRecord.state;
       this.dashboardService.states$
         .pipe(takeUntil(this.destroy$))
         .subscribe((states) => {
+          // Subscribe to state changes to load record from dashboard state
           const state = states.find((s) => s.id === stateID);
           const value = state?.value;
           if (!isNil(value) && value !== this.record?.id) {
@@ -118,6 +123,7 @@ export class FormWidgetComponent
                   id: value,
                 },
               })
+              .pipe(takeUntil(this.destroy$))
               .subscribe(({ data }) => {
                 this.loading = false;
                 if (data) {
@@ -128,6 +134,11 @@ export class FormWidgetComponent
               });
           }
         });
+      if (this.settings.loadRecord.canUpdate) {
+        this.mode = 'edit';
+      }
+    } else {
+      this.mode = 'edit';
     }
 
     this.contextFilters = this.settings.contextFilters
@@ -162,7 +173,7 @@ export class FormWidgetComponent
    */
   public onComplete(e: { completed: boolean; hideNewRecord?: boolean }): void {
     this.completed = e.completed;
-    this.hideNewRecord = e.hideNewRecord || false;
+    this.hideNewRecord = this.hideNewRecord || e.hideNewRecord || false;
 
     if (this.settings.autoPopulateOnSubmit && e.completed === true) {
       // Reset the form
