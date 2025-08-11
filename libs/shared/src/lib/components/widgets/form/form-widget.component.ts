@@ -127,7 +127,9 @@ export class FormWidgetComponent
               .subscribe(({ data }) => {
                 this.loading = false;
                 if (data) {
-                  this.record = this.settings.loadRecord.update
+                  this.record =
+                    !this.settings.loadRecord.canUpdate ||
+                    this.settings.loadRecord.update
                     ? data.record
                     : omit(data.record, 'id');
                 }

@@ -472,6 +472,7 @@ export class FormModalComponent
           record: this.record?.id,
         },
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe((comments) => {
         this.comments = comments.data.comments.reduce(
           (acc: { [key: string]: Comment[] }, comment) => {
