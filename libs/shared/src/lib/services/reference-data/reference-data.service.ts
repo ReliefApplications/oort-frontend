@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { isArray, isEqual, get } from 'lodash';
+import { isArray, isEqual, get, isNil } from 'lodash';
 import { map } from 'rxjs/operators';
 import localForage from 'localforage';
 import {
@@ -172,10 +172,11 @@ export class ReferenceDataService {
             item[filter.localField]
           )
         )
-        .map(translateOptions);
+        .map(translateOptions)
+        .filter((x) => !isNil(x.text));
     }
     // if we don't have to filter
-    return items.map(translateOptions);
+    return items.map(translateOptions).filter((x) => !isNil(x.text));
   }
 
   /**
