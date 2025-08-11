@@ -178,6 +178,7 @@ export class ApplicationComponent
               navItems: displayNavItems,
             },
           ];
+          console.log(displayNavItems);
           if (!this.application || application.id !== this.application.id) {
             const firstPage = get(application, 'pages', [])[0];
             if (this.router.url.endsWith(application?.id || '') || !firstPage) {
