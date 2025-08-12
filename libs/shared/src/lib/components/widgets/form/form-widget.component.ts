@@ -130,8 +130,8 @@ export class FormWidgetComponent
                   this.record =
                     !this.settings.loadRecord.canUpdate ||
                     this.settings.loadRecord.update
-                    ? data.record
-                    : omit(data.record, 'id');
+                      ? data.record
+                      : omit(data.record, 'id');
                 }
               });
           }
