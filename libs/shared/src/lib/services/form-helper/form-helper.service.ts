@@ -1060,9 +1060,10 @@ export class FormHelpersService {
 
     const panelHeader = panelHtml?.querySelector('.sd-element__header');
     const title = panelHeader?.querySelector('.sd-element__title');
-    const oldButton = panelHeader?.querySelector('#upload-btn');
+    // Check if button is already present
+    const button = panelHeader?.querySelector('#upload-btn');
 
-    if (title && !oldButton) {
+    if (title && !button) {
       const div = document.createElement('div');
       div.classList.add('flex', 'items-center');
       div.id = 'upload-btn';
@@ -1071,6 +1072,17 @@ export class FormHelpersService {
       title.remove(); // remove original title
       div.appendChild(uploadButton);
       panelHeader?.appendChild(div);
+      console.log('Should hide button?: ', question.isReadOnly);
+      if (question.isReadOnly) {
+        uploadButton.classList.add('!hidden');
+      }
+      question.registerFunctionOnPropertyValueChanged('readOnly', () => {
+        if (question.isReadOnly) {
+          uploadButton.classList.add('!hidden');
+        } else {
+          uploadButton.classList.remove('!hidden');
+        }
+      });
     }
   }
 
