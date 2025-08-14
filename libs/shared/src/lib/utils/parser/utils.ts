@@ -596,37 +596,89 @@ export const getFieldsValue = (record: any) => {
 };
 
 /**
+ * Find the matching closing parenthesis for a given opening parenthesis.
+ *
+ * @param str The string to search within.
+ * @param start The index of the opening parenthesis.
+ * @returns The index of the matching closing parenthesis, or -1 if not found.
+ */
+const findMatchingParen = (str: string, start: number): number => {
+  let depth = 0;
+  for (let i = start; i < str.length; i++) {
+    if (str[i] === '(') depth++;
+    else if (str[i] === ')') {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+};
+
+/**
  * Apply the calc functions on the html body.
  *
  * @param html The html body on which we want to apply the functions
  * @returns The html body with the calculated result of the functions
  */
 const applyOperations = (html: string): string => {
-  const regex = new RegExp(
-    `${CALC_PREFIX}(\\w+)\\(([^\\)]+)\\)${PLACEHOLDER_SUFFIX}`,
-    'gm'
-  );
   let parsedHtml = html;
-  let result = regex.exec(html);
-  while (result !== null) {
-    // get the function
-    const calcFunc = get(calcFunctions, result[1]);
+  let idx = parsedHtml.indexOf(CALC_PREFIX);
+
+  while (idx !== -1) {
+    // Find function name
+    const funcStart = idx + CALC_PREFIX.length;
+    const funcEnd = parsedHtml.indexOf('(', funcStart);
+    const funcName = parsedHtml.substring(funcStart, funcEnd);
+
+    // Find matching parenthesis for arguments
+    const argsStart = funcEnd + 1;
+    const argsEnd = findMatchingParen(parsedHtml, funcEnd);
+    if (argsEnd === -1) break; // Malformed expression
+
+    // Extract arguments
+    let argsString = parsedHtml.substring(argsStart, argsEnd);
+
+    // Check for nested calc and resolve recursively
+    if (argsString.includes(CALC_PREFIX)) {
+      argsString = applyOperations(argsString);
+    }
+
+    // Extract after the closing parenthesis and suffix
+    const suffixStart = argsEnd + 1;
+    const suffixEnd = parsedHtml.indexOf(PLACEHOLDER_SUFFIX, suffixStart);
+    if (suffixEnd === -1) break; // Malformed expression
+
+    // Get the function
+    const calcFunc = get(calcFunctions, funcName);
+    let resultText = '';
     if (calcFunc) {
-      // get the arguments and clean the numbers to be parsed correctly
-      const args = result[2]
-        .split(';')
-        .map((arg) => arg.replace(/[\s,]/gm, ''));
-      // apply the function
-      let resultText;
+      const args =
+        argsString
+          .match(/(?:<[^>]+>|[^<;]+)+/g)
+          ?.map((arg) => {
+            return funcName === 'date'
+              ? arg.trim()
+              : arg.replace(/[\s,]/gm, '');
+          })
+          .filter((arg) => !!arg) || [];
       try {
         resultText = calcFunc.call(...args);
       } catch (err: any) {
         resultText = `<span style="text-decoration: red wavy underline" title="${err.message}"> ${err.name}</span>`;
       }
-      parsedHtml = parsedHtml.replace(result[0], resultText);
     }
-    result = regex.exec(html);
+
+    // Replace the whole calc expression
+    const fullExpr = parsedHtml.substring(
+      idx,
+      suffixEnd + PLACEHOLDER_SUFFIX.length
+    );
+    parsedHtml = parsedHtml.replace(fullExpr, resultText);
+
+    // Look for next calc
+    idx = parsedHtml.indexOf(CALC_PREFIX);
   }
+
   return parsedHtml;
 };
 
