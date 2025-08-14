@@ -108,6 +108,8 @@ export class FormComponent
     completed: boolean;
     hideNewRecord?: boolean;
   }> = new EventEmitter();
+  /** Edit mode */
+  @Input() mode: 'edit' | 'display' = 'edit';
   /** Survey model */
   public survey!: SurveyModel;
   /** Indicates whether the search is active */
@@ -244,23 +246,28 @@ export class FormComponent
       }
 
       if (rule.direction === 'stateToQuestion' || rule.direction === 'both') {
-        this.dashboardService.states$.subscribe(() => {
-          const states = this.dashboardService.states.getValue();
-          const state = states.find(
-            (s: DashboardState) => s.name === rule.state
-          );
-          if (state) {
-            if (question.isValueArray && Array.isArray(state.value)) {
-              question.value = state.value;
-            } else if (!question.isValueArray && !Array.isArray(state.value)) {
-              question.value = state.value;
-            } else if (question.isValueArray && !Array.isArray(state.value)) {
-              question.value = [state.value];
-            } else {
-              question.value = state.value[0];
+        this.dashboardService.states$
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(() => {
+            const states = this.dashboardService.states.getValue();
+            const state = states.find(
+              (s: DashboardState) => s.name === rule.state
+            );
+            if (state) {
+              if (question.isValueArray && Array.isArray(state.value)) {
+                question.value = state.value;
+              } else if (
+                !question.isValueArray &&
+                !Array.isArray(state.value)
+              ) {
+                question.value = state.value;
+              } else if (question.isValueArray && !Array.isArray(state.value)) {
+                question.value = [state.value];
+              } else {
+                question.value = state.value[0];
+              }
             }
-          }
-        });
+          });
       }
     });
   }
@@ -620,26 +627,30 @@ export class FormComponent
     );
 
     this.survey.showCompletedPage = false;
+    if (this.mode === 'display') {
+      this.survey.mode = 'display';
+    }
     if (!this.record && !this.form.canCreateRecords) {
       this.survey.mode = 'display';
     }
     // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {
-      this.autoSaveInterval = interval(15000).subscribe(() => {
-        if (
-          !this.saving &&
-          !this.autosaving &&
-          this.survey.data &&
-          Object.keys(this.survey.data).length > 0
-        ) {
-          this.formHelpersService.autoSaveRecord(
-            this.onComplete.bind(this, true),
-            this.temporaryFilesStorage,
-            this.form.id,
-            this.survey
-          );
-        }
-      });
+      this.autoSaveInterval = interval(15000)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (
+            !this.saving &&
+            !this.autosaving &&
+            this.survey.data &&
+            Object.keys(this.survey.data).length > 0
+          ) {
+            this.formHelpersService.autoSaveRecord(
+              this.onComplete.bind(this, true),
+              this.temporaryFilesStorage,
+              this.form.id
+            );
+          }
+        });
     }
     this.survey.onComplete.add(() => {
       this.onComplete();

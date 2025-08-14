@@ -28,7 +28,7 @@ export class FormSettingsComponent
   > = new EventEmitter();
   /** Widget form group */
   public widgetFormGroup!: ReturnType<typeof createFormWidgetFormGroup>;
-  /** Form */
+  /** Selected form template */
   public form: Form | null = null;
 
   /**
@@ -100,5 +100,23 @@ export class FormSettingsComponent
       this.widget.id,
       this.widget.settings
     );
+    // Fields automation
+    this.widgetFormGroup
+      .get('loadRecord.enabled')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        if (!value) {
+          this.widgetFormGroup.get('loadRecord.canUpdate')?.setValue(false);
+          this.widgetFormGroup.get('loadRecord.state')?.setValue(null);
+        }
+      });
+    this.widgetFormGroup
+      .get('loadRecord.canUpdate')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        if (!value) {
+          this.widgetFormGroup.get('loadRecord.update')?.setValue(false);
+        }
+      });
   }
 }

@@ -367,21 +367,22 @@ export class FormModalComponent
     }
     // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {
-      this.autoSaveInterval = interval(15000).subscribe(() => {
-        if (
-          !this.saving &&
-          !this.autosaving &&
-          this.survey.data &&
-          Object.keys(this.survey.data).length > 0
-        ) {
-          this.formHelpersService.autoSaveRecord(
-            this.onUpdate.bind(this, false, true),
-            this.temporaryFilesStorage,
-            this.form?.id,
-            this.survey
-          );
-        }
-      });
+      this.autoSaveInterval = interval(15000)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (
+            !this.saving &&
+            !this.autosaving &&
+            this.survey.data &&
+            Object.keys(this.survey.data).length > 0
+          ) {
+            this.formHelpersService.autoSaveRecord(
+              this.onUpdate.bind(this, false, true),
+              this.temporaryFilesStorage,
+              this.form?.id
+            );
+          }
+        });
     }
     this.survey.onComplete.add(() => {
       this.onComplete();
@@ -471,6 +472,7 @@ export class FormModalComponent
           record: this.record?.id,
         },
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe((comments) => {
         this.comments = comments.data.comments.reduce(
           (acc: { [key: string]: Comment[] }, comment) => {
@@ -812,12 +814,14 @@ export class FormModalComponent
           }
           this.loading = false;
           this.autosaving = false;
+          this.saving = false;
           this.latestSaveDate = new Date();
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
           this.loading = false;
           this.autosaving = false;
+          this.saving = false;
         },
       });
   }
@@ -871,10 +875,14 @@ export class FormModalComponent
             );
           }
           this.loading = false;
+          this.autosaving = false;
+          this.saving = false;
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
           this.loading = false;
+          this.autosaving = false;
+          this.saving = false;
         },
       });
   }
