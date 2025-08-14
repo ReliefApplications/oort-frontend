@@ -167,7 +167,6 @@ export class ShapeFileMapComponent
           )
         )
       );
-      console.log(others);
       // Check for gaps
       if (others && booleanDisjoint(polygonA, others)) {
         errors.gaps = true;
