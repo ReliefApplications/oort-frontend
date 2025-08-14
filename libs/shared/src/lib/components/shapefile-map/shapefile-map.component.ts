@@ -3,11 +3,9 @@ import { MapConstructorSettings } from '../ui/map/interfaces/map.interface';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
 import { MapComponent, MapModule } from '../ui/map';
 import { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
-import area from '@turf/area';
 import { intersect } from '@turf/intersect';
 import { union } from '@turf/union';
 import { difference } from '@turf/difference';
-import booleanOverlap from '@turf/boolean-overlap';
 import { convex } from '@turf/convex';
 import { featureCollection } from '@turf/helpers';
 import { booleanDisjoint } from '@turf/boolean-disjoint';
@@ -22,6 +20,7 @@ export type ErrorType = {
   intersection: boolean;
   gaps: boolean;
   overlap: boolean;
+  perimeter: boolean;
 };
 /** Error messages associated to errors */
 export const ERROR_MESSAGES: { [key in keyof ErrorType]: string } = {
@@ -30,6 +29,8 @@ export const ERROR_MESSAGES: { [key in keyof ErrorType]: string } = {
   gaps: 'Geometry error: There are one or more gaps (empty spaces) between zonation polygons. Please correct these errors and upload the files again.',
   overlap:
     'Geometry error: There are one or more overlapping zonation polygons. Please correct these errors and upload the files again.',
+  perimeter:
+    'Geometry error: There are one or more polygons with an incomplete or open perimeter. Please correct these errors and upload the files again.',
 };
 
 /** shapefile map component */
@@ -74,6 +75,7 @@ export class ShapeFileMapComponent
     intersection: false,
     gaps: false,
     overlap: false,
+    perimeter: false,
   });
   /** Reference to map component */
   @ViewChild(MapComponent) mapComponent?: MapComponent;
@@ -118,10 +120,42 @@ export class ShapeFileMapComponent
       intersection: false,
       gaps: false,
       overlap: false,
+      perimeter: false,
     };
     // Check for overlaps and gaps
     const overlaps = [];
     const { features } = this.shapefile;
+
+    // Check if any open / incomplete perimeters
+    for (let i = 0; i < features.length; i++) {
+      const polygonA = features[i];
+      // Check for open / incomplete perimeters
+      if (polygonA.geometry.type === 'Polygon') {
+        polygonA.geometry.coordinates.forEach((ring) => {
+          const first = ring[0];
+          const last = ring[ring.length - 1];
+          if (first[0] !== last[0] || first[1] !== last[1]) {
+            errors.perimeter = true;
+          }
+        });
+      }
+      if (polygonA.geometry.type === 'MultiPolygon') {
+        polygonA.geometry.coordinates.forEach((polygon) => {
+          polygon.forEach((ring) => {
+            const first = ring[0];
+            const last = ring[ring.length - 1];
+            if (first[0] !== last[0] || first[1] !== last[1]) {
+              errors.perimeter = true;
+            }
+          });
+        });
+      }
+      // Computation can break if turf uses invalid polygons
+      if (errors.perimeter) {
+        this.errors.next(errors);
+        return;
+      }
+    }
 
     // Iterate through each pair of polygons
     for (let i = 0; i < features.length; i++) {
@@ -132,7 +166,9 @@ export class ShapeFileMapComponent
             (f) => f.properties?.Zonation !== polygonA.properties?.Zonation
           )
         )
-      ); // Check for gaps
+      );
+      console.log(others);
+      // Check for gaps
       if (others && booleanDisjoint(polygonA, others)) {
         errors.gaps = true;
       }
@@ -147,9 +183,9 @@ export class ShapeFileMapComponent
         }
 
         // Check for overlap
-        if (booleanOverlap(polygonA, polygonB)) {
-          errors.overlap = true;
-        }
+        // if (booleanOverlap(polygonA, polygonB)) {
+        //   errors.overlap = true;
+        // }
       }
     }
 
@@ -164,10 +200,10 @@ export class ShapeFileMapComponent
         style: { color, fillOpacity },
       }).addTo(map);
       const div = L.DomUtil.create('div');
-      const chien = Color(color).alpha(fillOpacity).rgb().string();
+      const backgroundColor = Color(color).alpha(fillOpacity).rgb().string();
       div.innerHTML = `<div class="flex items-center">
                           <i class="w-6 h-4 border" 
-                            style="background:${chien}; border-color:${color}"></i>
+                            style="background:${backgroundColor}; border-color:${color}"></i>
                           <span class="ml-2">${legendTitle}</span>
                         </div>
                       `;
@@ -208,35 +244,6 @@ export class ShapeFileMapComponent
         }
       }
     }
-
-    // Check for sliver polygons (small area artifacts)
-    const minSliverArea = 100;
-    const polygonArea = area(this.shapefile);
-    if (polygonArea < minSliverArea) {
-      console.error(
-        `⚠️ Sliver polygon detected in zone (area: ${polygonArea.toFixed(
-          2
-        )} m²)`
-      );
-    }
-
-    // const detectSliver = (polygon: Feature<Polygon>) => {
-    //   const rings = polygon.geometry.coordinates;
-    //   const sliverRings = [];
-
-    //   rings.forEach((ring) => {
-    //     const chien = area([ring]);
-    //     const perimeter = length([ring], {
-    //       units: 'meters',
-    //     });
-
-    //     // Define a threshold for slivers (e.g., perimeter-to-area ratio > 10)
-    //     const ratio = perimeter / chien;
-    //     if (ratio > 10) {
-    //       sliverRings.push({ ring, chien, perimeter, ratio });
-    //     }
-    //   });
-    // };
 
     this.errors.next(errors);
   }
