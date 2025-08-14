@@ -625,6 +625,7 @@ export class FormBuilderService {
       }
     });
     survey.onFocusInQuestion.add((survey, e) => {
+      console.log('Focusing on question');
       const { title: rootTitle, name: rootName } = getRootParent(e.question);
       survey.setVariable('__FOCUSED__.name', e.question.name);
       survey.setVariable('__FOCUSED__.title', e.question.title);
