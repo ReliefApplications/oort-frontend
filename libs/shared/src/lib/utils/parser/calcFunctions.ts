@@ -131,10 +131,15 @@ const calcFunctions: Record<
       return max(values)?.toString() || '';
     },
   },
-  number: {
-    signature: 'number( value )',
-    call: (value) => {
-      return formatNumber(Number(value), 'en') || '';
+  formatNumber: {
+    signature: 'formatNumber( value ; digitInfos )',
+    call: (value, digitsInfo) => {
+      console.log(value);
+      if (digitsInfo) {
+        return formatNumber(Number(value), 'en', digitsInfo) || '';
+      } else {
+        return formatNumber(Number(value), 'en') || '';
+      }
     },
   },
 };
