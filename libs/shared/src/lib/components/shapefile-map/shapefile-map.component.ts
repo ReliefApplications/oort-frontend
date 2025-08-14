@@ -7,6 +7,7 @@ import area from '@turf/area';
 import { intersect } from '@turf/intersect';
 import { union } from '@turf/union';
 import { difference } from '@turf/difference';
+import booleanOverlap from '@turf/boolean-overlap';
 import { convex } from '@turf/convex';
 import { featureCollection } from '@turf/helpers';
 import { booleanDisjoint } from '@turf/boolean-disjoint';
@@ -17,11 +18,18 @@ import { AlertModule } from '@oort-front/ui';
 import { CommonModule } from '@angular/common';
 import Color from 'color';
 
-export type ErrorType = { intersection: boolean; gaps: boolean };
+export type ErrorType = {
+  intersection: boolean;
+  gaps: boolean;
+  overlap: boolean;
+};
 /** Error messages associated to errors */
 export const ERROR_MESSAGES: { [key in keyof ErrorType]: string } = {
-  intersection: 'There should be no intersection between your three polygons',
-  gaps: 'There should be no gaps between your three polygons',
+  intersection:
+    'Geometry error: There are one or more self-intersecting polygons (polygons that cross themselves in a figure-eight fashion). Please correct these errors and upload the files again.',
+  gaps: 'Geometry error: There are one or more gaps (empty spaces) between zonation polygons. Please correct these errors and upload the files again.',
+  overlap:
+    'Geometry error: There are one or more overlapping zonation polygons. Please correct these errors and upload the files again.',
 };
 
 /** shapefile map component */
@@ -36,10 +44,7 @@ export class ShapeFileMapComponent
   extends UnsubscribeComponent
   implements AfterViewInit
 {
-  // === MAP ===
-  /**
-   * Map settings
-   */
+  /** Map settings */
   public mapSettings: MapConstructorSettings = {
     initialState: {
       viewpoint: {
@@ -62,23 +67,18 @@ export class ShapeFileMapComponent
     zoomControl: true,
     basemap: 'Unesco',
   };
-  /** layer to add to the map */
+  /** Shapefile layer */
   public shapefile?: FeatureCollection<Polygon | MultiPolygon>;
-  /** errors */
+  /** List of errors */
   public errors = new BehaviorSubject<ErrorType>({
     intersection: false,
     gaps: false,
+    overlap: false,
   });
-  /**
-   * Map component
-   */
+  /** Reference to map component */
   @ViewChild(MapComponent) mapComponent?: MapComponent;
 
-  /**
-   * Whether there are some errors
-   *
-   * @returns whether there is an error
-   */
+  /** @returns Whether there is an error */
   get hasErrors() {
     return Object.values(this.errors.value).some((value) => value);
   }
@@ -114,7 +114,11 @@ export class ShapeFileMapComponent
     if (!this.shapefile || !map) {
       return;
     }
-    const errors: ErrorType = { intersection: false, gaps: false };
+    const errors: ErrorType = {
+      intersection: false,
+      gaps: false,
+      overlap: false,
+    };
     // Check for overlaps and gaps
     const overlaps = [];
     const { features } = this.shapefile;
@@ -136,10 +140,15 @@ export class ShapeFileMapComponent
         const polygonB = features[j];
         const polygons = featureCollection([polygonA, polygonB]);
 
-        // Check for intersection (overlap)
+        // Check for intersection
         const intersection = intersect(polygons);
         if (intersection) {
           overlaps.push(intersection);
+        }
+
+        // Check for overlap
+        if (booleanOverlap(polygonA, polygonB)) {
+          errors.overlap = true;
         }
       }
     }
