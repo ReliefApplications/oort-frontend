@@ -25,6 +25,7 @@ import { GridComponent } from './grid.component';
 import { GridFilterModule } from '../filter/filter.module';
 import { GridFilterMenuModule } from '../filter-menu/filter-menu.module';
 import { StripHtmlPipe } from '../../../../pipes/strip-html/strip-html.pipe';
+import { NumberModule } from '../../../../pipes/number/number.module';
 
 /** Module for the grid component */
 @NgModule({
@@ -63,6 +64,7 @@ import { StripHtmlPipe } from '../../../../pipes/strip-html/strip-html.pipe';
     uiButtonModule,
     // === Pipes ==
     StripHtmlPipe,
+    NumberModule,
   ],
   exports: [GridComponent],
 })
