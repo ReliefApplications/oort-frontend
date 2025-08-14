@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
   Model,
@@ -16,7 +16,6 @@ import {
   Event,
   PageModel,
 } from 'survey-core';
-import { ReferenceDataService } from '../reference-data/reference-data.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
 import { Apollo } from 'apollo-angular';
 import { EDIT_RECORD } from './graphql/mutations';
@@ -239,11 +238,12 @@ export class FormBuilderService {
     page: number;
     questionName: string;
   }[] = [];
+  /** Injector */
+  private injector = inject(Injector);
 
   /**
    * Constructor of the service
    *
-   * @param referenceDataService Reference data service
    * @param translate Translation service
    * @param apollo Apollo service
    * @param snackBar Service used to show a snackbar.
@@ -252,7 +252,6 @@ export class FormBuilderService {
    * @param downloadService Shared download service
    */
   constructor(
-    private referenceDataService: ReferenceDataService,
     private translate: TranslateService,
     private apollo: Apollo,
     private snackBar: SnackbarService,
@@ -329,7 +328,7 @@ export class FormBuilderService {
     const addQuestionTooltips =
       this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService);
     survey.onAfterRenderQuestion.add((survey, options) => {
-      renderGlobalProperties(this.referenceDataService)(survey, options);
+      renderGlobalProperties(this.injector)(survey, options);
 
       //Add tooltips to questions if exist
       addQuestionTooltips(survey, options);

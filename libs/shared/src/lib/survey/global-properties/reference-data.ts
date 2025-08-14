@@ -17,6 +17,7 @@ import { CustomPropertyGridComponentTypes } from '../components/utils/components
 import { registerCustomPropertyEditor } from '../components/utils/component-register';
 import { isEqual, isNil, omit, uniqWith } from 'lodash';
 import { SurveyQuestionEditorDefinition } from 'survey-creator-core';
+import { Injector } from '@angular/core';
 
 type EditableColumnsMatrix =
   | QuestionMatrixDropdownModel
@@ -808,12 +809,11 @@ export const init = (referenceDataService: ReferenceDataService): void => {
  * Render the custom properties
  *
  * @param questionElement The question element
- * @param referenceDataService The reference data service
+ * @param injector Angular injector
  */
-export const render = (
-  questionElement: Question,
-  referenceDataService: ReferenceDataService
-): void => {
+export const render = (questionElement: Question, injector: Injector): void => {
+  const referenceDataService = injector.get(ReferenceDataService);
+
   // Main logic for applying to questionElement
   if (isSelectQuestion(questionElement) && questionElement.referenceData) {
     const qAsSelect = questionElement as QuestionSelectBase & {

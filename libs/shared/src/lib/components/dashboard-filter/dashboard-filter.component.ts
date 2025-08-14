@@ -3,7 +3,9 @@ import {
   ChangeDetectorRef,
   Component,
   HostListener,
+  inject,
   Inject,
+  Injector,
   Input,
   NgZone,
   OnChanges,
@@ -20,7 +22,6 @@ import { SidenavContainerComponent, Variant } from '@oort-front/ui';
 import { DatePipe } from '../../pipes/date/date.pipe';
 import { DateTranslateService } from '../../services/date-translate/date-translate.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
-import { ReferenceDataService } from '../../services/reference-data/reference-data.service';
 import { DOCUMENT } from '@angular/common';
 import { Dashboard } from '../../models/dashboard.model';
 
@@ -76,13 +77,14 @@ export class DashboardFilterComponent
   private resizeObserver!: ResizeObserver;
   /** Timeout to add debounce time to survey value changes */
   private debounceTimeout: NodeJS.Timeout | null = null;
+  /** Injector */
+  private injector = inject(Injector);
 
   /**
    * Dashboard contextual filter component.
    *
    * @param contextService Context service
    * @param ngZone Triggers html changes
-   * @param referenceDataService Reference data service
    * @param changeDetectorRef Change detector reference
    * @param dateTranslate Service used for date formatting
    * @param document Document
@@ -91,7 +93,6 @@ export class DashboardFilterComponent
   constructor(
     public contextService: ContextService,
     private ngZone: NgZone,
-    private referenceDataService: ReferenceDataService,
     private changeDetectorRef: ChangeDetectorRef,
     private dateTranslate: DateTranslateService,
     @Inject(DOCUMENT) private document: Document,
@@ -230,7 +231,7 @@ export class DashboardFilterComponent
       if (parent) {
         parent.style.minWidth = '0px';
       }
-      renderGlobalProperties(this.referenceDataService);
+      renderGlobalProperties(this.injector);
     });
     this.onValueChange();
   }
