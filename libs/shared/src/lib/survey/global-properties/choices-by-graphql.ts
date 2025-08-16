@@ -79,7 +79,6 @@ const setQuestionValue = (question: Question, choices: ItemValue[]) => {
  * Initialize choices by graphql properties.
  */
 export const init = (): void => {
-  console.log('initialize graph ql');
   // declare the serializer
   const serializer: JsonMetadata = Serializer;
 
@@ -177,8 +176,8 @@ export const render = (questionElement: Question, injector: Injector): void => {
 
         if (url.startsWith(csApiUrl)) {
           // Common Services API call
-          const csApolloClient = apollo.use('csClient');
-          observable = csApolloClient.query({
+          // const csApolloClient = apollo.use('csClient');
+          observable = apollo.query({
             query: gql`
               ${query}
             `,
@@ -205,15 +204,12 @@ export const render = (questionElement: Question, injector: Injector): void => {
           // this is to avoid that the choices appear on the 'choices' tab
           // and also to avoid the choices being sent to the server
           questionElement.choices = [];
-          console.log(get(questionElement, 'gqlPath'));
-          console.log(result);
           const choices = jsonpath
             .query(result, get(questionElement, 'gqlPath'))
             .map((x) => ({
               value: get(x, valueName),
               text: get(x, titleName),
             }));
-          console.log(choices);
           const choiceItems = choices.map((choice) => new ItemValue(choice));
           questionElement.setPropertyValue('visibleChoices', choiceItems);
           // Should remove items that are not part anymore of the list of available choices

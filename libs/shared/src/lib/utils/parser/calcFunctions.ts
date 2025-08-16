@@ -134,7 +134,6 @@ const calcFunctions: Record<
   formatNumber: {
     signature: 'formatNumber( value ; digitInfos )',
     call: (value, digitsInfo) => {
-      console.log(value);
       if (digitsInfo) {
         return formatNumber(Number(value), 'en', digitsInfo) || '';
       } else {
