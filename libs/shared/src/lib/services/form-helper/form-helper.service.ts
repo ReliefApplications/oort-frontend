@@ -1112,8 +1112,12 @@ export class FormHelpersService {
    * Set download listener for files in the survey
    *
    * @param e Event raised after rendering a question
+   * @param recordId Current record id
    */
-  public setDownloadListener(e: AfterRenderQuestionEvent): void {
+  public setDownloadListener(
+    e: AfterRenderQuestionEvent,
+    recordId?: string
+  ): void {
     const { question, htmlElement } = e;
     const survey = question.survey as SurveyModel;
     const files = question.value;
@@ -1125,9 +1129,10 @@ export class FormHelpersService {
           file.content &&
           !(file.content.indexOf('base64') !== -1) &&
           !file.content.startsWith('http') &&
-          !file.content.startsWith('custom:')
+          !file.content.startsWith('custom:') &&
+          recordId
         ) {
-          const path = `${this.environment.apiUrl}/download/file/${file.content}/${file.name}`;
+          const path = `${this.environment.apiUrl}/download/file/${file.content}/${recordId}/${file.name}`;
           this.downloadService.getFile(path, file.type, file.name);
         }
       });
