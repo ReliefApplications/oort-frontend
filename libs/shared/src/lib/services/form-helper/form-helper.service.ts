@@ -1132,8 +1132,10 @@ export class FormHelpersService {
           !file.content.startsWith('custom:') &&
           recordId
         ) {
-          const path = `${this.environment.apiUrl}/download/file/${file.content}/${recordId}/${file.name}`;
-          this.downloadService.getFile(path, file.type, file.name);
+          if (question.getPropertyValue('canDownload')) {
+            const path = `${this.environment.apiUrl}/download/file/${file.content}/${recordId}/${question.name}`;
+            this.downloadService.getFile(path, file.type, file.name);
+          }
         }
       });
     };
@@ -1141,5 +1143,20 @@ export class FormHelpersService {
     survey.onDispose?.add?.(() => {
       fileElement?.removeEventListener('click', listener);
     });
+    // Default layout
+    if (!question.getPropertyValue('canDownload')) {
+      fileElement?.classList.add('pointer-events-none');
+    }
+    // Listen to changes on canDownload property
+    question.registerFunctionOnPropertyValueChanged(
+      'canDownload',
+      (value: boolean) => {
+        if (value) {
+          fileElement?.classList.remove('pointer-events-none');
+        } else {
+          fileElement?.classList.add('pointer-events-none');
+        }
+      }
+    );
   }
 }

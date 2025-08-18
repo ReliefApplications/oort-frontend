@@ -105,6 +105,27 @@ export const init = (
         default: false,
         visibleIndex: 4,
       });
+
+      serializer.addProperty('file', {
+        name: 'canDownload:boolean',
+        category: 'general',
+        default: true,
+        visibleIndex: -1,
+        enableIf: (obj) => {
+          return !obj.canDownloadExpression;
+        },
+      });
+
+      serializer.addProperty('file', {
+        name: 'canDownloadExpression:expression',
+        displayName: 'Can Download Expression',
+        category: 'logic',
+        default: '',
+        visibleIndex: -1,
+        onExecuteExpression: (obj: QuestionFileModel, res: string) => {
+          obj.setPropertyValue('canDownload', !!res);
+        },
+      });
     },
     isDefaultRender: true,
     afterRender: (question: QuestionFileModel): void => {
