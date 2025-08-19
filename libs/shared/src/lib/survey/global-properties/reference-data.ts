@@ -825,8 +825,6 @@ export const render = (questionElement: Question, injector: Injector): void => {
       updateChoices(referenceDataService, qAsSelect); // Initial choice load
       qAsSelect._refDataInitialized = true;
     }
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    qAsSelect.clearIncorrectValuesCallback = () => {};
   } else if (isMatrixQuestion(questionElement)) {
     const matrix = questionElement as EditableColumnsMatrix;
     // Ensure referenceDataChoicesInitialized is a Set on the matrix object

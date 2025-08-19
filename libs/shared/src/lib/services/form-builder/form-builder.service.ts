@@ -15,6 +15,7 @@ import {
   MatrixDropdownColumn,
   Event,
   PageModel,
+  QuestionSelectBase,
 } from 'survey-core';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
 import { Apollo } from 'apollo-angular';
@@ -33,6 +34,7 @@ import { Form } from '../../models/form.model';
 import { marked } from 'marked';
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { FeatureCollection } from 'geojson';
+import { isSelectQuestion } from '../../survey/global-properties/reference-data';
 
 let counter = Math.floor(Math.random() * 0xffffff); // Initialize counter with a random value
 
@@ -455,6 +457,12 @@ export class FormBuilderService {
         // Without it, the panel property isn't updated on survey initialization
         if (question.AllowNewPanelsExpression) {
           question.allowAddPanel = true;
+        }
+      }
+      // Avoid reference data to be removed when saving & question isn't loaded yet
+      if (isSelectQuestion(question)) {
+        if (question.referenceData) {
+          (question as QuestionSelectBase).keepIncorrectValues = true;
         }
       }
     });
