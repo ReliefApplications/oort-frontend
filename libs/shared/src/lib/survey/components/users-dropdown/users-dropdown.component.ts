@@ -47,6 +47,8 @@ export class UsersDropdownComponent
   @Input() initialSelectionIDs: string[] = [];
   /** If the user can select multiple users */
   @Input() multiple = true;
+  /** Placeholder */
+  @Input() placeholder = '';
   /** Selection change emitter */
   @Output() selectionChange = new EventEmitter<string[]>();
   /** Initial selection of users */

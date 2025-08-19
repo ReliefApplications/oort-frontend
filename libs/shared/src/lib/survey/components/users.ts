@@ -195,6 +195,13 @@ export const init = (
         default: true,
         visibleIndex: 6,
       });
+
+      // Placeholder
+      Serializer.addProperty('users', {
+        name: 'placeholder',
+        category: 'general',
+        default: '',
+      });
     },
     onAfterRender: async (question: QuestionUsers, el: HTMLElement) => {
       // Hides the tagbox element
@@ -224,6 +231,9 @@ export const init = (
 
       // Set multiple selection
       instance.multiple = question.selectMultiple ?? true;
+
+      // Placeholder
+      instance.placeholder = question.placeholder ?? '';
 
       // Updates the question value when the selection changes
       instance.selectionChange.subscribe((value: string[]) => {
@@ -257,7 +267,7 @@ export const init = (
       if (question.inviteUsers && question.applications?.length === 1) {
         // Create a button to invite users
         const inviteButton = document.createElement('button');
-        inviteButton.classList.add('sd-btn', '!px-3', '!py-1');
+        inviteButton.classList.add('sd-btn', '!px-3', '!py-1', '!mt-2');
         inviteButton.innerText = translate.instant(
           'components.users.invite.add'
         );
@@ -272,11 +282,7 @@ export const init = (
           instance.reloadSelectedUsers();
         };
 
-        // Append it to the header
-        const header = el.querySelector(
-          '.sd-question__header'
-        ) as HTMLDivElement;
-        header.appendChild(inviteButton);
+        el.appendChild(inviteButton);
       }
     },
   };
