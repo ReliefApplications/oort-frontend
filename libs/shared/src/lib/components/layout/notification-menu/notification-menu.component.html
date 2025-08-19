@@ -1,0 +1,41 @@
+<header
+  class="flex justify-between items-center px-3 py-2 border-b border-gray-100 shrink-0"
+>
+  <span class="flex items-center gap-2">
+    <h2 class="mb-0">{{ 'components.notifications.title' | translate }}</h2>
+    <span
+      *ngIf="unreadNotificationsCount > 0"
+      class="w-6 h-6 bg-red-500 text-white rounded-full grid place-items-center"
+    >
+      {{ unreadNotificationsCount }}
+    </span>
+  </span>
+  <ui-button class="w-full" icon="close" [isIcon]="true"></ui-button>
+</header>
+
+<!-- List -->
+<shared-notification-list
+  class="flex-1 overflow-auto"
+  [notifications]="notifications"
+></shared-notification-list>
+
+<!-- Actions -->
+<div class="flex p-3 justify-between w-full shrink-0">
+  <!-- Remove visible notifications -->
+  <button
+    (click)="onMarkAllNotificationsAsRead($event)"
+    class="flex items-center text-gray-500 gap-2"
+  >
+    {{ 'components.notifications.readAll' | translate }}
+    <ui-icon icon="done_all" [size]="18"></ui-icon>
+  </button>
+
+  <!-- Load more notifications -->
+  <button
+    [disabled]="loading || !hasMoreNotifications"
+    (click)="$event.stopPropagation(); fetchMore.emit()"
+    class="flex items-center text-primary-500 font-semibold underline"
+  >
+    {{ 'common.pagination.loadMore' | translate }}
+  </button>
+</div>

@@ -18,10 +18,7 @@ export const SEE_NOTIFICATION = gql`
           id
         }
       }
-      seenBy {
-        id
-        name
-      }
+      read
     }
   }
 `;
@@ -44,10 +41,7 @@ export const SEE_NOTIFICATIONS = gql`
           id
         }
       }
-      seenBy {
-        id
-        name
-      }
+      read
     }
   }
 `;

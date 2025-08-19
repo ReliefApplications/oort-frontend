@@ -1,12 +1,13 @@
 import { gql } from 'apollo-angular';
 
-/** Graphql request for listening to notifications */
-export const NOTIFICATION_SUBSCRIPTION = gql`
-  subscription NotificationSubscription {
-    notification {
+/** Graphql request for marking multiple notifications as seen */
+export const SEE_NOTIFICATIONS = gql`
+  mutation seeNotifications($ids: [ID]!) {
+    seeNotifications(ids: $ids) {
       id
       action
       content
+      redirect
       createdAt
       channel {
         id
@@ -14,9 +15,6 @@ export const NOTIFICATION_SUBSCRIPTION = gql`
         application {
           id
         }
-      }
-      user {
-        id
       }
       read
     }
