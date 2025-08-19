@@ -4,7 +4,6 @@ import { LayoutComponent } from './layout.component';
 import { IconModule } from '@oort-front/ui';
 import { RouterModule } from '@angular/router';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { SearchMenuModule } from '../search-menu/search-menu.module';
@@ -18,6 +17,7 @@ import {
   ButtonModule,
   SidenavContainerModule,
 } from '@oort-front/ui';
+import { NotificationButtonComponent } from './notification-button/notification-button.component';
 
 /**
  * LayoutModule is a class used to manage all the modules and components
@@ -34,7 +34,6 @@ import {
     DragDropModule,
     TooltipModule,
     DividerModule,
-    IndicatorsModule,
     TranslateModule,
     SearchMenuModule,
     OverlayModule,
@@ -42,6 +41,7 @@ import {
     BreadcrumbsModule,
     ButtonModule,
     IconModule,
+    NotificationButtonComponent,
   ],
   exports: [LayoutComponent],
 })

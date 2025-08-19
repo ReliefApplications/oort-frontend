@@ -1,7 +1,5 @@
 import { gql } from 'apollo-angular';
 
-// === GET NOTIFICATIONS ===
-
 /** Graphql request for getting notifications */
 export const GET_NOTIFICATIONS = gql`
   query GetNotifications($first: Int, $afterCursor: ID) {
@@ -20,10 +18,10 @@ export const GET_NOTIFICATIONS = gql`
               id
             }
           }
-          seenBy {
+          user {
             id
-            name
           }
+          read
         }
         cursor
       }
@@ -32,16 +30,6 @@ export const GET_NOTIFICATIONS = gql`
         hasNextPage
         endCursor
       }
-    }
-  }
-`;
-
-/** Graphql request for getting a record by its id */
-export const GET_RECORD_BY_ID = gql`
-  query GetRecordById($id: ID!) {
-    record(id: $id) {
-      id
-      data
     }
   }
 `;

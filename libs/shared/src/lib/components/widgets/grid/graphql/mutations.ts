@@ -85,10 +85,7 @@ export const PUBLISH_NOTIFICATION = gql`
           name
         }
       }
-      seenBy {
-        id
-        username
-      }
+      read
     }
   }
 `;
