@@ -1678,6 +1678,7 @@
           "axes": "Axes",
           "categories": "Catégories",
           "color": "Couleur",
+          "displayAxis": "Afficher l'axe",
           "filters": {
             "add": "Ajouter un filtre",
             "delete": "Supprimer le filtre",
@@ -1707,6 +1708,10 @@
             "valueType": "Type de valeur"
           },
           "legend": "Légende",
+          "noData": {
+            "display": "Activer le message d'absence de données",
+            "title": "Affichage en cas d'absence de données"
+          },
           "orientation": "Orientation",
           "other": "Autre",
           "palette": {

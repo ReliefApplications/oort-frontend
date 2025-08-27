@@ -1072,7 +1072,6 @@ export class FormHelpersService {
       title.remove(); // remove original title
       div.appendChild(uploadButton);
       panelHeader?.appendChild(div);
-      console.log('Should hide button?: ', question.isReadOnly);
       if (question.isReadOnly) {
         uploadButton.classList.add('!hidden');
       }

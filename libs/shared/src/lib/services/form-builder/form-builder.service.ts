@@ -689,7 +689,6 @@ export class FormBuilderService {
    * @param options Options regarding the download
    */
   private onDownloadFile(options: DownloadFileEvent): void {
-    console.log(options);
     if (options.question.name === 'shapefile') {
       return;
     }

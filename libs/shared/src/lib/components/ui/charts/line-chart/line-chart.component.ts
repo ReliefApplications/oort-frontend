@@ -17,6 +17,7 @@ import { generateMonochromePalette } from '../const/palette';
 import { getColor } from '../utils/color.util';
 import { isEqual, isNil, get } from 'lodash';
 import Color from 'color';
+import noDataPlugin from '../../../../utils/graphs/plugins/no-data.plugin';
 
 /** Interpolation modes */
 type Interpolation = 'linear' | 'cubic' | 'step';
@@ -38,6 +39,7 @@ export class LineChartComponent implements OnChanges {
     drawUnderlinePlugin,
     DataLabelsPlugin,
     whiteBackgroundPlugin,
+    noDataPlugin,
   ];
   /** Boolean to track the display of value labels. */
   private showValueLabels = false;
@@ -45,6 +47,8 @@ export class LineChartComponent implements OnChanges {
   private min = Infinity;
   /** Variable to track the maximum value. */
   private max = -Infinity;
+  /** Loading indicator */
+  @Input() loading = false;
   /** Input decorator for title. */
   @Input() title: ChartTitle | undefined;
   /** Input decorator for legend. */
@@ -178,6 +182,7 @@ export class LineChartComponent implements OnChanges {
       ...this.chartOptions,
       scales: {
         x: {
+          display: get(this.options, 'axes.x.display', true),
           grid: {
             display: get(this.options, 'grid.x.display', true),
           },
@@ -188,6 +193,7 @@ export class LineChartComponent implements OnChanges {
           },
         },
         y: {
+          display: get(this.options, 'axes.y.display', true),
           grid: {
             display: get(this.options, 'grid.y.display', true),
           },
@@ -217,6 +223,11 @@ export class LineChartComponent implements OnChanges {
           position: get(this.title, 'position', 'top'),
           color: titleColor,
           font: fontOptions,
+        },
+        noData: {
+          loading: this.loading,
+          display: get(this.options, 'noData.display'),
+          text: get(this.options, 'noData.text'),
         },
       },
       devicePixelRatio: 2,

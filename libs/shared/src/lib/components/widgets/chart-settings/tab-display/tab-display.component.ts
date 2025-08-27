@@ -165,6 +165,19 @@ export class TabDisplayComponent
             );
           }
         }
+        for (const serieSettings of seriesSettings) {
+          if (
+            !seriesFormArray.value.find(
+              (x: any) => x.serie === serieSettings.serie
+            )
+          ) {
+            seriesFormArray.push(
+              createSerieForm(this.chartForm.value.type, {
+                ...serieSettings,
+              })
+            );
+          }
+        }
         this.chartForm.setControl('series', seriesFormArray, {
           emitEvent: false,
         });

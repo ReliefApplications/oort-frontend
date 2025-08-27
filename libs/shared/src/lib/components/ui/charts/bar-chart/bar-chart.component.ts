@@ -16,6 +16,7 @@ import { generateMonochromePalette } from '../const/palette';
 import { getColor } from '../utils/color.util';
 import { isEqual, isNil, get } from 'lodash';
 import Color from 'color';
+import noDataPlugin from '../../../../utils/graphs/plugins/no-data.plugin';
 
 /**
  * Bar/Column chart component, based on chart.js component.
@@ -31,11 +32,14 @@ export class BarChartComponent implements OnChanges {
     drawUnderlinePlugin,
     DataLabelsPlugin,
     whiteBackgroundPlugin,
+    noDataPlugin,
   ];
   /** Boolean to track if percentage is used. */
   private usePercentage = false;
   /** Variable to track the display of value labels. */
   private showValueLabels: false | 'percentage' | 'value' = false;
+  /** Loading indicator */
+  @Input() loading = false;
   /** Input decorator for orientation. */
   @Input() orientation: 'vertical' | 'horizontal' = 'horizontal';
   /** Input decorator for title. */
@@ -156,7 +160,9 @@ export class BarChartComponent implements OnChanges {
       },
       scales: {
         x: {
+          display: get(this.options, 'axes.x.display', true),
           grid: {
+            drawTicks: false,
             display: get(this.options, 'grid.x.display', true),
           },
           stacked: get(this.options, 'stack', false),
@@ -170,7 +176,9 @@ export class BarChartComponent implements OnChanges {
           },
         },
         y: {
+          display: get(this.options, 'axes.y.display', true),
           grid: {
+            drawTicks: false,
             display: get(this.options, 'grid.y.display', true),
           },
           stacked: get(this.options, 'stack', false),
@@ -200,6 +208,11 @@ export class BarChartComponent implements OnChanges {
           position: get(this.title, 'position', 'top'),
           color: titleColor,
           font: fontOptions,
+        },
+        noData: {
+          loading: this.loading,
+          display: get(this.options, 'noData.display'),
+          text: get(this.options, 'noData.text'),
         },
       },
       devicePixelRatio: 2,

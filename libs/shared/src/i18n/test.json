@@ -1665,6 +1665,7 @@
           "axes": "******",
           "categories": "******",
           "color": "******",
+          "displayAxis": "******",
           "filters": {
             "add": "******",
             "delete": "******",
@@ -1694,6 +1695,10 @@
             "valueType": "******"
           },
           "legend": "******",
+          "noData": {
+            "display": "******",
+            "title": "******"
+          },
           "orientation": "******",
           "other": "******",
           "palette": {

@@ -10,6 +10,7 @@ import { ChartLegend, ChartTitle } from '../interfaces';
 import { generateMonochromePalette } from '../const/palette';
 import { getColor } from '../utils/color.util';
 import Color from 'color';
+import noDataPlugin from '../../../../utils/graphs/plugins/no-data.plugin';
 
 /**
  * Uses chart.js to render the data as a pie chart
@@ -34,7 +35,10 @@ export class PieDonutChartComponent implements OnChanges {
     drawUnderlinePlugin,
     DataLabelsPlugin,
     whiteBackgroundPlugin,
+    noDataPlugin,
   ];
+  /** Loading indicator */
+  @Input() loading = false;
   /** Input decorator for chartType. */
   @Input() chartType: 'pie' | 'doughnut' | 'polarArea' | 'radar' = 'doughnut';
   /** Input decorator for title. */
@@ -166,6 +170,11 @@ export class PieDonutChartComponent implements OnChanges {
           position: get(this.title, 'position', 'top'),
           color: titleColor,
           font: fontOptions,
+        },
+        noData: {
+          loading: this.loading,
+          display: get(this.options, 'noData.display'),
+          text: get(this.options, 'noData.text'),
         },
       },
     };

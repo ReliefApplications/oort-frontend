@@ -1665,6 +1665,7 @@
           "axes": "Axes",
           "categories": "Categories",
           "color": "Color",
+          "displayAxis": "Display Axis",
           "filters": {
             "add": "Add filter",
             "delete": "Delete filter",
@@ -1694,6 +1695,10 @@
             "valueType": "Value type"
           },
           "legend": "Legend",
+          "noData": {
+            "display": "Enable no data message",
+            "title": "No Data Display"
+          },
           "orientation": "Orientation",
           "other": "Other",
           "palette": {
