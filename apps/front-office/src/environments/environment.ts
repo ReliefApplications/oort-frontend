@@ -8,10 +8,13 @@ const authConfig: AuthConfig = {
   issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
   redirectUri: 'http://localhost:4200/',
   postLogoutRedirectUri: 'http://localhost:4200/auth/',
-  clientId: 'oort-client',
+  clientId: 'immt-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
+  customQueryParams: {
+    kc_idp_hint: 'microsoft',
+  },
 };
 
 /** Environment configuration */
