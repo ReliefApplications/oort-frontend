@@ -14,9 +14,9 @@ const authConfig: AuthConfig = {
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
-  customQueryParams: {
-    kc_idp_hint: 'microsoft',
-  },
+  // customQueryParams: {
+  //   kc_idp_hint: 'microsoft',
+  // },
 };
 
 /**
