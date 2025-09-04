@@ -307,6 +307,23 @@
             "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
           }
         },
+        "oort-mab-local": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true,
+          "stylePreprocessorOptions": {
+            "includePaths": ["libs/styles/src/lib/themes/default"]
+          },
+          "fileReplacements": [
+            {
+              "replace": "apps/front-office/src/environments/environment.ts",
+              "with": "apps/front-office/src/environments/environment.oort.mab.local.ts"
+            }
+          ]
+        },
         "oort-immt": {
           "fileReplacements": [
             {
@@ -391,6 +408,9 @@
       "configurations": {
         "oort-prod": {
           "browserTarget": "front-office:build:oort-prod"
+        },
+        "oort-mab-local": {
+          "browserTarget": "front-office:build:oort-mab-local"
         },
         "oort-local": {
           "browserTarget": "front-office:build:oort-local"

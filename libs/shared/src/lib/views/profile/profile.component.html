@@ -2,6 +2,7 @@
   <h1>{{ 'pages.profile.title' | translate }}</h1>
   <!-- User details -->
   <div class="flex flex-col">
+    <!-- Edition of first name / last name -->
     <div class="flex gap-2 flex-wrap">
       <div uiFormFieldDirective class="flex-1">
         <label>
@@ -16,6 +17,7 @@
         <input formControlName="lastName" type="text" />
       </div>
     </div>
+    <!-- Username & change password button -->
     <div class="flex gap-2 flex-wrap items-center">
       <div uiFormFieldDirective class="grow">
         <label>
@@ -33,6 +35,36 @@
         {{ 'pages.profile.password.change' | translate }}
       </ui-button>
     </div>
+    <!-- Attributes, if any and accessible to user -->
+    <ng-container *ngIf="attributes.length > 0" formGroupName="attributes">
+      <h2 class="mt-8">{{ 'common.attribute.few' | translate }}</h2>
+      <ng-container *ngFor="let attribute of attributes">
+        <!-- Attribute uses select -->
+        <div uiFormFieldDirective *ngIf="attribute.choices">
+          <label>{{ attribute.text }}</label>
+          <ui-select-menu
+            [formControlName]="attribute.value"
+            [filterable]="true"
+          >
+            <ui-select-option
+              *ngFor="let choice of attribute.choices"
+              [value]="choice[attribute.valueField!]"
+            >
+              {{ choice[attribute.textField!] }}
+            </ui-select-option>
+          </ui-select-menu>
+        </div>
+        <!-- Attribute uses free text input -->
+        <div uiFormFieldDirective *ngIf="!attribute.choices">
+          <label>{{ attribute.text }}</label>
+          <input
+            [formControlName]="attribute.value"
+            type="text"
+            [placeholder]="attribute.text"
+          />
+        </div>
+      </ng-container>
+    </ng-container>
   </div>
   <!-- Table container -->
   <div class="overflow-x-hidden shadow-2lg mt-6">

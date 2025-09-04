@@ -336,6 +336,7 @@ export class ChartComponent
         : null,
       axes: {
         x: {
+          display: get(this.settings, 'chart.axes.x.display', true),
           min: get(this.settings, 'chart.axes.x.enableMin')
             ? get(this.settings, 'chart.axes.x.min')
             : null,
@@ -347,6 +348,7 @@ export class ChartComponent
             : null,
         },
         y: {
+          display: get(this.settings, 'chart.axes.y.display', true),
           min: get(this.settings, 'chart.axes.y.enableMin')
             ? get(this.settings, 'chart.axes.y.min')
             : null,
@@ -376,6 +378,10 @@ export class ChartComponent
           ? { type: '100%' }
           : { type: 'normal' }
         : false,
+      noData: {
+        display: get(this.settings, 'chart.noData.display', false),
+        text: get(this.settings, 'chart.noData.text') || 'No data available',
+      },
       series: get(this.settings, 'chart.series'),
     };
   }

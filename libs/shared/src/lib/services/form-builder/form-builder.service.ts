@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
   Model,
@@ -15,8 +15,8 @@ import {
   MatrixDropdownColumn,
   Event,
   PageModel,
+  QuestionSelectBase,
 } from 'survey-core';
-import { ReferenceDataService } from '../reference-data/reference-data.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
 import { Apollo } from 'apollo-angular';
 import { EDIT_RECORD } from './graphql/mutations';
@@ -32,9 +32,9 @@ import { FormHelpersService } from '../form-helper/form-helper.service';
 import { cloneDeep, difference, get } from 'lodash';
 import { Form } from '../../models/form.model';
 import { marked } from 'marked';
-import { DownloadService } from '../download/download.service';
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { FeatureCollection } from 'geojson';
+import { isSelectQuestion } from '../../survey/global-properties/reference-data';
 
 let counter = Math.floor(Math.random() * 0xffffff); // Initialize counter with a random value
 
@@ -115,12 +115,15 @@ export const transformSurveyData = (survey: SurveyModel) => {
     }
   });
   if (survey.showPercentageProgressBar) {
-    const visibleQuestions = getVisibleQuestions(survey.getAllQuestions(true));
+    // isRequiredCpy is declared in the form builder service, and copy the isRequired property of the question we build when using skipRequiredValidation
+    const requiredQuestions = getVisibleQuestions(
+      survey.getAllQuestions(true)
+    ).filter((q) => q.isRequired || q.isRequiredCpy);
     data._progress =
-      (visibleQuestions.filter((question: Question) => !question.isEmpty())
+      (requiredQuestions.filter((question: Question) => !question.isEmpty())
         .length *
         100) /
-      visibleQuestions.length;
+      requiredQuestions.length;
   }
   return data;
 };
@@ -236,26 +239,24 @@ export class FormBuilderService {
     page: number;
     questionName: string;
   }[] = [];
+  /** Injector */
+  private injector = inject(Injector);
 
   /**
    * Constructor of the service
    *
-   * @param referenceDataService Reference data service
    * @param translate Translation service
    * @param apollo Apollo service
    * @param snackBar Service used to show a snackbar.
    * @param restService This is the service that is used to make http requests.
    * @param formHelpersService Shared form helper service.
-   * @param downloadService Shared download service
    */
   constructor(
-    private referenceDataService: ReferenceDataService,
     private translate: TranslateService,
     private apollo: Apollo,
     private snackBar: SnackbarService,
     private restService: RestService,
-    private formHelpersService: FormHelpersService,
-    private downloadService: DownloadService
+    private formHelpersService: FormHelpersService
   ) {}
 
   /**
@@ -326,7 +327,7 @@ export class FormBuilderService {
     const addQuestionTooltips =
       this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService);
     survey.onAfterRenderQuestion.add((survey, options) => {
-      renderGlobalProperties(this.referenceDataService)(survey, options);
+      renderGlobalProperties(this.injector)(survey, options);
 
       //Add tooltips to questions if exist
       addQuestionTooltips(survey, options);
@@ -343,32 +344,8 @@ export class FormBuilderService {
           this.formHelpersService.addUploadButton(options);
           break;
         case 'file':
-          this.formHelpersService.setDownloadListener(options);
+          this.formHelpersService.setDownloadListener(options, this.recordId);
           break;
-      }
-
-      if (options.question.getType() === 'file') {
-        const files = options.question.value;
-        const fileElement = options.htmlElement.querySelector('a');
-        const listener = (event: MouseEvent) => {
-          event.preventDefault();
-          files.forEach((file: any) => {
-            if (
-              file.content &&
-              !(file.content.indexOf('base64') !== -1) &&
-              !file.content.startsWith('http') &&
-              !file.content.startsWith('custom:') &&
-              this.recordId
-            ) {
-              const path = `${this.restService.apiUrl}/download/file/${file.content}/${this.recordId}/${file.name}`;
-              this.downloadService.getFile(path, file.type, file.name);
-            }
-          });
-        };
-        fileElement?.addEventListener('click', listener);
-        survey.onDispose.add?.(() => {
-          fileElement?.removeEventListener('click', listener);
-        });
       }
     });
 
@@ -379,7 +356,17 @@ export class FormBuilderService {
     //     survey.onQuestionValueChanged[options.name](options);
     //   }
     // });
-    survey.onSettingQuestionErrors.add((_, options) => {
+    survey.onSettingQuestionErrors.add((sender: SurveyModel, options) => {
+      // Skip required validation if the survey has the _skipRequiredValidation flag set
+      // Flag is built by the skipRequiredValidation expression
+      if (sender._skipRequiredValidation) {
+        for (let i = options.errors.length - 1; i >= 0; i--) {
+          const error = options.errors[i];
+          if (error.getErrorType() === 'required') {
+            options.errors.splice(i, 1);
+          }
+        }
+      }
       const existingError = this.errorsSummary.find(
         (error) => error.questionName == options.question.name
       );
@@ -470,6 +457,12 @@ export class FormBuilderService {
         // Without it, the panel property isn't updated on survey initialization
         if (question.AllowNewPanelsExpression) {
           question.allowAddPanel = true;
+        }
+      }
+      // Avoid reference data to be removed when saving & question isn't loaded yet
+      if (isSelectQuestion(question)) {
+        if (question.referenceData) {
+          (question as QuestionSelectBase).keepIncorrectValues = true;
         }
       }
     });
@@ -727,7 +720,7 @@ export class FormBuilderService {
           console.error('Error downloading file:', error);
           options.callback('error', error);
         });
-    } else if (this.recordId || options.fileValue.readyToSave) {
+    } else if (this.recordId) {
       options.callback('success', '');
     }
   }

@@ -248,7 +248,7 @@
                 'components.widget.settings.grid.buttons.callback.modifyField'
                   | translate
               }}</label>
-              <ui-select-menu formControlName="field">
+              <ui-select-menu formControlName="field" [filterable]="true">
                 <ui-select-option>--</ui-select-option>
                 <ui-select-option
                   *ngFor="let field of scalarFields"
@@ -568,7 +568,7 @@
                   <label>{{
                     'common.cronEditor.question.one' | translate
                   }}</label>
-                  <ui-select-menu formControlName="field">
+                  <ui-select-menu formControlName="field" [filterable]="true">
                     <ui-select-option
                       *ngFor="let field of fields"
                       [value]="field.name"

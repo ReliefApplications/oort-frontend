@@ -96,14 +96,15 @@
       (click)="submit()"
       cdkFocusInitial
     >
-      <p *ngIf="!autosaving">
-        {{ 'components.record.modal.update' | translate }}
-      </p>
+      <ng-container *ngIf="!autosaving">
+        {{ 'components.record.modal.saveClose' | translate }}
+      </ng-container>
       <ui-spinner *ngIf="autosaving" [size]="'small'" />
     </ui-button>
   </ng-container>
 </ui-dialog>
 
+<!-- Comments popup -->
 <ng-template #popupTemplate let-data>
   <shared-comments-popup
     [recordId]="record?.id ?? ''"

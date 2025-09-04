@@ -50,6 +50,7 @@ export interface GridActions {
     field: string;
     pageUrl: string;
     title: string;
+    queryParam: string;
     copyLink: boolean;
     copyLinkLabel?: string;
   };

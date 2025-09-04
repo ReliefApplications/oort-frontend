@@ -1,25 +1,20 @@
-import { Apollo, QueryRef } from 'apollo-angular';
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+import { Apollo } from 'apollo-angular';
+import { Inject, Injectable } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { SEE_NOTIFICATIONS } from './graphql/mutations';
-import { GET_LAYOUT, GET_NOTIFICATIONS } from './graphql/queries';
-import { NOTIFICATION_SUBSCRIPTION } from './graphql/subscriptions';
+import { GET_LAYOUT, GET_RECORD_BY_ID } from './graphql/queries';
 import {
   Notification,
-  NotificationSubscriptionResponse,
-  NotificationsQueryResponse,
   SeeNotificationsMutationResponse,
 } from '../../models/notification.model';
-import { updateQueryUniqueValues } from '../../utils/update-queries';
 import { SnackbarService } from '@oort-front/ui';
 import { TranslateService } from '@ngx-translate/core';
 import { ResourceQueryResponse } from '../../models/resource.model';
 import { clone, get } from 'lodash';
 import { Layout } from '../../models/layout.model';
 import { Dialog } from '@angular/cdk/dialog';
-
-/** Pagination: number of items per query */
-const ITEMS_PER_PAGE = 10;
+import { Router } from '@angular/router';
+import { RecordQueryResponse } from '../../models/record.model';
 
 /**
  * Shared notification service. Subscribes to Apollo to automatically fetch new notifications.
@@ -28,31 +23,6 @@ const ITEMS_PER_PAGE = 10;
   providedIn: 'root',
 })
 export class NotificationService {
-  /** Current notifications */
-  private notifications = new BehaviorSubject<Notification[]>([]);
-  /** Cached notifications */
-  private cachedNotifications: Notification[] = [];
-
-  /** @returns Current notifications as observable */
-  get notifications$(): Observable<Notification[]> {
-    return this.notifications.asObservable();
-  }
-
-  /** Notifications query */
-  public notificationsQuery!: QueryRef<NotificationsQueryResponse>;
-
-  /** Is there more notifications to load */
-  private hasNextPage = new BehaviorSubject<boolean>(true);
-
-  /** @returns Is there more notifcations to load as observable */
-  get hasNextPage$(): Observable<boolean> {
-    return this.hasNextPage.asObservable();
-  }
-
-  /** Stores if notifications where loaded previously */
-  private firstLoad = true;
-  /** Stores previous id */
-  private previousNotificationId: any;
   /** Current page info */
   public pageInfo = {
     endCursor: '',
@@ -65,53 +35,65 @@ export class NotificationService {
    * @param snackBar shared snackbar service
    * @param dialog Dialog service
    * @param translate Angular translate service
+   * @param router Angular router
+   * @param environment Angular environment
    */
   constructor(
     private apollo: Apollo,
     private snackBar: SnackbarService,
     private dialog: Dialog,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private router: Router,
+    @Inject('environment') private environment: any
   ) {}
 
   /**
-   * If notifications are empty, fetch all notifications and listen to new one.
-   * Else, only listen to new one.
+   * Handles redirection based on notification properties
+   *
+   * @param notification Notification
    */
-  public init(): void {
-    if (this.firstLoad) {
-      this.notificationsQuery =
-        this.apollo.watchQuery<NotificationsQueryResponse>({
-          query: GET_NOTIFICATIONS,
-          variables: {
-            first: ITEMS_PER_PAGE,
-          },
-        });
+  public onNotificationRedirect(notification: Notification): void {
+    if (notification.redirect && notification.redirect.active) {
+      const redirect = notification.redirect;
+      if (redirect.type === 'recordIds' && redirect.recordIds) {
+        this.redirectToRecords(notification);
+      } else if (redirect.type === 'url' && redirect.url) {
+        if (
+          redirect.field &&
+          redirect.recordIds &&
+          redirect.recordIds.length > 0
+        ) {
+          this.apollo
+            .query<RecordQueryResponse>({
+              query: GET_RECORD_BY_ID,
+              variables: {
+                id: redirect.recordIds[0],
+              },
+            })
+            .subscribe(({ data }) => {
+              if (data) {
+                const fieldValue =
+                  get(data, `record.${redirect.field}`) ??
+                  get(data, `record.data.${redirect.field}`);
+                const redirectUrl = `${redirect.url}?${redirect.field}=${
+                  fieldValue ?? ''
+                }`;
+                const fullUrl =
+                  this.environment.module === 'backoffice'
+                    ? `applications/${redirectUrl}`
+                    : redirectUrl;
 
-      this.notificationsQuery.valueChanges.subscribe(({ data }) => {
-        this.updateValues(
-          data.notifications.edges.map((edge) => edge.node),
-          data.notifications.pageInfo
-        );
-      });
-
-      this.apollo
-        .subscribe<NotificationSubscriptionResponse>({
-          query: NOTIFICATION_SUBSCRIPTION,
-        })
-        .subscribe(({ data }) => {
-          if (data && data.notification) {
-            // prevent new notification duplication
-            if (this.previousNotificationId !== data.notification.id) {
-              const notifications = this.notifications.getValue();
-              if (notifications) {
-                this.notifications.next([data.notification, ...notifications]);
-              } else {
-                this.notifications.next([data.notification]);
+                this.router.navigateByUrl(fullUrl);
               }
-            }
-            this.previousNotificationId = data.notification.id;
-          }
-        });
+            });
+        } else {
+          const fullUrl =
+            this.environment.module === 'backoffice'
+              ? `applications/${redirect.url}`
+              : `${redirect.url}`;
+          this.router.navigateByUrl(fullUrl);
+        }
+      }
     }
   }
 
@@ -181,65 +163,15 @@ export class NotificationService {
    * Marks all notifications as seen and remove it from the array of notifications.
    *
    * @param notificationsIds ids of the notifications to mark as seen
+   * @returns Mark as seen mutation
    */
-  public markAsSeen(notificationsIds: string[]): void {
-    this.apollo
-      .mutate<SeeNotificationsMutationResponse>({
-        mutation: SEE_NOTIFICATIONS,
-        variables: {
-          ids: notificationsIds,
-        },
-      })
-      .subscribe(({ data }) => {
-        if (data) {
-          this.updateValues(data.seeNotifications);
-        }
-      });
-  }
-
-  /**
-   * Loads more notifications.
-   */
-  public fetchMore(): void {
-    this.notificationsQuery
-      .fetchMore({
-        variables: {
-          first: ITEMS_PER_PAGE,
-          afterCursor: this.pageInfo.endCursor,
-        },
-      })
-      .then(({ data }) =>
-        this.updateValues(
-          data.notifications.edges.map((edge) => edge.node),
-          data.notifications.pageInfo
-        )
-      );
-  }
-
-  /**
-   * Update notification data values
-   *
-   * @param notifications query response data
-   * @param pageInfo Page info
-   * @param pageInfo.endCursor Cursor of the last element
-   * @param pageInfo.hasNextPage Whether there is still elements to load
-   */
-  private updateValues(
-    notifications: Notification[],
-    pageInfo?: { endCursor: string; hasNextPage: boolean }
-  ) {
-    this.cachedNotifications = updateQueryUniqueValues(
-      notifications,
-      this.cachedNotifications
-    ).sort((notifA, notifB) => {
-      return Number(notifB.createdAt) - Number(notifA.createdAt);
+  public markAsSeen(notificationsIds: string[]) {
+    return this.apollo.mutate<SeeNotificationsMutationResponse>({
+      mutation: SEE_NOTIFICATIONS,
+      variables: {
+        ids: notificationsIds,
+      },
     });
-    this.notifications.next(this.cachedNotifications);
-    if (pageInfo) {
-      this.pageInfo.endCursor = pageInfo.endCursor;
-      this.hasNextPage.next(pageInfo.hasNextPage);
-    }
-    this.firstLoad = false;
   }
 
   /**

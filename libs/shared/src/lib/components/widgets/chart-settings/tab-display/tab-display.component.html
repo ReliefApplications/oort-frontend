@@ -162,17 +162,22 @@
               formControlName="value"
             ></shared-palette-control>
             <label>
-              {{'components.widget.settings.chart.palette.themes' | translate}}
+              {{
+                'components.widget.settings.chart.palette.themes' | translate
+              }}
             </label>
             <ui-select-menu
               [formControl]="themesControl"
               (selectedOption)="themeChanged($event)"
               [placeholder]="
                 'components.widget.settings.chart.palette.placeholder'
-                | translate
+                  | translate
               "
             >
-              <ui-select-option *ngFor="let theme of themesColors" value="{{ theme.colors }}">
+              <ui-select-option
+                *ngFor="let theme of themesColors"
+                value="{{ theme.colors }}"
+              >
                 {{ theme.name }}
               </ui-select-option>
             </ui-select-menu>
@@ -232,11 +237,23 @@
             {{ 'components.widget.settings.chart.axes' | translate }}
           </ng-container>
           <!-- === X AXIS PARAMETERS === -->
-          <ng-container formGroupName="x" *ngIf="['bar'].includes(type.name)">
+          <ng-container
+            formGroupName="x"
+            *ngIf="['column', 'line', 'bar'].includes(type.name)"
+          >
             <h3>
               {{ 'components.widget.settings.chart.xAxis' | translate }}
             </h3>
-            <div class="flex flex-wrap place-content-between">
+
+            <ui-toggle formControlName="display">
+              <ng-container ngProjectAs="label">{{
+                'components.widget.settings.chart.displayAxis' | translate
+              }}</ng-container>
+            </ui-toggle>
+            <div
+              class="flex flex-wrap place-content-between mt-4"
+              *ngIf="['bar'].includes(type.name)"
+            >
               <div>
                 <div class="flex gap-2 items-center">
                   <ui-toggle formControlName="enableMin"></ui-toggle>
@@ -290,12 +307,20 @@
           <!-- === Y AXIS PARAMETERS === -->
           <ng-container
             formGroupName="y"
-            *ngIf="['column', 'line'].includes(type.name)"
+            *ngIf="['column', 'line', 'bar'].includes(type.name)"
           >
             <h3>
               {{ 'components.widget.settings.chart.yAxis' | translate }}
             </h3>
-            <div class="flex flex-wrap place-content-between">
+            <ui-toggle formControlName="display">
+              <ng-container ngProjectAs="label">{{
+                'components.widget.settings.chart.displayAxis' | translate
+              }}</ng-container>
+            </ui-toggle>
+            <div
+              class="flex flex-wrap place-content-between mt-4"
+              *ngIf="['column', 'line'].includes(type.name)"
+            >
               <div>
                 <div class="flex gap-2 items-center">
                   <ui-toggle formControlName="enableMin"></ui-toggle>
@@ -371,8 +396,28 @@
             </ui-toggle>
           </div>
         </ui-expansion-panel>
-        <!-- === SERIES AND STACKS PARAMETERS === -->
+        <!-- === NO DATA === -->
         <ui-expansion-panel [index]="6">
+          <ng-container ngProjectAs="title">{{
+            'components.widget.settings.chart.noData.title' | translate
+          }}</ng-container>
+          <div class="flex flex-col gap-2" formGroupName="noData">
+            <ui-toggle formControlName="display">
+              <ng-container ngProjectAs="label">{{
+                'components.widget.settings.chart.noData.display' | translate
+              }}</ng-container>
+            </ui-toggle>
+            <!-- Text -->
+            <div uiFormFieldDirective class="flex-1">
+              <label>{{
+                'components.widget.settings.chart.text' | translate
+              }}</label>
+              <input formControlName="text" />
+            </div>
+          </div>
+        </ui-expansion-panel>
+        <!-- === SERIES AND STACKS PARAMETERS === -->
+        <ui-expansion-panel [index]="7">
           <ng-container ngProjectAs="title">
             {{ 'components.widget.settings.chart.series.title' | translate }}
           </ng-container>

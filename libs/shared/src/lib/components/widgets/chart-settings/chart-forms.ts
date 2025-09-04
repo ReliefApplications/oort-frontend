@@ -24,6 +24,7 @@ export const createChartForm = (value: any, primary: string) => {
   const axes = get(value, 'axes', null);
   const stack = get(value, 'stack', null);
   const grid = get(value, 'grid', null);
+  const noData = get(value, 'noData', null);
 
   const formGroup = fb.group({
     type: [get(value, 'type', null), Validators.required],
@@ -107,7 +108,6 @@ export const createChartForm = (value: any, primary: string) => {
         },
       ],
     }),
-
     grid: fb.group({
       x: fb.group({
         display: get(grid, 'x.display', true),
@@ -116,9 +116,9 @@ export const createChartForm = (value: any, primary: string) => {
         display: get(grid, 'y.display', true),
       }),
     }),
-
     axes: fb.group({
       y: fb.group({
+        display: [get(axes, 'y.display', true)],
         enableMin: [get(axes, 'y.enableMin', false)],
         min: [
           {
@@ -140,6 +140,7 @@ export const createChartForm = (value: any, primary: string) => {
         stepSize: [get(axes, 'y.stepSize', false)],
       }),
       x: fb.group({
+        display: [get(axes, 'x.display', true)],
         enableMin: [get(axes, 'x.enableMin', false)],
         min: [
           {
@@ -160,6 +161,15 @@ export const createChartForm = (value: any, primary: string) => {
         ],
         stepSize: [get(axes, 'x.stepSize', false)],
       }),
+    }),
+    noData: fb.group({
+      display: [get(noData, 'display', false)],
+      text: [
+        {
+          value: get(noData, 'text', ''),
+          disabled: !get(noData, 'display', false),
+        },
+      ],
     }),
     stack: fb.group({
       enable: [get(stack, 'enable', false)],
@@ -309,6 +319,15 @@ export const createChartForm = (value: any, primary: string) => {
       formGroup.get('title.bold')?.enable();
       formGroup.get('title.italic')?.enable();
       formGroup.get('title.underline')?.enable();
+    }
+  });
+
+  // Update no data settings
+  formGroup.get('noData.display')?.valueChanges.subscribe((value) => {
+    if (value) {
+      formGroup.get('noData.text')?.enable();
+    } else {
+      formGroup.get('noData.text')?.disable();
     }
   });
 

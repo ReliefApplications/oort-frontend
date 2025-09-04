@@ -23,7 +23,7 @@ export class AddUserComponent extends UnsubscribeComponent {
   form = this.fb.group({
     email: ['', Validators.minLength(1)],
     roles: [
-      this.data.roles.length === 0 ? [this.data.roles[0].id] : [],
+      this.data.roles.length === 1 ? [this.data.roles[0].id] : [],
       Validators.required,
     ],
     ...(this.data.positionAttributeCategories && {

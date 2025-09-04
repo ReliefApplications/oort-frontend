@@ -5,7 +5,7 @@ import { EMPTY_FEATURE_COLLECTION } from '../../components/ui/map/layer';
 import set from 'lodash/set';
 import { flattenDeep, get, isArray, isNil, isObject, uniq } from 'lodash';
 import * as L from 'leaflet';
-import { FeatureCollection } from 'geojson';
+import { Feature, FeatureCollection } from 'geojson';
 
 /** Available admin identifiers */
 type AdminIdentifier = 'admin0.iso2' | 'admin0.iso3' | 'admin0.id';
@@ -49,7 +49,7 @@ export class MapPolygonsService {
     lldc: boolean;
     sids: boolean;
     coordinates: FeatureCollection;
-    geometry: FeatureCollection;
+    geometry: FeatureCollection | Feature;
     uuid: string;
   }[] = [];
   /** Are admin0 polygons ready */
@@ -169,7 +169,11 @@ export class MapPolygonsService {
               );
               if (admin0s.length > 0) {
                 geoJSON.features = geoJSON.features.concat(
-                  admin0s.flatMap((x) => x.geometry.features)
+                  admin0s.flatMap((x) =>
+                    'features' in x.geometry
+                      ? x.geometry.features
+                      : [x.geometry]
+                  )
                 );
               }
             } else {
@@ -181,7 +185,9 @@ export class MapPolygonsService {
               );
               if (admin0) {
                 geoJSON.features = geoJSON.features.concat(
-                  admin0.geometry.features
+                  'features' in admin0.geometry
+                    ? admin0.geometry.features
+                    : [admin0.geometry]
                 );
               }
             }

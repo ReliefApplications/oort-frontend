@@ -440,8 +440,8 @@
           "title": "Update rows"
         },
         "one": {
-          "content": "Do you really want to update this row?",
-          "title": "Update row"
+          "content": "Are you sure you want to save and close this form?",
+          "title": "Update record"
         }
       }
     },
@@ -1244,7 +1244,7 @@
       },
       "modal": {
         "closeConfirmation": "Close without saving changes?",
-        "update": "Save and close"
+        "saveClose": "Save and close"
       },
       "recovery": {
         "confirmationMessage": "Do you confirm recovery the data from {{date}} to the current register?",
@@ -1665,6 +1665,7 @@
           "axes": "Axes",
           "categories": "Categories",
           "color": "Color",
+          "displayAxis": "Display Axis",
           "filters": {
             "add": "Add filter",
             "delete": "Delete filter",
@@ -1694,6 +1695,10 @@
             "valueType": "Value type"
           },
           "legend": "Legend",
+          "noData": {
+            "display": "Enable no data message",
+            "title": "No Data Display"
+          },
           "orientation": "Orientation",
           "other": "Other",
           "palette": {
@@ -1776,6 +1781,11 @@
                 "title": "Query parameter"
               },
               "label": "Navigate to page",
+              "queryParam": {
+                "label": "Query parameter name",
+                "placeholder": "Type a name for the parameter...",
+                "tooltip": "Default parameter name is name of the field"
+              },
               "target": {
                 "label": "Target page",
                 "placeholder": "Select a page"
@@ -1879,6 +1889,7 @@
               "title": "Inject values as CSS classes",
               "tooltip": "When a field is selected, it's value will be added to to <tr> element as a class, allowing it to be targeted by custom styling"
             },
+            "inlineActionsTitle": "Display inline actions title",
             "showSingleActionAsButton": "Show single action as button",
             "singleSelection": "Single selection"
           },

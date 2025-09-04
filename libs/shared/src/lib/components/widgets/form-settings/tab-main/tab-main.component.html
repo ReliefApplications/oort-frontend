@@ -113,9 +113,28 @@
       </ui-toggle>
     </div>
 
+    <!-- todo: translate -->
     <div
       class="flex-1 mr-4 min-w-max"
       *ngIf="form && formGroup.get('loadRecord.enabled')?.value === true"
+    >
+      <ui-toggle formControlName="canUpdate">
+        <ng-container ngProjectAs="label">
+          Can update record
+          <ui-icon
+            class="ml-1 cursor-help self-center"
+            icon="info_outline"
+            variant="grey"
+            [size]="18"
+            [uiTooltip]="'Enable edition of loaded record'"
+          ></ui-icon>
+        </ng-container>
+      </ui-toggle>
+    </div>
+
+    <div
+      class="flex-1 mr-4 min-w-max"
+      *ngIf="form && formGroup.get('loadRecord.canUpdate')?.value === true"
     >
       <ui-toggle formControlName="update">
         <ng-container ngProjectAs="label">

@@ -31,7 +31,8 @@ export const createFormWidgetFormGroup = (id: string, configuration: any) => {
     floatingActions: [get(configuration, 'floatingActions', false)],
     loadRecord: fb.group({
       enabled: [get(configuration, 'loadRecord.enabled', false)],
-      update: [get(configuration, 'loadRecord.update', true)],
+      canUpdate: [get(configuration, 'loadRecord.canUpdate', false)],
+      update: [get(configuration, 'loadRecord.update', false)],
       state: [get(configuration, 'loadRecord.state', null)],
     }),
   });

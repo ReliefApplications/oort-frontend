@@ -1244,7 +1244,7 @@
       },
       "modal": {
         "closeConfirmation": "******",
-        "update": "******"
+        "saveClose": "******"
       },
       "recovery": {
         "confirmationMessage": "****** {{date}} ******",
@@ -1665,6 +1665,7 @@
           "axes": "******",
           "categories": "******",
           "color": "******",
+          "displayAxis": "******",
           "filters": {
             "add": "******",
             "delete": "******",
@@ -1694,6 +1695,10 @@
             "valueType": "******"
           },
           "legend": "******",
+          "noData": {
+            "display": "******",
+            "title": "******"
+          },
           "orientation": "******",
           "other": "******",
           "palette": {
@@ -1776,6 +1781,11 @@
                 "title": "******"
               },
               "label": "******",
+              "queryParam": {
+                "label": "******",
+                "placeholder": "******",
+                "tooltip": "******"
+              },
               "target": {
                 "label": "******",
                 "placeholder": "******"
@@ -1879,6 +1889,7 @@
               "title": "******",
               "tooltip": "******"
             },
+            "inlineActionsTitle": "******",
             "showSingleActionAsButton": "******",
             "singleSelection": "******"
           },

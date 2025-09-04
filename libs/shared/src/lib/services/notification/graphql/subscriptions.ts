@@ -18,10 +18,7 @@ export const NOTIFICATION_SUBSCRIPTION = gql`
       user {
         id
       }
-      seenBy {
-        id
-        name
-      }
+      read
     }
   }
 `;

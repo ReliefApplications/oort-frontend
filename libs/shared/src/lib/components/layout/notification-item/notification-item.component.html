@@ -1,0 +1,58 @@
+<div
+  class="flex items-start gap-4 px-4 py-3 hover:bg-gray-50 transition-colors rounded-lg"
+  uiMenuItem
+>
+  <div
+    class="w-full"
+    [ngClass]="{
+      'bg-gray-100 rounded-md p-3': !notification.read
+    }"
+  >
+    <button
+      class="w-full text-left flex items-start"
+      [ngClass]="{
+        'cursor-auto': !notification.redirect?.active
+      }"
+      (click)="onClick()"
+    >
+      <div class="flex-1 w-full group">
+        <div class="font-medium text-sm text-gray-900 w-full">
+          {{ notification.action }}
+        </div>
+
+        <div *ngIf="canDisplayContent" class="py-2 text-gray-700 w-full">
+          <div
+            [innerHTML]="notification.content"
+            [ngClass]="{
+              'group-hover:underline': notification.redirect?.active
+            }"
+            class="break-words text-sm w-full"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Blue dot -->
+      <div
+        *ngIf="!notification.read"
+        class="ml-2 mt-1 w-3 h-3 bg-primary-500 rounded-full shrink-0"
+      ></div>
+    </button>
+
+    <!-- Bottom row: date + mark as read -->
+    <div class="flex justify-between items-center mt-2">
+      <span class="text-xs text-gray-500 font-semibold">
+        {{ notification.createdAt | sharedDate }}
+      </span>
+      <button
+        *ngIf="!notification.read"
+        class="flex text-primary-500 group/markAsRead"
+        (click)="onRead($event)"
+      >
+        <ui-icon icon="done"></ui-icon>
+        <p class="group-hover/markAsRead:underline">
+          {{ 'components.notifications.markAsRead' | translate }}
+        </p>
+      </button>
+    </div>
+  </div>
+</div>

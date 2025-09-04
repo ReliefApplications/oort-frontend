@@ -436,11 +436,11 @@
       "one": "Rangée",
       "update": {
         "few": {
-          "content": "Souhaitez vous mettre à jour les {{count}} enregistrements?",
+          "content": "Souhaitez vous mettre à jour les {{count}} enregistrements ?",
           "title": "Mise à jour des enregistrements"
         },
         "one": {
-          "content": "Souhaitez vous mettre à jour l’enregistrement?",
+          "content": "Êtes-vous sûr de vouloir sauvegarder et fermer ce formulaire ?",
           "title": "Mise à jour de l’enregistrement"
         }
       }
@@ -1254,8 +1254,8 @@
         }
       },
       "modal": {
-        "closeConfirmation": "Fermer sans enregistrer les modifications ?",
-        "update": "Sauvegarder et fermer"
+        "closeConfirmation": "Fermer sans enregistrer les modifications ?",
+        "saveClose": "Sauvegarder et fermer"
       },
       "recovery": {
         "confirmationMessage": "Souhaitez-vous appliquer les données du {{date}} à l'enregistrement ?",
@@ -1678,6 +1678,7 @@
           "axes": "Axes",
           "categories": "Catégories",
           "color": "Couleur",
+          "displayAxis": "Afficher l'axe",
           "filters": {
             "add": "Ajouter un filtre",
             "delete": "Supprimer le filtre",
@@ -1707,6 +1708,10 @@
             "valueType": "Type de valeur"
           },
           "legend": "Légende",
+          "noData": {
+            "display": "Activer le message d'absence de données",
+            "title": "Affichage en cas d'absence de données"
+          },
           "orientation": "Orientation",
           "other": "Autre",
           "palette": {
@@ -1789,6 +1794,11 @@
                 "title": "Paramètre de requête"
               },
               "label": "Accédez à la page",
+              "queryParam": {
+                "label": "Nom du paramètre",
+                "placeholder": "Entrez un nom pour le paramètre...",
+                "tooltip": "Si non spécifié, le nom du paramètre sera le même que le nom de la colonne"
+              },
               "target": {
                 "label": "Naviguez vers la page",
                 "placeholder": "Sélectionnez une page"
@@ -1892,6 +1902,7 @@
               "title": "Injecter des valeurs en tant que classes CSS",
               "tooltip": "Lorsqu'un champ est sélectionné, sa valeur sera ajoutée à l'élément <tr> en tant que classe, lui permettant d'être ciblé par un style personnalisé"
             },
+            "inlineActionsTitle": "Afficher le titre des actions rapides intégrées",
             "showSingleActionAsButton": "Afficher une seule action sous forme de bouton",
             "singleSelection": "Sélection unique"
           },

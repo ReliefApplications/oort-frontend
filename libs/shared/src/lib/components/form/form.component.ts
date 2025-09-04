@@ -25,7 +25,7 @@ import {
   EditRecordMutationResponse,
   Record as RecordModel,
 } from '../../models/record.model';
-import { BehaviorSubject, takeUntil } from 'rxjs';
+import { BehaviorSubject, interval, Subscription, takeUntil } from 'rxjs';
 import addCustomFunctions from '../../survey/custom-functions';
 import { AuthService } from '../../services/auth/auth.service';
 import {
@@ -108,6 +108,8 @@ export class FormComponent
     completed: boolean;
     hideNewRecord?: boolean;
   }> = new EventEmitter();
+  /** Edit mode */
+  @Input() mode: 'edit' | 'display' = 'edit';
   /** Survey model */
   public survey!: SurveyModel;
   /** Indicates whether the search is active */
@@ -146,6 +148,8 @@ export class FormComponent
   // private storageId = '';
   /** Date of local storage */
   // public storageDate?: Date;
+  /** Auto save interval */
+  private autoSaveInterval?: Subscription;
 
   /**
    * Gets the error questions for current page
@@ -242,23 +246,28 @@ export class FormComponent
       }
 
       if (rule.direction === 'stateToQuestion' || rule.direction === 'both') {
-        this.dashboardService.states$.subscribe(() => {
-          const states = this.dashboardService.states.getValue();
-          const state = states.find(
-            (s: DashboardState) => s.name === rule.state
-          );
-          if (state) {
-            if (question.isValueArray && Array.isArray(state.value)) {
-              question.value = state.value;
-            } else if (!question.isValueArray && !Array.isArray(state.value)) {
-              question.value = state.value;
-            } else if (question.isValueArray && !Array.isArray(state.value)) {
-              question.value = [state.value];
-            } else {
-              question.value = state.value[0];
+        this.dashboardService.states$
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(() => {
+            const states = this.dashboardService.states.getValue();
+            const state = states.find(
+              (s: DashboardState) => s.name === rule.state
+            );
+            if (state) {
+              if (question.isValueArray && Array.isArray(state.value)) {
+                question.value = state.value;
+              } else if (
+                !question.isValueArray &&
+                !Array.isArray(state.value)
+              ) {
+                question.value = state.value;
+              } else if (question.isValueArray && !Array.isArray(state.value)) {
+                question.value = [state.value];
+              } else {
+                question.value = state.value[0];
+              }
             }
-          }
-        });
+          });
       }
     });
   }
@@ -560,6 +569,9 @@ export class FormComponent
   /** It removes the item from local storage, clears cached records, and discards the search. */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
+    if (this.autoSaveInterval) {
+      this.autoSaveInterval.unsubscribe();
+    }
     if (this.resetTimeoutListener) {
       clearTimeout(this.resetTimeoutListener);
     }
@@ -615,22 +627,30 @@ export class FormComponent
     );
 
     this.survey.showCompletedPage = false;
+    if (this.mode === 'display') {
+      this.survey.mode = 'display';
+    }
     if (!this.record && !this.form.canCreateRecords) {
       this.survey.mode = 'display';
     }
-    if (this.survey.autoSave) {
-      this.survey.onValueChanged.add(async (_, options) => {
-        if (options.question.omitField) {
-          return;
-        }
-        this.formHelpersService.autoSaveRecord(
-          options,
-          this.onComplete.bind(this, true),
-          this.temporaryFilesStorage,
-          this.form.id,
-          this.survey
-        );
-      });
+    // Auto save survey
+    if (this.survey.autoSave && this.survey.mode !== 'display') {
+      this.autoSaveInterval = interval(15000)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (
+            !this.saving &&
+            !this.autosaving &&
+            this.survey.data &&
+            Object.keys(this.survey.data).length > 0
+          ) {
+            this.formHelpersService.autoSaveRecord(
+              this.onComplete.bind(this, true),
+              this.temporaryFilesStorage,
+              this.form.id
+            );
+          }
+        });
     }
     this.survey.onComplete.add(() => {
       this.onComplete();

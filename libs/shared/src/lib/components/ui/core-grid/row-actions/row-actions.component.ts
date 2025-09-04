@@ -51,6 +51,7 @@ export class GridRowActionsComponent implements OnChanges {
       field: '',
       pageUrl: '',
       title: '',
+      queryParam: '',
       copyLink: false,
     },
   };

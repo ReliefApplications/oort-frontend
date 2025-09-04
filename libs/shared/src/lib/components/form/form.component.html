@@ -106,7 +106,7 @@
     <!-- <ui-button [disabled]="disableSaveAsDraft" (click)="saveAsDraft()">{{
       'components.form.draftRecords.save' | translate
     }}</ui-button> -->
-    <p>
+    <p *ngIf="survey.mode === 'edit'">
       <ui-button
         variant="primary"
         category="secondary"

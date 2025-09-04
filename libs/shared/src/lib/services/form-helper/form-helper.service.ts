@@ -7,7 +7,6 @@ import {
   QuestionMatrixDynamicModel,
   QuestionPanelDynamicModel,
   SurveyModel,
-  ValueChangedEvent,
   Question,
 } from 'survey-core';
 import { Apollo } from 'apollo-angular';
@@ -226,23 +225,17 @@ export class FormHelpersService {
         )
       );
 
-      const questionFiles =
-        (question.value as Array<File & { readyToSave: boolean }>) || [];
-
       // Maps the files array, replacing the content with the path from the blob storage
-      const mappedFiles = questionFiles
-        .filter((f) => !f.readyToSave)
-        .map((f: File, idx: number) => {
+      const mappedFiles = ((question.value as any[]) || []).map(
+        (f: File, idx: number) => {
           return {
             ...f,
             content: paths[idx],
-            readyToSave: true, //used to autosave only once
           };
-        });
+        }
+      );
 
-      question.value = questionFiles
-        .filter((f) => f.readyToSave)
-        .concat(mappedFiles);
+      question.value = mappedFiles;
     }
   }
 
@@ -868,39 +861,18 @@ export class FormHelpersService {
   /**
    * Saves the record automatically after some time
    *
-   * @param valueChangedEvent surveyjs value changed event
    * @param callback Function to execute once debounce time has passed
    * @param temporaryFilesStorage Form to save the record from
    * @param formId Id of the form
-   * @param survey Survey being saved
    */
   public async autoSaveRecord(
-    valueChangedEvent: ValueChangedEvent,
     callback: () => Promise<void>,
     temporaryFilesStorage: TemporaryFilesStorage,
-    formId: string | undefined,
-    survey: SurveyModel
+    formId: string | undefined
   ) {
-    if (
-      valueChangedEvent.question.getType() === 'file' &&
-      valueChangedEvent.value.length &&
-      !valueChangedEvent.value.every(
-        (file: File & { readyToSave?: boolean }) => file.readyToSave
-      )
-    ) {
-      const questions = survey.getAllQuestions(false, false, true);
-      const initialStates = questions.reduce((acc, q) => {
-        acc[q.name] = q.readOnly;
-        return acc;
-      }, {} as { [key: string]: boolean });
-      //Set everything as readonly during the upload of the files
-      questions.forEach((q) => (q.readOnly = true));
-      //Avoids editing the record multiple times for file questions
-      await this.uploadFiles(temporaryFilesStorage, formId);
-      temporaryFilesStorage.clear();
-      questions.forEach((q) => (q.readOnly = initialStates[q.name]));
-      return;
-    }
+    // Avoids editing the record multiple times for file questions
+    await this.uploadFiles(temporaryFilesStorage, formId);
+    temporaryFilesStorage.clear();
     this.saveDebounced(callback);
   }
 
@@ -1088,9 +1060,10 @@ export class FormHelpersService {
 
     const panelHeader = panelHtml?.querySelector('.sd-element__header');
     const title = panelHeader?.querySelector('.sd-element__title');
-    const oldButton = panelHeader?.querySelector('#upload-btn');
+    // Check if button is already present
+    const button = panelHeader?.querySelector('#upload-btn');
 
-    if (title && !oldButton) {
+    if (title && !button) {
       const div = document.createElement('div');
       div.classList.add('flex', 'items-center');
       div.id = 'upload-btn';
@@ -1099,6 +1072,16 @@ export class FormHelpersService {
       title.remove(); // remove original title
       div.appendChild(uploadButton);
       panelHeader?.appendChild(div);
+      if (question.isReadOnly) {
+        uploadButton.classList.add('!hidden');
+      }
+      question.registerFunctionOnPropertyValueChanged('readOnly', () => {
+        if (question.isReadOnly) {
+          uploadButton.classList.add('!hidden');
+        } else {
+          uploadButton.classList.remove('!hidden');
+        }
+      });
     }
   }
 
@@ -1128,8 +1111,12 @@ export class FormHelpersService {
    * Set download listener for files in the survey
    *
    * @param e Event raised after rendering a question
+   * @param recordId Current record id
    */
-  public setDownloadListener(e: AfterRenderQuestionEvent): void {
+  public setDownloadListener(
+    e: AfterRenderQuestionEvent,
+    recordId?: string
+  ): void {
     const { question, htmlElement } = e;
     const survey = question.survey as SurveyModel;
     const files = question.value;
@@ -1141,10 +1128,13 @@ export class FormHelpersService {
           file.content &&
           !(file.content.indexOf('base64') !== -1) &&
           !file.content.startsWith('http') &&
-          !file.content.startsWith('custom:')
+          !file.content.startsWith('custom:') &&
+          recordId
         ) {
-          const path = `${this.environment.apiUrl}/download/file/${file.content}/${file.name}`;
-          this.downloadService.getFile(path, file.type, file.name);
+          if (question.getPropertyValue('canDownload')) {
+            const path = `${this.environment.apiUrl}/download/file/${file.content}/${recordId}/${question.name}`;
+            this.downloadService.getFile(path, file.type, file.name);
+          }
         }
       });
     };
@@ -1152,5 +1142,20 @@ export class FormHelpersService {
     survey.onDispose?.add?.(() => {
       fileElement?.removeEventListener('click', listener);
     });
+    // Default layout
+    if (!question.getPropertyValue('canDownload')) {
+      fileElement?.classList.add('pointer-events-none');
+    }
+    // Listen to changes on canDownload property
+    question.registerFunctionOnPropertyValueChanged(
+      'canDownload',
+      (value: boolean) => {
+        if (value) {
+          fileElement?.classList.remove('pointer-events-none');
+        } else {
+          fileElement?.classList.add('pointer-events-none');
+        }
+      }
+    );
   }
 }

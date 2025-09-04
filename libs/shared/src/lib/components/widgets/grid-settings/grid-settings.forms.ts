@@ -206,6 +206,16 @@ export const createGridWidgetFormGroup = (id: string, configuration: any) => {
       actionsTitle: new FormControl(
         get<string>(configuration, 'widgetDisplay.actionsTitle', '')
       ),
+      enableInlineActionsTitle: new FormControl(
+        get<boolean>(
+          configuration,
+          'widgetDisplay.enableInlineActionsTitle',
+          false
+        )
+      ),
+      inlineActionsTitle: new FormControl(
+        get<string>(configuration, 'widgetDisplay.inlineActionsTitle', '')
+      ),
       addToRowClasses: new FormControl(
         get<string[]>(configuration, 'widgetDisplay.addToRowClasses', [])
       ),
@@ -288,6 +298,9 @@ export const createGridActionsFormGroup = (configuration: any) => {
     navigateSettings: fb.group({
       pageUrl: [get(configuration, 'actions.navigateSettings.pageUrl', '')],
       field: [get(configuration, 'actions.navigateSettings.field', '')],
+      queryParam: [
+        get(configuration, 'actions.navigateSettings.queryParam', ''),
+      ],
       title: [
         get(configuration, 'actions.navigateSettings.title', 'Details view'),
       ],

@@ -144,6 +144,7 @@ export class GridComponent
       field: '',
       pageUrl: '',
       title: '',
+      queryParam: '',
       copyLink: false,
     },
     remove: false,
@@ -1397,7 +1398,21 @@ export class GridComponent
         checkButtonWidth();
       } else if (size > 0) {
         // Show three dots menu
-        this.actionsWidth = 56;
+        if (this.widget?.settings?.widgetDisplay?.actionsTitle) {
+          // calculate the width of the buttons using measureText
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          if (context) {
+            context.font = '14px system-ui';
+            const width = context.measureText(
+              this.widget?.settings?.widgetDisplay?.actionsTitle
+            ).width;
+            this.actionsWidth = Math.max(56, width * 1.25 + 24);
+          }
+          // this.actionsWidth = Math.min(56);
+        } else {
+          this.actionsWidth = 56;
+        }
       }
 
       return;
