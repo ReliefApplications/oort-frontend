@@ -4,6 +4,7 @@ import {
   Component,
   HostListener,
   Inject,
+  Injector,
   Input,
   NgZone,
   OnChanges,
@@ -20,7 +21,6 @@ import { SidenavContainerComponent, Variant } from '@oort-front/ui';
 import { DatePipe } from '../../pipes/date/date.pipe';
 import { DateTranslateService } from '../../services/date-translate/date-translate.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
-import { ReferenceDataService } from '../../services/reference-data/reference-data.service';
 import { DOCUMENT } from '@angular/common';
 import { Dashboard } from '../../models/dashboard.model';
 
@@ -82,20 +82,20 @@ export class DashboardFilterComponent
    *
    * @param contextService Context service
    * @param ngZone Triggers html changes
-   * @param referenceDataService Reference data service
    * @param changeDetectorRef Change detector reference
    * @param dateTranslate Service used for date formatting
    * @param document Document
    * @param _host sidenav container host
+   * @param injector Angular injector
    */
   constructor(
     public contextService: ContextService,
     private ngZone: NgZone,
-    private referenceDataService: ReferenceDataService,
     private changeDetectorRef: ChangeDetectorRef,
     private dateTranslate: DateTranslateService,
     @Inject(DOCUMENT) private document: Document,
-    @Optional() private _host: SidenavContainerComponent
+    @Optional() private _host: SidenavContainerComponent,
+    private injector: Injector
   ) {
     super();
   }
@@ -230,7 +230,7 @@ export class DashboardFilterComponent
       if (parent) {
         parent.style.minWidth = '0px';
       }
-      renderGlobalProperties(this.referenceDataService);
+      renderGlobalProperties(this.injector);
     });
     this.onValueChange();
   }

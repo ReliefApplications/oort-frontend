@@ -7,11 +7,11 @@ import {
   OnInit,
   Output,
   Inject,
+  Injector,
 } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { TranslateService } from '@ngx-translate/core';
 import { get, uniqBy, difference } from 'lodash';
-import { ReferenceDataService } from '../../services/reference-data/reference-data.service';
 import { Form } from '../../models/form.model';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
 import { SnackbarService } from '@oort-front/ui';
@@ -167,17 +167,17 @@ export class FormBuilderComponent
    * @param dialog Angular Dialog service used to display dialog modals
    * @param snackBar Service that will be used to display the snackbar.
    * @param translate Angular translate service
-   * @param referenceDataService Reference data service
    * @param formHelpersService Shared form helper service.
    * @param document document
+   * @param injector Angular injector
    */
   constructor(
     public dialog: Dialog,
     private snackBar: SnackbarService,
     private translate: TranslateService,
-    private referenceDataService: ReferenceDataService,
     private formHelpersService: FormHelpersService,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private injector: Injector
   ) {
     super();
     // translate the editor in the same language as the interface
@@ -219,7 +219,7 @@ export class FormBuilderComponent
 
       // add the rendering of custom properties
       this.surveyCreator.survey.onAfterRenderQuestion.add(
-        renderGlobalProperties(this.referenceDataService) as any
+        renderGlobalProperties(this.injector) as any
       );
       this.surveyCreator.survey.onAfterRenderQuestion.add(
         this.formHelpersService.addQuestionTooltips.bind(
@@ -394,7 +394,7 @@ export class FormBuilderComponent
 
     // add the rendering of custom properties
     this.surveyCreator.survey.onAfterRenderQuestion.add(
-      renderGlobalProperties(this.referenceDataService) as any
+      renderGlobalProperties(this.injector) as any
     );
     this.surveyCreator.survey.onAfterRenderQuestion.add(
       this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService)
@@ -403,7 +403,7 @@ export class FormBuilderComponent
     (this.surveyCreator.onTestSurveyCreated as any).add(
       (sender: any, options: any) =>
         options.survey.onAfterRenderQuestion.add(
-          renderGlobalProperties(this.referenceDataService)
+          renderGlobalProperties(this.injector)
         )
     );
     this.surveyCreator.onPropertyGridShowModal.add(updateModalChoicesAndValue);

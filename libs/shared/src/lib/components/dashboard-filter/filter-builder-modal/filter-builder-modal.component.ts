@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   Inject,
+  Injector,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -16,7 +17,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule, SnackbarService, TooltipModule } from '@oort-front/ui';
 import { DialogModule, AlertModule } from '@oort-front/ui';
 import { renderGlobalProperties } from '../../../survey/render-global-properties';
-import { ReferenceDataService } from '../../../services/reference-data/reference-data.service';
 import { FormHelpersService } from '../../../services/form-helper/form-helper.service';
 import 'survey-core/survey.i18n.min.js';
 import { CustomQuestionTypes } from '../../../survey/custom-question-types';
@@ -227,17 +227,17 @@ export class FilterBuilderModalComponent
    * @param formService Shared form service
    * @param dialogRef reference to the dialog component
    * @param data data passed to initialize the filter builder
-   * @param referenceDataService reference data service
    * @param formHelpersService Shared form helper service.
    * @param snackBar Service that will be used to display the snackbar.
+   * @param injector Angular injector
    */
   constructor(
     private formService: FormService,
     private dialogRef: DialogRef<FilterBuilderModalComponent>,
     @Inject(DIALOG_DATA) public data: DialogData,
-    private referenceDataService: ReferenceDataService,
     private formHelpersService: FormHelpersService,
-    private snackBar: SnackbarService
+    private snackBar: SnackbarService,
+    private injector: Injector
   ) {}
 
   ngOnInit(): void {
@@ -308,12 +308,12 @@ export class FilterBuilderModalComponent
 
     // add the rendering of custom properties
     this.surveyCreator.survey.onAfterRenderQuestion.add(
-      renderGlobalProperties(this.referenceDataService) as any
+      renderGlobalProperties(this.injector) as any
     );
     (this.surveyCreator.onTestSurveyCreated as any).add(
       (sender: any, opt: any) =>
         opt.survey.onAfterRenderQuestion.add(
-          renderGlobalProperties(this.referenceDataService)
+          renderGlobalProperties(this.injector)
         )
     );
 

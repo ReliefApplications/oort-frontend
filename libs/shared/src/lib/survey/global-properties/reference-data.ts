@@ -17,6 +17,7 @@ import { CustomPropertyGridComponentTypes } from '../components/utils/components
 import { registerCustomPropertyEditor } from '../components/utils/component-register';
 import { isEqual, isNil, omit, uniqWith } from 'lodash';
 import { SurveyQuestionEditorDefinition } from 'survey-creator-core';
+import { Injector } from '@angular/core';
 
 type EditableColumnsMatrix =
   | QuestionMatrixDropdownModel
@@ -77,6 +78,414 @@ export const isSelectQuestion = (question: Question): boolean =>
  */
 export const isMatrixQuestion = (question: Question): boolean =>
   EDITABLE_COLUMNS_MATRIX_TYPES.includes(question.getType());
+
+/**
+ * Remove duplicated options from items
+ *
+ * @param element Question or column element
+ * @param items List of choices
+ * @returns List of unique choices
+ */
+const removeDuplicateOptions = (element: any, items: ItemValue[]) => {
+  if (!items || items.length === 0 || !element.removeDuplicateOptions) {
+    return [];
+  }
+
+  return uniqWith(
+    items,
+    (a, b) => (a.title ?? a.value) === (b.title ?? b.value)
+  );
+};
+
+/**
+ * Update question choices
+ *
+ * @param referenceDataService Shared reference data service
+ * @param question Question
+ * @param column Column, optional, only applies to matrix
+ */
+const updateChoices = (
+  referenceDataService: ReferenceDataService,
+  question: Question,
+  column?: any
+) => {
+  // Element using reference data
+  const targetElement = column || question;
+
+  if (
+    !targetElement.referenceData ||
+    !targetElement.referenceDataDisplayField
+  ) {
+    // Element is not using reference data, or isn't correctly configured
+    return;
+  }
+
+  const targetColName = column ? column.name : null;
+
+  if (column && (!question?.cells || !(question.cells instanceof Map))) {
+    console.warn(
+      `[RefData] updateChoices: Matrix ${question?.name} 'cells' map not found or not a Map. Cannot update choices for column ${targetColName}. Ensure survey.onMatrixAfterCellRender is populating it.`
+    );
+    return;
+  }
+
+  const filterIsRowBased = !!(
+    column && column.referenceDataFilterFilterFromQuestion?.startsWith('row.')
+  );
+  let foreignColNameForRowFilter: string | null = null;
+  if (filterIsRowBased) {
+    foreignColNameForRowFilter =
+      column.referenceDataFilterFilterFromQuestion.substring(4);
+  }
+
+  let filterSourceRefDataID = '';
+  if (filterIsRowBased && foreignColNameForRowFilter) {
+    const foreignColumnDef = question.columns.find(
+      (c: any) => c.name === foreignColNameForRowFilter
+    );
+    if (foreignColumnDef) {
+      filterSourceRefDataID = foreignColumnDef.referenceData || '';
+    } else {
+      console.warn(
+        `[RefData] Foreign column definition '${foreignColNameForRowFilter}' not found in matrix '${question.name}'.`
+      );
+    }
+  } else if (targetElement.referenceDataFilterFilterFromQuestion) {
+    const survey = question.survey as SurveyModel;
+    const foreignQuestion = survey
+      ?.getAllQuestions()
+      .find(
+        (x) => x.name === targetElement.referenceDataFilterFilterFromQuestion
+      ) as QuestionSelectBase;
+    filterSourceRefDataID = foreignQuestion?.referenceData || '';
+  }
+
+  const displayOptions = {
+    displayField: targetElement.referenceDataDisplayField,
+    sortByField: targetElement.referenceDataSortBy,
+    sortDirection: targetElement.referenceDataSortDirection || 'asc',
+    tryLoadTranslations: targetElement.referenceDataTryLoadTranslations,
+    lang: question.survey.getLocale(),
+  };
+
+  if (filterIsRowBased && foreignColNameForRowFilter && targetColName) {
+    const rowProcessingPromises: Promise<void>[] = [];
+
+    const foreignColFilter = foreignColNameForRowFilter;
+    question.visibleRows?.forEach((row: any) => {
+      const rowData = row.value;
+      const rowName = row.rowName;
+
+      if (!rowData || !rowName) {
+        console.warn(
+          `[RefData] Skipping row in ${targetColName}: missing rowData or rowName. Row:`,
+          row
+        );
+        return;
+      }
+
+      const foreignValue = rowData[foreignColFilter];
+
+      const cellFilter = {};
+      if (
+        filterSourceRefDataID &&
+        column.referenceDataFilterForeignField &&
+        column.referenceDataFilterLocalField &&
+        column.referenceDataFilterFilterCondition &&
+        !isNil(foreignValue)
+      ) {
+        Object.assign(cellFilter, {
+          foreignReferenceData: filterSourceRefDataID,
+          foreignField: column.referenceDataFilterForeignField,
+          foreignValue: foreignValue,
+          localField: column.referenceDataFilterLocalField,
+          operator: column.referenceDataFilterFilterCondition,
+        });
+      }
+
+      const promise = referenceDataService
+        .getChoices(
+          column.referenceData,
+          displayOptions,
+          column.isPrimitiveValue,
+          cellFilter as any
+        )
+        .then((choices) => {
+          const choiceItems = choices.map((c) => new ItemValue(c));
+          const cellKey = `${rowName}:${targetColName}`;
+          const matrixCell = question.cells.get(cellKey);
+
+          if (matrixCell && matrixCell.question) {
+            const cellQuestion = matrixCell.question as QuestionSelectBase;
+            cellQuestion.choices = removeDuplicateOptions(
+              targetElement,
+              choiceItems
+            );
+          }
+
+          const currentCellValue = rowData[targetColName];
+          let newCellValue = currentCellValue;
+          if (column.isPrimitiveValue) {
+            if (
+              currentCellValue !== null &&
+              currentCellValue !== undefined &&
+              !choices.find((c) => isEqual(c.value, currentCellValue))
+            ) {
+              newCellValue = null;
+            }
+          } else {
+            if (currentCellValue !== null && currentCellValue !== undefined) {
+              const valueItem = new ItemValue(currentCellValue);
+              const foundChoice = choiceItems.find((c) =>
+                isEqual(c.id, omit(valueItem.id as any, 'pos'))
+              );
+              newCellValue = foundChoice ? foundChoice.value : null;
+            } else {
+              newCellValue = null;
+            }
+          }
+          if (!isEqual(currentCellValue, newCellValue)) {
+            row.setValue(targetColName, newCellValue);
+          }
+        })
+        .catch((error) => {
+          console.error(
+            `[RefData] Error fetching/processing choices for row ${rowName}, col ${targetColName}:`,
+            error
+          );
+        });
+      rowProcessingPromises.push(promise.catch(() => undefined));
+    });
+
+    // Execute all promises
+    Promise.all(rowProcessingPromises)
+      .then(() => {
+        if (
+          question.survey &&
+          typeof (question.survey as any).render === 'function'
+        ) {
+          (question.survey as any).render();
+        }
+      })
+      .catch((error) => {
+        console.error(
+          `[RefData] Error in Promise.all for row processing (Matrix: ${question.name}):`,
+          error
+        );
+      });
+  } else {
+    // Non-row-based filter or simple select question
+    let generalFilter;
+    if (targetElement.referenceDataFilterFilterFromQuestion) {
+      const survey = question.survey as SurveyModel;
+      const foreignQuestion = survey
+        ?.getAllQuestions()
+        .find(
+          (x: any) =>
+            x.name === targetElement.referenceDataFilterFilterFromQuestion
+        ) as QuestionSelectBase;
+      const foreignValue = foreignQuestion?.value;
+      if (filterSourceRefDataID && !isNil(foreignValue)) {
+        generalFilter = {
+          foreignReferenceData: filterSourceRefDataID,
+          foreignField: targetElement.referenceDataFilterForeignField,
+          foreignValue: foreignValue,
+          localField: targetElement.referenceDataFilterLocalField,
+          operator: targetElement.referenceDataFilterFilterCondition,
+        };
+      }
+    }
+
+    referenceDataService
+      .getChoices(
+        targetElement.referenceData,
+        displayOptions,
+        targetElement.isPrimitiveValue,
+        generalFilter
+      )
+      .then((choices) => {
+        const choiceItems = choices.map((c) => new ItemValue(c));
+
+        if (targetColName) {
+          // Non-row-filtered matrix column
+          column.choices = removeDuplicateOptions(targetElement, choiceItems);
+
+          question.visibleRows?.forEach((row: any) => {
+            const rowData = row.value;
+            if (!rowData) return;
+            const currentCellValue = rowData[targetColName];
+            let newCellValue = currentCellValue;
+            if (column.isPrimitiveValue) {
+              if (
+                currentCellValue !== null &&
+                currentCellValue !== undefined &&
+                !choices.find((c) => isEqual(c.value, currentCellValue))
+              ) {
+                newCellValue = null;
+              }
+            } else {
+              if (currentCellValue !== null && currentCellValue !== undefined) {
+                const valueItem = new ItemValue(currentCellValue);
+                const foundChoice = choiceItems.find((c) =>
+                  isEqual(c.id, omit(valueItem.id as any, 'pos'))
+                );
+                newCellValue = foundChoice ? foundChoice.value : null;
+              } else {
+                newCellValue = null;
+              }
+            }
+            if (!isEqual(currentCellValue, newCellValue)) {
+              row.setValue(targetColName, newCellValue);
+            }
+          });
+          // Refresh survey
+          if (
+            question.survey &&
+            typeof (question.survey as any).render === 'function'
+          ) {
+            (question.survey as any).render();
+          }
+        } else {
+          // Simple select question
+          question.choices = removeDuplicateOptions(targetElement, choiceItems);
+          // Value reconciliation for the select question itself
+          const currentValue = question.value;
+          let newSelectValue = currentValue;
+          if (question.isPrimitiveValue) {
+            if (currentValue !== null && currentValue !== undefined) {
+              if (Array.isArray(currentValue)) {
+                // Tagbox
+                const validValues = currentValue.filter((val) =>
+                  choices.some((c) => isEqual(c.value, val))
+                );
+                newSelectValue = validValues;
+              } else {
+                // Dropdown
+                if (!choices.find((c) => isEqual(c.value, currentValue))) {
+                  newSelectValue = null;
+                }
+              }
+            }
+          } else {
+            if (currentValue !== null && currentValue !== undefined) {
+              if (Array.isArray(currentValue)) {
+                // Tagbox
+                const reconciledValues = currentValue
+                  .map((val) => {
+                    const valueItem = new ItemValue(val);
+                    const foundChoice = choiceItems.find((c) =>
+                      isEqual(c.id, omit(valueItem.id as any, 'pos'))
+                    );
+                    return foundChoice ? foundChoice.value : null;
+                  })
+                  .filter((val) => val !== null);
+
+                newSelectValue =
+                  reconciledValues.length > 0 ? reconciledValues : null;
+              } else {
+                // Dropdown
+                const valueItem = new ItemValue(currentValue);
+                const foundChoice = choiceItems.find((c) =>
+                  isEqual(c.id, omit(valueItem.id as any, 'pos'))
+                );
+                newSelectValue = foundChoice ? foundChoice.value : null;
+              }
+            } else {
+              newSelectValue = null;
+            }
+          }
+          if (!isEqual(currentValue, newSelectValue)) {
+            question.value = newSelectValue;
+          }
+        }
+      })
+      .catch((error) => {
+        console.error(
+          `[RefData] Error fetching choices for element ${targetElement.name}:`,
+          error
+        );
+      });
+  }
+};
+
+/**
+ * Initialize question choices
+ *
+ * @param referenceDataService Shared reference data service
+ * @param question Question
+ * @param column Column, optional, only applies to matrix
+ */
+const initChoices = (
+  referenceDataService: ReferenceDataService,
+  question: Question,
+  column?: any
+) => {
+  // Element using reference data
+  const targetElement = column || question;
+
+  const propsToWatch = [
+    'referenceData',
+    'referenceDataDisplayField',
+    'isPrimitiveValue',
+    'referenceDataFilterFilterFromQuestion',
+    'referenceDataFilterForeignField',
+    'referenceDataFilterFilterCondition',
+    'referenceDataFilterLocalField',
+  ];
+  propsToWatch.forEach((prop) => {
+    // Listen to property changes on column if provided, else, on question
+    targetElement.registerFunctionOnPropertyValueChanged(prop, () => {
+      updateChoices(referenceDataService, question, column);
+    });
+  });
+
+  if (question.survey) {
+    // Subscribe to locale changes to update the choices
+    (question.survey as SurveyModel).onLocaleChangedEvent.add(() => {
+      updateChoices(referenceDataService, question, column);
+    });
+  }
+
+  const survey = question.survey as SurveyModel;
+  // Check if definitionToListenOn is a column within questionForContext (which should be a matrix)
+  const isColumnBeingInitialized = isMatrixQuestion(question) && !isNil(column);
+
+  if (
+    isColumnBeingInitialized &&
+    targetElement.referenceDataFilterFilterFromQuestion?.startsWith('row.')
+  ) {
+    const foreignColName =
+      targetElement.referenceDataFilterFilterFromQuestion.substring(4);
+
+    // Attach listener to the survey, but specific to this matrixInstance and column dependency
+    // Use a flag on the survey or matrix to prevent duplicate listeners if initChoices is called multiple times
+    // for the same matrix/column pair (though the Set below for columns should mostly prevent this specific case)
+    const listenerKey = `_refDataListener_${question.name}_${column.name}_to_${foreignColName}`;
+    if (survey && !(survey as any)[listenerKey]) {
+      survey.onMatrixCellValueChanged.add((_, options) => {
+        if (
+          options.question === question &&
+          options.columnName === foreignColName
+        ) {
+          updateChoices(referenceDataService, question, column);
+        }
+      });
+      (survey as any)[listenerKey] = true;
+    }
+  } else if (targetElement.referenceDataFilterFilterFromQuestion) {
+    // Dependency on a non-row based question (another question in the survey)
+    const foreignQuestion = survey
+      ?.getAllQuestions()
+      .find(
+        (x: any) =>
+          x.name === targetElement.referenceDataFilterFilterFromQuestion
+      ) as QuestionSelectBase | undefined;
+
+    foreignQuestion?.registerFunctionOnPropertyValueChanged('value', () => {
+      updateChoices(referenceDataService, question, column);
+    });
+  }
+};
 
 /**
  * Add support for custom properties to the survey
@@ -424,409 +833,10 @@ export const init = (referenceDataService: ReferenceDataService): void => {
  * Render the custom properties
  *
  * @param questionElement The question element
- * @param referenceDataService The reference data service
+ * @param injector Angular injector
  */
-export const render = (
-  questionElement: Question,
-  referenceDataService: ReferenceDataService
-): void => {
-  const updateChoices = (
-    matrixOrSelectQuestion: Question,
-    columnOrQuestionDefinition: any = matrixOrSelectQuestion
-  ) => {
-    const removeDuplicateOptions = (items: ItemValue[]) => {
-      if (
-        !items ||
-        items.length === 0 ||
-        !columnOrQuestionDefinition.removeDuplicateOptions
-      ) {
-        return [];
-      }
-
-      return uniqWith(
-        items,
-        (a, b) => (a.title ?? a.value) === (b.title ?? b.value)
-      );
-    };
-    if (
-      !columnOrQuestionDefinition.referenceData ||
-      !columnOrQuestionDefinition.referenceDataDisplayField
-    ) {
-      return;
-    }
-
-    const isMatrixCol =
-      isMatrixQuestion(matrixOrSelectQuestion) &&
-      columnOrQuestionDefinition !== matrixOrSelectQuestion;
-    const qAsMatrix = isMatrixCol
-      ? (matrixOrSelectQuestion as EditableColumnsMatrix)
-      : null;
-    const qAsSelect = !isMatrixCol
-      ? (matrixOrSelectQuestion as QuestionSelectBase)
-      : null;
-
-    const targetColName = isMatrixCol ? columnOrQuestionDefinition.name : null;
-
-    if (
-      isMatrixCol &&
-      (!qAsMatrix?.cells || !(qAsMatrix.cells instanceof Map))
-    ) {
-      console.warn(
-        `[RefData] updateChoices: Matrix ${qAsMatrix?.name} 'cells' map not found or not a Map. Cannot update choices for column ${targetColName}. Ensure survey.onMatrixAfterCellRender is populating it.`
-      );
-      return;
-    }
-
-    const filterIsRowBased = !!(
-      isMatrixCol &&
-      columnOrQuestionDefinition.referenceDataFilterFilterFromQuestion?.startsWith(
-        'row.'
-      )
-    );
-    let foreignColNameForRowFilter: string | null = null;
-    if (filterIsRowBased) {
-      foreignColNameForRowFilter =
-        columnOrQuestionDefinition.referenceDataFilterFilterFromQuestion.substring(
-          4
-        );
-    }
-
-    let filterSourceRefDataID = '';
-    if (filterIsRowBased && foreignColNameForRowFilter && qAsMatrix) {
-      const foreignColumnDef = qAsMatrix.columns.find(
-        (c: any) => c.name === foreignColNameForRowFilter
-      );
-      if (foreignColumnDef) {
-        filterSourceRefDataID = foreignColumnDef.referenceData || '';
-      } else {
-        console.warn(
-          `[RefData] Foreign column definition '${foreignColNameForRowFilter}' not found in matrix '${qAsMatrix.name}'.`
-        );
-      }
-    } else if (
-      columnOrQuestionDefinition.referenceDataFilterFilterFromQuestion
-    ) {
-      const survey = matrixOrSelectQuestion.survey as SurveyModel;
-      const foreignQuestion = survey
-        ?.getAllQuestions()
-        .find(
-          (x) =>
-            x.name ===
-            columnOrQuestionDefinition.referenceDataFilterFilterFromQuestion
-        ) as QuestionSelectBase;
-      filterSourceRefDataID = foreignQuestion?.referenceData || '';
-    }
-
-    const displayOptions = {
-      displayField: columnOrQuestionDefinition.referenceDataDisplayField,
-      sortByField: columnOrQuestionDefinition.referenceDataSortBy,
-      sortDirection:
-        columnOrQuestionDefinition.referenceDataSortDirection || 'asc',
-      tryLoadTranslations:
-        columnOrQuestionDefinition.referenceDataTryLoadTranslations,
-      lang: matrixOrSelectQuestion.survey.getLocale(),
-    };
-
-    if (
-      isMatrixCol &&
-      filterIsRowBased &&
-      foreignColNameForRowFilter &&
-      qAsMatrix &&
-      targetColName
-    ) {
-      const rowProcessingPromises: Promise<void>[] = [];
-
-      const foreignColFilter = foreignColNameForRowFilter;
-      qAsMatrix.visibleRows?.forEach((row: any) => {
-        const rowData = row.value;
-        const rowName = row.rowName;
-
-        if (!rowData || !rowName) {
-          console.warn(
-            `[RefData] Skipping row in ${targetColName}: missing rowData or rowName. Row:`,
-            row
-          );
-          return;
-        }
-
-        const foreignValue = rowData[foreignColFilter];
-
-        const cellFilter = {};
-        if (
-          filterSourceRefDataID &&
-          columnOrQuestionDefinition.referenceDataFilterForeignField &&
-          columnOrQuestionDefinition.referenceDataFilterLocalField &&
-          columnOrQuestionDefinition.referenceDataFilterFilterCondition &&
-          !isNil(foreignValue)
-        ) {
-          Object.assign(cellFilter, {
-            foreignReferenceData: filterSourceRefDataID,
-            foreignField:
-              columnOrQuestionDefinition.referenceDataFilterForeignField,
-            foreignValue: foreignValue,
-            localField:
-              columnOrQuestionDefinition.referenceDataFilterLocalField,
-            operator:
-              columnOrQuestionDefinition.referenceDataFilterFilterCondition,
-          });
-        }
-
-        const promise = referenceDataService
-          .getChoices(
-            columnOrQuestionDefinition.referenceData,
-            displayOptions,
-            columnOrQuestionDefinition.isPrimitiveValue,
-            cellFilter as any
-          )
-          .then((choices) => {
-            const choiceItems = choices.map((c) => new ItemValue(c));
-            const cellKey = `${rowName}:${targetColName}`;
-            const matrixCell = qAsMatrix.cells.get(cellKey);
-
-            if (matrixCell && matrixCell.question) {
-              const cellQuestion = matrixCell.question as QuestionSelectBase;
-              cellQuestion.choices = removeDuplicateOptions(choiceItems);
-            }
-
-            const currentCellValue = rowData[targetColName];
-            let newCellValue = currentCellValue;
-            if (columnOrQuestionDefinition.isPrimitiveValue) {
-              if (
-                currentCellValue !== null &&
-                currentCellValue !== undefined &&
-                !choices.find((c) => isEqual(c.value, currentCellValue))
-              ) {
-                newCellValue = null;
-              }
-            } else {
-              if (currentCellValue !== null && currentCellValue !== undefined) {
-                const valueItem = new ItemValue(currentCellValue);
-                const foundChoice = choiceItems.find((c) =>
-                  isEqual(c.id, omit(valueItem.id as any, 'pos'))
-                );
-                newCellValue = foundChoice ? foundChoice.value : null;
-              } else {
-                newCellValue = null;
-              }
-            }
-            if (!isEqual(currentCellValue, newCellValue)) {
-              row.setValue(targetColName, newCellValue);
-            }
-          })
-          .catch((error) => {
-            console.error(
-              `[RefData] Error fetching/processing choices for row ${rowName}, col ${targetColName}:`,
-              error
-            );
-          });
-        rowProcessingPromises.push(promise.catch(() => undefined));
-      });
-
-      Promise.all(rowProcessingPromises)
-        .then(() => {
-          if (
-            qAsMatrix.survey &&
-            typeof (qAsMatrix.survey as any).render === 'function'
-          ) {
-            (qAsMatrix.survey as any).render();
-          }
-        })
-        .catch((error) => {
-          console.error(
-            `[RefData] Error in Promise.all for row processing (Matrix: ${qAsMatrix.name}):`,
-            error
-          );
-        });
-    } else {
-      // Non-row-based filter or simple select question
-      let generalFilter;
-      if (columnOrQuestionDefinition.referenceDataFilterFilterFromQuestion) {
-        const survey = matrixOrSelectQuestion.survey as SurveyModel;
-        const foreignQuestion = survey
-          ?.getAllQuestions()
-          .find(
-            (x: any) =>
-              x.name ===
-              columnOrQuestionDefinition.referenceDataFilterFilterFromQuestion
-          ) as QuestionSelectBase;
-        const foreignValue = foreignQuestion?.value;
-        if (filterSourceRefDataID && !isNil(foreignValue)) {
-          generalFilter = {
-            foreignReferenceData: filterSourceRefDataID,
-            foreignField:
-              columnOrQuestionDefinition.referenceDataFilterForeignField,
-            foreignValue: foreignValue,
-            localField:
-              columnOrQuestionDefinition.referenceDataFilterLocalField,
-            operator:
-              columnOrQuestionDefinition.referenceDataFilterFilterCondition,
-          };
-        }
-      }
-
-      referenceDataService
-        .getChoices(
-          columnOrQuestionDefinition.referenceData,
-          displayOptions,
-          columnOrQuestionDefinition.isPrimitiveValue,
-          generalFilter
-        )
-        .then((choices) => {
-          const choiceItems = choices.map((c) => new ItemValue(c));
-          if (isMatrixCol && qAsMatrix && targetColName) {
-            // Non-row-filtered matrix column
-            (columnOrQuestionDefinition as QuestionSelectBase).choices =
-              removeDuplicateOptions(choiceItems);
-
-            qAsMatrix.visibleRows?.forEach((row: any) => {
-              const rowData = row.value;
-              if (!rowData) return;
-              const currentCellValue = rowData[targetColName];
-              let newCellValue = currentCellValue;
-              if (columnOrQuestionDefinition.isPrimitiveValue) {
-                if (
-                  currentCellValue !== null &&
-                  currentCellValue !== undefined &&
-                  !choices.find((c) => isEqual(c.value, currentCellValue))
-                ) {
-                  newCellValue = null;
-                }
-              } else {
-                if (
-                  currentCellValue !== null &&
-                  currentCellValue !== undefined
-                ) {
-                  const valueItem = new ItemValue(currentCellValue);
-                  const foundChoice = choiceItems.find((c) =>
-                    isEqual(c.id, omit(valueItem.id as any, 'pos'))
-                  );
-                  newCellValue = foundChoice ? foundChoice.value : null;
-                } else {
-                  newCellValue = null;
-                }
-              }
-              if (!isEqual(currentCellValue, newCellValue)) {
-                row.setValue(targetColName, newCellValue);
-              }
-            });
-            if (
-              qAsMatrix.survey &&
-              typeof (qAsMatrix.survey as any).render === 'function'
-            ) {
-              (qAsMatrix.survey as any).render();
-            }
-          } else if (qAsSelect) {
-            // Simple select question
-            qAsSelect.choices = removeDuplicateOptions(choiceItems);
-            // Value reconciliation for the select question itself
-            const currentValue = qAsSelect.value;
-            let newSelectValue = currentValue;
-            if (columnOrQuestionDefinition.isPrimitiveValue) {
-              if (
-                currentValue !== null &&
-                currentValue !== undefined &&
-                !choices.find((c) => isEqual(c.value, currentValue))
-              ) {
-                newSelectValue = null;
-              }
-            } else {
-              if (currentValue !== null && currentValue !== undefined) {
-                const valueItem = new ItemValue(currentValue);
-                const foundChoice = choiceItems.find((c) =>
-                  isEqual(c.id, omit(valueItem.id as any, 'pos'))
-                );
-                newSelectValue = foundChoice ? foundChoice.value : null;
-              } else {
-                newSelectValue = null;
-              }
-            }
-            if (!isEqual(currentValue, newSelectValue)) {
-              qAsSelect.value = newSelectValue;
-            }
-          }
-        })
-        .catch((error) => {
-          console.error(
-            `[RefData] Error fetching choices for element ${columnOrQuestionDefinition.name}:`,
-            error
-          );
-        });
-    }
-  };
-
-  const initChoices = (
-    questionForContext: Question, // Matrix question or the select question itself
-    definitionToListenOn: any // Column definition for matrix, or select question itself
-  ) => {
-    const propsToWatch = [
-      'referenceData',
-      'referenceDataDisplayField',
-      'isPrimitiveValue',
-      'referenceDataFilterFilterFromQuestion',
-      'referenceDataFilterForeignField',
-      'referenceDataFilterFilterCondition',
-      'referenceDataFilterLocalField',
-    ];
-    propsToWatch.forEach((prop) => {
-      definitionToListenOn.registerFunctionOnPropertyValueChanged(prop, () => {
-        updateChoices(questionForContext, definitionToListenOn);
-      });
-    });
-
-    if (questionForContext.survey) {
-      (questionForContext.survey as SurveyModel).onLocaleChangedEvent.add(
-        () => {
-          updateChoices(questionForContext, definitionToListenOn);
-        }
-      );
-    }
-
-    const survey = questionForContext.survey as SurveyModel;
-    // Check if definitionToListenOn is a column within questionForContext (which should be a matrix)
-    const isColumnBeingInitialized =
-      isMatrixQuestion(questionForContext) &&
-      definitionToListenOn !== questionForContext;
-
-    if (
-      isColumnBeingInitialized &&
-      definitionToListenOn.referenceDataFilterFilterFromQuestion?.startsWith(
-        'row.'
-      )
-    ) {
-      const foreignColName =
-        definitionToListenOn.referenceDataFilterFilterFromQuestion.substring(4);
-      const matrixInstance = questionForContext as EditableColumnsMatrix;
-
-      // Attach listener to the survey, but specific to this matrixInstance and column dependency
-      // Use a flag on the survey or matrix to prevent duplicate listeners if initChoices is called multiple times
-      // for the same matrix/column pair (though the Set below for columns should mostly prevent this specific case)
-      const listenerKey = `_refDataListener_${matrixInstance.name}_${definitionToListenOn.name}_to_${foreignColName}`;
-      if (survey && !(survey as any)[listenerKey]) {
-        survey.onMatrixCellValueChanged.add((_, options) => {
-          if (
-            options.question === matrixInstance &&
-            options.columnName === foreignColName
-          ) {
-            updateChoices(matrixInstance, definitionToListenOn);
-          }
-        });
-        (survey as any)[listenerKey] = true;
-      }
-    } else if (definitionToListenOn.referenceDataFilterFilterFromQuestion) {
-      // Dependency on a non-row based question (another question in the survey)
-      const foreignQuestion = survey
-        ?.getAllQuestions()
-        .find(
-          (x: any) =>
-            x.name ===
-            definitionToListenOn.referenceDataFilterFilterFromQuestion
-        ) as QuestionSelectBase | undefined;
-
-      foreignQuestion?.registerFunctionOnPropertyValueChanged('value', () => {
-        updateChoices(questionForContext, definitionToListenOn);
-      });
-    }
-  }; // End of initChoices
+export const render = (questionElement: Question, injector: Injector): void => {
+  const referenceDataService = injector.get(ReferenceDataService);
 
   // Main logic for applying to questionElement
   if (isSelectQuestion(questionElement) && questionElement.referenceData) {
@@ -835,12 +845,10 @@ export const render = (
     };
     if (!qAsSelect._refDataInitialized) {
       // Simple flag to prevent re-init
-      initChoices(qAsSelect, qAsSelect); // For select, context and definition are the same
-      updateChoices(qAsSelect, qAsSelect); // Initial choice load
+      initChoices(referenceDataService, qAsSelect); // For select, context and definition are the same
+      updateChoices(referenceDataService, qAsSelect); // Initial choice load
       qAsSelect._refDataInitialized = true;
     }
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    qAsSelect.clearIncorrectValuesCallback = () => {};
   } else if (isMatrixQuestion(questionElement)) {
     const matrix = questionElement as EditableColumnsMatrix;
     // Ensure referenceDataChoicesInitialized is a Set on the matrix object
@@ -848,12 +856,13 @@ export const render = (
       matrix.referenceDataChoicesInitialized = new Set<string>();
     }
 
-    matrix.columns.forEach((colDef: EditableColumnsMatrix) => {
-      if (colDef.referenceData && colDef.referenceDataDisplayField) {
-        if (!matrix.referenceDataChoicesInitialized.has(colDef.name)) {
-          initChoices(matrix, colDef);
-          updateChoices(matrix, colDef);
-          matrix.referenceDataChoicesInitialized.add(colDef.name);
+    // Loop through matrix columns
+    matrix.columns.forEach((column: EditableColumnsMatrix) => {
+      if (column.referenceData && column.referenceDataDisplayField) {
+        if (!matrix.referenceDataChoicesInitialized.has(column.name)) {
+          initChoices(referenceDataService, matrix, column);
+          updateChoices(referenceDataService, matrix, column);
+          matrix.referenceDataChoicesInitialized.add(column.name);
         }
       }
     });

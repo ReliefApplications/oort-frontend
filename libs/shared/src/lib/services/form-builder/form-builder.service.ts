@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
   Model,
@@ -16,7 +16,6 @@ import {
   Event,
   PageModel,
 } from 'survey-core';
-import { ReferenceDataService } from '../reference-data/reference-data.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
 import { Apollo } from 'apollo-angular';
 import { EDIT_RECORD } from './graphql/mutations';
@@ -240,22 +239,22 @@ export class FormBuilderService {
   /**
    * Constructor of the service
    *
-   * @param referenceDataService Reference data service
    * @param translate Translation service
    * @param apollo Apollo service
    * @param snackBar Service used to show a snackbar.
    * @param restService This is the service that is used to make http requests.
    * @param formHelpersService Shared form helper service.
    * @param downloadService Shared download service
+   * @param injector Angular injector
    */
   constructor(
-    private referenceDataService: ReferenceDataService,
     private translate: TranslateService,
     private apollo: Apollo,
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService,
-    private downloadService: DownloadService
+    private downloadService: DownloadService,
+    private injector: Injector
   ) {}
 
   /**
@@ -326,7 +325,7 @@ export class FormBuilderService {
     const addQuestionTooltips =
       this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService);
     survey.onAfterRenderQuestion.add((survey, options) => {
-      renderGlobalProperties(this.referenceDataService)(survey, options);
+      renderGlobalProperties(this.injector)(survey, options);
 
       //Add tooltips to questions if exist
       addQuestionTooltips(survey, options);
