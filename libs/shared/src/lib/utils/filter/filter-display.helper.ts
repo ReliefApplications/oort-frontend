@@ -142,7 +142,13 @@ export const getFilterRowDisplay = (
         break;
       }
     }
-    displayString += getFieldValueDisplay(field, filter.value);
+    if (
+      !['isnull', 'isnotnull', 'isempty', 'isnotempty'].includes(
+        filter.operator as string
+      )
+    ) {
+      displayString += getFieldValueDisplay(field, filter.value);
+    }
   }
   return displayString;
 };

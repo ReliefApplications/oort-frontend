@@ -118,6 +118,16 @@ export class RoleAutoAssignmentComponent
         });
       }
     });
+
+    this.fields.push({
+      text: 'User Roles',
+      name: '{{roles}}',
+      editor: 'select',
+      multiSelect: true,
+      filter: {
+        operators: ['isempty', 'isnotempty'],
+      },
+    });
   }
 
   /**
