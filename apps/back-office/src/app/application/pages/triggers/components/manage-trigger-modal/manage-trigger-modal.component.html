@@ -354,8 +354,9 @@
               </ui-select-option>
             </ui-select-menu>
           </div>
-          <!-- Additional filter -->
+          <!-- Additional filter, only appears when filter fields are loaded -->
           <shared-filter
+            *ngIf="filterFields.length > 0"
             [form]="$any(formGroup.get('recipientsChannelFilter'))"
             [fields]="filterFields"
           >
