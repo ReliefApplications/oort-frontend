@@ -337,25 +337,30 @@
         </div>
 
         <!-- Recipients == channel -->
-        <div
-          *ngIf="formGroup.value.recipientsType === 'channel'"
-          class="w-full"
-          uiFormFieldDirective
-        >
-          <label>{{ 'common.channel.one' | translate }}</label>
-          <ui-select-menu
-            formControlName="recipients"
-            [loading]="!channels"
-            [filterable]="true"
-          >
-            <ui-select-option
-              *ngFor="let channel of channels"
-              [value]="channel.id"
+        <ng-container *ngIf="formGroup.value.recipientsType === 'channel'">
+          <!-- Channel picker -->
+          <div class="w-full" uiFormFieldDirective>
+            <label>{{ 'common.channel.one' | translate }}</label>
+            <ui-select-menu
+              formControlName="recipients"
+              [loading]="!channels"
+              [filterable]="true"
             >
-              {{ channel.title }}
-            </ui-select-option>
-          </ui-select-menu>
-        </div>
+              <ui-select-option
+                *ngFor="let channel of channels"
+                [value]="channel.id"
+              >
+                {{ channel.title }}
+              </ui-select-option>
+            </ui-select-menu>
+          </div>
+          <!-- Additional filter -->
+          <shared-filter
+            [form]="$any(formGroup.get('recipientsChannelFilter'))"
+            [fields]="filterFields"
+          >
+          </shared-filter>
+        </ng-container>
       </ng-container>
     </form>
   </ng-container>

@@ -604,6 +604,7 @@ export const EDIT_CUSTOM_NOTIFICATION_FILTERS = gql`
       template
       recipients
       recipientsType
+      recipientsChannelFilter
       status
       onRecordCreation
       onRecordUpdate

@@ -9,6 +9,7 @@ import {
   ResourceQueryResponse,
   cronValidator,
   ConfirmService,
+  FiltersService,
 } from '@oort-front/shared';
 import {
   animate,
@@ -116,6 +117,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
    * @param dialog Dialog service
    * @param translate Angular translate service
    * @param confirmService Shared confirmation service
+   * @param filtersService Shared filters service
    */
   constructor(
     private apollo: Apollo,
@@ -124,7 +126,8 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
     private fb: FormBuilder,
     public dialog: Dialog,
     private translate: TranslateService,
-    private confirmService: ConfirmService
+    private confirmService: ConfirmService,
+    private filtersService: FiltersService
   ) {
     super();
     this.applicationId =
@@ -489,6 +492,9 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
           get(trigger, 'recipientsType', ''),
           Validators.required,
         ],
+        recipientsChannelFilter: this.filtersService.createFilterGroup(
+          get(trigger, 'recipientsChannelFilter', null)
+        ),
         recipients: [get(trigger, 'recipients', ''), Validators.required],
         redirect: this.fb.group({
           active: [get(trigger, 'redirect.active', '')],

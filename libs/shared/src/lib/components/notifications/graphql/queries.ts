@@ -25,6 +25,7 @@ export const GET_CUSTOM_NOTIFICATIONS = gql`
             layout
             description
             recipientsType
+            recipientsChannelFilter
           }
           cursor
         }

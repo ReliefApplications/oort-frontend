@@ -16,11 +16,13 @@ import {
   ChannelsQueryResponse,
   ResourceQueryResponse,
   QueryBuilderService,
+  RestService,
 } from '@oort-front/shared';
 import { NotificationType, Triggers, TriggersType } from '../../triggers.types';
-import { takeUntil } from 'rxjs';
+import { firstValueFrom, takeUntil } from 'rxjs';
 import { Apollo } from 'apollo-angular';
 import { GET_CHANNELS, GET_LAYOUT } from './graphql/queries';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * Dialog data interface.
@@ -73,6 +75,14 @@ export class ManageTriggerModalComponent
   public recipientsTypeOptions?:
     | typeof emailRecipientsOptions
     | typeof notificationRecipientsOptions;
+  /** Available users fields */
+  public userFields: any[] = [];
+  /** Available email fields */
+  public emailFields: any[] = [];
+  /** Filter fields */
+  public filterFields: any[] = [];
+  /** Indicates if initiating component */
+  private init = true;
 
   /** @returns application distribution lists */
   get distributionLists(): DistributionList[] {
@@ -86,15 +96,6 @@ export class ManageTriggerModalComponent
     );
   }
 
-  /** Available users fields */
-  public userFields: any[] = [];
-
-  /** Available email fields */
-  public emailFields: any[] = [];
-
-  /** Indicates if initiating component */
-  private init = true;
-
   /**
    * Edit/create trigger modal.
    *
@@ -104,6 +105,8 @@ export class ManageTriggerModalComponent
    * @param dialog Dialog service
    * @param apollo The apollo client
    * @param queryBuilder Query builder service
+   * @param restService Shared est service
+   * @param translate Translate service
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
@@ -111,7 +114,9 @@ export class ManageTriggerModalComponent
     private applicationService: ApplicationService,
     private dialog: Dialog,
     private apollo: Apollo,
-    private queryBuilder: QueryBuilderService
+    private queryBuilder: QueryBuilderService,
+    private restService: RestService,
+    private translate: TranslateService
   ) {
     super();
     this.formGroup = this.data.formGroup;
@@ -142,6 +147,27 @@ export class ManageTriggerModalComponent
       });
 
     this.init = false;
+
+    // Fetch attributes for optional channel filtering
+    firstValueFrom(this.restService.get('/permissions/attributes')).then(
+      (userAttributes: { value: string; text: string }[]) => {
+        const attrFields = userAttributes.map((x) => ({
+          text: x.text,
+          name: x.value,
+          editor: 'text',
+        }));
+        this.filterFields.unshift({
+          text: this.translate.instant('common.attribute.few'),
+          // regular questions can't have dollar signs in their name
+          name: `$attribute`,
+          filter: {
+            operators: ['eq', 'neq'],
+          },
+          fields: attrFields,
+          editor: null,
+        });
+      }
+    );
   }
 
   /**

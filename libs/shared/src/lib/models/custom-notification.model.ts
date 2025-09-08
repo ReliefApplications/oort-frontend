@@ -21,6 +21,7 @@ export interface CustomNotification {
   template?: string;
   recipients?: any;
   recipientsType?: string;
+  recipientsChannelFilter?: any;
   enabled?: boolean;
   lastExecution?: Date;
   createdAt?: Date;

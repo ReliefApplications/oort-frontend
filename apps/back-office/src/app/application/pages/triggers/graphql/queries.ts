@@ -32,6 +32,7 @@ export const GET_RESOURCES = gql`
             template
             recipients
             recipientsType
+            recipientsChannelFilter
             status
             onRecordCreation
             onRecordUpdate
@@ -71,6 +72,7 @@ export const GET_RESOURCE = gql`
         template
         recipients
         recipientsType
+        recipientsChannelFilter
         status
         onRecordCreation
         onRecordUpdate
