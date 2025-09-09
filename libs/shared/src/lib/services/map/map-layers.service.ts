@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 import { Injectable, Injector, Inject } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import {
@@ -35,9 +36,110 @@ import { omitBy, isNil, get } from 'lodash';
 import { ContextService } from '../context/context.service';
 import { DOCUMENT } from '@angular/common';
 import { MapPolygonsService } from './map-polygons.service';
-import { FeatureCollection } from 'geojson';
+// import { FeatureCollection } from 'geojson';
 import * as L from 'leaflet';
 import Color from 'color';
+
+declare const cw: any;
+declare const shp: any;
+
+(L as any).Shapefile = L.GeoJSON.extend({
+  options: {
+    importUrl: 'shp.js',
+  },
+  initialize: function (file: any, options: any) {
+    L.Util.setOptions(this, options);
+    if (typeof cw !== 'undefined') {
+      /*eslint-disable no-new-func*/
+      if (!options.isArrayBuffer) {
+        this.worker = cw(
+          new Function(
+            'data',
+            'cb',
+            'importScripts("' +
+              this.options.importUrl +
+              '");shp(data).then(cb);'
+          )
+        );
+      } else {
+        this.worker = cw(
+          new Function(
+            'data',
+            'importScripts("' +
+              this.options.importUrl +
+              '"); return shp.parseZip(data);'
+          )
+        );
+      }
+      /*eslint-enable no-new-func*/
+    }
+    (L.GeoJSON as any).prototype.initialize.call(
+      this,
+      {
+        features: [],
+      },
+      options
+    );
+    this.addFileData(file);
+  },
+  addFileData: function (file: any) {
+    console.log(file);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    var self = this;
+    this.fire('data:loading');
+    if (typeof file !== 'string' && !('byteLength' in file)) {
+      console.log(file);
+      var data = this.addData(file);
+      console.log('fire 1');
+      console.log(data);
+      this.fire('data:loaded');
+      return data;
+    }
+    if (!this.worker) {
+      shp(file)
+        .then(function (data: any) {
+          console.log('loading...');
+          console.log(data);
+          self.addData(data);
+          console.log('fire 2');
+          self.fire('data:loaded');
+        })
+        .catch(function (err: any) {
+          console.log('error 1');
+          console.error(err);
+          self.fire('data:error', err);
+        });
+      return this;
+    }
+    var promise;
+    if (this.options.isArrayBufer) {
+      promise = this.worker.data(file, [file]);
+    } else {
+      promise = this.worker.data(cw.makeUrl(file));
+    }
+
+    promise
+      .then(function (data: any) {
+        self.addData(data);
+        console.log('fire 3');
+        self.fire('data:loaded');
+        self.worker.close();
+      })
+      .then(
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        function () {},
+        function (err: any) {
+          console.log('error 2');
+          self.fire('data:error', err);
+        }
+      );
+    return this;
+  },
+});
+
+(L as any).shapefile = function (a: any, b: any, c: any) {
+  return new (L as any).Shapefile(a, b, c);
+};
 
 /**
  * Shared map layer service
@@ -374,7 +476,7 @@ export class MapLayersService {
    * @param map Map to add the layer to
    * @param shapefile Shapefile feature collection
    */
-  public createShapefileLayer(map: L.Map, shapefile: FeatureCollection) {
+  public createShapefileLayer(map: L.Map, shapefile: any) {
     const colors: { [key: string]: string } = {
       Core: '#fbbbbb',
       Buffer: '#96d07b',
@@ -382,27 +484,37 @@ export class MapLayersService {
     };
     const fillOpacity = 0.5;
 
-    const layer = L.geoJSON(shapefile, {
-      style: (feature) => {
+    // new (L as any).Shapefile(arrayBuffer, {
+    //     style: (feature: any) => ({
+    //       color: 'black',
+    //       weight: 1,
+    //       fillColor: this.getColor(feature.properties.Zonation),
+    //       fillOpacity: 0.6,
+    //     }),
+    //     onEachFeature: (feature: any, layer: any) => {
+    //       if (feature.properties) {
+    //         layer.bindPopup(`Zonation: ${feature.properties.Zonation}`);
+    //       }
+    //     },
+    //   });
+
+    let labels = '';
+
+    const layer = new (L as any).Shapefile(shapefile, {
+      style: (feature: any) => {
         return {
           color: colors[feature?.properties.Zonation],
           fillOpacity,
         };
       },
-    }).addTo(map);
-
-    const bounds = layer.getBounds();
-    if (bounds.isValid()) {
-      map.fitBounds(bounds);
-    }
-
-    const div = L.DomUtil.create('div');
-    let labels = '';
-
-    shapefile.features.forEach((feature) => {
-      const zonation = feature.properties?.Zonation;
-      const color = Color(colors[zonation]).alpha(fillOpacity).rgb().string();
-      labels += `<div class="flex">
+      onEachFeature: (feature: any) => {
+        if (feature.properties) {
+          const zonation = feature.properties?.Zonation;
+          const color = Color(colors[zonation])
+            .alpha(fillOpacity)
+            .rgb()
+            .string();
+          labels += `<div class="flex">
                   <i
                     class="w-6 h-4 border mr-1"
                     style="background:${color}; border-color:${colors[zonation]};"
@@ -410,11 +522,39 @@ export class MapLayersService {
                   >${zonation}
                 </div>
                 `;
+        }
+      },
+    }).addTo(map);
+
+    layer.once('data:loaded', () => {
+      map.fitBounds(layer.getBounds());
+      // Optionally, run Turf.js logic here as well
+      const div = L.DomUtil.create('div');
+      div.innerHTML = labels;
+      const legend = div.outerHTML;
+      (map as any).legendControl.addLayer(layer, legend);
     });
 
-    div.innerHTML = labels;
-    const legend = div.outerHTML;
-    (map as any).legendControl.addLayer(layer, legend);
+    // const bounds = layer.getBounds();
+    // if (bounds.isValid()) {
+    //   map.fitBounds(bounds);
+    // }
+
+    // const div = L.DomUtil.create('div');
+    // let labels = '';
+
+    // shapefile.features.forEach((feature) => {
+    //   const zonation = feature.properties?.Zonation;
+    //   const color = Color(colors[zonation]).alpha(fillOpacity).rgb().string();
+    //   labels += `<div class="flex">
+    //               <i
+    //                 class="w-6 h-4 border mr-1"
+    //                 style="background:${color}; border-color:${colors[zonation]};"
+    //               ></i
+    //               >${zonation}
+    //             </div>
+    //             `;
+    // });
   }
 
   /**

@@ -13,7 +13,7 @@ import {
   ErrorType,
   ShapeFileMapComponent as ShapeFileMapComponent,
 } from '../../components/shapefile-map/shapefile-map.component';
-import { FeatureCollection, Polygon } from 'geojson';
+// import { FeatureCollection, Polygon } from 'geojson';
 
 /**
  * Inits the geospatial component.
@@ -51,7 +51,7 @@ export const init = (
         file.style.padding = 'unset';
       }
 
-      const setUpMap = (value: FeatureCollection<Polygon>) => {
+      const setUpMap = (value: any) => {
         if (!file) {
           return;
         }
@@ -79,8 +79,17 @@ export const init = (
           if (!(options.name === question.name)) {
             return;
           }
-          if (options.value) {
-            setUpMap(options.value);
+          if (
+            options.value &&
+            Array.isArray(options.value) &&
+            options.value.length > 0
+          ) {
+            console.log(options.value);
+            const fileInput = el.querySelector<HTMLInputElement>(
+              'input[type="file"]'
+            ) as HTMLInputElement;
+            const file = (fileInput.files as FileList)[0];
+            setUpMap(file);
           } else {
             const map = el.querySelector<HTMLElement>('shared-shapefile-map');
             map?.remove();

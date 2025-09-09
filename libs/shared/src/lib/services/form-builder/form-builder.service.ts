@@ -33,7 +33,6 @@ import { cloneDeep, difference, get } from 'lodash';
 import { Form } from '../../models/form.model';
 import { marked } from 'marked';
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { FeatureCollection } from 'geojson';
 import { isSelectQuestion } from '../../survey/global-properties/reference-data';
 
 let counter = Math.floor(Math.random() * 0xffffff); // Initialize counter with a random value
@@ -633,6 +632,36 @@ export class FormBuilderService {
     options: UploadFilesEvent
   ): void {
     const question = options.question as QuestionFileModel;
+    const readFiles = () => {
+      temporaryFilesStorage.set(question, options.files);
+
+      let content: any[] = [];
+      options.files.forEach((file: any) => {
+        const fileReader = new FileReader();
+        fileReader.onload = () => {
+          content = content.concat([
+            {
+              name: file.name,
+              type: file.type,
+              content: fileReader.result,
+              file,
+            },
+          ]);
+          if (content.length === options.files.length) {
+            options.callback(
+              'success',
+              content.map((fileContent) => ({
+                file: fileContent.file,
+                content: fileContent.content,
+              }))
+            );
+            console.log('great success');
+          }
+        };
+        fileReader.readAsDataURL(file);
+      });
+    };
+
     if (question.name === 'shapefile') {
       const formData = new FormData();
       const headers = new HttpHeaders({
@@ -641,46 +670,27 @@ export class FormBuilderService {
       });
       formData.append('file', options.files[0]);
       this.restService
-        .post(`${this.restService.apiUrl}/gis/shapefile-to-geojson`, formData, {
+        .post(`${this.restService.apiUrl}/gis/validate-shapefile`, formData, {
           headers,
         })
         .subscribe({
-          next: (data: { geojson: FeatureCollection }) => {
-            question.value = data.geojson;
+          next: (data) => {
+            console.log(data);
+            readFiles();
+            // question.value = data.geojson;
           },
           error: (error: HttpErrorResponse) => {
-            this.snackBar.openSnackBar(error.message, { error: true });
+            this.snackBar.openSnackBar(error.message, {
+              error: true,
+              duration: 15000,
+            });
             options.callback(null, error);
           },
         });
-      return;
+      // return;
+    } else {
+      readFiles();
     }
-    temporaryFilesStorage.set(question, options.files);
-
-    let content: any[] = [];
-    options.files.forEach((file: any) => {
-      const fileReader = new FileReader();
-      fileReader.onload = () => {
-        content = content.concat([
-          {
-            name: file.name,
-            type: file.type,
-            content: fileReader.result,
-            file,
-          },
-        ]);
-        if (content.length === options.files.length) {
-          options.callback(
-            'success',
-            content.map((fileContent) => ({
-              file: fileContent.file,
-              content: fileContent.content,
-            }))
-          );
-        }
-      };
-      fileReader.readAsDataURL(file);
-    });
   }
 
   /**
