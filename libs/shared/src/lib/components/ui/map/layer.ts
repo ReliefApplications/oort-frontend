@@ -872,8 +872,8 @@ export class Layer implements LayerModel {
                     Transition: '#7a8eb5',
                   };
                   const fillOpacity = 0.5;
+                  const childrenLayers: L.Layer[] = [];
                   for (const url of this.geojson as any) {
-                    layer = L.layerGroup();
                     const childLayer = await fetch(url)
                       .then((res) => res.arrayBuffer())
                       .then(
@@ -887,8 +887,9 @@ export class Layer implements LayerModel {
                             },
                           })
                       );
-                    layer.addLayer(childLayer);
+                    childrenLayers.push(childLayer);
                   }
+                  layer = L.layerGroup(childrenLayers);
                 } else {
                   // Call the timeline function if the timeline is enabled
                   // Otherwise, call the default geoJSON function

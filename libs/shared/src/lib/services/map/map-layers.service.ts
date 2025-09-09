@@ -94,6 +94,7 @@ declare const shp: any;
       shp(file)
         .then(function (data: any) {
           if (Array.isArray(data)) {
+            console.log('this is an array');
             // Can contain some esri data, to exclude
             self.addData(data.find((d) => d.type === 'FeatureCollection'));
           } else {
