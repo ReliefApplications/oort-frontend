@@ -11,15 +11,16 @@ import {
   TooltipModule,
 } from '@oort-front/ui';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
-import { FeatureCollection } from 'geojson';
+import { RestService } from '../../../../services/rest/rest.service';
 
 /**
  * Dialog data interface
  */
 interface DialogData {
+  field: string;
   item: any;
   datasource: LayerDatasource;
-  shapefile: FeatureCollection;
+  files: any[];
 }
 
 /**
@@ -49,11 +50,13 @@ export class MapModalComponent implements AfterViewInit {
    * @param dialogRef Reference to the dialog
    * @param mapLayersService Service to create layers
    * @param data Dialog data
+   * @param restService Service to make REST API calls
    */
   constructor(
     public dialogRef: DialogRef<MapModalComponent>,
     private mapLayersService: MapLayersService,
-    @Inject(DIALOG_DATA) public data: DialogData
+    @Inject(DIALOG_DATA) public data: DialogData,
+    private restService: RestService
   ) {}
 
   ngAfterViewInit(): void {
@@ -61,11 +64,22 @@ export class MapModalComponent implements AfterViewInit {
     if (!mapComponent) {
       return;
     }
-    if (this.data.shapefile) {
-      this.mapLayersService.createShapefileLayer(
-        mapComponent.map,
-        this.data.shapefile
-      );
+    if (this.data.files) {
+      if (this.data.files.length) {
+        const shapefile = this.data.files[0];
+        const path = `download/file/${shapefile.content}/${this.data.item.id}/${this.data.field}`;
+        this.restService
+          .get(path, {
+            responseType: 'arrayBuffer',
+          })
+          .subscribe((buffer) => {
+            console.log(buffer);
+            this.mapLayersService.createShapefileLayer(
+              mapComponent.map,
+              buffer
+            );
+          });
+      }
       return;
     }
     this.mapLayersService

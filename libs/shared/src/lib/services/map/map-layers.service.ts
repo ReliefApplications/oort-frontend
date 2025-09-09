@@ -96,6 +96,8 @@ declare const shp: any;
       return data;
     }
     if (!this.worker) {
+      console.log('load shp.js');
+      console.log(file);
       shp(file)
         .then(function (data: any) {
           console.log('loading...');

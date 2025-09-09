@@ -60,7 +60,6 @@ import { Router } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { DashboardService } from '../../../services/dashboard/dashboard.service';
 import { LayerDatasource } from '../../../models/layer.model';
-import { FeatureCollection } from 'geojson';
 
 /**
  * Default file name when exporting grid data.
@@ -1159,13 +1158,16 @@ export class CoreGridComponent
         import('./map-modal/map-modal.component').then(
           ({ MapModalComponent }) => {
             let data: {
+              field?: string;
               item?: any;
               datasource?: LayerDatasource;
-              shapefile?: FeatureCollection;
+              files?: any[];
             } = {};
             switch (event.field.meta.type) {
               case 'shapefile':
-                data.shapefile = event.item.text[event.field.name];
+                data.field = event.field.name;
+                data.item = event.item;
+                data.files = event.item.text[event.field.name];
                 break;
               case 'geospatial':
                 data = {
