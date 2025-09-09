@@ -7,6 +7,7 @@ import { GlobalOptions } from './types';
  * @returns The custom function id
  */
 export default (options: GlobalOptions) => {
+  console.log('là');
   const record = options.record;
 
   /**

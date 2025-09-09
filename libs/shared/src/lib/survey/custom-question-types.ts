@@ -81,7 +81,6 @@ export const InitCustomQuestionComponent: {
   },
   shapeFile: (options) => {
     const { injector, instance } = options;
-    const domService = injector.get(DomService);
-    ShapeFileComponent.init(domService, instance);
+    ShapeFileComponent.init(injector, instance);
   },
 };

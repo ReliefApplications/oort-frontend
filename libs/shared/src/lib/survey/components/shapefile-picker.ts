@@ -7,24 +7,28 @@ import {
   Question,
 } from 'survey-core';
 import { DomService } from '../../services/dom/dom.service';
-import { ComponentRef } from '@angular/core';
+import { ComponentRef, Injector } from '@angular/core';
 import {
   ERROR_MESSAGES,
   ErrorType,
   ShapeFileMapComponent as ShapeFileMapComponent,
 } from '../../components/shapefile-map/shapefile-map.component';
+import { RestService } from '../../services/rest/rest.service';
 // import { FeatureCollection, Polygon } from 'geojson';
 
 /**
  * Inits the geospatial component.
  *
- * @param domService DOM service.
+ * @param injector Angular injector.
  * @param componentCollectionInstance ComponentCollection
  */
 export const init = (
-  domService: DomService,
+  injector: Injector,
   componentCollectionInstance: ComponentCollection
 ): void => {
+  // get services
+  const domService = injector.get(DomService);
+  const restService = injector.get(RestService);
   // registers icon-shapefile in the SurveyJS library
   SvgRegistry.registerIconFromSvg(
     'shapefile',
@@ -72,10 +76,22 @@ export const init = (
       };
 
       if (question.value) {
-        setUpMap(question.value);
+        // Value already exists, load the file from the server, then displays the map using the blob as input
+        if (Array.isArray(question.value) && question.value.length > 0) {
+          const recordId = question.survey.runExpression('{record.id}');
+          const path = `download/file/${question.value[0].content}/${recordId}/${question.name}`;
+          restService
+            .get(path, {
+              responseType: 'blob',
+            })
+            .subscribe((blob) => {
+              setUpMap(blob);
+            });
+        }
       }
       (question.survey as SurveyModel).onValueChanged.add(
         (_: SurveyModel, options: ValueChangedEvent) => {
+          console.log(options.question);
           if (!(options.name === question.name)) {
             return;
           }
