@@ -39,13 +39,21 @@ import { MapPolygonsService } from './map-polygons.service';
 // import { FeatureCollection } from 'geojson';
 import * as L from 'leaflet';
 
+/** Reference to worker code (not used) */
 declare const cw: any;
+/** Reference to shapefile library code */
 declare const shp: any;
 
 (L as any).Shapefile = L.GeoJSON.extend({
   options: {
     importUrl: 'shp.js',
   },
+  /**
+   * Initialize the layer with the given file and options
+   *
+   * @param file File to load
+   * @param options Options for the layer
+   */
   initialize: function (file: any, options: any) {
     L.Util.setOptions(this, options);
     if (typeof cw !== 'undefined') {
@@ -81,6 +89,12 @@ declare const shp: any;
     );
     this.addFileData(file);
   },
+  /**
+   * Add the given file data to the layer
+   *
+   * @param file File to load
+   * @returns this
+   */
   addFileData: function (file: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     var self = this;
@@ -133,6 +147,14 @@ declare const shp: any;
   },
 });
 
+/**
+ * Factory function to create a new Shapefile layer
+ *
+ * @param a First argument
+ * @param b Second argument
+ * @param c Third argument
+ * @returns A new Shapefile layer
+ */
 (L as any).shapefile = function (a: any, b: any, c: any) {
   return new (L as any).Shapefile(a, b, c);
 };

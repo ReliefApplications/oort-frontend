@@ -99,11 +99,19 @@ export const init = (
             Array.isArray(options.value) &&
             options.value.length > 0
           ) {
-            const fileInput = el.querySelector<HTMLInputElement>(
-              'input[type="file"]'
-            ) as HTMLInputElement;
-            const file = (fileInput.files as FileList)[0];
-            setUpMap(file);
+            // Convert base64 to blob
+            const base64Data = options.value[0].content.split(',')[1];
+            const binaryString = atob(base64Data);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], {
+              type: 'application/octet-stream',
+            });
+            // Configure the map using the blob as input
+            setUpMap(blob);
           } else {
             const map = el.querySelector<HTMLElement>('shared-shapefile-map');
             map?.remove();

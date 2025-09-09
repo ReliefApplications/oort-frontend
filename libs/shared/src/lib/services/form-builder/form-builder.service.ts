@@ -673,9 +673,9 @@ export class FormBuilderService {
           headers,
         })
         .subscribe({
-          next: (data) => {
+          next: () => {
+            // JSON is valid, continue
             readFiles();
-            // question.value = data.geojson;
           },
           error: (error: HttpErrorResponse) => {
             this.snackBar.openSnackBar(error.message, {
