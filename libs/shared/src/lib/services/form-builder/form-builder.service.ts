@@ -310,15 +310,12 @@ export class FormBuilderService {
 
     // Add record model to the survey
     if (record) {
-      console.log('oui');
       survey.record = record;
     }
     // Add custom variables
     this.formHelpersService.addUserVariables(survey);
     this.formHelpersService.addApplicationVariables(survey);
     this.formHelpersService.setWorkflowContextVariable(survey);
-    console.log('should set record variables');
-    console.log(record);
     if (record) {
       this.recordId = record.id;
       this.formHelpersService.addRecordVariables(survey, record);
@@ -658,7 +655,6 @@ export class FormBuilderService {
                 content: fileContent.content,
               }))
             );
-            console.log('great success');
           }
         };
         fileReader.readAsDataURL(file);
@@ -678,7 +674,6 @@ export class FormBuilderService {
         })
         .subscribe({
           next: (data) => {
-            console.log(data);
             readFiles();
             // question.value = data.geojson;
           },

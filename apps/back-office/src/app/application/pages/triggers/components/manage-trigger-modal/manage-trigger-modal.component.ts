@@ -166,8 +166,6 @@ export class ManageTriggerModalComponent
           fields: attrFields,
           editor: null,
         });
-        console.log(this.filterFields);
-        console.log(this.formGroup.get('recipientsChannelFilter')?.value);
       }
     );
   }

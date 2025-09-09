@@ -91,7 +91,6 @@ export const init = (
       }
       (question.survey as SurveyModel).onValueChanged.add(
         (_: SurveyModel, options: ValueChangedEvent) => {
-          console.log(options.question);
           if (!(options.name === question.name)) {
             return;
           }
@@ -100,7 +99,6 @@ export const init = (
             Array.isArray(options.value) &&
             options.value.length > 0
           ) {
-            console.log(options.value);
             const fileInput = el.querySelector<HTMLInputElement>(
               'input[type="file"]'
             ) as HTMLInputElement;

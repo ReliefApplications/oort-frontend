@@ -129,7 +129,7 @@ export interface PopupInfo {
   };
 }
 
-export type LayerDatasourceType = 'Point' | 'Polygon';
+export type LayerDatasourceType = 'Point' | 'Polygon' | 'Shapefile';
 
 /**
  * Layer Datasource interface

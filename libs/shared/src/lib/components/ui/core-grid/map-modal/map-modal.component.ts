@@ -73,7 +73,6 @@ export class MapModalComponent implements AfterViewInit {
             responseType: 'arrayBuffer',
           })
           .subscribe((buffer) => {
-            console.log(buffer);
             this.mapLayersService.createShapefileLayer(
               mapComponent.map,
               buffer

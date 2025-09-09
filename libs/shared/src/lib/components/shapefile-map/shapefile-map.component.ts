@@ -99,7 +99,6 @@ export class ShapeFileMapComponent
     if (!this.mapComponent || !this.shapefile) {
       return;
     }
-    console.log(this.shapefile);
     const reader = new FileReader();
     const map = this.mapComponent.map;
     reader.onload = (e: any) => {
