@@ -493,6 +493,7 @@ export class MapLayersService {
    *
    * @param map Map to add the layer to
    * @param shapefile Shapefile feature collection
+   * @returns Created layer
    */
   public createShapefileLayer(map: L.Map, shapefile: any) {
     const colors: { [key: string]: string } = {
@@ -556,26 +557,7 @@ export class MapLayersService {
       (map as any).legendControl.addLayer(layer, legend);
     });
 
-    // const bounds = layer.getBounds();
-    // if (bounds.isValid()) {
-    //   map.fitBounds(bounds);
-    // }
-
-    // const div = L.DomUtil.create('div');
-    // let labels = '';
-
-    // shapefile.features.forEach((feature) => {
-    //   const zonation = feature.properties?.Zonation;
-    //   const color = Color(colors[zonation]).alpha(fillOpacity).rgb().string();
-    //   labels += `<div class="flex">
-    //               <i
-    //                 class="w-6 h-4 border mr-1"
-    //                 style="background:${color}; border-color:${colors[zonation]};"
-    //               ></i
-    //               >${zonation}
-    //             </div>
-    //             `;
-    // });
+    return layer;
   }
 
   /**
