@@ -186,7 +186,8 @@ export class RecordModalComponent
         ))
       : (this.survey = this.formBuilderService.createSurvey(
           this.form?.structure || '',
-          this.form?.metadata
+          this.form?.metadata,
+          this.record
         ));
     this.formBuilderService.recordId = this.record.id;
 

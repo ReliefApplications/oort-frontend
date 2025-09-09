@@ -2103,7 +2103,8 @@
               "cluster": "Groupes",
               "heatmap": "Carte de chaleur",
               "point": "Point",
-              "polygon": "Polygone"
+              "polygon": "Polygone",
+              "shapefile": "Shapefile"
             }
           },
           "legend": {

@@ -863,35 +863,65 @@ export class Layer implements LayerModel {
                   };
                 };
 
-                // Call the timeline function if the timeline is enabled
-                // Otherwise, call the default geoJSON function
-                const geoJsonFunction = this.timelineInfo?.enabled
-                  ? (L as any).timeline
-                  : L.geoJSON;
+                let layer: any;
 
-                const layer = geoJsonFunction(data, {
-                  ...geoJSONopts(
-                    this.layerDefinition?.drawingInfo?.renderer?.symbol
-                      ?.fieldForSize
-                  ),
-                  getInterval,
-                });
+                if (geometryType === 'Shapefile') {
+                  const colors: { [key: string]: string } = {
+                    Core: '#fbbbbb',
+                    Buffer: '#96d07b',
+                    Transition: '#7a8eb5',
+                  };
+                  const fillOpacity = 0.5;
+                  const childrenLayers: L.Layer[] = [];
+                  for (const url of this.geojson as any) {
+                    const childLayer = await fetch(url)
+                      .then((res) => res.arrayBuffer())
+                      .then(
+                        (buffer) =>
+                          new (L as any).Shapefile(buffer, {
+                            style: (feature: any) => {
+                              return {
+                                color: colors[feature?.properties.Zonation],
+                                fillOpacity,
+                              };
+                            },
+                          })
+                      );
+                    childrenLayers.push(childLayer);
+                  }
+                  layer = L.layerGroup(childrenLayers);
+                } else {
+                  // Call the timeline function if the timeline is enabled
+                  // Otherwise, call the default geoJSON function
+                  const geoJsonFunction = this.timelineInfo?.enabled
+                    ? (L as any).timeline
+                    : L.geoJSON;
 
-                if (this.timelineInfo?.enabled) {
-                  // If the control does not exist, create it
-                  if (!this.timelineControl) {
-                    const timelineControl = (L as any).timelineSliderControl({
-                      position: 'bottomleft',
-                      formatOutput: (date: string | number | Date) =>
-                        this.datePipe.transform(
-                          date,
-                          this.timelineInfo?.dateFormat ?? 'shortDate'
-                        ),
-                    });
+                  layer = geoJsonFunction(data, {
+                    ...geoJSONopts(
+                      this.layerDefinition?.drawingInfo?.renderer?.symbol
+                        ?.fieldForSize
+                    ),
+                    getInterval,
+                  });
 
-                    this.timelineControl = timelineControl;
+                  if (this.timelineInfo?.enabled) {
+                    // If the control does not exist, create it
+                    if (!this.timelineControl) {
+                      const timelineControl = (L as any).timelineSliderControl({
+                        position: 'bottomleft',
+                        formatOutput: (date: string | number | Date) =>
+                          this.datePipe.transform(
+                            date,
+                            this.timelineInfo?.dateFormat ?? 'shortDate'
+                          ),
+                      });
+
+                      this.timelineControl = timelineControl;
+                    }
                   }
                 }
+
                 layer.onAdd = (map: L.Map) => {
                   const l = L.GeoJSON.prototype.onAdd.call(layer, map);
                   this.onAddLayer(map, layer);
@@ -1045,130 +1075,164 @@ export class Layer implements LayerModel {
   get legend() {
     let html = '';
     const geometryType = get(this.datasource, 'type') || 'Point';
-    switch (this.type) {
-      case 'FeatureLayer': {
-        switch (
-          get(this.layerDefinition, 'drawingInfo.renderer.type', 'simple')
-        ) {
-          case 'heatmap':
-            const gradient = get(
-              this.layerDefinition,
-              'drawingInfo.renderer.gradient',
-              DEFAULT_HEATMAP.gradient
-            );
-            const gradientPipe = new GradientPipe();
-            const container = this.document.createElement('div');
-            container.className = 'flex gap-1';
-            const linearGradient = this.document.createElement('div');
-            linearGradient.className = 'w-4 h-16';
-            linearGradient.style.background = gradientPipe.transform(
-              gradient,
-              180
-            );
-            const legend = this.document.createElement('div');
-            legend.className = 'flex flex-col justify-between';
-            legend.innerHTML = '<span>Min</span><span>Max</span>';
-            container.innerHTML = linearGradient.outerHTML + legend.outerHTML;
-            html = container.outerHTML;
-            break;
-          case 'uniqueValue': {
-            const defaultSymbol: LayerSymbol | undefined = get(
-              this.layerDefinition,
-              'drawingInfo.renderer.defaultSymbol'
-            );
-            for (const info of get(
-              this.layerDefinition,
-              'drawingInfo.renderer.uniqueValueInfos',
-              []
-            )) {
-              const symbol: LayerSymbol = info.symbol;
-              html += this.getGeoJSONFeatureLegend(
-                geometryType,
-                symbol,
-                info.label
-              );
-            }
-            if (
-              defaultSymbol &&
-              get(this.layerDefinition, 'drawingInfo.renderer.defaultLabel')
-                ?.length
-            ) {
-              html += this.getGeoJSONFeatureLegend(
-                geometryType,
-                defaultSymbol,
-                get(this.layerDefinition, 'drawingInfo.renderer.defaultLabel')
-              );
-            }
-
-            break;
-          }
-          default: {
-            // todo: handle polygon
-            const symbol: LayerSymbol | undefined = get(
-              this.layerDefinition,
-              'drawingInfo.renderer.symbol'
-            );
-            html += this.getGeoJSONFeatureLegend(geometryType, symbol);
-            break;
-          }
-        }
-        if (
-          get(this.layerDefinition, 'drawingInfo.renderer.type', 'simple') !==
-          'heatmap'
-        ) {
-          switch (get(this.layerDefinition, 'featureReduction.type')) {
-            case 'cluster': {
-              // Features legend
-              const symbol: LayerSymbol = {
-                style: get(
-                  this.layerDefinition,
-                  'drawingInfo.renderer.symbol.style',
-                  'location-dot'
-                ),
-                color: get(
-                  this.layerDefinition,
-                  'drawingInfo.renderer.symbol.color',
-                  'blue'
-                ),
-                size: get(
-                  this.layerDefinition,
-                  'drawingInfo.renderer.symbol.size',
-                  24
-                ),
-              };
-              // Cluster legend
-              const clusterSymbol: LayerSymbol = get(
+    if (geometryType !== 'Shapefile') {
+      switch (this.type) {
+        case 'FeatureLayer': {
+          switch (
+            get(this.layerDefinition, 'drawingInfo.renderer.type', 'simple')
+          ) {
+            case 'heatmap':
+              const gradient = get(
                 this.layerDefinition,
-                'featureReduction.drawingInfo.renderer.symbol',
-                symbol
+                'drawingInfo.renderer.gradient',
+                DEFAULT_HEATMAP.gradient
               );
-              html += `<div>${this.name} clusters</div>`;
-              const iconDef = getIconDefinition('circle');
-              const i = iconCreator(iconDef, {
-                styles: {
-                  height: '1rem',
-                  width: '1rem',
-                  color: clusterSymbol.color,
-                  'line-height': '1rem',
-                  'font-size': '1rem',
-                  'padding-left': '.5rem',
-                },
-              });
-              html += i.html[0];
+              const gradientPipe = new GradientPipe();
+              const container = this.document.createElement('div');
+              container.className = 'flex gap-1';
+              const linearGradient = this.document.createElement('div');
+              linearGradient.className = 'w-4 h-16';
+              linearGradient.style.background = gradientPipe.transform(
+                gradient,
+                180
+              );
+              const legend = this.document.createElement('div');
+              legend.className = 'flex flex-col justify-between';
+              legend.innerHTML = '<span>Min</span><span>Max</span>';
+              container.innerHTML = linearGradient.outerHTML + legend.outerHTML;
+              html = container.outerHTML;
+              break;
+            case 'uniqueValue': {
+              const defaultSymbol: LayerSymbol | undefined = get(
+                this.layerDefinition,
+                'drawingInfo.renderer.defaultSymbol'
+              );
+              for (const info of get(
+                this.layerDefinition,
+                'drawingInfo.renderer.uniqueValueInfos',
+                []
+              )) {
+                const symbol: LayerSymbol = info.symbol;
+                html += this.getGeoJSONFeatureLegend(
+                  geometryType,
+                  symbol,
+                  info.label
+                );
+              }
+              if (
+                defaultSymbol &&
+                get(this.layerDefinition, 'drawingInfo.renderer.defaultLabel')
+                  ?.length
+              ) {
+                html += this.getGeoJSONFeatureLegend(
+                  geometryType,
+                  defaultSymbol,
+                  get(this.layerDefinition, 'drawingInfo.renderer.defaultLabel')
+                );
+              }
+
               break;
             }
             default: {
+              // todo: handle polygon
+              const symbol: LayerSymbol | undefined = get(
+                this.layerDefinition,
+                'drawingInfo.renderer.symbol'
+              );
+              html += this.getGeoJSONFeatureLegend(geometryType, symbol);
               break;
             }
           }
-        }
+          if (
+            get(this.layerDefinition, 'drawingInfo.renderer.type', 'simple') !==
+            'heatmap'
+          ) {
+            switch (get(this.layerDefinition, 'featureReduction.type')) {
+              case 'cluster': {
+                // Features legend
+                const symbol: LayerSymbol = {
+                  style: get(
+                    this.layerDefinition,
+                    'drawingInfo.renderer.symbol.style',
+                    'location-dot'
+                  ),
+                  color: get(
+                    this.layerDefinition,
+                    'drawingInfo.renderer.symbol.color',
+                    'blue'
+                  ),
+                  size: get(
+                    this.layerDefinition,
+                    'drawingInfo.renderer.symbol.size',
+                    24
+                  ),
+                };
+                // Cluster legend
+                const clusterSymbol: LayerSymbol = get(
+                  this.layerDefinition,
+                  'featureReduction.drawingInfo.renderer.symbol',
+                  symbol
+                );
+                html += `<div>${this.name} clusters</div>`;
+                const iconDef = getIconDefinition('circle');
+                const i = iconCreator(iconDef, {
+                  styles: {
+                    height: '1rem',
+                    width: '1rem',
+                    color: clusterSymbol.color,
+                    'line-height': '1rem',
+                    'font-size': '1rem',
+                    'padding-left': '.5rem',
+                  },
+                });
+                html += i.html[0];
+                break;
+              }
+              default: {
+                break;
+              }
+            }
+          }
 
-        break;
+          break;
+        }
+        case 'GroupLayer': {
+          break;
+        }
       }
-      case 'GroupLayer': {
-        break;
-      }
+    } else {
+      html += this.getGeoJSONFeatureLegend(
+        'Polygon',
+        {
+          color: '#fbbbbb',
+          outline: { color: '#fbbbbb', width: 1 },
+          style: 'square',
+          size: 24,
+        },
+        'Core'
+      );
+      html += this.getGeoJSONFeatureLegend(
+        'Polygon',
+        {
+          color: '#96d07b',
+          outline: { color: '#96d07b', width: 1 },
+          style: 'square',
+          size: 24,
+        },
+        'Buffer'
+      );
+      html += this.getGeoJSONFeatureLegend(
+        'Polygon',
+        {
+          color: '#7a8eb5',
+          outline: { color: '#7a8eb5', width: 1 },
+          style: 'square',
+          size: 24,
+        },
+        'Transition'
+      );
     }
+
     if (html) {
       html = `<div class="font-bold truncate">${this.name}</div>` + html;
     }

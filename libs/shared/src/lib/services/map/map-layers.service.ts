@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 import { Injectable, Injector, Inject } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import {
@@ -35,9 +36,128 @@ import { omitBy, isNil, get } from 'lodash';
 import { ContextService } from '../context/context.service';
 import { DOCUMENT } from '@angular/common';
 import { MapPolygonsService } from './map-polygons.service';
-import { FeatureCollection } from 'geojson';
+// import { FeatureCollection } from 'geojson';
 import * as L from 'leaflet';
-import Color from 'color';
+
+/** Reference to worker code (not used) */
+declare const cw: any;
+/** Reference to shapefile library code */
+declare const shp: any;
+
+(L as any).Shapefile = L.GeoJSON.extend({
+  options: {
+    importUrl: 'shp.js',
+  },
+  /**
+   * Initialize the layer with the given file and options
+   *
+   * @param file File to load
+   * @param options Options for the layer
+   */
+  initialize: function (file: any, options: any) {
+    L.Util.setOptions(this, options);
+    if (typeof cw !== 'undefined') {
+      /*eslint-disable no-new-func*/
+      if (!options.isArrayBuffer) {
+        this.worker = cw(
+          new Function(
+            'data',
+            'cb',
+            'importScripts("' +
+              this.options.importUrl +
+              '");shp(data).then(cb);'
+          )
+        );
+      } else {
+        this.worker = cw(
+          new Function(
+            'data',
+            'importScripts("' +
+              this.options.importUrl +
+              '"); return shp.parseZip(data);'
+          )
+        );
+      }
+      /*eslint-enable no-new-func*/
+    }
+    (L.GeoJSON as any).prototype.initialize.call(
+      this,
+      {
+        features: [],
+      },
+      options
+    );
+    this.addFileData(file);
+  },
+  /**
+   * Add the given file data to the layer
+   *
+   * @param file File to load
+   * @returns this
+   */
+  addFileData: function (file: any) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    var self = this;
+    this.fire('data:loading');
+    if (typeof file !== 'string' && !('byteLength' in file)) {
+      var data = this.addData(file);
+      this.fire('data:loaded');
+      return data;
+    }
+    if (!this.worker) {
+      shp(file)
+        .then(function (data: any) {
+          if (Array.isArray(data)) {
+            console.log('this is an array');
+            // Can contain some esri data, to exclude
+            self.addData(data.find((d) => d.type === 'FeatureCollection'));
+          } else {
+            // Single geojson
+            self.addData(data);
+          }
+          self.fire('data:loaded');
+        })
+        .catch(function (err: any) {
+          console.error(err);
+          self.fire('data:error', err);
+        });
+      return this;
+    }
+    var promise;
+    if (this.options.isArrayBufer) {
+      promise = this.worker.data(file, [file]);
+    } else {
+      promise = this.worker.data(cw.makeUrl(file));
+    }
+
+    promise
+      .then(function (data: any) {
+        self.addData(data);
+        self.fire('data:loaded');
+        self.worker.close();
+      })
+      .then(
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        function () {},
+        function (err: any) {
+          self.fire('data:error', err);
+        }
+      );
+    return this;
+  },
+});
+
+/**
+ * Factory function to create a new Shapefile layer
+ *
+ * @param a First argument
+ * @param b Second argument
+ * @param c Third argument
+ * @returns A new Shapefile layer
+ */
+(L as any).shapefile = function (a: any, b: any, c: any) {
+  return new (L as any).Shapefile(a, b, c);
+};
 
 /**
  * Shared map layer service
@@ -373,8 +493,9 @@ export class MapLayersService {
    *
    * @param map Map to add the layer to
    * @param shapefile Shapefile feature collection
+   * @returns Created layer
    */
-  public createShapefileLayer(map: L.Map, shapefile: FeatureCollection) {
+  public createShapefileLayer(map: L.Map, shapefile: any) {
     const colors: { [key: string]: string } = {
       Core: '#fbbbbb',
       Buffer: '#96d07b',
@@ -382,39 +503,61 @@ export class MapLayersService {
     };
     const fillOpacity = 0.5;
 
-    const layer = L.geoJSON(shapefile, {
-      style: (feature) => {
+    // new (L as any).Shapefile(arrayBuffer, {
+    //     style: (feature: any) => ({
+    //       color: 'black',
+    //       weight: 1,
+    //       fillColor: this.getColor(feature.properties.Zonation),
+    //       fillOpacity: 0.6,
+    //     }),
+    //     onEachFeature: (feature: any, layer: any) => {
+    //       if (feature.properties) {
+    //         layer.bindPopup(`Zonation: ${feature.properties.Zonation}`);
+    //       }
+    //     },
+    //   });
+
+    const layer = new (L as any).Shapefile(shapefile, {
+      style: (feature: any) => {
         return {
           color: colors[feature?.properties.Zonation],
           fillOpacity,
         };
       },
+      // onEachFeature: (feature: any) => {
+      //   if (feature.properties) {
+      //     const zonation = feature.properties?.Zonation;
+      //     const color = Color(colors[zonation])
+      //       .alpha(fillOpacity)
+      //       .rgb()
+      //       .string();
+      //   }
+      // },
     }).addTo(map);
 
-    const bounds = layer.getBounds();
-    if (bounds.isValid()) {
-      map.fitBounds(bounds);
-    }
-
-    const div = L.DomUtil.create('div');
-    let labels = '';
-
-    shapefile.features.forEach((feature) => {
-      const zonation = feature.properties?.Zonation;
-      const color = Color(colors[zonation]).alpha(fillOpacity).rgb().string();
-      labels += `<div class="flex">
+    layer.once('data:loaded', () => {
+      map.fitBounds(layer.getBounds());
+      // Optionally, run Turf.js logic here as well
+      const div = L.DomUtil.create('div');
+      let labels = '';
+      for (const zonation in colors) {
+        const color = colors[zonation];
+        labels += `<div class="flex">
                   <i
                     class="w-6 h-4 border mr-1"
-                    style="background:${color}; border-color:${colors[zonation]};"
+                    style="background:${color}; border-color:${color};"
                   ></i
                   >${zonation}
                 </div>
                 `;
+      }
+
+      div.innerHTML = labels;
+      const legend = div.outerHTML;
+      (map as any).legendControl.addLayer(layer, legend);
     });
 
-    div.innerHTML = labels;
-    const legend = div.outerHTML;
-    (map as any).legendControl.addLayer(layer, legend);
+    return layer;
   }
 
   /**

@@ -15,7 +15,7 @@ export type GeoJSON =
 // the layer types are defined as follows:
 export type LayerType = 'FeatureLayer' | 'GroupLayer';
 
-export type GeometryType = 'Point' | 'Polygon';
+export type GeometryType = 'Point' | 'Polygon' | 'Shapefile';
 
 /** Layer documents interface declaration */
 export interface LayerFormData {

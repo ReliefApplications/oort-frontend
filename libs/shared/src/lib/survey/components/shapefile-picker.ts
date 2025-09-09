@@ -7,24 +7,28 @@ import {
   Question,
 } from 'survey-core';
 import { DomService } from '../../services/dom/dom.service';
-import { ComponentRef } from '@angular/core';
+import { ComponentRef, Injector } from '@angular/core';
 import {
   ERROR_MESSAGES,
   ErrorType,
   ShapeFileMapComponent as ShapeFileMapComponent,
 } from '../../components/shapefile-map/shapefile-map.component';
-import { FeatureCollection, Polygon } from 'geojson';
+import { RestService } from '../../services/rest/rest.service';
+// import { FeatureCollection, Polygon } from 'geojson';
 
 /**
  * Inits the geospatial component.
  *
- * @param domService DOM service.
+ * @param injector Angular injector.
  * @param componentCollectionInstance ComponentCollection
  */
 export const init = (
-  domService: DomService,
+  injector: Injector,
   componentCollectionInstance: ComponentCollection
 ): void => {
+  // get services
+  const domService = injector.get(DomService);
+  const restService = injector.get(RestService);
   // registers icon-shapefile in the SurveyJS library
   SvgRegistry.registerIconFromSvg(
     'shapefile',
@@ -51,7 +55,7 @@ export const init = (
         file.style.padding = 'unset';
       }
 
-      const setUpMap = (value: FeatureCollection<Polygon>) => {
+      const setUpMap = (value: any) => {
         if (!file) {
           return;
         }
@@ -72,15 +76,42 @@ export const init = (
       };
 
       if (question.value) {
-        setUpMap(question.value);
+        // Value already exists, load the file from the server, then displays the map using the blob as input
+        if (Array.isArray(question.value) && question.value.length > 0) {
+          const recordId = question.survey.runExpression('{record.id}');
+          const path = `download/file/${question.value[0].content}/${recordId}/${question.name}`;
+          restService
+            .get(path, {
+              responseType: 'blob',
+            })
+            .subscribe((blob) => {
+              setUpMap(blob);
+            });
+        }
       }
       (question.survey as SurveyModel).onValueChanged.add(
         (_: SurveyModel, options: ValueChangedEvent) => {
           if (!(options.name === question.name)) {
             return;
           }
-          if (options.value) {
-            setUpMap(options.value);
+          if (
+            options.value &&
+            Array.isArray(options.value) &&
+            options.value.length > 0
+          ) {
+            // Convert base64 to blob
+            const base64Data = options.value[0].content.split(',')[1];
+            const binaryString = atob(base64Data);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], {
+              type: 'application/octet-stream',
+            });
+            // Configure the map using the blob as input
+            setUpMap(blob);
           } else {
             const map = el.querySelector<HTMLElement>('shared-shapefile-map');
             map?.remove();

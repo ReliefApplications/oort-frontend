@@ -69,7 +69,7 @@ export class ShapeFileMapComponent
     basemap: 'Unesco',
   };
   /** Shapefile layer */
-  public shapefile?: FeatureCollection<Polygon | MultiPolygon>;
+  public shapefile?: any;
   /** List of errors */
   public errors = new BehaviorSubject<ErrorType>({
     intersection: false,
@@ -99,21 +99,34 @@ export class ShapeFileMapComponent
     if (!this.mapComponent || !this.shapefile) {
       return;
     }
-    this.mapLayersService.createShapefileLayer(
-      this.mapComponent.map,
-      this.shapefile
-    );
-    this.checkGeoJSONIssues();
+    const reader = new FileReader();
+    const map = this.mapComponent.map;
+    reader.onload = (e: any) => {
+      const arrayBuffer = e.target.result;
+      const layer = this.mapLayersService.createShapefileLayer(
+        map,
+        arrayBuffer
+      );
+      layer.once('data:loaded', () => {
+        const geojson = layer.toGeoJSON() as FeatureCollection<
+          Polygon | MultiPolygon
+        >;
+        this.checkGeoJSONIssues(geojson);
+      });
+    };
+    reader.readAsArrayBuffer(this.shapefile);
   }
 
   /**
    * Checks whether the geoJSON has some issues
    *
-   *
+   * @param geojson GeoJSON to check
    */
-  private checkGeoJSONIssues() {
+  private checkGeoJSONIssues(
+    geojson: FeatureCollection<Polygon | MultiPolygon>
+  ) {
     const map = this.mapComponent?.map;
-    if (!this.shapefile || !map) {
+    if (!geojson || !map) {
       return;
     }
     const errors: ErrorType = {
@@ -124,7 +137,7 @@ export class ShapeFileMapComponent
     };
     // Check for overlaps and gaps
     const overlaps = [];
-    const { features } = this.shapefile;
+    const { features } = geojson;
 
     // Check if any open / incomplete perimeters
     for (let i = 0; i < features.length; i++) {
@@ -228,10 +241,10 @@ export class ShapeFileMapComponent
     }
 
     if (errors.gaps) {
-      const convexHull = convex(this.shapefile, { concavity: 1 });
+      const convexHull = convex(geojson, { concavity: 1 });
       const merged = union(
         featureCollection(
-          this.shapefile.features.map(
+          geojson.features.map(
             (f) => convex(f) as Feature<Polygon | MultiPolygon>
           )
         )
