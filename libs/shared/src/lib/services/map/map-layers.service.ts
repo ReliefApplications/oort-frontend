@@ -38,7 +38,6 @@ import { DOCUMENT } from '@angular/common';
 import { MapPolygonsService } from './map-polygons.service';
 // import { FeatureCollection } from 'geojson';
 import * as L from 'leaflet';
-import Color from 'color';
 
 declare const cw: any;
 declare const shp: any;
@@ -83,31 +82,27 @@ declare const shp: any;
     this.addFileData(file);
   },
   addFileData: function (file: any) {
-    console.log(file);
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     var self = this;
     this.fire('data:loading');
     if (typeof file !== 'string' && !('byteLength' in file)) {
-      console.log(file);
       var data = this.addData(file);
-      console.log('fire 1');
-      console.log(data);
       this.fire('data:loaded');
       return data;
     }
     if (!this.worker) {
-      console.log('load shp.js');
-      console.log(file);
       shp(file)
         .then(function (data: any) {
-          console.log('loading...');
-          console.log(data);
-          self.addData(data);
-          console.log('fire 2');
+          if (Array.isArray(data)) {
+            // Can contain some esri data, to exclude
+            self.addData(data.find((d) => d.type === 'FeatureCollection'));
+          } else {
+            // Single geojson
+            self.addData(data);
+          }
           self.fire('data:loaded');
         })
         .catch(function (err: any) {
-          console.log('error 1');
           console.error(err);
           self.fire('data:error', err);
         });
@@ -123,7 +118,6 @@ declare const shp: any;
     promise
       .then(function (data: any) {
         self.addData(data);
-        console.log('fire 3');
         self.fire('data:loaded');
         self.worker.close();
       })
@@ -131,7 +125,6 @@ declare const shp: any;
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         function () {},
         function (err: any) {
-          console.log('error 2');
           self.fire('data:error', err);
         }
       );
@@ -500,8 +493,6 @@ export class MapLayersService {
     //     },
     //   });
 
-    let labels = '';
-
     const layer = new (L as any).Shapefile(shapefile, {
       style: (feature: any) => {
         return {
@@ -509,29 +500,34 @@ export class MapLayersService {
           fillOpacity,
         };
       },
-      onEachFeature: (feature: any) => {
-        if (feature.properties) {
-          const zonation = feature.properties?.Zonation;
-          const color = Color(colors[zonation])
-            .alpha(fillOpacity)
-            .rgb()
-            .string();
-          labels += `<div class="flex">
-                  <i
-                    class="w-6 h-4 border mr-1"
-                    style="background:${color}; border-color:${colors[zonation]};"
-                  ></i
-                  >${zonation}
-                </div>
-                `;
-        }
-      },
+      // onEachFeature: (feature: any) => {
+      //   if (feature.properties) {
+      //     const zonation = feature.properties?.Zonation;
+      //     const color = Color(colors[zonation])
+      //       .alpha(fillOpacity)
+      //       .rgb()
+      //       .string();
+      //   }
+      // },
     }).addTo(map);
 
     layer.once('data:loaded', () => {
       map.fitBounds(layer.getBounds());
       // Optionally, run Turf.js logic here as well
       const div = L.DomUtil.create('div');
+      let labels = '';
+      for (const zonation in colors) {
+        const color = colors[zonation];
+        labels += `<div class="flex">
+                  <i
+                    class="w-6 h-4 border mr-1"
+                    style="background:${color}; border-color:${color};"
+                  ></i
+                  >${zonation}
+                </div>
+                `;
+      }
+
       div.innerHTML = labels;
       const legend = div.outerHTML;
       (map as any).legendControl.addLayer(layer, legend);
