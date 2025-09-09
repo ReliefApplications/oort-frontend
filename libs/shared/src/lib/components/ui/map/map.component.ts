@@ -352,7 +352,6 @@ export class MapComponent
         });
 
         if (allLayersCombinedBounds.isValid()) {
-          console.log('Should fly to bounds', allLayersCombinedBounds);
           this.map.flyToBounds(allLayersCombinedBounds);
         }
       });
