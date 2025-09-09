@@ -63,7 +63,8 @@
         ],
         "scripts": [
           "node_modules/tinymce/tinymce.min.js",
-          "node_modules/tinymce/themes/silver/theme.min.js"
+          "node_modules/tinymce/themes/silver/theme.min.js",
+          "node_modules/shpjs/dist/shp.min.js"
         ],
         "allowedCommonJsDependencies": [
           "minimatch",

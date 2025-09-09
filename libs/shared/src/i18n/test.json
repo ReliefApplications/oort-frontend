@@ -2090,7 +2090,8 @@
               "cluster": "******",
               "heatmap": "******",
               "point": "******",
-              "polygon": "******"
+              "polygon": "******",
+              "shapefile": "******"
             }
           },
           "legend": {
