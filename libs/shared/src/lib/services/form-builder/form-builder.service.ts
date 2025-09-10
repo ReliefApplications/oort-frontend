@@ -454,9 +454,9 @@ export class FormBuilderService {
 
         // This fixes one weird bug from SurveyJS's new version
         // Without it, the panel property isn't updated on survey initialization
-        if (question.AllowNewPanelsExpression) {
-          question.allowAddPanel = true;
-        }
+        // if (question.allowAddPanelExpression) {
+        //   question.allowAddPanel = true;
+        // }
       }
       // Avoid reference data to be removed when saving & question isn't loaded yet
       if (isSelectQuestion(question)) {

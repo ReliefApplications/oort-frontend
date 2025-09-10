@@ -111,7 +111,8 @@ declare module 'survey-core' {
 
   // Augmenting QuestionPanelDynamicModel (properties for dynamic panels)
   interface QuestionPanelDynamicModel {
-    AllowNewPanelsExpression?: string;
+    allowAddPanelExpression?: string;
+    allowRemovePanelExpression?: string;
     startOnLastElement?: boolean;
     sortBySubQuestion?: string;
     sortDirection?: 'asc' | 'desc';
