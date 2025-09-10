@@ -212,8 +212,6 @@ export class Layer implements LayerModel {
   private listeners: any[] = [];
   /** Timeline control */
   private timelineControl: any = null;
-  /** Index in the legend panel */
-  public legendIndex!: number;
 
   /**
    * Get layer children. Await for sub-layers to be loaded first.
@@ -950,9 +948,6 @@ export class Layer implements LayerModel {
    * @param layer leaflet layer
    */
   onAddLayer(map: L.Map, layer: L.Layer) {
-    if (isNil(this.legendIndex)) {
-      return;
-    }
     // Ensure that we do not subscribe multiple times to zoom event
     if (this.zoomListener) {
       map.off('zoomend', this.zoomListener);
@@ -978,13 +973,14 @@ export class Layer implements LayerModel {
       const timelineCtrl = container?.firstElementChild;
       timelineCtrl?.classList.add('min-w-28');
     }
+    console.log('will draw legend');
     // Using the sidenav-controls-menu-item, we can overwrite visibility property of the layer
     if (!isNil((layer as any).shouldDisplay)) {
       this.visibility = (layer as any).shouldDisplay;
       if (this.visibility) {
         const legendControl = (map as any).legendControl;
         if (legendControl) {
-          legendControl.addLayer(layer, this.legend, this.legendIndex);
+          legendControl.addLayer(layer, this.legend);
         }
       } else {
         map.removeLayer(layer);
@@ -1000,7 +996,7 @@ export class Layer implements LayerModel {
         if (this.visibility) {
           const legendControl = (map as any).legendControl;
           if (legendControl) {
-            legendControl.addLayer(layer, this.legend, this.legendIndex);
+            legendControl.addLayer(layer, this.legend);
           }
         } else {
           map.removeLayer(layer);
@@ -1050,7 +1046,7 @@ export class Layer implements LayerModel {
   onRemoveLayer(map: L.Map, layer: L.Layer) {
     const legendControl = (map as any).legendControl;
     if (legendControl) {
-      legendControl.removeLayer(layer, this.legendIndex);
+      legendControl.removeLayer(layer);
     }
 
     // If timeline is enabled, remove the control from the map
