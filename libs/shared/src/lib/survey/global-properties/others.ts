@@ -287,16 +287,41 @@ export const init = (environment: any): void => {
 
   // Add ability to conditionally allow dynamic panel add new panel
   serializer.addProperty('paneldynamic', {
-    name: 'AllowNewPanelsExpression:expression',
+    name: 'allowAddPanelExpression:expression',
     category: 'logic',
-    visibleIndex: 7,
+    visibleIndex: -1,
     default: '',
     isLocalizable: true,
     onExecuteExpression: (obj: QuestionPanelDynamicModel, res: any) => {
-      // Weird bug with surveyJS, if we don't wait a bit, it doesn't work
-      obj.allowAddPanel = !!res;
+      obj.setPropertyValue('allowAddPanel', !!res);
     },
   });
+
+  // Automatically enable/disable the add panel option based on the expression
+  serializer.getProperty('paneldynamic', 'allowAddPanel').enableIf = (obj) => {
+    return !obj.allowAddPanelExpression;
+  };
+
+  // Add ability to conditionally allow dynamic panel remove panel
+  serializer.addProperty('paneldynamic', {
+    name: 'allowRemovePanelExpression:expression',
+    category: 'logic',
+    visibleIndex: -1,
+    default: '',
+    isLocalizable: true,
+    onExecuteExpression: (obj: QuestionPanelDynamicModel, res: any) => {
+      if (res) {
+        obj.setPropertyValue('allowRemovePanel', true);
+      }
+    },
+  });
+
+  // Automatically enable/disable the remove panel option based on the expression
+  serializer.getProperty('paneldynamic', 'allowRemovePanel').enableIf = (
+    obj
+  ) => {
+    return !obj.allowRemovePanelExpression;
+  };
 
   // Add ability to set class for panels
   serializer.addProperty('panel', {

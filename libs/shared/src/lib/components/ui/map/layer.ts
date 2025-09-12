@@ -973,7 +973,6 @@ export class Layer implements LayerModel {
       const timelineCtrl = container?.firstElementChild;
       timelineCtrl?.classList.add('min-w-28');
     }
-    console.log('will draw legend');
     // Using the sidenav-controls-menu-item, we can overwrite visibility property of the layer
     if (!isNil((layer as any).shouldDisplay)) {
       this.visibility = (layer as any).shouldDisplay;
