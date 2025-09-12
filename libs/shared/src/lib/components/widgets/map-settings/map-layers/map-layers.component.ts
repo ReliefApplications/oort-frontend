@@ -6,7 +6,7 @@ import { MapLayersService } from '../../../../services/map/map-layers.service';
 import { LayerModel } from '../../../../models/layer.model';
 import { LayerType } from '../../../ui/map/interfaces/layer-settings.type';
 import { Dialog } from '@angular/cdk/dialog';
-import { takeUntil } from 'rxjs';
+import { map, takeUntil } from 'rxjs';
 import { UntypedFormControl } from '@angular/forms';
 import { MapComponent } from '../../../ui/map/map.component';
 import { CdkTable } from '@angular/cdk/table';
@@ -58,16 +58,25 @@ export class MapLayersComponent extends UnsubscribeComponent implements OnInit {
    */
   private updateLayerList(): void {
     const layerIds = this.control.value;
-    this.mapLayersService.getLayers(layerIds).subscribe((layers) => {
-      // Reorder the layers as they are saved in the settings
-      layers.sort(
-        (a, b) =>
-          layerIds.findIndex((layer: any) => layer === a.id) -
-          layerIds.findIndex((layer: any) => layer === b.id)
-      );
-      this.mapLayers = layers;
-      this.loading = false;
-    });
+    this.mapLayersService
+      .getLayers(layerIds)
+      .pipe(
+        // Sort layers list with the same order as the one in the given layer ids
+        map((layers) => {
+          const sortedLayers: LayerModel[] = [];
+          layerIds.forEach((layerId: string) => {
+            const layer = layers.find((l) => layerId === l.id);
+            if (layer) {
+              sortedLayers.push(layer);
+            }
+          });
+          return sortedLayers;
+        })
+      )
+      .subscribe((layers) => {
+        this.mapLayers = layers;
+        this.loading = false;
+      });
   }
 
   /**
