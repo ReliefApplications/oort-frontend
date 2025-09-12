@@ -310,7 +310,9 @@ export const init = (environment: any): void => {
     default: '',
     isLocalizable: true,
     onExecuteExpression: (obj: QuestionPanelDynamicModel, res: any) => {
-      obj.setPropertyValue('allowRemovePanel', !!res);
+      if (res) {
+        obj.setPropertyValue('allowRemovePanel', true);
+      }
     },
   });
 
