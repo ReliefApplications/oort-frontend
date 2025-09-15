@@ -108,3 +108,13 @@ export const GET_RECORD_BY_ID = gql`
     }
   }
 `;
+
+/** Graphql request to check if user can edit a record */
+export const CAN_EDIT_RECORD = gql`
+  query CanEditRecord($id: ID!) {
+    record(id: $id) {
+      id
+      userCanEdit
+    }
+  }
+`;

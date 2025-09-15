@@ -1,5 +1,5 @@
 import { Dialog } from '@angular/cdk/dialog';
-import { NgZone } from '@angular/core';
+import { Injector, NgZone } from '@angular/core';
 // todo: as it something to do with survey-angular
 import {
   SurveyModel,
@@ -7,7 +7,10 @@ import {
   ItemValue,
   Question,
 } from 'survey-core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { Apollo } from 'apollo-angular';
+import { RecordQueryResponse } from '../../models/record.model';
+import { CAN_EDIT_RECORD } from '../graphql/queries';
 
 /**
  * Build the search button for resource and resources components
@@ -227,18 +230,20 @@ export const buildAddButton = (
 /**
  * Build the add button for resource and resources components
  *
+ * @param injector Angular injector
  * @param question The question object
- * @param dialog The Dialog service
  * @param ngZone Angular Service to execute code inside Angular environment
  * @param document Document
  * @returns The button DOM element
  */
 export const buildUpdateButton = (
+  injector: Injector,
   question: Question,
-  dialog: Dialog,
   ngZone: NgZone,
   document: Document
 ): any => {
+  const apollo = injector.get(Apollo);
+  const dialog = injector.get(Dialog);
   const survey = question.survey as SurveyModel;
   const updateButton = document.createElement('button');
 
@@ -253,12 +258,38 @@ export const buildUpdateButton = (
   updateButtonText();
 
   // Disable button if no record is selected
-  const setDisabled = () => {
-    updateButton.disabled = !question.value;
+  const setDisabled = (value: any) => {
+    // Always disable the button at first
+    updateButton.disabled = true;
+    if (value) {
+      firstValueFrom(
+        apollo.query<RecordQueryResponse>({
+          query: CAN_EDIT_RECORD,
+          variables: {
+            id: value,
+          },
+        })
+      )
+        .then(({ data }) => {
+          if (data.record) {
+            if (data.record.id === question.value) {
+              // Prevent to update the button if value changes while we were waiting for the query result
+              updateButton.disabled = !data.record.userCanEdit;
+            }
+          } else {
+            updateButton.disabled = true;
+          }
+        })
+        .catch(() => {
+          updateButton.disabled = true;
+        });
+    }
   };
 
-  setDisabled();
-  question.registerFunctionOnPropertyValueChanged('value', setDisabled);
+  setDisabled(question.value);
+  question.registerFunctionOnPropertyValueChanged('value', (value: any) => {
+    setDisabled(value);
+  });
 
   // Listen to language change and update button text
   survey.onLocaleChangedEvent.add(updateButtonText);

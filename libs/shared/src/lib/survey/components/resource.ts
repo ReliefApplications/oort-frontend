@@ -796,8 +796,8 @@ export const init = (
       }
 
       // Listen to value changes in order to add records to the survey context
-      question.registerFunctionOnPropertyValueChanged('value', () => {
-        addRecordToSurveyContext(question, question.value);
+      question.registerFunctionOnPropertyValueChanged('value', (value: any) => {
+        addRecordToSurveyContext(question, value);
       });
 
       // Create a div that will hold the buttons
@@ -857,7 +857,7 @@ export const init = (
       );
 
       // === UPDATE BUTTON ===
-      const updateBtn = buildUpdateButton(question, dialog, ngZone, document);
+      const updateBtn = buildUpdateButton(injector, question, ngZone, document);
       if (question.updateRecord) {
         actionsButtons.appendChild(updateBtn);
       }
