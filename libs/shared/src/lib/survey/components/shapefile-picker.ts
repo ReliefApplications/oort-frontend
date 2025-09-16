@@ -97,7 +97,8 @@ export const init = (
           if (
             options.value &&
             Array.isArray(options.value) &&
-            options.value.length > 0
+            options.value.length > 0 &&
+            options.value[0].content.startsWith('data:')
           ) {
             // Convert base64 to blob
             const base64Data = options.value[0].content.split(',')[1];
