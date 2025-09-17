@@ -7,16 +7,15 @@ import { Environment } from './environment.type';
  * Authentication configuration
  */
 const authConfig: AuthConfig = {
-  issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
+  issuer:
+    'https://login.microsoftonline.com/1d4fae52-39b3-4bfa-b0b3-022956b11194/v2.0',
   redirectUri: 'https://immt.unesco.oortcloud.tech/admin/',
   postLogoutRedirectUri: 'https://immt.unesco.oortcloud.tech/admin/auth/',
-  clientId: 'immt-client',
+  clientId: '669f2d37-7391-4484-a3c1-8403f369eee8',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
-  // customQueryParams: {
-  //   kc_idp_hint: 'microsoft',
-  // },
+  strictDiscoveryDocumentValidation: false,
 };
 
 /**
