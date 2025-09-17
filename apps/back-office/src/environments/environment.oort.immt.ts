@@ -9,8 +9,8 @@ import { Environment } from './environment.type';
 const authConfig: AuthConfig = {
   issuer:
     'https://login.microsoftonline.com/1d4fae52-39b3-4bfa-b0b3-022956b11194/v2.0',
-  redirectUri: 'https://immt.unesco.oortcloud.tech/admin/',
-  postLogoutRedirectUri: 'https://immt.unesco.oortcloud.tech/admin/auth/',
+  redirectUri: 'https://pubplanner.unesco.org/admin/',
+  postLogoutRedirectUri: 'https://pubplanner.unesco.org/admin/auth/',
   clientId: '669f2d37-7391-4484-a3c1-8403f369eee8',
   scope: 'openid profile email offline_access',
   responseType: 'code',
@@ -24,9 +24,9 @@ const authConfig: AuthConfig = {
 export const environment: Environment = {
   ...sharedEnvironment,
   production: true,
-  apiUrl: 'https://immt.unesco.oortcloud.tech/api',
-  subscriptionApiUrl: 'wss://immt.unesco.oortcloud.tech/api',
-  frontOfficeUri: 'https://immt.unesco.oortcloud.tech',
+  apiUrl: 'https://pubplanner.unesco.org/api',
+  subscriptionApiUrl: 'wss://pubplanner.unesco.org/api',
+  frontOfficeUri: 'https://pubplanner.unesco.org',
   backOfficeUri: 'https://immt.unesco.oortcloud.tech/admin/',
   availableLanguages: ['en', 'fr'],
   authConfig,
