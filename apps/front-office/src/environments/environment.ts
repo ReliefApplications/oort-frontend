@@ -5,18 +5,13 @@ import { Environment } from './environment.type';
 
 /** Authentication configuration of the module. */
 const authConfig: AuthConfig = {
-  issuer:
-    'https://login.microsoftonline.com/1d4fae52-39b3-4bfa-b0b3-022956b11194/v2.0',
+  issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
   redirectUri: 'http://localhost:4200/',
   postLogoutRedirectUri: 'http://localhost:4200/auth/',
-  clientId: '669f2d37-7391-4484-a3c1-8403f369eee8',
+  clientId: 'immt-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
-  strictDiscoveryDocumentValidation: false,
-  // customQueryParams: {
-  //   kc_idp_hint: 'microsoft',
-  // },
 };
 
 /** Environment configuration */
