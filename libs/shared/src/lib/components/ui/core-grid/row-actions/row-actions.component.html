@@ -43,7 +43,7 @@
     ></button>
 
     <button
-      *ngIf="actions.delete?.display"
+      *ngIf="actions.delete?.display && item.canDelete"
       kendoButton
       icon="trash"
       [look]="'flat'"
