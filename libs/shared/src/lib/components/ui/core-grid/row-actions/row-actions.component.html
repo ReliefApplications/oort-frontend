@@ -14,7 +14,7 @@
     ></button>
 
     <button
-      *ngIf="actions.update?.display"
+      *ngIf="actions.update?.display && item.canUpdate"
       kendoButton
       icon="edit"
       [look]="'flat'"
