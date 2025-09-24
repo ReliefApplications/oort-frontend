@@ -18,6 +18,7 @@ import {
   from,
   merge,
   takeUntil,
+  tap,
 } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { AggregationService } from '../../../services/aggregation/aggregation.service';
@@ -516,7 +517,10 @@ export class SummaryCardComponent
           }),
         })
       )
-        .pipe(takeUntil(merge(this.cancelRefresh$, this.destroy$)))
+        .pipe(
+          tap(() => (this.cards = [])),
+          takeUntil(merge(this.cancelRefresh$, this.destroy$))
+        )
         .subscribe(this.updateRecordCards.bind(this));
     } else if (this.useReferenceData) {
       if (this.refData?.pageInfo?.strategy) {
@@ -579,8 +583,7 @@ export class SummaryCardComponent
     }
 
     // update card list and scroll behavior according to the card items display
-
-    this.cards = newCards;
+    this.cards = [...this.cards, ...newCards];
     if (
       this.settings.widgetDisplay?.usePagination ||
       this.triggerRefreshCardList
@@ -855,7 +858,10 @@ export class SummaryCardComponent
               nextFetchPolicy: 'cache-first',
             });
             this.dataQuery.valueChanges
-              .pipe(takeUntil(this.destroy$))
+              .pipe(
+                tap(() => (this.cards = [])),
+                takeUntil(this.destroy$)
+              )
               .subscribe(this.updateRecordCards.bind(this));
           }
           // Build meta query to add information to fields
@@ -984,7 +990,10 @@ export class SummaryCardComponent
     );
 
     this.dataQuery.valueChanges
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        tap(() => (this.cards = [])),
+        takeUntil(this.destroy$)
+      )
       .subscribe(this.updateRecordCards.bind(this));
 
     // Set sort fields
@@ -1031,7 +1040,7 @@ export class SummaryCardComponent
             })
           )
             .pipe(takeUntil(merge(this.cancelRefresh$, this.destroy$)))
-            .subscribe(() => this.updateRecordCards.bind(this));
+            .subscribe(this.updateRecordCards.bind(this));
         }
       }
     }
@@ -1067,7 +1076,10 @@ export class SummaryCardComponent
           }),
         })
       )
-        .pipe(takeUntil(merge(this.cancelRefresh$, this.destroy$)))
+        .pipe(
+          tap(() => (this.cards = [])),
+          takeUntil(merge(this.cancelRefresh$, this.destroy$))
+        )
         .subscribe(this.updateRecordCards.bind(this));
     } else if (this.useReferenceData && this.refData) {
       // Only set loading state if using pagination, not infinite scroll
