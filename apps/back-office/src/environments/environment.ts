@@ -29,6 +29,7 @@ export const environment: Environment = {
   availableLanguages: ['en', 'fr', 'test'],
   authConfig,
   theme,
+  user: { attributes: ['unescoSector'] },
   availableWidgets: [
     'form',
     'donut-chart',
