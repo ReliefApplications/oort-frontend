@@ -1,11 +1,5 @@
-<ui-graphql-select
-  valueField="id"
-  textField="username"
-  [query]="query"
-  [formControl]="control"
-  [selectedElements]="initialSelection"
-  (searchChange)="onSearchChange($event)"
-  [filterable]="true"
-  [multiselect]="multiple"
->
+<!-- In users-dropdown.component.html -->
+<ui-graphql-select valueField="id" textField="display" [query]="query" [formControl]="control"
+  [selectedElements]="initialSelection" (searchChange)="onSearchChange($event)" [filterable]="true"
+  [multiselect]="multiple">
 </ui-graphql-select>

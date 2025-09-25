@@ -39,8 +39,7 @@ const ITEMS_PER_PAGE = 10;
 })
 export class UsersDropdownComponent
   extends UnsubscribeComponent
-  implements OnInit
-{
+  implements OnInit {
   /** Applications to get users from, if any */
   @Input() applications?: string[];
   /** IDs of the initial user selection */
