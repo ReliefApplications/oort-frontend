@@ -19,6 +19,7 @@ export interface Environment {
   frontOfficeUri: string;
   backOfficeUri: string;
   availableLanguages: string[];
+  defaultIntlLocale: 'fr',
   authConfig: AuthConfig;
   esriApiKey: string;
   theme: any;

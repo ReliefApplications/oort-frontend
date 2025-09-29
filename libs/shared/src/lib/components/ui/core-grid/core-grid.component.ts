@@ -86,8 +86,7 @@ const cloneData = (data: any[]) => data.map((item) => Object.assign({}, item));
 })
 export class CoreGridComponent
   extends UnsubscribeComponent
-  implements OnChanges, OnInit
-{
+  implements OnChanges, OnInit {
   // === INPUTS ===
   /** Grid settings */
   @Input() settings: GridSettings | any = {};
@@ -289,9 +288,8 @@ export class CoreGridComponent
       month: 'short',
       day: 'numeric',
     })} ${today.getFullYear()}`;
-    return `${
-      this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
-    } ${formatDate}`;
+    return `${this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
+      } ${formatDate}`;
   }
 
   /** @returns true if any updated item in the list */
@@ -1557,15 +1555,18 @@ export class CoreGridComponent
       return;
     }
 
+    // Get locale from user preferences
+    const userLocale = this.getUserLocale();
+
     // Builds the request body with all the useful data
     const currentLayout = this.layout;
     const body = {
       filter:
         e.records === 'selected'
           ? {
-              logic: 'and',
-              filters: [{ operator: 'eq', field: 'ids', value: ids }],
-            }
+            logic: 'and',
+            filters: [{ operator: 'eq', field: 'ids', value: ids }],
+          }
           : this.queryFilter,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       query: this.settings.query,
@@ -1575,6 +1576,7 @@ export class CoreGridComponent
       fileName: this.fileName,
       email: e.email,
       resource: this.settings.resource,
+      locale: userLocale, // ADDED: Include locale in the request
       // we only export visible fields ( not hidden )
       ...(e.fields === 'visible' && {
         fields: Object.values(currentLayout.fields)
@@ -1613,6 +1615,19 @@ export class CoreGridComponent
       `${this.fileName}.${e.format}`,
       body
     );
+  }
+
+  /**
+   * Get user locale preference
+   */
+  private getUserLocale(): string {
+    const browserLang = navigator.language;
+    if (browserLang.startsWith('fr')) {
+      return 'fr';
+    }
+
+    // Option 3: Default to English
+    return 'en';
   }
 
   // === PAGINATION ===
