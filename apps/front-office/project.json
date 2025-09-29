@@ -356,7 +356,7 @@
           "sourceMap": true,
           "namedChunks": true,
           "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/default"]
+            "includePaths": ["libs/styles/src/lib/themes/alimentaide"]
           }
         }
       },

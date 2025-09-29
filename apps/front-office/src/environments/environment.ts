@@ -1,11 +1,11 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
-import { theme } from '../themes/default/default.local';
+import { theme } from '../themes/alimentaide/alimentaide.prod';
 import { sharedEnvironment } from './environment.shared';
 import { Environment } from './environment.type';
 
 /** Authentication configuration of the module. */
 const authConfig: AuthConfig = {
-  issuer: 'https://id-dev.oortcloud.tech/realms/oort',
+  issuer: 'https://id.oortcloud.tech/auth/realms/oort',
   redirectUri: 'http://localhost:4200/',
   postLogoutRedirectUri: 'http://localhost:4200/auth/',
   clientId: 'oort-client',
