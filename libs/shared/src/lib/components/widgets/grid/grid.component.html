@@ -24,8 +24,14 @@
     <span class="widget-title" [title]="settings.title">
       {{ settings.title }}
     </span>
-    <ui-icon *ngIf="settings.widgetDisplay?.tooltip?.display" class="cursor-help" icon="help" variant="primary"
-      [size]="24" [uiTooltip]="settings.widgetDisplay.tooltip.content"></ui-icon>
+    <ui-icon
+      *ngIf="settings.widgetDisplay?.tooltip?.display"
+      class="cursor-help"
+      icon="help"
+      variant="primary"
+      [size]="24"
+      [uiTooltip]="settings.widgetDisplay.tooltip.content"
+    ></ui-icon>
   </span>
   <!-- Sort selector -->
   <ng-container *ngIf="sortFields.length > 0">
@@ -44,30 +50,52 @@
 
 <!-- Core Grid ( data query / layout )-->
 <ng-template #coreGridTemplate>
-  <shared-core-grid class="min-h-0 flex-1" [defaultLayout]="layout?.display || {}" [settings]="gridSettings"
-    (defaultLayoutReset)="onResetLayout()" (edit)="edit.emit($event)" (inlineEdition)="inlineEdition.emit()"
-    [widget]="widget" [canUpdate]="canUpdate" [status]="status"
-    [canCreateRecords]="canCreateRecords"></shared-core-grid>
+  <shared-core-grid
+    class="min-h-0 flex-1"
+    [defaultLayout]="layout?.display || {}"
+    [settings]="gridSettings"
+    (defaultLayoutReset)="onResetLayout()"
+    (edit)="edit.emit($event)"
+    (inlineEdition)="inlineEdition.emit()"
+    [widget]="widget"
+    [canUpdate]="canUpdate"
+    [status]="status"
+    [canCreateRecords]="canCreateRecords"
+  ></shared-core-grid>
 </ng-template>
 
 <!-- Aggregation Grid -->
 <ng-template #aggregationGridTemplate>
-  <shared-aggregation-grid *ngIf="aggregation" [widget]="widget" [resourceId]="settings.resource"
-    [aggregation]="aggregation" [contextFilters]="widget.settings.contextFilters"
-    [at]="widget.settings.at"></shared-aggregation-grid>
+  <shared-aggregation-grid
+    *ngIf="aggregation"
+    [widget]="widget"
+    [resourceId]="settings.resource"
+    [aggregation]="aggregation"
+    [contextFilters]="widget.settings.contextFilters"
+    [at]="widget.settings.at"
+  ></shared-aggregation-grid>
 </ng-template>
 
 <!-- Reference data Grid -->
 <ng-template #refDataGridTemplate>
-  <shared-reference-data-grid [settings]="settings"></shared-reference-data-grid>
+  <shared-reference-data-grid
+    [settings]="settings"
+  ></shared-reference-data-grid>
 </ng-template>
 
 <!-- Quick action buttons -->
 <ng-template #floatingButtonsTemplate>
-  <div class="flex overflow-hidden flex-1 max-w-fit" *ngIf="floatingButtons.length > 0">
+  <div
+    class="flex overflow-hidden flex-1 max-w-fit"
+    *ngIf="floatingButtons.length > 0"
+  >
     <ng-container *ngFor="let floatingButton of floatingButtons">
-      <ui-button variant="primary" (click)="onQuickAction(floatingButton)" *ngIf="floatingButton.show"
-        class="whitespace-nowrap">
+      <ui-button
+        variant="primary"
+        (click)="onQuickAction(floatingButton)"
+        *ngIf="floatingButton.show"
+        class="whitespace-nowrap"
+      >
         {{ floatingButton.name }}
       </ui-button>
     </ng-container>
@@ -77,7 +105,10 @@
 <!-- Selection of sort -->
 <ng-template #sortTemplate>
   <div uiFormFieldDirective class="!m-0 w-44 self-center">
-    <ui-select-menu (selectedOption)="onSort($event)" [placeholder]="'models.widget.sorting.select' | translate">
+    <ui-select-menu
+      (selectedOption)="onSort($event)"
+      [placeholder]="'models.widget.sorting.select' | translate"
+    >
       <ui-select-option *ngFor="let sort of sortFields" [value]="sort">
         {{ sort.label }}
       </ui-select-option>
@@ -88,8 +119,14 @@
 <!-- Selection of layouts -->
 <ng-template #layoutsTemplate>
   <ng-container *ngIf="layouts.length > 1">
-    <kendo-dropdownlist class="!my-auto flex-1 max-w-fit" [data]="layouts" textField="name" valueField="id"
-      [value]="layout" (selectionChange)="onLayoutChange($event)">
+    <kendo-dropdownlist
+      class="!my-auto flex-1 max-w-fit"
+      [data]="layouts"
+      textField="name"
+      valueField="id"
+      [value]="layout"
+      (selectionChange)="onLayoutChange($event)"
+    >
     </kendo-dropdownlist>
   </ng-container>
 </ng-template>
@@ -97,8 +134,14 @@
 <!-- Selection of aggregations -->
 <ng-template #aggregationsTemplate>
   <ng-container *ngIf="aggregations.length > 1">
-    <kendo-dropdownlist class="!my-auto flex-1 max-w-fit" [data]="aggregations" textField="name" valueField="id"
-      [value]="aggregation" (selectionChange)="onAggregationChange($event)">
+    <kendo-dropdownlist
+      class="!my-auto flex-1 max-w-fit"
+      [data]="aggregations"
+      textField="name"
+      valueField="id"
+      [value]="aggregation"
+      (selectionChange)="onAggregationChange($event)"
+    >
     </kendo-dropdownlist>
   </ng-container>
 </ng-template>

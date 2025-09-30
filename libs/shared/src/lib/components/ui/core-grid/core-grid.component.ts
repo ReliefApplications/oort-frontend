@@ -86,7 +86,8 @@ const cloneData = (data: any[]) => data.map((item) => Object.assign({}, item));
 })
 export class CoreGridComponent
   extends UnsubscribeComponent
-  implements OnChanges, OnInit {
+  implements OnChanges, OnInit
+{
   // === INPUTS ===
   /** Grid settings */
   @Input() settings: GridSettings | any = {};
@@ -288,8 +289,9 @@ export class CoreGridComponent
       month: 'short',
       day: 'numeric',
     })} ${today.getFullYear()}`;
-    return `${this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
-      } ${formatDate}`;
+    return `${
+      this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
+    } ${formatDate}`;
   }
 
   /** @returns true if any updated item in the list */
@@ -1561,9 +1563,9 @@ export class CoreGridComponent
       filter:
         e.records === 'selected'
           ? {
-            logic: 'and',
-            filters: [{ operator: 'eq', field: 'ids', value: ids }],
-          }
+              logic: 'and',
+              filters: [{ operator: 'eq', field: 'ids', value: ids }],
+            }
           : this.queryFilter,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       query: this.settings.query,
