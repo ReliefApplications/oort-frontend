@@ -1,75 +1,39 @@
 <ng-container *ngIf="!loading; else emptyTemplate">
   <!-- NEW WIDGETS -->
-  <div
-    class="widget-choice-wrapper"
-    *ngIf="canUpdate"
-    [ngClass]="{ 'floating-widget-choice-wrapper': widgets.length > 0 }"
-  >
+  <div class="widget-choice-wrapper" *ngIf="canUpdate"
+    [ngClass]="{ 'floating-widget-choice-wrapper': widgets.length > 0 }">
     <h2 *ngIf="widgets.length === 0">{{ 'models.widget.add' | translate }}</h2>
-    <shared-widget-choice
-      [floating]="widgets.length > 0"
-      [widgetTypes]="availableWidgets"
-      (add)="onAdd($event)"
-    >
+    <shared-widget-choice [floating]="widgets.length > 0" [widgetTypes]="availableWidgets" (add)="onAdd($event)">
     </shared-widget-choice>
   </div>
 
   <!-- Using an additional div to prevent the grid from overlapping the parent's padding -->
-  <div
-    class="h-full"
-    [ngClass]="{
+  <div class="h-full" [ngClass]="{
       'pb-[32px] mb-[-32px] box-content': isMinHeightEnabled
-    }"
-  >
-    <gridster
-      [options]="gridOptions"
-      class="!w-full"
-      [ngStyle]="{
+    }">
+    <gridster [options]="gridOptions" class="!w-full" [ngStyle]="{
         'min-height.px': isMinHeightEnabled ? gridOptions.minimumHeight : 0
-      }"
-    >
-      <gridster-item
-        [item]="widget"
-        class="max-w-full"
-        *ngFor="let widget of widgets; let i = index"
-      >
-        <shared-widget
-          #widgetElement
-          [widget]="widget"
-          (changeStep)="triggerChangeStepAction($event)"
-          (edit)="onEditWidget($event)"
-          [canUpdate]="canUpdate"
-          [headerLeftTemplate]="headerLeftTemplate"
-          [headerRightTemplate]="headerRightTemplate"
-        ></shared-widget>
+      }">
+      <gridster-item [item]="widget" class="max-w-full" *ngFor="let widget of widgets; let i = index">
+        <shared-widget #widgetElement [widget]="widget" (changeStep)="triggerChangeStepAction($event)"
+          (edit)="onEditWidget($event)" [canUpdate]="canUpdate" [headerLeftTemplate]="headerLeftTemplate"
+          [headerRightTemplate]="headerRightTemplate"></shared-widget>
         <!-- Left header template -->
         <ng-template #headerLeftTemplate>
           <!-- Drag n drop indicator -->
-          <ui-icon
-            *ngIf="canUpdate"
-            icon="drag_indicator"
+          <ui-icon *ngIf="canUpdate" icon="drag_indicator"
             class="cursor-grab drag-handler flex items-center justify-center h-[40px] w-[40px] -ml-3 bg-white/70 rounded-2xl pointer-events-auto"
-            variant="grey"
-            [uiTooltip]="'common.tooltip.dragDrop' | translate"
-          >
+            variant="grey" [uiTooltip]="'common.tooltip.dragDrop' | translate">
           </ui-icon>
         </ng-template>
         <!-- Right header template -->
         <ng-template #headerRightTemplate let-id>
           <!-- Widget actions -->
-          <shared-widget-actions
-            class="-mr-3 bg-white/70 rounded-2xl pointer-events-auto"
-            [id]="id"
-            [canUpdate]="canUpdate"
-            [collapsed]="
+          <shared-widget-actions class="-mr-3 bg-white/70 rounded-2xl pointer-events-auto" [id]="id"
+            [canUpdate]="canUpdate" [collapsed]="
               widgetElement.elementRef.nativeElement.clientWidth < 500
-            "
-            [widget]="widget"
-            (edit)="onEditWidget($event)"
-            (delete)="onDeleteWidget($event)"
-            (expand)="onExpandWidget($event)"
-            (style)="onStyleWidget($event)"
-          >
+            " [widget]="widget" (edit)="onEditWidget($event)" (delete)="onDeleteWidget($event)"
+            (expand)="onExpandWidget($event)" (style)="onStyleWidget($event)">
           </shared-widget-actions>
         </ng-template>
       </gridster-item>
@@ -81,12 +45,7 @@
   <gridster [options]="gridOptions" class="!w-full mt-6">
     <gridster-item [item]="skeleton" *ngFor="let skeleton of skeletons">
       <div class="gridster-item-content h-full">
-        <kendo-skeleton
-          shape="rectangle"
-          animation="pulse"
-          [width]="'100%'"
-          [height]="'100%'"
-        ></kendo-skeleton>
+        <kendo-skeleton shape="rectangle" animation="pulse" [width]="'100%'" [height]="'100%'"></kendo-skeleton>
       </div>
     </gridster-item>
   </gridster>

@@ -59,6 +59,8 @@ import { ResourceQueryResponse } from '../../../models/resource.model';
 import { Router } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { DashboardService } from '../../../services/dashboard/dashboard.service';
+import { LayerDatasource } from '../../../models/layer.model';
+import { FeatureCollection } from 'geojson';
 
 /**
  * Default file name when exporting grid data.
@@ -84,8 +86,7 @@ const cloneData = (data: any[]) => data.map((item) => Object.assign({}, item));
 })
 export class CoreGridComponent
   extends UnsubscribeComponent
-  implements OnChanges, OnInit
-{
+  implements OnChanges, OnInit {
   // === INPUTS ===
   /** Grid settings */
   @Input() settings: GridSettings | any = {};
@@ -142,6 +143,8 @@ export class CoreGridComponent
   @Output() edit: EventEmitter<any> = new EventEmitter();
   /** Event emitter for inline edition of records */
   @Output() inlineEdition: EventEmitter<any> = new EventEmitter();
+  /** Event emitter for clicking an inline action button */
+  @Output() inlineAction = new EventEmitter<{ options: any; row: string }>();
 
   // === SELECTION OUTPUTS ===
   /** Event emitter for row selection */
@@ -285,9 +288,8 @@ export class CoreGridComponent
       month: 'short',
       day: 'numeric',
     })} ${today.getFullYear()}`;
-    return `${
-      this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
-    } ${formatDate}`;
+    return `${this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
+      } ${formatDate}`;
   }
 
   /** @returns true if any updated item in the list */
@@ -1001,19 +1003,23 @@ export class CoreGridComponent
    *
    * @param event Grid Action.
    * @param event.action action to perform, short string code
+   * @param event.button inline floating button clicked
    * @param event.item item to perform the action on
    * @param event.items list of items to perform the action on
    * @param event.value value to apply to item, if any
    * @param event.field field to use in action, optional
    * @param event.pageUrl url of page
+   * @param event.html html string
    */
   public onAction(event: {
     action: string;
+    button?: any;
     item?: any;
     items?: any[];
     value?: any;
     field?: any;
     pageUrl?: string;
+    html?: string;
   }): void {
     const getTargetUrl = () => {
       if (!event.item) {
@@ -1030,6 +1036,15 @@ export class CoreGridComponent
       return fullUrl;
     };
     switch (event.action) {
+      case 'btnClick': {
+        if (event.button) {
+          this.inlineAction.emit({
+            options: event.button,
+            row: event.item.id,
+          });
+        }
+        break;
+      }
       case 'add': {
         this.onAdd();
         break;
@@ -1134,21 +1149,49 @@ export class CoreGridComponent
       case 'map': {
         import('./map-modal/map-modal.component').then(
           ({ MapModalComponent }) => {
+            let data: {
+              item?: any;
+              datasource?: LayerDatasource;
+              shapefile?: FeatureCollection;
+            } = {};
+            switch (event.field.meta.type) {
+              case 'shapefile':
+                data.shapefile = event.item.text[event.field.name];
+                break;
+              case 'geospatial':
+                data = {
+                  item: event.item,
+                  datasource: {
+                    type: 'Point',
+                    resource: this.settings.resource,
+                    // todo(change)
+                    layout: this.settings.id,
+                    geoField: event.field.name,
+                  },
+                };
+                break;
+              default:
+                console.error('Wrong map type');
+                return;
+            }
             this.dialog.open(MapModalComponent, {
+              data,
+            });
+          }
+        );
+        break;
+      }
+      case 'editor': {
+        import('./editor-modal/editor-modal.component').then(
+          ({ EditorModalComponent }) => {
+            this.dialog.open(EditorModalComponent, {
               data: {
-                item: event.item,
-                datasource: {
-                  type: 'Point',
-                  resource: this.settings.resource,
-                  // todo(change)
-                  layout: this.settings.id,
-                  geoField: event.field.name,
-                },
+                html: event.item[event.field.name],
+                title: event.field.title,
               },
             });
           }
         );
-
         break;
       }
       case 'mapView': {
@@ -1518,9 +1561,9 @@ export class CoreGridComponent
       filter:
         e.records === 'selected'
           ? {
-              logic: 'and',
-              filters: [{ operator: 'eq', field: 'ids', value: ids }],
-            }
+            logic: 'and',
+            filters: [{ operator: 'eq', field: 'ids', value: ids }],
+          }
           : this.queryFilter,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       query: this.settings.query,
