@@ -91,7 +91,8 @@ export const ROW_ACTIONS = [
 })
 export class GridComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy, AfterViewInit, OnChanges {
+  implements OnInit, OnDestroy, AfterViewInit, OnChanges
+{
   /** Input decorator for widget. */
   @Input() widget: any;
   /** If inlineEdition is allowed */
@@ -111,8 +112,8 @@ export class GridComponent
     error: boolean;
     message?: string;
   } = {
-      error: false,
-    };
+    error: false,
+  };
   /** Input decorator for blank. */
   @Input() blank = false;
   /** Input decorator for canUpdate. */
