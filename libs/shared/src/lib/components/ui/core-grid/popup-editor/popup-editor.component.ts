@@ -47,7 +47,7 @@ export class PopupEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialogRef: DialogRef<any>,
     @Inject(DIALOG_DATA) public data: DialogData,
     private formBuilderService: FormBuilderService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     const structure = {

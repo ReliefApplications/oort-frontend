@@ -93,7 +93,8 @@ export const ROW_ACTIONS = [
 })
 export class GridComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy, AfterViewInit, OnChanges {
+  implements OnInit, OnDestroy, AfterViewInit, OnChanges
+{
   /** Input decorator for widget. */
   @Input() widget: any;
   /** If inlineEdition is allowed */
@@ -113,8 +114,8 @@ export class GridComponent
     error: boolean;
     message?: string;
   } = {
-      error: false,
-    };
+    error: false,
+  };
   /** Input decorator for blank. */
   @Input() blank = false;
   /** Input decorator for canUpdate. */
@@ -483,10 +484,10 @@ export class GridComponent
   private clearAllTimeouts(): void {
     const timeouts = [
       this.columnChangeTimeoutListener,
-      this.displayFullScreenButtonTimeoutListener
+      this.displayFullScreenButtonTimeoutListener,
     ];
 
-    timeouts.forEach(timeout => {
+    timeouts.forEach((timeout) => {
       if (timeout) {
         clearTimeout(timeout);
       }
@@ -807,7 +808,8 @@ export class GridComponent
             (tooltip) => tooltip.uiTooltip === element.text[columnField]
           );
           if (relatedTooltipElement) {
-            const nativeElement = relatedTooltipElement.elementRef.nativeElement;
+            const nativeElement =
+              relatedTooltipElement.elementRef.nativeElement;
             element.showFullScreenButton[columnField] =
               nativeElement.offsetWidth < nativeElement.scrollWidth;
           }
@@ -873,7 +875,7 @@ export class GridComponent
         this.formGroup.markAsUntouched();
 
         // Clear all controls
-        Object.keys(this.formGroup.controls).forEach(key => {
+        Object.keys(this.formGroup.controls).forEach((key) => {
           const control = this.formGroup.get(key);
           if (control) {
             control.setValue(null, { emitEvent: false });
