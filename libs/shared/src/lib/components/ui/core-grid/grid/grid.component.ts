@@ -16,7 +16,6 @@ import {
   TemplateRef,
   ViewChild,
   ViewChildren,
-  NgZone,
 } from '@angular/core';
 import {
   GridComponent as KendoGridComponent,
@@ -57,7 +56,6 @@ import { ResizeObservable } from '../../../../utils/rxjs/resize-observable.util'
 import { formatGridRowData } from './utils/grid-data-formatter';
 import { GridActions } from '../models/grid-settings.model';
 import { HttpHeaders } from '@angular/common/http';
-import { fromEvent, Subject } from 'rxjs';
 
 /** Minimum column width */
 const MIN_COLUMN_WIDTH = 100;
@@ -93,8 +91,7 @@ export const ROW_ACTIONS = [
 })
 export class GridComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy, AfterViewInit, OnChanges
-{
+  implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   /** Input decorator for widget. */
   @Input() widget: any;
   /** If inlineEdition is allowed */
@@ -114,8 +111,8 @@ export class GridComponent
     error: boolean;
     message?: string;
   } = {
-    error: false,
-  };
+      error: false,
+    };
   /** Input decorator for blank. */
   @Input() blank = false;
   /** Input decorator for canUpdate. */
@@ -247,14 +244,14 @@ export class GridComponent
   private columnChangeTimeoutListener!: NodeJS.Timeout;
   /** Display fullscreen button timeout */
   private displayFullScreenButtonTimeoutListener!: NodeJS.Timeout;
+  /** Listen to click events to determine if editor should be closed */
+  private closeEditorListener!: any;
   /** A boolean indicating if actions are enabled */
   public hasEnabledActions = false;
   /** Action column width */
   public actionsWidth = 56;
   /** Reference to the column chooser element */
   private columnChooserRef: PopupRef | null = null;
-  /** Component destruction flag */
-  private isDestroyed = false;
 
   /** @returns the enabled actions */
   get enabledActions() {
@@ -341,7 +338,6 @@ export class GridComponent
    * @param el Ref to html element
    * @param document document
    * @param popupService Kendo popup service
-   * @param ngZone Angular zone service
    */
   constructor(
     @Optional() public widgetComponent: WidgetComponent,
@@ -356,8 +352,7 @@ export class GridComponent
     private snackBar: SnackbarService,
     private el: ElementRef,
     @Inject(DOCUMENT) private document: Document,
-    private popupService: PopupService,
-    private ngZone: NgZone
+    private popupService: PopupService
   ) {
     super();
     this.environment = environment.module || 'frontoffice';
@@ -365,8 +360,15 @@ export class GridComponent
 
   ngOnInit(): void {
     this.setSelectedItems();
-    this.setupGlobalClickHandler();
-
+    if (this.closeEditorListener) {
+      this.closeEditorListener();
+    }
+    this.closeEditorListener = this.renderer.listen(
+      'document',
+      'click',
+      this.onDocumentClick.bind(this)
+    );
+    // this way we can wait for 2s before sending an update
     this.search.valueChanges
       .pipe(
         debounceTime(2000),
@@ -444,113 +446,17 @@ export class GridComponent
       .subscribe(() => this.setColumnsWidth());
   }
 
-  /**
-   * Setup global click handler using RxJS for better cleanup
-   */
-  private setupGlobalClickHandler(): void {
-    fromEvent(this.document, 'click')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((event: Event) => {
-        this.onDocumentClick(event);
-      });
-  }
-
-  /**
-   * Enhanced comprehensive cleanup
-   */
-  private performCompleteCleanup(): void {
-    if (this.isDestroyed) return;
-    this.isDestroyed = true;
-
-    // 1. Clear all timeouts
-    this.clearAllTimeouts();
-
-    // 2. Clean up editing state
-    this.cleanupEditingState();
-
-    // 3. Clean up grid references
-    this.cleanupGridReferences();
-
-    // 4. Clean up dialog references
-    this.cleanupDialogReferences();
-
-    // 5. Clean up form controls
-    this.cleanupFormControls();
-
-    // 6. Force garbage collection hint (development)
-    this.forceGarbageCollection();
-  }
-
-  private clearAllTimeouts(): void {
-    const timeouts = [
-      this.columnChangeTimeoutListener,
-      this.displayFullScreenButtonTimeoutListener,
-    ];
-
-    timeouts.forEach((timeout) => {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-    });
-  }
-
-  private cleanupGridReferences(): void {
-    // Clean up Kendo grid
-    if (this.grid) {
-      try {
-        // Clear grid data
-        this.grid.data = [];
-
-        // If Kendo grid has destroy method, call it
-        if (typeof (this.grid as any).destroy === 'function') {
-          (this.grid as any).destroy();
-        }
-      } catch (error) {
-        console.warn('Error cleaning up Kendo grid:', error);
-      }
-    }
-
-    // Clear element references
-    if (this.gridRef) {
-      (this.gridRef as any) = null;
-    }
-
-    // Clear columns reference
-    if (this.columns) {
-      (this.columns as any) = null;
-    }
-
-    // Clear tooltips
-    if (this.tooltips) {
-      (this.tooltips as any) = null;
-    }
-  }
-
-  private cleanupDialogReferences(): void {
-    // Close column chooser
-    if (this.columnChooserRef) {
-      this.columnChooserRef.close();
-      this.columnChooserRef = null;
-    }
-  }
-
-  private cleanupFormControls(): void {
-    // Clean up search control
-    if (this.search) {
-      this.search.setValue('', { emitEvent: false });
-    }
-  }
-
-  private forceGarbageCollection(): void {
-    // This is just a hint to the garbage collector
-    if (typeof (window as any).gc === 'function') {
-      (window as any).gc();
-    }
-  }
-
   override ngOnDestroy(): void {
-    this.performCompleteCleanup();
     super.ngOnDestroy();
+    if (this.columnChangeTimeoutListener) {
+      clearTimeout(this.columnChangeTimeoutListener);
+    }
+    if (this.displayFullScreenButtonTimeoutListener) {
+      clearTimeout(this.displayFullScreenButtonTimeoutListener);
+    }
+    if (this.closeEditorListener) {
+      this.closeEditorListener();
+    }
   }
 
   /**
@@ -727,11 +633,6 @@ export class GridComponent
    * @param param0.rowIndex the row index of the cell
    */
   public cellClickHandler({ isEdited, dataItem, rowIndex }: any): void {
-    // Prevent opening new editor if one is already active
-    if (this.editing && this.currentEditedRow !== rowIndex) {
-      return;
-    }
-
     // Parameters that prevent the inline edition.
     if (
       !this.data.data[rowIndex - this.skip].canUpdate ||
@@ -741,12 +642,8 @@ export class GridComponent
     ) {
       return;
     }
-
-    // Close current editor if clicking on different row
-    if (this.editing && this.currentEditedRow !== rowIndex) {
-      this.closeEditor();
-    }
-
+    // Closes current inline edition.
+    this.closeEditor();
     // creates the form group.
     this.formGroup = this.gridService.createFormGroup(dataItem, this.fields);
     this.currentEditedItem = dataItem;
@@ -798,23 +695,18 @@ export class GridComponent
    * @param columnField Related column field from where to check all cells
    */
   private updateColumnShowFullScreenButton(columnField: string) {
-    this.ngZone.runOutsideAngular(() => {
-      requestAnimationFrame(() => {
-        const updatableTooltips = this.tooltips.filter(
-          (tooltip) => tooltip.enableBy !== 'default'
-        );
-        this.data.data.forEach((element) => {
-          const relatedTooltipElement = updatableTooltips.find(
-            (tooltip) => tooltip.uiTooltip === element.text[columnField]
-          );
-          if (relatedTooltipElement) {
-            const nativeElement =
-              relatedTooltipElement.elementRef.nativeElement;
-            element.showFullScreenButton[columnField] =
-              nativeElement.offsetWidth < nativeElement.scrollWidth;
-          }
-        });
-      });
+    const updatableTooltips = this.tooltips.filter(
+      (tooltip) => tooltip.enableBy !== 'default'
+    );
+    this.data.data.forEach((element) => {
+      const relatedTooltipElement = updatableTooltips.find(
+        (tooltip) => tooltip.uiTooltip === element.text[columnField]
+      );
+      if (relatedTooltipElement) {
+        element.showFullScreenButton[columnField] =
+          relatedTooltipElement.elementRef.nativeElement.offsetWidth <
+          relatedTooltipElement.elementRef.nativeElement.scrollWidth;
+      }
     });
   }
 
@@ -838,61 +730,25 @@ export class GridComponent
   }
 
   /**
-   * Enhanced closeEditor with better cleanup
+   * Closes the inline edition.
    */
   public closeEditor(): void {
-    if (this.currentEditedItem && this.formGroup.dirty) {
-      this.expandActionsColumn();
-      this.action.emit({
-        action: 'edit',
-        item: this.currentEditedItem,
-        value: this.formGroup.value,
-      });
-    }
-
-    // Close grid editing
-    if (this.grid && this.currentEditedRow > 0) {
-      try {
-        this.grid.closeRow(this.currentEditedRow);
-        this.grid.cancelCell();
-      } catch (error) {
-        console.warn('Error closing grid editor:', error);
-      }
-    }
-
-    this.cleanupEditingState();
-  }
-
-  /**
-   * Enhanced editing state cleanup
-   */
-  private cleanupEditingState(): void {
-    // Clear form group properly
-    if (this.formGroup) {
-      try {
-        // Mark as pristine and untouched to prevent change detection
-        this.formGroup.markAsPristine();
-        this.formGroup.markAsUntouched();
-
-        // Clear all controls
-        Object.keys(this.formGroup.controls).forEach((key) => {
-          const control = this.formGroup.get(key);
-          if (control) {
-            control.setValue(null, { emitEvent: false });
-            control.disable({ emitEvent: false });
-          }
+    if (this.currentEditedItem) {
+      if (this.formGroup.dirty) {
+        this.expandActionsColumn();
+        this.action.emit({
+          action: 'edit',
+          item: this.currentEditedItem,
+          value: this.formGroup.value,
         });
-
-        this.formGroup = new UntypedFormGroup({});
-      } catch (error) {
-        console.warn('Error cleaning up form group:', error);
       }
     }
-
-    // Clear editing state
+    this.grid?.closeRow(this.currentEditedRow);
+    this.grid?.cancelCell();
     this.currentEditedRow = 0;
     this.currentEditedItem = null;
     this.editing = false;
+    this.formGroup = new UntypedFormGroup({});
   }
 
   /**
