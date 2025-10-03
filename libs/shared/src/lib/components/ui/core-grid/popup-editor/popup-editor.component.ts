@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   Inject,
+  OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -29,7 +30,7 @@ interface DialogData {
   templateUrl: './popup-editor.component.html',
   styleUrls: ['../../../../style/survey.scss', './popup-editor.component.scss'],
 })
-export class PopupEditorComponent implements OnInit, AfterViewInit {
+export class PopupEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Survey to edit the field */
   public survey!: SurveyModel;
   /** Form container */
@@ -46,7 +47,7 @@ export class PopupEditorComponent implements OnInit, AfterViewInit {
     private dialogRef: DialogRef<any>,
     @Inject(DIALOG_DATA) public data: DialogData,
     private formBuilderService: FormBuilderService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const structure = {
@@ -77,6 +78,13 @@ export class PopupEditorComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.survey.render(this.formContainer.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    // CRITICAL: Clean up SurveyJS to prevent memory leaks
+    if (this.survey) {
+      this.survey.dispose();
+    }
   }
 
   /** Close edition, without saving */

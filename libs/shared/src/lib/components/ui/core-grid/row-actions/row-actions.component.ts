@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
 } from '@angular/core';
 import { ROW_ACTIONS } from '../grid/grid.component';
@@ -25,7 +26,7 @@ const ACTIONS_TRANSLATIONS: Record<(typeof ROW_ACTIONS)[number], string> = {
   templateUrl: './row-actions.component.html',
   styleUrls: ['./row-actions.component.scss'],
 })
-export class GridRowActionsComponent implements OnChanges {
+export class GridRowActionsComponent implements OnChanges, OnDestroy {
   /** Item to be shown */
   @Input() item: any;
 
@@ -96,5 +97,10 @@ export class GridRowActionsComponent implements OnChanges {
         ACTIONS_TRANSLATIONS[action as (typeof ROW_ACTIONS)[number]],
       label: get(this.actions, `${action}.label`, undefined),
     }));
+  }
+
+  ngOnDestroy(): void {
+    // Clean up event emitter to prevent memory leaks
+    this.action.complete();
   }
 }
