@@ -44,6 +44,7 @@ import { GET_RECORD_BY_UNIQUE_FIELD_VALUE } from './graphql/queries';
 import { Metadata } from '../../models/metadata.model';
 import { Overlay, OverlayPositionBuilder } from '@angular/cdk/overlay';
 
+/** Return type for unique property check */
 export type CheckUniqueProprietyReturnT = {
   verified: boolean;
   overwriteRecord?: Record;
@@ -90,9 +91,7 @@ export const transformSurveyData = (survey: SurveyModel) => {
   return data;
 };
 
-/**
- * Interface for tooltip cleanup reference
- */
+/** Interface for tooltip cleanup reference */
 interface TooltipCleanupRef {
   cleanup: () => void;
   surveyId: string;
@@ -106,9 +105,13 @@ interface TooltipCleanupRef {
   providedIn: 'root',
 })
 export class FormHelpersService implements OnDestroy {
+  /** Active subscriptions for cleanup */
   private subscriptions: Subscription[] = [];
+  /** Tooltip cleanup references */
   private tooltipCleanups: TooltipCleanupRef[] = [];
+  /** Active dialog references */
   private activeDialogs: DialogRef<any>[] = [];
+  /** DOM components for cleanup */
   private domComponents: any[] = [];
 
   /**
@@ -146,7 +149,7 @@ export class FormHelpersService implements OnDestroy {
     private dashboardService: DashboardService,
     private overlay: Overlay,
     private overlayPositionBuilder: OverlayPositionBuilder
-  ) {}
+  ) { }
 
   /**
    * Clean up all subscriptions and DOM elements
@@ -185,9 +188,8 @@ export class FormHelpersService implements OnDestroy {
   createRevertDialog(version: any): DialogRef<any> {
     // eslint-disable-next-line radix
     const date = new Date(parseInt(version.createdAt, 0));
-    const formatDate = `${date.getDate()}/${
-      date.getMonth() + 1
-    }/${date.getFullYear()}`;
+    const formatDate = `${date.getDate()}/${date.getMonth() + 1
+      }/${date.getFullYear()}`;
     const dialogRef = this.confirmService.openConfirmModal({
       title: this.translate.instant('components.record.recovery.title'),
       content: this.translate.instant(
@@ -1008,9 +1010,9 @@ export class FormHelpersService implements OnDestroy {
                 question: field.title,
                 value: field.value,
               }) +
-                this.translate.instant(
-                  'components.record.uniqueField.cannotUpdate'
-                ),
+              this.translate.instant(
+                'components.record.uniqueField.cannotUpdate'
+              ),
               { error: true }
             );
             return { verified: false };
@@ -1051,9 +1053,9 @@ export class FormHelpersService implements OnDestroy {
                 question: field.title,
                 value: field.value,
               }) +
-                this.translate.instant(
-                  'components.record.uniqueField.updateRecord'
-                ),
+              this.translate.instant(
+                'components.record.uniqueField.updateRecord'
+              ),
               { error: true }
             );
             const { FormModalComponent } = await import(

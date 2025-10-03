@@ -69,6 +69,7 @@ interface DialogData {
   askForConfirm?: boolean;
   alwaysCreateRecord?: boolean;
 }
+
 /**
  * Defines the default Dialog data
  */
@@ -98,8 +99,7 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
 })
 export class FormModalComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy
-{
+  implements OnInit, OnDestroy {
   /** Reference to form container */
   @ViewChild('formContainer') formContainer!: ElementRef;
   /** Reference to content view container */
@@ -134,15 +134,15 @@ export class FormModalComponent
   protected isMultiEdition = false;
   /** Temporary storage of files */
   protected temporaryFilesStorage: TemporaryFilesStorage = new Map();
-  /** Stored merged data */
+  /** Stores merged data from prefill records for form population */
   private storedMergedData: any;
   /** If new records was uploaded */
   private uploadedRecords = false;
 
-  // Track active GraphQL subscriptions
+  /** Track active GraphQL subscriptions for proper cleanup */
   private activeSubscriptions = new Set<any>();
 
-  // CRITICAL: Track dynamic components for cleanup
+  /** CRITICAL: Track dynamic components for cleanup */
   private dynamicComponents: any[] = [];
 
   /**

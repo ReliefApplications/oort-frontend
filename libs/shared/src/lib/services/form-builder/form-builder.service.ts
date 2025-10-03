@@ -29,9 +29,14 @@ import { FormHelpersService } from '../form-helper/form-helper.service';
 import { cloneDeep, difference, get } from 'lodash';
 import { Form } from '../../models/form.model';
 
+/** Counter for creating unique object IDs */
 let counter = Math.floor(Math.random() * 0xffffff);
 
-const createNewObjectId = () => {
+/**
+ * Creates a new unique object ID
+ * @returns A unique hexadecimal string ID
+ */
+const createNewObjectId = (): string => {
   const timestamp = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, '0');
@@ -47,12 +52,18 @@ const createNewObjectId = () => {
   return timestamp + randomValue + counterHex;
 };
 
+/** Temporary storage for files during form editing */
 export type TemporaryFilesStorage = Map<Question, File[]>;
 
 // CRITICAL: Cache transformed survey data to avoid repeated processing
 const surveyDataCache = new WeakMap<SurveyModel, any>();
 
-export const transformSurveyData = (survey: SurveyModel) => {
+/**
+ * Transforms survey data by cleaning up and processing file downloads
+ * @param survey The survey model to transform data from
+ * @returns The cleaned and processed survey data
+ */
+export const transformSurveyData = (survey: SurveyModel): any => {
   // Check cache first
   if (surveyDataCache.has(survey)) {
     return surveyDataCache.get(survey);
@@ -100,6 +111,12 @@ export const transformSurveyData = (survey: SurveyModel) => {
   return data;
 };
 
+/**
+ * Gets update data by parsing operation string with survey variables
+ * @param op The operation string to parse
+ * @param survey The survey model containing variables
+ * @returns The parsed update data or null if invalid
+ */
 const getUpdateData = (
   op: string,
   survey: SurveyModel
@@ -127,45 +144,59 @@ const getUpdateData = (
 
     return operation
       ? {
-          [operation[1]]: operation[2],
-        }
+        [operation[1]]: operation[2],
+      }
       : null;
   }
 };
 
-// Define proper event handler types
+/** Define proper event handler types */
 interface SurveyEventHandlers {
   afterRenderHandler: (
-    sender: SurveyModel,
-    options: AfterRenderSurveyEvent
+    _sender: SurveyModel,
+    _options: AfterRenderSurveyEvent
   ) => void;
-  clearFilesHandler: (sender: SurveyModel, options: ClearFilesEvent) => void;
-  uploadFilesHandler: (sender: SurveyModel, options: UploadFilesEvent) => void;
+  clearFilesHandler: (_sender: SurveyModel, options: ClearFilesEvent) => void;
+  uploadFilesHandler: (_sender: SurveyModel, options: UploadFilesEvent) => void;
   downloadFileHandler: (
-    sender: SurveyModel,
+    _sender: SurveyModel,
     options: DownloadFileEvent
   ) => void;
   pageChangedHandler: (
-    sender: SurveyModel,
+    _sender: SurveyModel,
     options: CurrentPageChangedEvent
   ) => void;
 }
 
+/**
+ * Service for building and managing survey forms with advanced features
+ * including caching, memory management, and event handling
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class FormBuilderService {
+  /** Current record ID being edited */
   public recordId?: string;
 
-  // Add event handler references for cleanup with proper typing
+  /** Add event handler references for cleanup with proper typing */
   private eventHandlers = new WeakMap<SurveyModel, SurveyEventHandlers>();
 
-  // Track active subscriptions for cleanup
+  /** Track active subscriptions for cleanup */
   private activeSubscriptions = new Set<any>();
 
-  // CRITICAL: Cache for parsed survey structures to avoid duplicate JSON parsing
+  /** CRITICAL: Cache for parsed survey structures to avoid duplicate JSON parsing */
   private surveyStructureCache = new Map<string, any>();
 
+  /**
+   * Constructor for FormBuilderService
+   * @param referenceDataService Service for handling reference data
+   * @param translate Translation service
+   * @param apollo Apollo GraphQL client
+   * @param snackBar Snackbar notification service
+   * @param restService REST API service
+   * @param formHelpersService Form helper utilities
+   */
   constructor(
     private referenceDataService: ReferenceDataService,
     private translate: TranslateService,
@@ -173,7 +204,7 @@ export class FormBuilderService {
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService
-  ) {}
+  ) { }
 
   /**
    * CRITICAL: Clean up all active subscriptions and caches
@@ -194,6 +225,8 @@ export class FormBuilderService {
 
   /**
    * CRITICAL: Parse survey structure with caching to avoid duplicate JSON parsing
+   * @param structure The JSON structure string to parse
+   * @returns The parsed survey structure
    */
   private parseSurveyStructure(structure: string): any {
     const cacheKey = structure; // Use the raw string as cache key
@@ -212,6 +245,14 @@ export class FormBuilderService {
     }
   }
 
+  /**
+   * Creates a new survey model with configured properties and event handlers
+   * @param structure The JSON structure of the survey
+   * @param fields Metadata fields for the survey
+   * @param record Optional record data to prefill
+   * @param form Optional form configuration
+   * @returns The configured survey model
+   */
   createSurvey(
     structure: string,
     fields: Metadata[] = [],
@@ -384,6 +425,7 @@ export class FormBuilderService {
 
   /**
    * CRITICAL FIX: Properly clean up event handlers from survey and DOM elements
+   * @param survey The survey model to clean up
    */
   private clearSurveyEventHandlers(survey: SurveyModel): void {
     const handlers = this.eventHandlers.get(survey);
@@ -428,6 +470,7 @@ export class FormBuilderService {
 
   /**
    * CRITICAL: Enhanced survey disposal to remove DOM elements
+   * @param survey The survey model to dispose
    */
   public disposeSurvey(survey: SurveyModel): void {
     if (!survey) return;
@@ -455,13 +498,17 @@ export class FormBuilderService {
 
   /**
    * FIXED: Proper event handler management with cleanup references
+   * @param survey The survey model to add events to
+   * @param selectedPageIndex Behavior subject for tracking page index
+   * @param temporaryFilesStorage Temporary storage for file uploads
+   * @param destroy$ Subject to trigger cleanup on component destruction
    */
   public addEventsCallBacksToSurvey(
     survey: SurveyModel,
     selectedPageIndex: BehaviorSubject<number>,
     temporaryFilesStorage: TemporaryFilesStorage,
     destroy$: Subject<any>
-  ) {
+  ): void {
     // Clear any existing handlers first
     this.clearSurveyEventHandlers(survey);
 
@@ -478,8 +525,8 @@ export class FormBuilderService {
 
     // CRITICAL: Store event handler references for cleanup with proper typing
     const afterRenderHandler = (
-      sender: SurveyModel,
-      options: AfterRenderSurveyEvent
+      _sender: SurveyModel,
+      _options: AfterRenderSurveyEvent
     ) => {
       if (survey.initialConfigurationDone) {
         return;
@@ -515,21 +562,21 @@ export class FormBuilderService {
       });
     };
 
-    const clearFilesHandler = (sender: SurveyModel, options: ClearFilesEvent) =>
+    const clearFilesHandler = (_sender: SurveyModel, options: ClearFilesEvent) =>
       this.onClearFiles(options);
 
     const uploadFilesHandler = (
-      sender: SurveyModel,
+      _sender: SurveyModel,
       options: UploadFilesEvent
     ) => this.onUploadFiles(temporaryFilesStorage, options);
 
     const downloadFileHandler = (
-      sender: SurveyModel,
+      _sender: SurveyModel,
       options: DownloadFileEvent
     ) => this.onDownloadFile(options);
 
     const pageChangedHandler = (
-      sender: SurveyModel,
+      _sender: SurveyModel,
       options: CurrentPageChangedEvent
     ) => {
       survey.checkErrorsMode = survey.isLastPage ? 'onComplete' : 'onNextPage';
@@ -574,10 +621,19 @@ export class FormBuilderService {
     });
   }
 
+  /**
+   * Handles file clearing events from survey
+   * @param options Clear files event options
+   */
   private onClearFiles(options: ClearFilesEvent): void {
     options.callback('success');
   }
 
+  /**
+   * Handles file upload events from survey
+   * @param temporaryFilesStorage Temporary storage for uploaded files
+   * @param options Upload files event options
+   */
   private onUploadFiles(
     temporaryFilesStorage: TemporaryFilesStorage,
     options: UploadFilesEvent
@@ -611,6 +667,10 @@ export class FormBuilderService {
     });
   }
 
+  /**
+   * Handles file download events from survey
+   * @param options Download file event options
+   */
   private onDownloadFile(options: DownloadFileEvent): void {
     if (
       options.content.indexOf('base64') !== -1 ||
@@ -621,8 +681,8 @@ export class FormBuilderService {
       fetch(options.content.slice(7), {
         headers: options.fileValue.includeOortToken
           ? {
-              Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
-            }
+            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+          }
           : {},
       })
         .then((response) => response.blob())
@@ -670,6 +730,8 @@ export class FormBuilderService {
   /**
    * CRITICAL FIX: This subscription was creating memory leaks!
    * Now properly managed with takeUntil
+   * @param id Record ID to update
+   * @param data Data to update the record with
    */
   private updateRecord(id: string, data: any): void {
     if (id && data) {
