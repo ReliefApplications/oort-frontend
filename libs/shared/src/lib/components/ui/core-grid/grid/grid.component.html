@@ -222,7 +222,7 @@
             *ngIf="['text'].includes(field.meta.type) || !field.meta.type"
           >
             <div
-              class="translate textbox-container"
+              class="textbox-container"
               [style]="dataItem.style[field.name]"
             >
               <div
@@ -254,7 +254,7 @@
             "
           >
             <div
-              class="translate textbox-container"
+              class="textbox-container"
               [style]="dataItem.style[field.name]"
             >
               <div
@@ -383,7 +383,7 @@
             *ngIf="field.meta.type === 'numeric'"
           >
             <div
-              class="translate textbox-container"
+              class="textbox-container"
               [style]="dataItem.style[field.name]"
             >
               <div
@@ -860,7 +860,7 @@
                   field.meta.type === 'multipletext' && dataItem[field.name]
                 "
               >
-                <span class="translate">
+                <span>
                   {{ dataItem[field.name][column.name] }}
                 </span>
               </ng-container>
