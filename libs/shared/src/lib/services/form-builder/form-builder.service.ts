@@ -159,7 +159,7 @@ interface SurveyEventHandlers {
     _sender: SurveyModel,
     _options: AfterRenderSurveyEvent
   ) => void;
-  clearFilesHandler: (_sender: SurveyModel, options: ClearFilesEvent) => void;
+  clearFilesHandler: (_sender: SurveyModel, _options: ClearFilesEvent) => void;
   uploadFilesHandler: (_sender: SurveyModel, options: UploadFilesEvent) => void;
   downloadFileHandler: (
     _sender: SurveyModel,
@@ -573,8 +573,10 @@ export class FormBuilderService {
 
     const clearFilesHandler = (
       _sender: SurveyModel,
-      options: ClearFilesEvent
-    ) => this.onClearFiles(options);
+      _options: ClearFilesEvent
+    ) => {
+      _options.callback('success');
+    };
 
     const uploadFilesHandler = (
       _sender: SurveyModel,
@@ -630,15 +632,6 @@ export class FormBuilderService {
         console.warn('Error during survey cleanup:', error);
       }
     });
-  }
-
-  /**
-   * Handles file clearing events from survey
-   *
-   * @param options Clear files event options
-   */
-  private onClearFiles(_options: ClearFilesEvent): void {
-    _options.callback('success');
   }
 
   /**
