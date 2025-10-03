@@ -146,25 +146,25 @@ export class FormHelpersService implements OnDestroy {
     private dashboardService: DashboardService,
     private overlay: Overlay,
     private overlayPositionBuilder: OverlayPositionBuilder
-  ) { }
+  ) {}
 
   /**
    * Clean up all subscriptions and DOM elements
    */
   ngOnDestroy(): void {
     // Clean up all subscriptions
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
     this.subscriptions = [];
 
     // Clean up all tooltips
     this.cleanupAllTooltips();
 
     // Close all active dialogs
-    this.activeDialogs.forEach(dialogRef => dialogRef.close());
+    this.activeDialogs.forEach((dialogRef) => dialogRef.close());
     this.activeDialogs = [];
 
     // Clean up all DOM components
-    this.domComponents.forEach(component => {
+    this.domComponents.forEach((component) => {
       try {
         if (component && component.destroy) {
           component.destroy();
@@ -185,8 +185,9 @@ export class FormHelpersService implements OnDestroy {
   createRevertDialog(version: any): DialogRef<any> {
     // eslint-disable-next-line radix
     const date = new Date(parseInt(version.createdAt, 0));
-    const formatDate = `${date.getDate()}/${date.getMonth() + 1
-      }/${date.getFullYear()}`;
+    const formatDate = `${date.getDate()}/${
+      date.getMonth() + 1
+    }/${date.getFullYear()}`;
     const dialogRef = this.confirmService.openConfirmModal({
       title: this.translate.instant('components.record.recovery.title'),
       content: this.translate.instant(
@@ -443,13 +444,15 @@ export class FormHelpersService implements OnDestroy {
 
         promises.push(
           firstValueFrom(
-            this.apollo.mutate<AddRecordMutationResponse>({
-              mutation: ADD_RECORD,
-              variables: {
-                form: template,
-                data,
-              },
-            }).pipe(take(1))
+            this.apollo
+              .mutate<AddRecordMutationResponse>({
+                mutation: ADD_RECORD,
+                variables: {
+                  form: template,
+                  data,
+                },
+              })
+              .pipe(take(1))
           ).then((res) => {
             // change the draftId to the new recordId
             const newId = res.data?.addRecord?.id;
@@ -600,7 +603,7 @@ export class FormHelpersService implements OnDestroy {
         const cleanupRef: TooltipCleanupRef = {
           cleanup,
           surveyId: survey.id || 'unknown',
-          questionName: options.question.name || 'unknown'
+          questionName: options.question.name || 'unknown',
         };
 
         this.tooltipCleanups.push(cleanupRef);
@@ -611,7 +614,7 @@ export class FormHelpersService implements OnDestroy {
 
   /**
    * Clean up tooltips for a specific survey
-   * 
+   *
    * @param surveyId The survey ID to clean up tooltips for
    */
   public cleanupSurveyTooltips(surveyId: string): void {
@@ -625,7 +628,7 @@ export class FormHelpersService implements OnDestroy {
     });
 
     // Remove cleaned up references in reverse order
-    toRemove.reverse().forEach(index => {
+    toRemove.reverse().forEach((index) => {
       this.tooltipCleanups.splice(index, 1);
     });
   }
@@ -634,7 +637,7 @@ export class FormHelpersService implements OnDestroy {
    * Clean up all tooltips
    */
   private cleanupAllTooltips(): void {
-    this.tooltipCleanups.forEach(cleanupRef => {
+    this.tooltipCleanups.forEach((cleanupRef) => {
       try {
         cleanupRef.cleanup();
       } catch (error) {
@@ -723,13 +726,14 @@ export class FormHelpersService implements OnDestroy {
       // Check if a draft has already been loaded
       if (!draftId) {
         // Add a new draft record to the database
-        const subscription = this.apollo.mutate<AddDraftRecordMutationResponse>({
-          mutation: ADD_DRAFT_RECORD,
-          variables: {
-            form: formId,
-            data: survey.data,
-          },
-        })
+        const subscription = this.apollo
+          .mutate<AddDraftRecordMutationResponse>({
+            mutation: ADD_DRAFT_RECORD,
+            variables: {
+              form: formId,
+              data: survey.data,
+            },
+          })
           .pipe(take(1))
           .subscribe({
             next: ({ errors, data }) => {
@@ -765,13 +769,14 @@ export class FormHelpersService implements OnDestroy {
         this.subscriptions.push(subscription);
       } else {
         // Edit last added draft record in the database
-        const subscription = this.apollo.mutate<EditDraftRecordMutationResponse>({
-          mutation: EDIT_DRAFT_RECORD,
-          variables: {
-            id: draftId,
-            data: survey.data,
-          },
-        })
+        const subscription = this.apollo
+          .mutate<EditDraftRecordMutationResponse>({
+            mutation: EDIT_DRAFT_RECORD,
+            variables: {
+              id: draftId,
+              data: survey.data,
+            },
+          })
           .pipe(take(1))
           .subscribe({
             next: ({ errors }: any) => {
@@ -977,13 +982,15 @@ export class FormHelpersService implements OnDestroy {
           continue;
         }
         const { data } = await lastValueFrom(
-          this.apollo.query<RecordQueryResponse>({
-            query: GET_RECORD_BY_UNIQUE_FIELD_VALUE,
-            variables: {
-              uniqueField: field.name,
-              uniqueValue: field.value,
-            },
-          }).pipe(take(1))
+          this.apollo
+            .query<RecordQueryResponse>({
+              query: GET_RECORD_BY_UNIQUE_FIELD_VALUE,
+              variables: {
+                uniqueField: field.name,
+                uniqueValue: field.value,
+              },
+            })
+            .pipe(take(1))
         );
 
         // If the record is the same as the one we are editing, we can skip the check
@@ -1001,9 +1008,9 @@ export class FormHelpersService implements OnDestroy {
                 question: field.title,
                 value: field.value,
               }) +
-              this.translate.instant(
-                'components.record.uniqueField.cannotUpdate'
-              ),
+                this.translate.instant(
+                  'components.record.uniqueField.cannotUpdate'
+                ),
               { error: true }
             );
             return { verified: false };
@@ -1044,9 +1051,9 @@ export class FormHelpersService implements OnDestroy {
                 question: field.title,
                 value: field.value,
               }) +
-              this.translate.instant(
-                'components.record.uniqueField.updateRecord'
-              ),
+                this.translate.instant(
+                  'components.record.uniqueField.updateRecord'
+                ),
               { error: true }
             );
             const { FormModalComponent } = await import(
@@ -1070,7 +1077,9 @@ export class FormHelpersService implements OnDestroy {
             //   // }
             // });
 
-            const updateRecordDialogRef = await lastValueFrom(dialogRef.closed.pipe(take(1)));
+            const updateRecordDialogRef = await lastValueFrom(
+              dialogRef.closed.pipe(take(1))
+            );
             if (updateRecordDialogRef) {
               continue;
             } else {

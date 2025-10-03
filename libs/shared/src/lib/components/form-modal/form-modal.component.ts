@@ -98,7 +98,8 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
 })
 export class FormModalComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy
+{
   /** Reference to form container */
   @ViewChild('formContainer') formContainer!: ElementRef;
   /** Reference to content view container */
@@ -953,7 +954,7 @@ export class FormModalComponent
     this.cdRef.detach();
 
     // CRITICAL: Clean up all active subscriptions
-    this.activeSubscriptions.forEach(subscription => {
+    this.activeSubscriptions.forEach((subscription) => {
       try {
         subscription.unsubscribe();
       } catch (error) {
@@ -963,7 +964,7 @@ export class FormModalComponent
     this.activeSubscriptions.clear();
 
     // CRITICAL: Clean up dynamic components
-    this.dynamicComponents.forEach(component => {
+    this.dynamicComponents.forEach((component) => {
       try {
         // Clear the view container reference first
         if (this.uploadRecordsContent) {

@@ -11,7 +11,7 @@ import {
   ClearFilesEvent,
   UploadFilesEvent,
   DownloadFileEvent,
-  CurrentPageChangedEvent
+  CurrentPageChangedEvent,
 } from 'survey-core';
 import { ReferenceDataService } from '../reference-data/reference-data.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
@@ -127,19 +127,28 @@ const getUpdateData = (
 
     return operation
       ? {
-        [operation[1]]: operation[2],
-      }
+          [operation[1]]: operation[2],
+        }
       : null;
   }
 };
 
 // Define proper event handler types
 interface SurveyEventHandlers {
-  afterRenderHandler: (sender: SurveyModel, options: AfterRenderSurveyEvent) => void;
+  afterRenderHandler: (
+    sender: SurveyModel,
+    options: AfterRenderSurveyEvent
+  ) => void;
   clearFilesHandler: (sender: SurveyModel, options: ClearFilesEvent) => void;
   uploadFilesHandler: (sender: SurveyModel, options: UploadFilesEvent) => void;
-  downloadFileHandler: (sender: SurveyModel, options: DownloadFileEvent) => void;
-  pageChangedHandler: (sender: SurveyModel, options: CurrentPageChangedEvent) => void;
+  downloadFileHandler: (
+    sender: SurveyModel,
+    options: DownloadFileEvent
+  ) => void;
+  pageChangedHandler: (
+    sender: SurveyModel,
+    options: CurrentPageChangedEvent
+  ) => void;
 }
 
 @Injectable({
@@ -164,13 +173,13 @@ export class FormBuilderService {
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService
-  ) { }
+  ) {}
 
   /**
    * CRITICAL: Clean up all active subscriptions and caches
    */
   public destroy(): void {
-    this.activeSubscriptions.forEach(subscription => {
+    this.activeSubscriptions.forEach((subscription) => {
       try {
         subscription.unsubscribe();
       } catch (error) {
@@ -256,14 +265,20 @@ export class FormBuilderService {
         const validationHandler = () => {
           question.validate();
         };
-        question.registerFunctionOnPropertyValueChanged('value', validationHandler);
+        question.registerFunctionOnPropertyValueChanged(
+          'value',
+          validationHandler
+        );
         // Store handler reference for cleanup
         (question as any).validationHandler = validationHandler;
       }
     });
 
     survey.onQuestionValueChanged = {};
-    const valueChangedHandler = (_: any, options: { name: string | number; }) => {
+    const valueChangedHandler = (
+      _: any,
+      options: { name: string | number }
+    ) => {
       if (survey.onQuestionValueChanged[options.name]) {
         survey.onQuestionValueChanged[options.name](options);
       }
@@ -462,7 +477,10 @@ export class FormBuilderService {
     this.activeSubscriptions.add(pageIndexSubscription);
 
     // CRITICAL: Store event handler references for cleanup with proper typing
-    const afterRenderHandler = (sender: SurveyModel, options: AfterRenderSurveyEvent) => {
+    const afterRenderHandler = (
+      sender: SurveyModel,
+      options: AfterRenderSurveyEvent
+    ) => {
       if (survey.initialConfigurationDone) {
         return;
       }
@@ -497,15 +515,23 @@ export class FormBuilderService {
       });
     };
 
-    const clearFilesHandler = (sender: SurveyModel, options: ClearFilesEvent) => this.onClearFiles(options);
+    const clearFilesHandler = (sender: SurveyModel, options: ClearFilesEvent) =>
+      this.onClearFiles(options);
 
-    const uploadFilesHandler = (sender: SurveyModel, options: UploadFilesEvent) =>
-      this.onUploadFiles(temporaryFilesStorage, options);
+    const uploadFilesHandler = (
+      sender: SurveyModel,
+      options: UploadFilesEvent
+    ) => this.onUploadFiles(temporaryFilesStorage, options);
 
-    const downloadFileHandler = (sender: SurveyModel, options: DownloadFileEvent) =>
-      this.onDownloadFile(options);
+    const downloadFileHandler = (
+      sender: SurveyModel,
+      options: DownloadFileEvent
+    ) => this.onDownloadFile(options);
 
-    const pageChangedHandler = (sender: SurveyModel, options: CurrentPageChangedEvent) => {
+    const pageChangedHandler = (
+      sender: SurveyModel,
+      options: CurrentPageChangedEvent
+    ) => {
       survey.checkErrorsMode = survey.isLastPage ? 'onComplete' : 'onNextPage';
       if (survey.currentPageNo !== selectedPageIndex.getValue()) {
         selectedPageIndex.next(survey.currentPageNo);
@@ -525,7 +551,7 @@ export class FormBuilderService {
       clearFilesHandler,
       uploadFilesHandler,
       downloadFileHandler,
-      pageChangedHandler
+      pageChangedHandler,
     });
 
     // CRITICAL FIX: Clean up everything when destroy$ emits
@@ -595,8 +621,8 @@ export class FormBuilderService {
       fetch(options.content.slice(7), {
         headers: options.fileValue.includeOortToken
           ? {
-            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
-          }
+              Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+            }
           : {},
       })
         .then((response) => response.blob())
@@ -690,7 +716,7 @@ export class FormBuilderService {
             destroySubject.next();
             destroySubject.complete();
             this.activeSubscriptions.delete(subscription);
-          }
+          },
         });
 
       // Track this subscription
