@@ -144,8 +144,8 @@ const getUpdateData = (
 
     return operation
       ? {
-        [operation[1]]: operation[2],
-      }
+          [operation[1]]: operation[2],
+        }
       : null;
   }
 };
@@ -204,7 +204,7 @@ export class FormBuilderService {
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService
-  ) { }
+  ) {}
 
   /**
    * CRITICAL: Clean up all active subscriptions and caches
@@ -562,8 +562,10 @@ export class FormBuilderService {
       });
     };
 
-    const clearFilesHandler = (_sender: SurveyModel, options: ClearFilesEvent) =>
-      this.onClearFiles(options);
+    const clearFilesHandler = (
+      _sender: SurveyModel,
+      options: ClearFilesEvent
+    ) => this.onClearFiles(options);
 
     const uploadFilesHandler = (
       _sender: SurveyModel,
@@ -681,8 +683,8 @@ export class FormBuilderService {
       fetch(options.content.slice(7), {
         headers: options.fileValue.includeOortToken
           ? {
-            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
-          }
+              Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+            }
           : {},
       })
         .then((response) => response.blob())

@@ -99,7 +99,8 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
 })
 export class FormModalComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy
+{
   /** Reference to form container */
   @ViewChild('formContainer') formContainer!: ElementRef;
   /** Reference to content view container */
