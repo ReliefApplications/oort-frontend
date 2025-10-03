@@ -34,6 +34,7 @@ let counter = Math.floor(Math.random() * 0xffffff);
 
 /**
  * Creates a new unique object ID
+ *
  * @returns A unique hexadecimal string ID
  */
 const createNewObjectId = (): string => {
@@ -55,11 +56,12 @@ const createNewObjectId = (): string => {
 /** Temporary storage for files during form editing */
 export type TemporaryFilesStorage = Map<Question, File[]>;
 
-// CRITICAL: Cache transformed survey data to avoid repeated processing
+/** CRITICAL: Cache transformed survey data to avoid repeated processing */
 const surveyDataCache = new WeakMap<SurveyModel, any>();
 
 /**
  * Transforms survey data by cleaning up and processing file downloads
+ *
  * @param survey The survey model to transform data from
  * @returns The cleaned and processed survey data
  */
@@ -113,6 +115,7 @@ export const transformSurveyData = (survey: SurveyModel): any => {
 
 /**
  * Gets update data by parsing operation string with survey variables
+ *
  * @param op The operation string to parse
  * @param survey The survey model containing variables
  * @returns The parsed update data or null if invalid
@@ -144,8 +147,8 @@ const getUpdateData = (
 
     return operation
       ? {
-          [operation[1]]: operation[2],
-        }
+        [operation[1]]: operation[2],
+      }
       : null;
   }
 };
@@ -190,6 +193,7 @@ export class FormBuilderService {
 
   /**
    * Constructor for FormBuilderService
+   *
    * @param referenceDataService Service for handling reference data
    * @param translate Translation service
    * @param apollo Apollo GraphQL client
@@ -204,7 +208,7 @@ export class FormBuilderService {
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService
-  ) {}
+  ) { }
 
   /**
    * CRITICAL: Clean up all active subscriptions and caches
@@ -225,6 +229,7 @@ export class FormBuilderService {
 
   /**
    * CRITICAL: Parse survey structure with caching to avoid duplicate JSON parsing
+   *
    * @param structure The JSON structure string to parse
    * @returns The parsed survey structure
    */
@@ -247,6 +252,7 @@ export class FormBuilderService {
 
   /**
    * Creates a new survey model with configured properties and event handlers
+   *
    * @param structure The JSON structure of the survey
    * @param fields Metadata fields for the survey
    * @param record Optional record data to prefill
@@ -425,6 +431,7 @@ export class FormBuilderService {
 
   /**
    * CRITICAL FIX: Properly clean up event handlers from survey and DOM elements
+   *
    * @param survey The survey model to clean up
    */
   private clearSurveyEventHandlers(survey: SurveyModel): void {
@@ -470,6 +477,7 @@ export class FormBuilderService {
 
   /**
    * CRITICAL: Enhanced survey disposal to remove DOM elements
+   *
    * @param survey The survey model to dispose
    */
   public disposeSurvey(survey: SurveyModel): void {
@@ -498,6 +506,7 @@ export class FormBuilderService {
 
   /**
    * FIXED: Proper event handler management with cleanup references
+   *
    * @param survey The survey model to add events to
    * @param selectedPageIndex Behavior subject for tracking page index
    * @param temporaryFilesStorage Temporary storage for file uploads
@@ -625,14 +634,16 @@ export class FormBuilderService {
 
   /**
    * Handles file clearing events from survey
+   *
    * @param options Clear files event options
    */
-  private onClearFiles(options: ClearFilesEvent): void {
-    options.callback('success');
+  private onClearFiles(_options: ClearFilesEvent): void {
+    _options.callback('success');
   }
 
   /**
    * Handles file upload events from survey
+   *
    * @param temporaryFilesStorage Temporary storage for uploaded files
    * @param options Upload files event options
    */
@@ -671,6 +682,7 @@ export class FormBuilderService {
 
   /**
    * Handles file download events from survey
+   *
    * @param options Download file event options
    */
   private onDownloadFile(options: DownloadFileEvent): void {
@@ -683,8 +695,8 @@ export class FormBuilderService {
       fetch(options.content.slice(7), {
         headers: options.fileValue.includeOortToken
           ? {
-              Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
-            }
+            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+          }
           : {},
       })
         .then((response) => response.blob())
@@ -732,6 +744,7 @@ export class FormBuilderService {
   /**
    * CRITICAL FIX: This subscription was creating memory leaks!
    * Now properly managed with takeUntil
+   *
    * @param id Record ID to update
    * @param data Data to update the record with
    */
