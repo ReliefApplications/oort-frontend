@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
 import {
   IPanel,
   PageModel,
@@ -8,7 +8,8 @@ import {
 import { Apollo } from 'apollo-angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmService } from '../confirm/confirm.service';
-import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom, Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { ADD_RECORD } from '../../components/form/graphql/mutations';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import {
@@ -90,12 +91,26 @@ export const transformSurveyData = (survey: SurveyModel) => {
 };
 
 /**
+ * Interface for tooltip cleanup reference
+ */
+interface TooltipCleanupRef {
+  cleanup: () => void;
+  surveyId: string;
+  questionName: string;
+}
+
+/**
  * Shared survey helper service.
  */
 @Injectable({
   providedIn: 'root',
 })
-export class FormHelpersService {
+export class FormHelpersService implements OnDestroy {
+  private subscriptions: Subscription[] = [];
+  private tooltipCleanups: TooltipCleanupRef[] = [];
+  private activeDialogs: DialogRef<any>[] = [];
+  private domComponents: any[] = [];
+
   /**
    * Shared survey helper service.
    *
@@ -131,7 +146,35 @@ export class FormHelpersService {
     private dashboardService: DashboardService,
     private overlay: Overlay,
     private overlayPositionBuilder: OverlayPositionBuilder
-  ) {}
+  ) { }
+
+  /**
+   * Clean up all subscriptions and DOM elements
+   */
+  ngOnDestroy(): void {
+    // Clean up all subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions = [];
+
+    // Clean up all tooltips
+    this.cleanupAllTooltips();
+
+    // Close all active dialogs
+    this.activeDialogs.forEach(dialogRef => dialogRef.close());
+    this.activeDialogs = [];
+
+    // Clean up all DOM components
+    this.domComponents.forEach(component => {
+      try {
+        if (component && component.destroy) {
+          component.destroy();
+        }
+      } catch (error) {
+        console.warn('Error destroying DOM component:', error);
+      }
+    });
+    this.domComponents = [];
+  }
 
   /**
    * Create a dialog modal to confirm the recovery of survey data
@@ -142,9 +185,8 @@ export class FormHelpersService {
   createRevertDialog(version: any): DialogRef<any> {
     // eslint-disable-next-line radix
     const date = new Date(parseInt(version.createdAt, 0));
-    const formatDate = `${date.getDate()}/${
-      date.getMonth() + 1
-    }/${date.getFullYear()}`;
+    const formatDate = `${date.getDate()}/${date.getMonth() + 1
+      }/${date.getFullYear()}`;
     const dialogRef = this.confirmService.openConfirmModal({
       title: this.translate.instant('components.record.recovery.title'),
       content: this.translate.instant(
@@ -154,6 +196,18 @@ export class FormHelpersService {
       confirmText: this.translate.instant('components.confirmModal.confirm'),
       confirmVariant: 'primary',
     });
+
+    // Track the dialog reference for cleanup
+    this.activeDialogs.push(dialogRef as any);
+
+    // Auto-remove from tracking when dialog closes
+    dialogRef.closed.pipe(take(1)).subscribe(() => {
+      const index = this.activeDialogs.indexOf(dialogRef as any);
+      if (index > -1) {
+        this.activeDialogs.splice(index, 1);
+      }
+    });
+
     return dialogRef as any;
   }
 
@@ -242,7 +296,9 @@ export class FormHelpersService {
                   if (data != null) {
                     // We ensure to make it only if such a record is found
                     const recordFromResource = JSON.parse(data);
-                    this.apollo
+
+                    // Use take(1) to auto-unsubscribe
+                    const subscription = this.apollo
                       .mutate<AddRecordMutationResponse>({
                         mutation: ADD_RECORD,
                         variables: {
@@ -250,6 +306,7 @@ export class FormHelpersService {
                           data: recordFromResource.data,
                         },
                       })
+                      .pipe(take(1))
                       .subscribe({
                         next: ({ data, errors }) => {
                           if (errors) {
@@ -276,6 +333,9 @@ export class FormHelpersService {
                           reject(err);
                         },
                       });
+
+                    // Track subscription for cleanup
+                    this.subscriptions.push(subscription);
                   } else {
                     resolve(); //there is no data
                   }
@@ -389,7 +449,7 @@ export class FormHelpersService {
                 form: template,
                 data,
               },
-            })
+            }).pipe(take(1))
           ).then((res) => {
             // change the draftId to the new recordId
             const newId = res.data?.addRecord?.id;
@@ -458,14 +518,15 @@ export class FormHelpersService {
   /**
    * Add tooltip to the survey question if exists
    *
-   * @param _ current survey
+   * @param survey current survey
    * @param options current survey question options
    */
-  public addQuestionTooltips(_: any, options: any): void {
-    //Return if there is no description to show in popup
+  public addQuestionTooltips(survey: SurveyModel, options: any): void {
+    // Return if there is no description to show in popup
     if (!options.question.tooltip) {
       return;
     }
+
     const titleElement = (options.htmlElement as HTMLElement).querySelector(
       '.sd-question__title'
     );
@@ -496,6 +557,7 @@ export class FormHelpersService {
         tooltipDirective.onMouseDown =
           tooltipDirective.onMouseDown.bind(tooltipDirective);
 
+        // Add event listeners
         component.location.nativeElement.addEventListener(
           'mouseenter',
           tooltipDirective.onMouseEnter
@@ -511,8 +573,75 @@ export class FormHelpersService {
 
         // Sets the tooltip text
         component.instance.tooltip = options.question.tooltip;
+
+        // Create cleanup function
+        const cleanup = () => {
+          // Remove event listeners
+          component.location.nativeElement.removeEventListener(
+            'mouseenter',
+            tooltipDirective.onMouseEnter
+          );
+          component.location.nativeElement.removeEventListener(
+            'mouseleave',
+            tooltipDirective.onMouseLeave
+          );
+          component.location.nativeElement.removeEventListener(
+            'mousedown',
+            tooltipDirective.onMouseDown
+          );
+
+          // Destroy component
+          if (component && component.destroy) {
+            component.destroy();
+          }
+        };
+
+        // Store cleanup reference
+        const cleanupRef: TooltipCleanupRef = {
+          cleanup,
+          surveyId: survey.id || 'unknown',
+          questionName: options.question.name || 'unknown'
+        };
+
+        this.tooltipCleanups.push(cleanupRef);
+        this.domComponents.push(component);
       });
     }
+  }
+
+  /**
+   * Clean up tooltips for a specific survey
+   * 
+   * @param surveyId The survey ID to clean up tooltips for
+   */
+  public cleanupSurveyTooltips(surveyId: string): void {
+    const toRemove: number[] = [];
+
+    this.tooltipCleanups.forEach((cleanupRef, index) => {
+      if (cleanupRef.surveyId === surveyId) {
+        cleanupRef.cleanup();
+        toRemove.push(index);
+      }
+    });
+
+    // Remove cleaned up references in reverse order
+    toRemove.reverse().forEach(index => {
+      this.tooltipCleanups.splice(index, 1);
+    });
+  }
+
+  /**
+   * Clean up all tooltips
+   */
+  private cleanupAllTooltips(): void {
+    this.tooltipCleanups.forEach(cleanupRef => {
+      try {
+        cleanupRef.cleanup();
+      } catch (error) {
+        console.warn('Error cleaning up tooltip:', error);
+      }
+    });
+    this.tooltipCleanups = [];
   }
 
   /**
@@ -594,79 +723,88 @@ export class FormHelpersService {
       // Check if a draft has already been loaded
       if (!draftId) {
         // Add a new draft record to the database
-        const mutation = this.apollo.mutate<AddDraftRecordMutationResponse>({
+        const subscription = this.apollo.mutate<AddDraftRecordMutationResponse>({
           mutation: ADD_DRAFT_RECORD,
           variables: {
             form: formId,
             data: survey.data,
           },
-        });
-        mutation.subscribe({
-          next: ({ errors, data }) => {
-            if (errors) {
-              survey.clear(false, true);
-              this.snackBar.openSnackBar(errors[0].message, { error: true });
-            } else {
-              // localStorage.removeItem(this.storageId);
-              this.snackBar.openSnackBar(
-                this.translate.instant(
-                  'components.form.draftRecords.successSave'
-                ),
-                {
-                  error: false,
-                }
-              );
-            }
-            // Callback to emit save but stay in record addition mode
-            if (callback) {
-              callback({
-                id: data?.addDraftRecord.id,
-                save: {
-                  completed: false,
-                  hideNewRecord: true,
-                },
-              });
-            }
-          },
-          error: (err) => {
-            this.snackBar.openSnackBar(err.message, { error: true });
-          },
-        });
+        })
+          .pipe(take(1))
+          .subscribe({
+            next: ({ errors, data }) => {
+              if (errors) {
+                survey.clear(false, true);
+                this.snackBar.openSnackBar(errors[0].message, { error: true });
+              } else {
+                this.snackBar.openSnackBar(
+                  this.translate.instant(
+                    'components.form.draftRecords.successSave'
+                  ),
+                  {
+                    error: false,
+                  }
+                );
+              }
+              // Callback to emit save but stay in record addition mode
+              if (callback) {
+                callback({
+                  id: data?.addDraftRecord.id,
+                  save: {
+                    completed: false,
+                    hideNewRecord: true,
+                  },
+                });
+              }
+            },
+            error: (err) => {
+              this.snackBar.openSnackBar(err.message, { error: true });
+            },
+          });
+
+        this.subscriptions.push(subscription);
       } else {
         // Edit last added draft record in the database
-        const mutation = this.apollo.mutate<EditDraftRecordMutationResponse>({
+        const subscription = this.apollo.mutate<EditDraftRecordMutationResponse>({
           mutation: EDIT_DRAFT_RECORD,
           variables: {
             id: draftId,
             data: survey.data,
           },
-        });
-        mutation.subscribe(({ errors }: any) => {
-          if (errors) {
-            survey.clear(false, true);
-            this.snackBar.openSnackBar(errors[0].message, { error: true });
-          } else {
-            // localStorage.removeItem(this.storageId);
-            this.snackBar.openSnackBar(
-              this.translate.instant(
-                'components.form.draftRecords.successEdit'
-              ),
-              {
-                error: false,
+        })
+          .pipe(take(1))
+          .subscribe({
+            next: ({ errors }: any) => {
+              if (errors) {
+                survey.clear(false, true);
+                this.snackBar.openSnackBar(errors[0].message, { error: true });
+              } else {
+                this.snackBar.openSnackBar(
+                  this.translate.instant(
+                    'components.form.draftRecords.successEdit'
+                  ),
+                  {
+                    error: false,
+                  }
+                );
               }
-            );
-          }
-          // Callback to emit save but stay in record addition mode
-          if (callback) {
-            callback({
-              id: draftId,
-              save: {
-                completed: false,
-                hideNewRecord: true,
-              },
-            });
-          }
-        });
+              // Callback to emit save but stay in record addition mode
+              if (callback) {
+                callback({
+                  id: draftId,
+                  save: {
+                    completed: false,
+                    hideNewRecord: true,
+                  },
+                });
+              }
+            },
+            error: (err) => {
+              this.snackBar.openSnackBar(err.message, { error: true });
+            },
+          });
+
+        this.subscriptions.push(subscription);
       }
     });
   }
@@ -678,18 +816,21 @@ export class FormHelpersService {
    * @param callback callback method
    */
   public deleteRecordDraft(draftId: string, callback?: any): void {
-    this.apollo
+    const subscription = this.apollo
       .mutate<any>({
         mutation: DELETE_DRAFT_RECORD,
         variables: {
           id: draftId,
         },
       })
+      .pipe(take(1))
       .subscribe(() => {
         if (callback) {
           callback();
         }
       });
+
+    this.subscriptions.push(subscription);
   }
 
   /**
@@ -722,6 +863,7 @@ export class FormHelpersService {
       application?.description ?? null
     );
   };
+
   /**
    * Registration of new custom variables for the survey.
    * Custom variables can be used in the logic fields.
@@ -841,7 +983,7 @@ export class FormHelpersService {
               uniqueField: field.name,
               uniqueValue: field.value,
             },
-          })
+          }).pipe(take(1))
         );
 
         // If the record is the same as the one we are editing, we can skip the check
@@ -853,15 +995,15 @@ export class FormHelpersService {
             (metadataField: Metadata) => field.name === metadataField.name
           )?.canUpdate;
           if (!canUpdate) {
-            // if user doesn’t have permission to edit that record, permission denied
+            // if user doesn't have permission to edit that record, permission denied
             this.snackBar.openSnackBar(
               this.translate.instant('components.record.uniqueField.exist', {
                 question: field.title,
                 value: field.value,
               }) +
-                this.translate.instant(
-                  'components.record.uniqueField.cannotUpdate'
-                ),
+              this.translate.instant(
+                'components.record.uniqueField.cannotUpdate'
+              ),
               { error: true }
             );
             return { verified: false };
@@ -888,7 +1030,7 @@ export class FormHelpersService {
               ),
               confirmVariant: 'primary',
             });
-            const confirm = await lastValueFrom(dialogRef.closed);
+            const confirm = await lastValueFrom(dialogRef.closed.pipe(take(1)));
             if (confirm) {
               checkUniqueResponse.overwriteRecord = data.record;
               continue;
@@ -902,9 +1044,9 @@ export class FormHelpersService {
                 question: field.title,
                 value: field.value,
               }) +
-                this.translate.instant(
-                  'components.record.uniqueField.updateRecord'
-                ),
+              this.translate.instant(
+                'components.record.uniqueField.updateRecord'
+              ),
               { error: true }
             );
             const { FormModalComponent } = await import(
@@ -918,7 +1060,17 @@ export class FormHelpersService {
               },
               autoFocus: false,
             });
-            const updateRecordDialogRef = await lastValueFrom(dialogRef.closed);
+
+            // Track dialog for cleanup
+            //this.activeDialogs.push(dialogRef);
+            // dialogRef.closed.pipe(take(1)).subscribe(() => {
+            //   // const index = this.activeDialogs.indexOf(dialogRef);
+            //   // if (index > -1) {
+            //   //   this.activeDialogs.splice(index, 1);
+            //   // }
+            // });
+
+            const updateRecordDialogRef = await lastValueFrom(dialogRef.closed.pipe(take(1)));
             if (updateRecordDialogRef) {
               continue;
             } else {
