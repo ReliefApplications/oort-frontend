@@ -7,11 +7,6 @@ import {
   SurveyModel,
   settings,
   IPanel,
-  AfterRenderSurveyEvent,
-  ClearFilesEvent,
-  UploadFilesEvent,
-  DownloadFileEvent,
-  CurrentPageChangedEvent,
 } from 'survey-core';
 import { ReferenceDataService } from '../reference-data/reference-data.service';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
@@ -29,15 +24,14 @@ import { FormHelpersService } from '../form-helper/form-helper.service';
 import { cloneDeep, difference, get } from 'lodash';
 import { Form } from '../../models/form.model';
 
-/** Counter for creating unique object IDs */
-let counter = Math.floor(Math.random() * 0xffffff);
+let counter = Math.floor(Math.random() * 0xffffff); // Initialize counter with a random value
 
 /**
- * Creates a new unique object ID
+ * Generates a new MongoDB ObjectId.
  *
- * @returns A unique hexadecimal string ID
+ * @returns A new ObjectId in the form of a 24-character hexadecimal string.
  */
-const createNewObjectId = (): string => {
+const createNewObjectId = () => {
   const timestamp = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, '0');
@@ -53,41 +47,41 @@ const createNewObjectId = (): string => {
   return timestamp + randomValue + counterHex;
 };
 
-/** Temporary storage for files during form editing */
+/** Type for the temporary file storage */
 export type TemporaryFilesStorage = Map<Question, File[]>;
 
-/** CRITICAL: Cache transformed survey data to avoid repeated processing */
-const surveyDataCache = new WeakMap<SurveyModel, any>();
-
 /**
- * Transforms survey data by cleaning up and processing file downloads
+ * Applies custom logic to survey data values.
  *
- * @param survey The survey model to transform data from
- * @returns The cleaned and processed survey data
+ * @param survey Survey instance
+ * @returns Transformed survey data
  */
-export const transformSurveyData = (survey: SurveyModel): any => {
-  // Check cache first
-  if (surveyDataCache.has(survey)) {
-    return surveyDataCache.get(survey);
-  }
-
+export const transformSurveyData = (survey: SurveyModel) => {
+  // Cloning data to avoid mutating the original survey data
   const data = cloneDeep(survey.data) ?? {};
 
   Object.keys(data).forEach((filed) => {
     const question = survey.getQuestionByName(filed);
+    // Removes data that isn't in the structure, that might've come from prefilling data
     if (!question) {
       delete data[filed];
     } else {
       const isQuestionVisible = (question: Question | IPanel): boolean => {
+        // If question is not visible, return false
         if (!question.isVisible || !question) {
           return false;
         }
+
+        // If it is, check if its parent is visible
         if (question.parent) {
           return isQuestionVisible(question.parent);
         }
+
+        // If we're in the root and it's visible, return true
         return true;
       };
 
+      // Removes null values for invisible questions (or pages)
       if (
         (!isQuestionVisible(question) && data[filed] === null) ||
         question.omitField
@@ -95,6 +89,7 @@ export const transformSurveyData = (survey: SurveyModel): any => {
         delete data[filed];
       }
 
+      // Remove data from files if from URL
       if (question.downloadFileFrom) {
         data[filed] = [
           {
@@ -108,24 +103,25 @@ export const transformSurveyData = (survey: SurveyModel): any => {
     }
   });
 
-  // Cache the result
-  surveyDataCache.set(survey, data);
   return data;
 };
 
 /**
- * Gets update data by parsing operation string with survey variables
+ * Gets the payload for the update mutation
  *
- * @param op The operation string to parse
- * @param survey The survey model containing variables
- * @returns The parsed update data or null if invalid
+ * @param op Input expression in the form of {key} = "value"
+ * @param survey Survey instance
+ * @returns Formatted payload for the update mutation
  */
 const getUpdateData = (
   op: string,
   survey: SurveyModel
 ): Record<string, any> | null => {
   if (!op) return null;
+  // Op can either be a stringified JSON object or
+  // in the form of {key} = "value"
   try {
+    // Replace used variables with their values
     survey.getVariableNames().forEach((variable) => {
       op = op.replace(
         new RegExp(`{${variable}}`, 'g'),
@@ -133,6 +129,7 @@ const getUpdateData = (
       );
     });
 
+    // Replace question template with their values
     survey.getAllQuestions().forEach((question) => {
       op = op.replace(
         new RegExp(`{${question.name}}`, 'g'),
@@ -142,8 +139,10 @@ const getUpdateData = (
 
     return JSON.parse(op);
   } catch {
+    // Original way of parsing the expression.
+    // Matches {key} = "value" and returns the key and value
     const regex = /{\s*(\b.*\b)\s*}\s*=\s*"(.*)"/g;
-    const operation = regex.exec(op);
+    const operation = regex.exec(op); // divide string into groups for key : value mapping
 
     return operation
       ? {
@@ -153,53 +152,26 @@ const getUpdateData = (
   }
 };
 
-/** Define proper event handler types */
-interface SurveyEventHandlers {
-  afterRenderHandler: (
-    _sender: SurveyModel,
-    _options: AfterRenderSurveyEvent
-  ) => void;
-  clearFilesHandler: (_sender: SurveyModel, _options: ClearFilesEvent) => void;
-  uploadFilesHandler: (_sender: SurveyModel, options: UploadFilesEvent) => void;
-  downloadFileHandler: (
-    _sender: SurveyModel,
-    options: DownloadFileEvent
-  ) => void;
-  pageChangedHandler: (
-    _sender: SurveyModel,
-    options: CurrentPageChangedEvent
-  ) => void;
-}
-
 /**
- * Service for building and managing survey forms with advanced features
- * including caching, memory management, and event handling
+ * Shared form builder service.
+ * Only used to add on complete expression to the survey.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class FormBuilderService {
-  /** Current record ID being edited */
+  /** If updating record, saves recordId if necessary gets files from questions */
   public recordId?: string;
 
-  /** Add event handler references for cleanup with proper typing */
-  private eventHandlers = new WeakMap<SurveyModel, SurveyEventHandlers>();
-
-  /** Track active subscriptions for cleanup */
-  private activeSubscriptions = new Set<any>();
-
-  /** CRITICAL: Cache for parsed survey structures to avoid duplicate JSON parsing */
-  private surveyStructureCache = new Map<string, any>();
-
   /**
-   * Constructor for FormBuilderService
+   * Constructor of the service
    *
-   * @param referenceDataService Service for handling reference data
+   * @param referenceDataService Reference data service
    * @param translate Translation service
-   * @param apollo Apollo GraphQL client
-   * @param snackBar Snackbar notification service
-   * @param restService REST API service
-   * @param formHelpersService Form helper utilities
+   * @param apollo Apollo service
+   * @param snackBar Service used to show a snackbar.
+   * @param restService This is the service that is used to make http requests.
+   * @param formHelpersService Shared form helper service.
    */
   constructor(
     private referenceDataService: ReferenceDataService,
@@ -211,53 +183,13 @@ export class FormBuilderService {
   ) {}
 
   /**
-   * CRITICAL: Clean up all active subscriptions and caches
-   */
-  public destroy(): void {
-    this.activeSubscriptions.forEach((subscription) => {
-      try {
-        subscription.unsubscribe();
-      } catch (error) {
-        console.warn('Error unsubscribing:', error);
-      }
-    });
-    this.activeSubscriptions.clear();
-
-    // Clear caches to free memory
-    this.surveyStructureCache.clear();
-  }
-
-  /**
-   * CRITICAL: Parse survey structure with caching to avoid duplicate JSON parsing
+   * Creates new survey from the structure and add on complete expression to it.
    *
-   * @param structure The JSON structure string to parse
-   * @returns The parsed survey structure
-   */
-  private parseSurveyStructure(structure: string): any {
-    const cacheKey = structure; // Use the raw string as cache key
-
-    if (this.surveyStructureCache.has(cacheKey)) {
-      return this.surveyStructureCache.get(cacheKey);
-    }
-
-    try {
-      const parsed = JSON.parse(structure);
-      this.surveyStructureCache.set(cacheKey, parsed);
-      return parsed;
-    } catch (error) {
-      console.error('Error parsing survey structure:', error);
-      return { pages: [] };
-    }
-  }
-
-  /**
-   * Creates a new survey model with configured properties and event handlers
-   *
-   * @param structure The JSON structure of the survey
-   * @param fields Metadata fields for the survey
-   * @param record Optional record data to prefill
-   * @param form Optional form configuration
-   * @returns The configured survey model
+   * @param structure form structure
+   * @param fields list of fields used to check if the fields should be hidden or disabled
+   * @param record record that'll be edited, if any
+   * @param form form linked to the survey, if any
+   * @returns New survey
    */
   createSurvey(
     structure: string,
@@ -267,27 +199,29 @@ export class FormBuilderService {
   ): SurveyModel {
     settings.useCachingForChoicesRestful = false;
     settings.useCachingForChoicesRestfull = false;
+    const survey = new Model(structure);
 
-    // CRITICAL: Use cached structure parsing
-    const parsedStructure = this.parseSurveyStructure(structure);
-    const survey = new Model(parsedStructure);
-
-    // Override getParsedData to use caching
+    // Adds function to survey to be able to get the current parsed data
     survey.getParsedData = () => {
       return transformSurveyData(survey);
     };
 
+    // Add form model to the survey
     if (form) {
       survey.form = form;
+
+      // Add resource model to the survey
       if (form.resource) {
         survey.resource = survey.form.resource;
       }
     }
 
+    // Add record model to the survey
     if (record) {
       survey.record = record;
     }
 
+    // Add custom variables
     this.formHelpersService.addUserVariables(survey);
     this.formHelpersService.addApplicationVariables(survey);
     this.formHelpersService.setWorkflowContextVariable(survey);
@@ -297,44 +231,33 @@ export class FormBuilderService {
     } else if (survey.generateNewRecordOid) {
       survey.setVariable('record.id', createNewObjectId());
     }
-
     survey.onAfterRenderQuestion.add(
       renderGlobalProperties(this.referenceDataService)
     );
 
+    //Add tooltips to questions if exist
     survey.onAfterRenderQuestion.add(
       this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService)
     );
 
-    // CRITICAL: Use arrow functions to avoid creating new function instances each time
+    // For each question, if validateOnValueChange is true, we will add a listener to the value change event
     survey.getAllQuestions().forEach((question) => {
       if (question.validateOnValueChange) {
-        const validationHandler = () => {
+        question.registerFunctionOnPropertyValueChanged('value', () => {
           question.validate();
-        };
-        question.registerFunctionOnPropertyValueChanged(
-          'value',
-          validationHandler
-        );
-        // Store handler reference for cleanup
-        (question as any).validationHandler = validationHandler;
+        });
       }
     });
 
     survey.onQuestionValueChanged = {};
-    const valueChangedHandler = (
-      _: any,
-      options: { name: string | number }
-    ) => {
+    survey.onValueChanged.add((_, options) => {
       if (survey.onQuestionValueChanged[options.name]) {
         survey.onQuestionValueChanged[options.name](options);
       }
-    };
-    survey.onValueChanged.add(valueChangedHandler);
-    (survey as any).valueChangedHandler = valueChangedHandler;
+    });
 
-    // CRITICAL FIX: Use proper subscription management for onCompleting
-    const completingHandler = () => {
+    // Handles logic for after record creation, selection and deselection on resource type questions
+    survey.onCompleting.add(() => {
       survey.getAllQuestions().forEach((question) => {
         const isResource = question.getType() === 'resource';
         const isResources = question.getType() === 'resources';
@@ -357,14 +280,17 @@ export class FormBuilderService {
             question.newCreatedRecords.includes(recordID) &&
             question.afterRecordCreation
           ) {
+            // Newly created records
             const data = getUpdateData(question.afterRecordCreation, survey);
             data && this.updateRecord(recordID, data);
           } else if (question.afterRecordSelection && !wasSelected(recordID)) {
+            // Newly selected records
             const data = getUpdateData(question.afterRecordSelection, survey);
             data && this.updateRecord(recordID, data);
           }
         }
 
+        // Now we get the records that were deselected
         const deselectedRecords = difference(initSelection, questionRecords);
         if (question.afterRecordDeselection) {
           for (const recordID of deselectedRecords) {
@@ -373,11 +299,7 @@ export class FormBuilderService {
           }
         }
       });
-    };
-
-    survey.onCompleting.add(completingHandler);
-    (survey as any).completingHandler = completingHandler;
-
+    });
     if (fields.length > 0) {
       for (const f of fields.filter((x) => !x.automated)) {
         const accessible = !!f.canSee;
@@ -386,6 +308,7 @@ export class FormBuilderService {
           (f.canUpdate !== undefined && !f.canUpdate) || false;
         const question = survey.getQuestionByName(f.name);
         if (question) {
+          //If is not accessible for the current user, we will delete the question from the current survey instance
           if (!accessible) {
             question.delete();
           } else {
@@ -397,16 +320,20 @@ export class FormBuilderService {
 
     survey.getAllQuestions().forEach((question) => {
       if (question.getType() == 'paneldynamic') {
+        // Set all the indexes of configured dynamic panel questions in the survey to the last panel.
         if (question.getPropertyValue('startOnLastElement')) {
           question.currentIndex = question.visiblePanelCount - 1;
         }
 
+        // This fixes one weird bug from SurveyJS's new version
+        // Without it, the panel property isn't updated on survey initialization
         if (question.AllowNewPanelsExpression) {
           question.allowAddPanel = true;
         }
       }
     });
 
+    // set the lang of the survey
     const surveyLang = localStorage.getItem('surveyLang');
     const surveyLocales = survey.getUsedLocales();
     if (surveyLang && surveyLocales.includes(surveyLang)) {
@@ -420,6 +347,7 @@ export class FormBuilderService {
       }
     }
 
+    // Set query params as variables
     this.formHelpersService.addQueryParamsVariables(survey);
 
     survey.showNavigationButtons = 'none';
@@ -430,118 +358,37 @@ export class FormBuilderService {
   }
 
   /**
-   * CRITICAL FIX: Properly clean up event handlers from survey and DOM elements
+   * Add common events callbacks to the created survey taking in account pages
+   * and temporary files storage
    *
-   * @param survey The survey model to clean up
-   */
-  private clearSurveyEventHandlers(survey: SurveyModel): void {
-    const handlers = this.eventHandlers.get(survey);
-    if (handlers) {
-      try {
-        survey.onAfterRenderSurvey.remove(handlers.afterRenderHandler);
-        survey.onClearFiles.remove(handlers.clearFilesHandler);
-        survey.onUploadFiles.remove(handlers.uploadFilesHandler);
-        survey.onDownloadFile.remove(handlers.downloadFileHandler);
-        survey.onCurrentPageChanged.remove(handlers.pageChangedHandler);
-
-        // Clean up completing handler
-        if ((survey as any).completingHandler) {
-          survey.onCompleting.remove((survey as any).completingHandler);
-        }
-
-        // Clean up value changed handler
-        if ((survey as any).valueChangedHandler) {
-          survey.onValueChanged.remove((survey as any).valueChangedHandler);
-        }
-
-        // Clean up question validation handlers
-        survey.getAllQuestions().forEach((question) => {
-          if ((question as any).validationHandler) {
-            try {
-              question.clearFunctionsOnPropertyValueChanged('value');
-            } catch (error) {
-              console.warn('Error clearing validation handler:', error);
-            }
-            delete (question as any).validationHandler;
-          }
-        });
-
-        // Clear cached data
-        surveyDataCache.delete(survey);
-      } catch (error) {
-        console.warn('Error clearing survey event handlers:', error);
-      }
-      this.eventHandlers.delete(survey);
-    }
-  }
-
-  /**
-   * CRITICAL: Enhanced survey disposal to remove DOM elements
-   *
-   * @param survey The survey model to dispose
-   */
-  public disposeSurvey(survey: SurveyModel): void {
-    if (!survey) return;
-
-    try {
-      // CRITICAL: Remove survey from DOM first
-      const surveyDomNode = survey.getRootElement();
-      if (surveyDomNode && surveyDomNode.parentNode) {
-        surveyDomNode.parentNode.removeChild(surveyDomNode);
-      }
-
-      // Clear all event handlers
-      this.clearSurveyEventHandlers(survey);
-
-      // Clear survey data and dispose
-      survey.clear(true);
-      survey.dispose();
-
-      // Force garbage collection by breaking references
-      (survey as any) = null;
-    } catch (error) {
-      console.warn('Error disposing survey:', error);
-    }
-  }
-
-  /**
-   * FIXED: Proper event handler management with cleanup references
-   *
-   * @param survey The survey model to add events to
-   * @param selectedPageIndex Behavior subject for tracking page index
-   * @param temporaryFilesStorage Temporary storage for file uploads
-   * @param destroy$ Subject to trigger cleanup on component destruction
+   * @param survey Survey where to add the callbacks
+   * @param selectedPageIndex Current page of the survey
+   * @param temporaryFilesStorage Temporary files saved while executing the survey
+   * @param destroy$ Subject to destroy the subscription
    */
   public addEventsCallBacksToSurvey(
     survey: SurveyModel,
     selectedPageIndex: BehaviorSubject<number>,
     temporaryFilesStorage: TemporaryFilesStorage,
-    destroy$: Subject<any>
-  ): void {
-    // Clear any existing handlers first
-    this.clearSurveyEventHandlers(survey);
-
-    // FIXED: Use takeUntil to prevent subscription leak
-    const pageIndexSubscription = selectedPageIndex
+    destroy$: Subject<boolean>
+  ) {
+    selectedPageIndex
       .asObservable()
       .pipe(takeUntil(destroy$))
       .subscribe((index) => {
         survey.currentPageNo = index;
       });
 
-    // Track this subscription for cleanup
-    this.activeSubscriptions.add(pageIndexSubscription);
-
-    // CRITICAL: Store event handler references for cleanup with proper typing
-    const afterRenderHandler = (
-      _sender: SurveyModel,
-      _options: AfterRenderSurveyEvent
-    ) => {
+    survey.onAfterRenderSurvey.add(() => {
+      // onAfterRenderSurvey is called after each page change,
+      // so we add a custom flag to avoid running the code multiple times
+      // as it should only be run once, on first loading the entire survey
       if (survey.initialConfigurationDone) {
         return;
       }
       survey.initialConfigurationDone = true;
 
+      // Open survey on a specific page (openOnQuestionValuesPage has priority over openOnPage)
       if (survey.openOnQuestionValuesPage) {
         const question = survey.getQuestionByName(
           survey.openOnQuestionValuesPage
@@ -561,6 +408,7 @@ export class FormBuilderService {
         }
       }
 
+      // Set all the indexes of configured dynamic panel questions in the survey to the last panel.
       survey.getAllQuestions().forEach((question) => {
         if (
           question.getType() == 'paneldynamic' &&
@@ -569,80 +417,40 @@ export class FormBuilderService {
           question.currentIndex = question.visiblePanelCount - 1;
         }
       });
-    };
-
-    const clearFilesHandler = (
-      _sender: SurveyModel,
-      _options: ClearFilesEvent
-    ) => {
-      _options.callback('success');
-    };
-
-    const uploadFilesHandler = (
-      _sender: SurveyModel,
-      options: UploadFilesEvent
-    ) => this.onUploadFiles(temporaryFilesStorage, options);
-
-    const downloadFileHandler = (
-      _sender: SurveyModel,
-      options: DownloadFileEvent
-    ) => this.onDownloadFile(options);
-
-    const pageChangedHandler = (
-      _sender: SurveyModel,
-      options: CurrentPageChangedEvent
-    ) => {
+    });
+    survey.onClearFiles.add((_, options: any) => this.onClearFiles(options));
+    survey.onUploadFiles.add((_, options: any) =>
+      this.onUploadFiles(temporaryFilesStorage, options)
+    );
+    survey.onDownloadFile.add((_, options: any) =>
+      this.onDownloadFile(options)
+    );
+    survey.onCurrentPageChanged.add((survey: SurveyModel) => {
       survey.checkErrorsMode = survey.isLastPage ? 'onComplete' : 'onNextPage';
       if (survey.currentPageNo !== selectedPageIndex.getValue()) {
         selectedPageIndex.next(survey.currentPageNo);
-      }
-    };
-
-    // Add event handlers
-    survey.onAfterRenderSurvey.add(afterRenderHandler);
-    survey.onClearFiles.add(clearFilesHandler);
-    survey.onUploadFiles.add(uploadFilesHandler);
-    survey.onDownloadFile.add(downloadFileHandler);
-    survey.onCurrentPageChanged.add(pageChangedHandler);
-
-    // Store handlers for cleanup
-    this.eventHandlers.set(survey, {
-      afterRenderHandler,
-      clearFilesHandler,
-      uploadFilesHandler,
-      downloadFileHandler,
-      pageChangedHandler,
-    });
-
-    // CRITICAL FIX: Clean up everything when destroy$ emits
-    destroy$.subscribe(() => {
-      try {
-        // Unsubscribe from page index subscription
-        if (pageIndexSubscription) {
-          pageIndexSubscription.unsubscribe();
-          this.activeSubscriptions.delete(pageIndexSubscription);
-        }
-
-        // Clear all event handlers and DOM elements
-        this.disposeSurvey(survey);
-
-        // Clear temporary files storage
-        temporaryFilesStorage.clear();
-      } catch (error) {
-        console.warn('Error during survey cleanup:', error);
       }
     });
   }
 
   /**
-   * Handles file upload events from survey
+   * Handles the clearing of files
    *
-   * @param temporaryFilesStorage Temporary storage for uploaded files
-   * @param options Upload files event options
+   * @param options Options regarding the files
+   */
+  private onClearFiles(options: any): void {
+    options.callback('success');
+  }
+
+  /**
+   * Handles the uploading of files event
+   *
+   * @param temporaryFilesStorage Temporary files saved while executing the survey
+   * @param options Options regarding the upload
    */
   private onUploadFiles(
     temporaryFilesStorage: TemporaryFilesStorage,
-    options: UploadFilesEvent
+    options: any
   ): void {
     const question = options.question as QuestionFileModel;
     temporaryFilesStorage.set(question, options.files);
@@ -674,11 +482,11 @@ export class FormBuilderService {
   }
 
   /**
-   * Handles file download events from survey
+   * Handles the downloading of a file event
    *
-   * @param options Download file event options
+   * @param options Options regarding the download
    */
-  private onDownloadFile(options: DownloadFileEvent): void {
+  private onDownloadFile(options: any): void {
     if (
       options.content.indexOf('base64') !== -1 ||
       options.content.startsWith('http')
@@ -708,6 +516,12 @@ export class FormBuilderService {
           options.callback('error', error);
         });
     } else if (this.recordId) {
+      /**
+       * Only gets here if: editing record (we need to download the file to be available)
+       * OR saving a new record with files (because when we edit the file.content after the uploadFile
+       * mutation the survey.onDownloadFile() event is triggered, but we don't need to download the file
+       *  in this case and the undefined this.recordId prevents this unnecessary call)
+       */
       const xhr = new XMLHttpRequest();
       xhr.open(
         'GET',
@@ -735,18 +549,14 @@ export class FormBuilderService {
   }
 
   /**
-   * CRITICAL FIX: This subscription was creating memory leaks!
-   * Now properly managed with takeUntil
+   * Updates the field with the specified information.
    *
-   * @param id Record ID to update
-   * @param data Data to update the record with
+   * @param id Id of the record to update
+   * @param data Data to update
    */
   private updateRecord(id: string, data: any): void {
     if (id && data) {
-      // Create a subject to manage this specific subscription
-      const destroySubject = new Subject<void>();
-
-      const subscription = this.apollo
+      this.apollo
         .mutate<EditRecordMutationResponse>({
           mutation: EDIT_RECORD,
           variables: {
@@ -754,7 +564,6 @@ export class FormBuilderService {
             data,
           },
         })
-        .pipe(takeUntil(destroySubject))
         .subscribe({
           next: ({ errors }) => {
             if (errors) {
@@ -776,21 +585,8 @@ export class FormBuilderService {
                 })
               );
             }
-            // Complete the subject to clean up
-            destroySubject.next();
-            destroySubject.complete();
-            this.activeSubscriptions.delete(subscription);
-          },
-          error: (err) => {
-            console.error('Error updating record:', err);
-            destroySubject.next();
-            destroySubject.complete();
-            this.activeSubscriptions.delete(subscription);
           },
         });
-
-      // Track this subscription
-      this.activeSubscriptions.add(subscription);
     }
   }
 }

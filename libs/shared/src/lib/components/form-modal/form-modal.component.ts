@@ -8,7 +8,6 @@ import {
   OnInit,
   ViewChild,
   ViewContainerRef,
-  ChangeDetectorRef,
 } from '@angular/core';
 import { Dialog, DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { GET_RECORD_BY_ID, GET_FORM_BY_ID } from './graphql/queries';
@@ -69,7 +68,6 @@ interface DialogData {
   askForConfirm?: boolean;
   alwaysCreateRecord?: boolean;
 }
-
 /**
  * Defines the default Dialog data
  */
@@ -135,16 +133,10 @@ export class FormModalComponent
   protected isMultiEdition = false;
   /** Temporary storage of files */
   protected temporaryFilesStorage: TemporaryFilesStorage = new Map();
-  /** Stores merged data from prefill records for form population */
+  /** Stored merged data */
   private storedMergedData: any;
   /** If new records was uploaded */
   private uploadedRecords = false;
-
-  /** Track active GraphQL subscriptions for proper cleanup */
-  private activeSubscriptions = new Set<any>();
-
-  /** CRITICAL: Track dynamic components for cleanup */
-  private dynamicComponents: any[] = [];
 
   /**
    * Modal to edit or add a record.
@@ -161,7 +153,6 @@ export class FormModalComponent
    * @param translate This is the service that allows us to translate the text in our application.
    * @param ngZone Angular Service to execute code inside Angular environment
    * @param contextService Shared context service
-   * @param cdRef Change detector reference for manual cleanup
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
@@ -175,8 +166,7 @@ export class FormModalComponent
     protected confirmService: ConfirmService,
     protected translate: TranslateService,
     protected ngZone: NgZone,
-    protected contextService: ContextService,
-    private cdRef: ChangeDetectorRef // CRITICAL: Add change detector
+    protected contextService: ContextService
   ) {
     super();
   }
@@ -253,6 +243,7 @@ export class FormModalComponent
     this.initSurvey();
 
     // Creates UploadRecordsComponent
+
     if (this.survey.allowUploadRecords && !this.record) {
       const componentRef = this.uploadRecordsContent.createComponent(
         UploadRecordsComponent
@@ -261,14 +252,9 @@ export class FormModalComponent
       componentRef.setInput('id', this.form?.id);
       componentRef.setInput('name', this.form?.name);
       componentRef.setInput('path', 'form');
-
-      // CRITICAL: Track dynamic component for cleanup
-      this.dynamicComponents.push(componentRef);
-
-      const uploadedSubscription = componentRef.instance.uploaded.subscribe(
+      componentRef.instance.uploaded.subscribe(
         () => (this.uploadedRecords = true)
       );
-      this.activeSubscriptions.add(uploadedSubscription);
 
       /** To use angular hooks */
       componentRef.changeDetectorRef.detectChanges();
@@ -276,21 +262,15 @@ export class FormModalComponent
   }
 
   /**
-   * FIXED: Initialize survey with proper cleanup consideration
+   * Initializes the form
    */
   private initSurvey(): void {
-    // Clear existing survey if any
-    if (this.survey) {
-      this.cleanupSurvey();
-    }
-
     this.survey = this.formBuilderService.createSurvey(
       this.form?.structure || '',
       this.form?.metadata,
       this.record,
       this.form
     );
-
     // After the survey is created we add common callback to survey events
     this.formBuilderService.addEventsCallBacksToSurvey(
       this.survey,
@@ -337,18 +317,11 @@ export class FormModalComponent
           this.survey.getQuestionByName(field.name).readOnly = true;
       });
     }
-
-    // FIXED: Use arrow function to maintain proper 'this' context
-    const valueChangedCallback = () => {
+    this.survey.onValueChanged.add(() => {
       // Allow user to save as draft
       this.disableSaveAsDraft = false;
-    };
-    this.survey.onValueChanged.add(valueChangedCallback);
-    (this.survey as any).valueChangedCallback = valueChangedCallback;
-
-    // FIXED: Bind the onComplete method to maintain proper context
-    this.survey.onComplete.add(this.onComplete.bind(this));
-
+    });
+    this.survey.onComplete.add(this.onComplete);
     if (this.storedMergedData) {
       this.survey.data = {
         ...this.survey.data,
@@ -356,37 +329,6 @@ export class FormModalComponent
       };
     }
     this.loading = false;
-  }
-
-  /**
-   * CRITICAL: Enhanced survey cleanup to remove DOM elements and Angular context
-   */
-  private cleanupSurvey(): void {
-    if (this.survey) {
-      try {
-        // Use the service's enhanced disposal method
-        this.formBuilderService.disposeSurvey(this.survey);
-
-        // CRITICAL: Clear Angular context from DOM elements
-        if (this.formContainer?.nativeElement) {
-          const container = this.formContainer.nativeElement;
-          // Remove all child nodes to clear Angular context
-          while (container.firstChild) {
-            container.removeChild(container.firstChild);
-          }
-
-          // Clear any Angular-specific attributes
-          container.removeAttribute('_ngcontent');
-          container.removeAttribute('ng-version');
-          container.removeAttribute('_nghost');
-        }
-
-        // Clear the survey reference
-        this.survey = null as any;
-      } catch (error) {
-        console.warn('Error during survey cleanup:', error);
-      }
-    }
   }
 
   /**
@@ -511,8 +453,7 @@ export class FormModalComponent
               this.updateData(recordId, survey, refreshWidgets);
             }
           } else {
-            // CRITICAL FIX: Use takeUntil for Apollo mutations
-            const subscription = this.apollo
+            this.apollo
               .mutate<AddRecordMutationResponse>({
                 mutation: ADD_RECORD,
                 variables: {
@@ -521,7 +462,6 @@ export class FormModalComponent
                   data: survey.getParsedData?.() ?? survey.data,
                 },
               })
-              .pipe(takeUntil(this.destroy$))
               .subscribe({
                 next: async ({ errors, data }) => {
                   if (errors) {
@@ -561,8 +501,6 @@ export class FormModalComponent
                   this.snackBar.openSnackBar(err.message, { error: true });
                 },
               });
-
-            this.activeSubscriptions.add(subscription);
           }
           survey.showCompletedPage = true;
         } else {
@@ -583,8 +521,7 @@ export class FormModalComponent
    * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
    */
   public updateData(id: any, survey: any, refreshWidgets = false): void {
-    // CRITICAL FIX: Use takeUntil for Apollo mutations
-    const subscription = this.apollo
+    this.apollo
       .mutate<EditRecordMutationResponse>({
         mutation: EDIT_RECORD,
         variables: {
@@ -593,7 +530,6 @@ export class FormModalComponent
           template: this.data.template,
         },
       })
-      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async ({ errors, data }) => {
           this.handleRecordMutationResponse({ data, errors }, 'editRecord');
@@ -612,8 +548,6 @@ export class FormModalComponent
           this.loading = false;
         },
       });
-
-    this.activeSubscriptions.add(subscription);
   }
 
   /**
@@ -629,8 +563,7 @@ export class FormModalComponent
     refreshWidgets = false
   ): void {
     const recordData = cleanRecord(survey.getParsedData?.() ?? survey.data);
-    // CRITICAL FIX: Use takeUntil for Apollo mutations
-    const subscription = this.apollo
+    this.apollo
       .mutate<EditRecordsMutationResponse>({
         mutation: EDIT_RECORDS,
         variables: {
@@ -639,7 +572,6 @@ export class FormModalComponent
           template: this.data.template,
         },
       })
-      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async ({ errors, data }) => {
           if (this.lastDraftRecord) {
@@ -667,8 +599,6 @@ export class FormModalComponent
           this.loading = false;
         },
       });
-
-    this.activeSubscriptions.add(subscription);
   }
 
   /**
@@ -828,8 +758,7 @@ export class FormModalComponent
     const dialogRef = this.formHelpersService.createRevertDialog(version);
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
       if (value) {
-        // CRITICAL FIX: Use takeUntil for Apollo mutations
-        const subscription = this.apollo
+        this.apollo
           .mutate<EditRecordMutationResponse>({
             mutation: EDIT_RECORD,
             variables: {
@@ -837,7 +766,6 @@ export class FormModalComponent
               version: version.id,
             },
           })
-          .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (errors) => {
               if (errors) {
@@ -858,8 +786,6 @@ export class FormModalComponent
               this.snackBar.openSnackBar(err.message, { error: true });
             },
           });
-
-        this.activeSubscriptions.add(subscription);
       }
     });
   }
@@ -908,15 +834,13 @@ export class FormModalComponent
 
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe(async (value) => {
       if (value && this.record?.id) {
-        // CRITICAL FIX: Use takeUntil for Apollo mutations
-        const subscription = this.apollo
+        this.apollo
           .mutate({
             mutation: ARCHIVE_RECORD,
             variables: {
               id: this.record.id,
             },
           })
-          .pipe(takeUntil(this.destroy$))
           .subscribe((res) => {
             if (res.errors) {
               this.snackBar.openSnackBar(
@@ -939,87 +863,15 @@ export class FormModalComponent
               this.dialogRef.close();
             }
           });
-
-        this.activeSubscriptions.add(subscription);
       }
     });
   }
 
   /**
-   * CRITICAL: Enhanced cleanup in ngOnDestroy to fix DOM memory leaks
+   * Clears the cache for the records created by resource questions
    */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
-
-    // CRITICAL: Detach change detector first to prevent any further change detection
-    this.cdRef.detach();
-
-    // CRITICAL: Clean up all active subscriptions
-    this.activeSubscriptions.forEach((subscription) => {
-      try {
-        subscription.unsubscribe();
-      } catch (error) {
-        console.warn('Error unsubscribing:', error);
-      }
-    });
-    this.activeSubscriptions.clear();
-
-    // CRITICAL: Clean up dynamic components
-    this.dynamicComponents.forEach((component) => {
-      try {
-        // Clear the view container reference first
-        if (this.uploadRecordsContent) {
-          this.uploadRecordsContent.clear();
-        }
-        component.destroy();
-      } catch (error) {
-        console.warn('Error destroying dynamic component:', error);
-      }
-    });
-    this.dynamicComponents = [];
-
-    // CRITICAL: Proper survey disposal with DOM cleanup
-    this.cleanupSurvey();
-
-    // Clear temporary files storage
-    this.temporaryFilesStorage.clear();
-
-    // Clear any other subscriptions and data
-    this.selectedPageIndex.complete();
-    this.pages.complete();
-
-    // CRITICAL: Clear large data objects and DOM references to help garbage collection
-    this.form = undefined;
-    this.record = undefined;
-    this.storedMergedData = null;
-
-    // Clear DOM element references
-    if (this.formContainer) {
-      // Remove all child nodes and clear the container
-      const container = this.formContainer.nativeElement;
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
-      // Clear Angular-specific attributes
-      container.removeAttribute('_ngcontent');
-      container.removeAttribute('ng-version');
-      container.removeAttribute('_nghost');
-    }
-
-    // Clear the upload records container
-    if (this.uploadRecordsContent) {
-      this.uploadRecordsContent.clear();
-    }
-
-    // Destroy form builder service
-    this.formBuilderService.destroy();
-
-    // CRITICAL: Force garbage collection by breaking circular references
-    setTimeout(() => {
-      // This gives Angular time to clean up before we force GC
-      if (typeof window['gc'] === 'function') {
-        window['gc'](); // Only works in Chrome with --js-flags="--expose-gc"
-      }
-    }, 100);
+    this.survey?.dispose();
   }
 }
