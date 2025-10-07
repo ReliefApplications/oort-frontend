@@ -9,7 +9,7 @@ import { Apollo } from 'apollo-angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmService } from '../confirm/confirm.service';
 import { firstValueFrom, lastValueFrom, Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
 import { ADD_RECORD } from '../../components/form/graphql/mutations';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import {
@@ -43,96 +43,53 @@ import { DashboardService } from '../dashboard/dashboard.service';
 import { GET_RECORD_BY_UNIQUE_FIELD_VALUE } from './graphql/queries';
 import { Metadata } from '../../models/metadata.model';
 import { Overlay, OverlayPositionBuilder } from '@angular/cdk/overlay';
+import { Subject } from 'rxjs';
 
-/** Return type for unique property check */
 export type CheckUniqueProprietyReturnT = {
   verified: boolean;
   overwriteRecord?: Record;
 };
 
-/**
- * Applies custom logic to survey data values.
- *
- * @param survey Survey instance
- * @returns Transformed survey data
- */
 export const transformSurveyData = (survey: SurveyModel) => {
-  // Cloning data to avoid mutating the original survey data
   const data = cloneDeep(survey.data) ?? {};
-
   Object.keys(data).forEach((filed) => {
     const question = survey.getQuestionByName(filed);
-    // Removes data that isn't in the structure, that might've come from prefilling data
     if (!question) {
       delete data[filed];
     } else {
       const isQuestionVisible = (question: Question | IPanel): boolean => {
-        // If question is not visible, return false
         if (!question.isVisible || !question) {
           return false;
         }
-
-        // If it is, check if its parent is visible
         if (question.parent) {
           return isQuestionVisible(question.parent);
         }
-
-        // If we're in the root and it's visible, return true
         return true;
       };
-
-      // Removes null values for invisible questions (or pages)
       if (!isQuestionVisible(question) && data[filed] === null) {
         delete data[filed];
       }
     }
   });
-
   return data;
 };
 
-/** Interface for tooltip cleanup reference */
 interface TooltipCleanupRef {
   cleanup: () => void;
   surveyId: string;
   questionName: string;
 }
 
-/**
- * Shared survey helper service.
- */
 @Injectable({
   providedIn: 'root',
 })
 export class FormHelpersService implements OnDestroy {
-  /** Active subscriptions for cleanup */
   private subscriptions: Subscription[] = [];
-  /** Tooltip cleanup references */
   private tooltipCleanups: TooltipCleanupRef[] = [];
-  /** Active dialog references */
   private activeDialogs: DialogRef<any>[] = [];
-  /** DOM components for cleanup */
   private domComponents: any[] = [];
+  private destroy$ = new Subject<void>();
 
-  /**
-   * Shared survey helper service.
-   *
-   * @param environment Environment configuration
-   * @param apollo Apollo client
-   * @param snackBar This is the service that allows you to display a snackbar.
-   * @param confirmService This is the service that will be used to display confirm window.
-   * @param translate This is the service that allows us to translate the text in our application.
-   * @param authService Shared auth service
-   * @param downloadService Shared download service
-   * @param workflowService Shared workflow service
-   * @param applicationService Shared application service
-   * @param domService Shared dom service
-   * @param router Angular router service.
-   * @param dialog Dialogs service
-   * @param dashboardService Shared dashboard service
-   * @param overlay Overlay
-   * @param overlayPositionBuilder cdk overlay position builder
-   */
   constructor(
     @Inject('environment') private environment: any,
     public apollo: Apollo,
@@ -149,24 +106,20 @@ export class FormHelpersService implements OnDestroy {
     private dashboardService: DashboardService,
     private overlay: Overlay,
     private overlayPositionBuilder: OverlayPositionBuilder
-  ) {}
+  ) { }
 
-  /**
-   * Clean up all subscriptions and DOM elements
-   */
   ngOnDestroy(): void {
-    // Clean up all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     this.subscriptions = [];
 
-    // Clean up all tooltips
     this.cleanupAllTooltips();
 
-    // Close all active dialogs
     this.activeDialogs.forEach((dialogRef) => dialogRef.close());
     this.activeDialogs = [];
 
-    // Clean up all DOM components
     this.domComponents.forEach((component) => {
       try {
         if (component && component.destroy) {
@@ -179,18 +132,10 @@ export class FormHelpersService implements OnDestroy {
     this.domComponents = [];
   }
 
-  /**
-   * Create a dialog modal to confirm the recovery of survey data
-   *
-   * @param version The version to recover
-   * @returns dialogRef
-   */
   createRevertDialog(version: any): DialogRef<any> {
-    // eslint-disable-next-line radix
     const date = new Date(parseInt(version.createdAt, 0));
-    const formatDate = `${date.getDate()}/${
-      date.getMonth() + 1
-    }/${date.getFullYear()}`;
+    const formatDate = `${date.getDate()}/${date.getMonth() + 1
+      }/${date.getFullYear()}`;
     const dialogRef = this.confirmService.openConfirmModal({
       title: this.translate.instant('components.record.recovery.title'),
       content: this.translate.instant(
@@ -201,10 +146,8 @@ export class FormHelpersService implements OnDestroy {
       confirmVariant: 'primary',
     });
 
-    // Track the dialog reference for cleanup
     this.activeDialogs.push(dialogRef as any);
 
-    // Auto-remove from tracking when dialog closes
     dialogRef.closed.pipe(take(1)).subscribe(() => {
       const index = this.activeDialogs.indexOf(dialogRef as any);
       if (index > -1) {
@@ -215,26 +158,16 @@ export class FormHelpersService implements OnDestroy {
     return dialogRef as any;
   }
 
-  /**
-   * Set data from survey empty questions
-   *
-   * @param survey Current survey to set up empty questions
-   */
   setEmptyQuestions(survey: SurveyModel): void {
-    // We get all the questions from the survey and check which ones contains values
     const questions = survey.getAllQuestions();
     const data = { ...survey.data };
     for (const field in questions) {
       if (questions[field]) {
         const key = questions[field].getValueName();
-        // If there is no value for this question
         if (isNil(survey.data[key])) {
-          // And is not boolean(false by default, we want to save that), we nullify it
           if (questions[field].getType() !== 'boolean') {
-            // survey.data[key] = null;
             set(data, key, null);
           }
-          // Or if is not visible or not actionable by the user, we don't want to save it, just delete the field from the data
           if (questions[field].readOnly || !questions[field].visible) {
             delete data[key];
           }
@@ -265,7 +198,6 @@ export class FormHelpersService implements OnDestroy {
         )
       );
 
-      // Maps the files array, replacing the content with the path from the blob storage
       const mappedFiles = ((question.value as any[]) || []).map((f, idx) => ({
         ...f,
         content: paths[idx],
@@ -275,12 +207,6 @@ export class FormHelpersService implements OnDestroy {
     }
   }
 
-  /**
-   * Return an array of promises to upload asynchronously records created on the go while creating a parent record
-   *
-   * @param survey The form of the parent record
-   * @returns A promise with all the requests to upload files
-   */
   uploadTemporaryRecords(survey: SurveyModel): Promise<any>[] {
     const promises: Promise<any>[] = [];
     const surveyData = survey.data;
@@ -291,17 +217,13 @@ export class FormHelpersService implements OnDestroy {
           question.getType() === 'resources' ||
           question.getType() == 'resource'
         ) {
-          //We save the records created from the resources question
           for (const recordId of question.value) {
             const promise = new Promise<void>((resolve, reject) => {
               localForage
                 .getItem(recordId)
                 .then((data: any) => {
                   if (data != null) {
-                    // We ensure to make it only if such a record is found
                     const recordFromResource = JSON.parse(data);
-
-                    // Use take(1) to auto-unsubscribe
                     const subscription = this.apollo
                       .mutate<AddRecordMutationResponse>({
                         mutation: ADD_RECORD,
@@ -310,7 +232,7 @@ export class FormHelpersService implements OnDestroy {
                           data: recordFromResource.data,
                         },
                       })
-                      .pipe(take(1))
+                      .pipe(takeUntil(this.destroy$))
                       .subscribe({
                         next: ({ data, errors }) => {
                           if (errors) {
@@ -325,8 +247,8 @@ export class FormHelpersService implements OnDestroy {
                             question.value[question.value.indexOf(recordId)] =
                               question.value.includes(recordId)
                                 ? data?.addRecord.id
-                                : recordId; // If there is no error, we replace in the question the temporary id by the final one
-                            surveyData[question.name] = question.value; // We update the survey data to consider our changes
+                                : recordId;
+                            surveyData[question.name] = question.value;
                             resolve();
                           }
                         },
@@ -337,18 +259,16 @@ export class FormHelpersService implements OnDestroy {
                           reject(err);
                         },
                       });
-
-                    // Track subscription for cleanup
                     this.subscriptions.push(subscription);
                   } else {
-                    resolve(); //there is no data
+                    resolve();
                   }
                 })
                 .catch((error: any) => {
-                  console.error(error); // Handle any errors that occur while getting the item
+                  console.error(error);
                   reject(error);
                 });
-              localForage.removeItem(recordId); // We clear it from the local storage once we have retrieved it
+              localForage.removeItem(recordId);
             });
             promises.push(promise);
           }
@@ -358,36 +278,27 @@ export class FormHelpersService implements OnDestroy {
     return promises;
   }
 
-  /**
-   * Create temporary records (from resource/s questions) of passed survey.
-   *
-   * @param survey Survey to get questions from
-   */
   public async createTemporaryRecords(survey: SurveyModel): Promise<void> {
     const promises: Promise<any>[] = [];
     const questions = survey.getAllQuestions();
     const nestedRecordsToAdd: { draftIds: string[]; question: Question }[] = [];
 
-    // Callbacks to update the ids of new records
     const updateIds: {
       [key in string]: (arg0: string) => void;
     } = {};
 
     const nestedQuestions: Question[] = [];
-    // Get questions nested in panels
     survey
       .getAllQuestions()
       .filter((q) => q.getType() === 'paneldynamic')
       .forEach((question) => {
         const panel = question as QuestionPanelDynamicModel;
         const embeddedResourcesQuestions: string[] = [];
-        // Filter questions of type resource or resources in the panel
         panel.templateElements.forEach((element) => {
           if (['resource', 'resources'].includes(element.getType())) {
             embeddedResourcesQuestions.push(element.name);
           }
         });
-        // Extract each element from the panel
         embeddedResourcesQuestions.forEach((name) => {
           (panel.value || []).forEach((_: any, index: number) => {
             const question = panel.getQuestionFromArray(
@@ -401,21 +312,15 @@ export class FormHelpersService implements OnDestroy {
     const updateResourcesExpressions: ((arg1: string, arg2: string) => void)[] =
       [];
 
-    // Get all nested records to add
     questions.concat(nestedQuestions).forEach((question) => {
       const type = question.getType();
       if (!['resource', 'resources'].includes(type) || !question.draftData) {
         return;
       }
 
-      // If this question uses valueExpression, we should not upload the records
-      // in it, as they will be uploaded by the fields they get their values from
-      // Instead, we create a callback to update the ids of the new records
-      // if they happen to te part of the resources using valueExpression
       if (question.valueExpression) {
         updateResourcesExpressions.push((oldId, newId) => {
           const value = question.value;
-          // value is a array of strings, replace occurrences of oldId with newId
           if (Array.isArray(value)) {
             question.value = value.map((x) => (x === oldId ? newId : x));
           }
@@ -455,15 +360,13 @@ export class FormHelpersService implements OnDestroy {
                   data,
                 },
               })
-              .pipe(take(1))
+              .pipe(takeUntil(this.destroy$))
           ).then((res) => {
-            // change the draftId to the new recordId
             const newId = res.data?.addRecord?.id;
             if (!newId) {
               return;
             }
             updateIds[draftId](newId);
-            // update question.newCreatedRecords too
             const isResource = element.question.getType() === 'resource';
             const draftIndex = (
               isResource
@@ -477,7 +380,6 @@ export class FormHelpersService implements OnDestroy {
                 element.question.newCreatedRecords[draftIndex] = newId;
               }
             }
-            // delete old temporary/draft record and data
             this.deleteRecordDraft(draftId);
             delete element.question.draftData[draftId];
             return;
@@ -489,22 +391,14 @@ export class FormHelpersService implements OnDestroy {
     await Promise.all(promises);
   }
 
-  /**
-   * Registration of new custom variables for the survey.
-   * Custom variables can be used in the logic fields.
-   *
-   * @param survey Survey instance
-   */
   public addUserVariables = (survey: SurveyModel) => {
     const user = this.authService.user.getValue();
 
-    // set user variables
     survey.setVariable('user.name', user?.name ?? '');
     survey.setVariable('user.firstName', user?.firstName ?? '');
     survey.setVariable('user.lastName', user?.lastName ?? '');
     survey.setVariable('user.email', user?.username ?? '');
 
-    // Set user attributes
     for (const attribute of this.environment.user?.attributes || []) {
       survey.setVariable(
         `user.${attribute}`,
@@ -512,23 +406,11 @@ export class FormHelpersService implements OnDestroy {
       );
     }
 
-    // Allow us to do some cool stuff like
-    // {user.roles} contains '62e3e676c9bcb900656c95c9'
     survey.setVariable('user.roles', user?.roles?.map((r) => r.id || '') ?? []);
-
-    // Allow us to select the current user
-    // as a default question for Users question type
     survey.setVariable('user.id', user?.id || '');
   };
 
-  /**
-   * Add tooltip to the survey question if exists
-   *
-   * @param survey current survey
-   * @param options current survey question options
-   */
   public addQuestionTooltips(survey: SurveyModel, options: any): void {
-    // Return if there is no description to show in popup
     if (!options.question.tooltip) {
       return;
     }
@@ -538,16 +420,14 @@ export class FormHelpersService implements OnDestroy {
     );
     if (titleElement) {
       titleElement.querySelectorAll('.sv-string-viewer').forEach((el: any) => {
-        // Create ui-icon
         const component = this.domService.appendComponentToBody(
           IconComponent,
           el
         );
         component.instance.icon = 'help';
         component.instance.variant = 'primary';
-        component.location.nativeElement.classList.add('ml-2', 'inline-flex'); // Add margin to the icon
+        component.location.nativeElement.classList.add('ml-2', 'inline-flex');
 
-        // Create and apply the UiTooltipDirective
         const tooltipDirective = new TooltipDirective(
           'default',
           component.location,
@@ -563,7 +443,6 @@ export class FormHelpersService implements OnDestroy {
         tooltipDirective.onMouseDown =
           tooltipDirective.onMouseDown.bind(tooltipDirective);
 
-        // Add event listeners
         component.location.nativeElement.addEventListener(
           'mouseenter',
           tooltipDirective.onMouseEnter
@@ -577,12 +456,9 @@ export class FormHelpersService implements OnDestroy {
           tooltipDirective.onMouseDown
         );
 
-        // Sets the tooltip text
         component.instance.tooltip = options.question.tooltip;
 
-        // Create cleanup function
         const cleanup = () => {
-          // Remove event listeners
           component.location.nativeElement.removeEventListener(
             'mouseenter',
             tooltipDirective.onMouseEnter
@@ -596,13 +472,11 @@ export class FormHelpersService implements OnDestroy {
             tooltipDirective.onMouseDown
           );
 
-          // Destroy component
           if (component && component.destroy) {
             component.destroy();
           }
         };
 
-        // Store cleanup reference
         const cleanupRef: TooltipCleanupRef = {
           cleanup,
           surveyId: survey.id || 'unknown',
@@ -615,11 +489,6 @@ export class FormHelpersService implements OnDestroy {
     }
   }
 
-  /**
-   * Clean up tooltips for a specific survey
-   *
-   * @param surveyId The survey ID to clean up tooltips for
-   */
   public cleanupSurveyTooltips(surveyId: string): void {
     const toRemove: number[] = [];
 
@@ -630,7 +499,6 @@ export class FormHelpersService implements OnDestroy {
       }
     });
 
-    // Remove cleaned up references in reverse order
     toRemove.reverse().forEach((index) => {
       this.tooltipCleanups.splice(index, 1);
     });
@@ -650,13 +518,6 @@ export class FormHelpersService implements OnDestroy {
     this.tooltipCleanups = [];
   }
 
-  /**
-   * Convert a string to snake_case. Overrides the snakeCase function of lodash
-   * by first checking if the text is not already in snake case
-   *
-   * @param text The text to convert
-   * @returns The text in snake_case
-   */
   public toSnakeCase(text: string): string {
     if (this.isSnakeCase(text)) {
       return text;
@@ -664,14 +525,6 @@ export class FormHelpersService implements OnDestroy {
     return snakeCase(text);
   }
 
-  /**
-   * Create the valueName of the question in snake case. If valueName exists but with
-   * wrong format (not in snake_case), raise an error and return false.
-   *
-   * @param question The question of the form whose valueName we need to set
-   * @param page The page of the form
-   * @returns if valueName is set and in the correct format (snake_case)
-   */
   public setValueName(question: Question, page: PageModel): boolean {
     if (!question.valueName) {
       if (question.title) {
@@ -708,15 +561,6 @@ export class FormHelpersService implements OnDestroy {
     return true;
   }
 
-  /**
-   * Saves the current data as a draft record
-   *
-   * @param survey Survey where to add the callbacks
-   * @param formId Form id of the survey
-   * @param temporaryFilesStorage Temporary files saved while executing the survey
-   * @param draftId Draft record id
-   * @param callback callback method
-   */
   public saveAsDraft(
     survey: SurveyModel,
     formId: string,
@@ -724,11 +568,8 @@ export class FormHelpersService implements OnDestroy {
     draftId?: string,
     callback?: any
   ): void {
-    // First we need to upload any files that were added to the survey
     this.uploadFiles(temporaryFilesStorage, formId).then(() => {
-      // Check if a draft has already been loaded
       if (!draftId) {
-        // Add a new draft record to the database
         const subscription = this.apollo
           .mutate<AddDraftRecordMutationResponse>({
             mutation: ADD_DRAFT_RECORD,
@@ -737,7 +578,7 @@ export class FormHelpersService implements OnDestroy {
               data: survey.data,
             },
           })
-          .pipe(take(1))
+          .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: ({ errors, data }) => {
               if (errors) {
@@ -753,7 +594,6 @@ export class FormHelpersService implements OnDestroy {
                   }
                 );
               }
-              // Callback to emit save but stay in record addition mode
               if (callback) {
                 callback({
                   id: data?.addDraftRecord.id,
@@ -768,10 +608,8 @@ export class FormHelpersService implements OnDestroy {
               this.snackBar.openSnackBar(err.message, { error: true });
             },
           });
-
         this.subscriptions.push(subscription);
       } else {
-        // Edit last added draft record in the database
         const subscription = this.apollo
           .mutate<EditDraftRecordMutationResponse>({
             mutation: EDIT_DRAFT_RECORD,
@@ -780,7 +618,7 @@ export class FormHelpersService implements OnDestroy {
               data: survey.data,
             },
           })
-          .pipe(take(1))
+          .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: ({ errors }: any) => {
               if (errors) {
@@ -796,7 +634,6 @@ export class FormHelpersService implements OnDestroy {
                   }
                 );
               }
-              // Callback to emit save but stay in record addition mode
               if (callback) {
                 callback({
                   id: draftId,
@@ -811,18 +648,11 @@ export class FormHelpersService implements OnDestroy {
               this.snackBar.openSnackBar(err.message, { error: true });
             },
           });
-
         this.subscriptions.push(subscription);
       }
     });
   }
 
-  /**
-   * Handles the deletion of a specific draft record
-   *
-   * @param draftId Id of the draft record to delete
-   * @param callback callback method
-   */
   public deleteRecordDraft(draftId: string, callback?: any): void {
     const subscription = this.apollo
       .mutate<any>({
@@ -831,37 +661,22 @@ export class FormHelpersService implements OnDestroy {
           id: draftId,
         },
       })
-      .pipe(take(1))
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (callback) {
           callback();
         }
       });
-
     this.subscriptions.push(subscription);
   }
 
-  /**
-   * Checks if a string is already in snake case
-   *
-   * @param text The text to check
-   * @returns True if the text is in snake case, false otherwise
-   */
   private isSnakeCase(text: string): any {
     if (text.startsWith('_')) {
-      // Forms created from a Kobo form can have questions starting with a _ if the original question in Kobo had a number in the beginning
       text = text.substring(1);
     }
     return text.match(/^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)*$/);
   }
 
-  /**
-   * Registration of new custom variables for the survey.
-   * Custom variables can be used in the logic fields.
-   * This function is used to add the application id, name and description to the survey variables
-   *
-   * @param survey Survey instance
-   */
   public addApplicationVariables = (survey: SurveyModel) => {
     const application = this.applicationService.application.getValue();
     survey.setVariable('application.id', application?.id ?? null);
@@ -872,16 +687,6 @@ export class FormHelpersService implements OnDestroy {
     );
   };
 
-  /**
-   * Registration of new custom variables for the survey.
-   * Custom variables can be used in the logic fields.
-   * This function is used to add the record id and the incremental id to the survey variables
-   *
-   * @param survey Survey instance
-   * @param record Record to add to the survey variables
-   * @param record.id Record id
-   * @param record.incrementalId Record incremental id
-   */
   public addRecordVariables = (survey: SurveyModel, record: Record) => {
     survey.setVariable('record.id', record.id);
     survey.setVariable('record.incrementalID', record?.incrementalId ?? '');
@@ -891,45 +696,21 @@ export class FormHelpersService implements OnDestroy {
     });
   };
 
-  /**
-   * Registers custom variables based on the workflow state
-   * to be used in the survey.
-   *
-   * @param survey Survey instance
-   */
   public setWorkflowContextVariable = (survey: SurveyModel) => {
     survey.setVariable(
       `__WORKFLOW_CONTEXT__`,
       this.workflowService.workflowContextValue ?? []
     );
-
-    // After the workflow context is set, we clear it
     this.workflowService.setContext([]);
   };
 
-  /**
-   * Adds any query parameters to the survey variables
-   * These variables are accessible using the variables {param.<paramName>}
-   *
-   * @param survey Survey instance
-   */
   public addQueryParamsVariables = (survey: SurveyModel) => {
     const queryParams = this.router.parseUrl(this.router.url).queryParams;
-
     Object.keys(queryParams).forEach((key) => {
       survey.setVariable(`param.${key}`, queryParams[key]);
     });
   };
 
-  /**
-   * Checks if record were created/updated from a resource/s question
-   * on a dashboard filter and dashboard widgets needs to refresh.
-   *
-   * @param resourceId id of the resource
-   * @param filterStructure id of the resource
-   *
-   * @returns list of widgets id that needs to be refreshed
-   */
   public async checkResourceOnFilter(
     resourceId: string,
     filterStructure: any
@@ -959,13 +740,6 @@ export class FormHelpersService implements OnDestroy {
     }
   }
 
-  /**
-   * Checks survey for unique fields when adding/editing records.
-   *
-   * @param survey Survey to get questions from
-   * @returns if the validation is approved and can create/update the record,
-   * or if overwrite existing record with unique field is allowed
-   */
   public async checkUniquePropriety(
     survey: SurveyModel
   ): Promise<CheckUniqueProprietyReturnT> {
@@ -993,11 +767,9 @@ export class FormHelpersService implements OnDestroy {
                 uniqueValue: field.value,
               },
             })
-            .pipe(take(1))
+            .pipe(takeUntil(this.destroy$))
         );
 
-        // If the record is the same as the one we are editing, we can skip the check
-        // We can also skip the check if the record is not found
         if (!data.record || data.record.id === survey.record?.id) {
           continue;
         } else {
@@ -1005,21 +777,19 @@ export class FormHelpersService implements OnDestroy {
             (metadataField: Metadata) => field.name === metadataField.name
           )?.canUpdate;
           if (!canUpdate) {
-            // if user doesn't have permission to edit that record, permission denied
             this.snackBar.openSnackBar(
               this.translate.instant('components.record.uniqueField.exist', {
                 question: field.title,
                 value: field.value,
               }) +
-                this.translate.instant(
-                  'components.record.uniqueField.cannotUpdate'
-                ),
+              this.translate.instant(
+                'components.record.uniqueField.cannotUpdate'
+              ),
               { error: true }
             );
             return { verified: false };
           }
 
-          // If is the first (or unique) record to overwrite and the user allow it, it will be the one updated in the form component
           if (firstOverwriteRecord) {
             firstOverwriteRecord = false;
             const dialogRef = this.confirmService.openConfirmModal({
@@ -1048,15 +818,14 @@ export class FormHelpersService implements OnDestroy {
               return { verified: false };
             }
           } else {
-            // Otherwise, user needs first to update the other records where the other unique fields are present
             this.snackBar.openSnackBar(
               this.translate.instant('components.record.uniqueField.exist', {
                 question: field.title,
                 value: field.value,
               }) +
-                this.translate.instant(
-                  'components.record.uniqueField.updateRecord'
-                ),
+              this.translate.instant(
+                'components.record.uniqueField.updateRecord'
+              ),
               { error: true }
             );
             const { FormModalComponent } = await import(
@@ -1070,15 +839,6 @@ export class FormHelpersService implements OnDestroy {
               },
               autoFocus: false,
             });
-
-            // Track dialog for cleanup
-            //this.activeDialogs.push(dialogRef);
-            // dialogRef.closed.pipe(take(1)).subscribe(() => {
-            //   // const index = this.activeDialogs.indexOf(dialogRef);
-            //   // if (index > -1) {
-            //   //   this.activeDialogs.splice(index, 1);
-            //   // }
-            // });
 
             const updateRecordDialogRef = await lastValueFrom(
               dialogRef.closed.pipe(take(1))

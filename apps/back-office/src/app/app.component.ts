@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
   GeofieldsListboxComponent,
   ApplicationDropdownComponent,
@@ -15,6 +15,8 @@ import { environment } from '../environments/environment';
 import { CldrIntlService, IntlService } from '@progress/kendo-angular-intl';
 import { Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 /**
  * Root component of back-office.
@@ -24,7 +26,7 @@ import { DOCUMENT } from '@angular/common';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   /** Static component declaration of survey custom components for the property grid editor in order to avoid removal on tree shake for production build */
   static declaration = [
     ApplicationDropdownComponent,
@@ -38,6 +40,9 @@ export class AppComponent implements OnInit {
   ];
   /** Application title */
   title = 'back-office';
+
+  // Add destroy subject for unsubscription
+  private destroy$ = new Subject<void>();
 
   /**
    * Root component of back-office
@@ -54,9 +59,11 @@ export class AppComponent implements OnInit {
     @Inject(DOCUMENT) private document: Document
   ) {
     // Update the document language attribute when the language changes
-    this.translate.onLangChange.subscribe(({ lang }) => {
-      this.document.documentElement.lang = lang;
-    });
+    this.translate.onLangChange
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ lang }) => {
+        this.document.documentElement.lang = lang;
+      });
 
     this.translate.addLangs(environment.availableLanguages);
     this.translate.setDefaultLang(environment.availableLanguages[0]);
@@ -69,5 +76,11 @@ export class AppComponent implements OnInit {
    */
   ngOnInit(): void {
     this.authService.initLoginSequence();
+  }
+
+  // Clean up subscriptions to prevent memory leaks
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

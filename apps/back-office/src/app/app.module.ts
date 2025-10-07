@@ -4,6 +4,7 @@ import {
   ErrorHandler,
   APP_INITIALIZER,
   LOCALE_ID,
+  OnDestroy,
 } from '@angular/core';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -85,12 +86,12 @@ import { library } from '@fortawesome/fontawesome-svg-core';
  */
 const initializeApp =
   (oauth: OAuthService, formService: FormService): any =>
-  () => {
-    oauth.configure(environment.authConfig);
-    formService.initialize();
-    // Add fa icon font to check in the application
-    library.add(fas, fab);
-  };
+    () => {
+      oauth.configure(environment.authConfig);
+      formService.initialize();
+      // Add fa icon font to check in the application
+      library.add(fas, fab);
+    };
 
 /**
  * Sets up translator.
@@ -175,26 +176,25 @@ export const httpTranslateLoader = (http: HttpClient) =>
     // Sentry
     ...(environment.sentry
       ? [
-          {
-            provide: ErrorHandler,
-            useValue: Sentry.createErrorHandler({
-              showDialog: false,
-            }),
-          },
-          {
-            provide: Sentry.TraceService,
-            deps: [Router],
-          },
-          {
-            provide: APP_INITIALIZER,
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            useFactory: () => () => {},
-            deps: [Sentry.TraceService],
-            multi: true,
-          },
-        ]
+        {
+          provide: ErrorHandler,
+          useValue: Sentry.createErrorHandler({
+            showDialog: false,
+          }),
+        },
+        {
+          provide: Sentry.TraceService,
+          deps: [Router],
+        },
+        {
+          provide: APP_INITIALIZER,
+          useFactory: () => () => { },
+          deps: [Sentry.TraceService],
+          multi: true,
+        },
+      ]
       : []),
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }

@@ -34,7 +34,7 @@ import {
   FormBuilderService,
   TemporaryFilesStorage,
 } from '../../services/form-builder/form-builder.service';
-import { BehaviorSubject, firstValueFrom, takeUntil } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Subject, takeUntil } from 'rxjs'; // Added Subject
 import isNil from 'lodash/isNil';
 import omitBy from 'lodash/omitBy';
 import { TranslateService } from '@ngx-translate/core';
@@ -57,9 +57,6 @@ import { DraftRecordComponent } from '../draft-record/draft-record.component';
 import { UploadRecordsComponent } from '../upload-records/upload-records.component';
 import { ContextService } from '../../services/context/context.service';
 
-/**
- * Interface of Dialog data.
- */
 interface DialogData {
   template?: string;
   recordId?: string | [];
@@ -68,14 +65,9 @@ interface DialogData {
   askForConfirm?: boolean;
   alwaysCreateRecord?: boolean;
 }
-/**
- * Defines the default Dialog data
- */
+
 const DEFAULT_DIALOG_DATA = { askForConfirm: true };
 
-/**
- * Modal to edit or add a record.
- */
 @Component({
   standalone: true,
   selector: 'shared-form-modal',
@@ -97,63 +89,31 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
 })
 export class FormModalComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy
-{
-  /** Reference to form container */
+  implements OnInit, OnDestroy {
   @ViewChild('formContainer') formContainer!: ElementRef;
-  /** Reference to content view container */
   @ViewChild('uploadRecordsContent', { read: ViewContainerRef })
   uploadRecordsContent!: ViewContainerRef;
-  /** Current template */
+
   public survey!: SurveyModel;
-  /** Loading indicator */
   public loading = true;
-  /** Is form saving */
   public saving = false;
-  /** Loaded form */
   public form?: Form;
-  /** Loaded record (optional) */
   public record?: Record;
-  /** Modification date */
   public modifiedAt: Date | null = null;
-  /** Selected page index */
-  public selectedPageIndex: BehaviorSubject<number> =
-    new BehaviorSubject<number>(0);
-  /** Selected page index as observable */
+  public selectedPageIndex: BehaviorSubject<number> = new BehaviorSubject<number>(0);
   public selectedPageIndex$ = this.selectedPageIndex.asObservable();
-  /** The id of the last draft record that was loaded */
   public lastDraftRecord?: string;
-  /** Disables the save as draft button */
   public disableSaveAsDraft = false;
-  /** Available pages*/
   private pages = new BehaviorSubject<any[]>([]);
-  /** Pages as observable */
   public pages$ = this.pages.asObservable();
-  /** Is multi edition of records enabled ( for grid actions ) */
   protected isMultiEdition = false;
-  /** Temporary storage of files */
   protected temporaryFilesStorage: TemporaryFilesStorage = new Map();
-  /** Stored merged data */
   private storedMergedData: any;
-  /** If new records was uploaded */
   private uploadedRecords = false;
 
-  /**
-   * Modal to edit or add a record.
-   *
-   * @param data This is the data that is passed to the modal when it is opened.
-   * @param dialog This is the Angular Dialog service.
-   * @param dialogRef This is the reference to the dialog.
-   * @param apollo This is the Apollo client that we'll use to make GraphQL requests.
-   * @param snackBar This is the service that allows you to display a snackbar.
-   * @param authService This is the service that handles authentication.
-   * @param formBuilderService This is the service that will be used to build forms.
-   * @param formHelpersService This is the service that will handle forms.
-   * @param confirmService This is the service that will be used to display confirm window.
-   * @param translate This is the service that allows us to translate the text in our application.
-   * @param ngZone Angular Service to execute code inside Angular environment
-   * @param contextService Shared context service
-   */
+  // Add cleanup subject for Apollo subscriptions
+  private apolloDestroy$ = new Subject<void>();
+
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
     public dialog: Dialog,
@@ -173,15 +133,12 @@ export class FormModalComponent
 
   async ngOnInit(): Promise<void> {
     this.data = { ...DEFAULT_DIALOG_DATA, ...this.data };
-
     this.isMultiEdition = Array.isArray(this.data.recordId);
-    const promises: Promise<FormQueryResponse | RecordQueryResponse | void>[] =
-      [];
-    // Fetch record data if record id provided
+
+    const promises: Promise<FormQueryResponse | RecordQueryResponse | void>[] = [];
+
     if (this.data.recordId) {
-      const id = this.isMultiEdition
-        ? this.data.recordId[0]
-        : this.data.recordId;
+      const id = this.isMultiEdition ? this.data.recordId[0] : this.data.recordId;
       promises.push(
         firstValueFrom(
           this.apollo.query<RecordQueryResponse>({
@@ -190,19 +147,17 @@ export class FormModalComponent
               id,
               getForm: !this.data.template,
             },
-          })
+          }).pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
         ).then(({ data }) => {
           this.record = data.record;
-          this.modifiedAt = this.isMultiEdition
-            ? null
-            : this.record?.modifiedAt || null;
+          this.modifiedAt = this.isMultiEdition ? null : this.record?.modifiedAt || null;
           if (!this.data.template) {
             this.form = this.record?.form;
           }
         })
       );
     }
-    // Fetch form if no record id provided or specific template provided
+
     if (!this.data.recordId || this.data.template) {
       promises.push(
         firstValueFrom(
@@ -211,7 +166,7 @@ export class FormModalComponent
             variables: {
               id: this.data.template,
             },
-          })
+          }).pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
         ).then(({ data }) => {
           this.form = data.form;
           if (this.data.prefillData) {
@@ -238,11 +193,9 @@ export class FormModalComponent
         })
       );
     }
+
     await Promise.all(promises);
-
     this.initSurvey();
-
-    // Creates UploadRecordsComponent
 
     if (this.survey.allowUploadRecords && !this.record) {
       const componentRef = this.uploadRecordsContent.createComponent(
@@ -252,18 +205,16 @@ export class FormModalComponent
       componentRef.setInput('id', this.form?.id);
       componentRef.setInput('name', this.form?.name);
       componentRef.setInput('path', 'form');
-      componentRef.instance.uploaded.subscribe(
-        () => (this.uploadedRecords = true)
-      );
 
-      /** To use angular hooks */
+      // Add takeUntil to prevent memory leaks
+      componentRef.instance.uploaded
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => (this.uploadedRecords = true));
+
       componentRef.changeDetectorRef.detectChanges();
     }
   }
 
-  /**
-   * Initializes the form
-   */
   private initSurvey(): void {
     this.survey = this.formBuilderService.createSurvey(
       this.form?.structure || '',
@@ -271,7 +222,7 @@ export class FormModalComponent
       this.record,
       this.form
     );
-    // After the survey is created we add common callback to survey events
+
     this.formBuilderService.addEventsCallBacksToSurvey(
       this.survey,
       this.selectedPageIndex,
@@ -279,16 +230,13 @@ export class FormModalComponent
       this.destroy$
     );
 
-    // Set questions readOnly propriety
     const structure = JSON.parse(this.form?.structure || '');
     const pages = structure.pages;
     const initReadOnly = (elements: any): void => {
       elements.forEach((question: any) => {
         if (question.elements) {
-          // If question is a panel type that has sub-questions
           initReadOnly(question.elements);
         } else if (question.templateElements) {
-          // If question is a paneldynamic type that has sub-questions
           initReadOnly(question.templateElements);
         } else if (this.survey.getQuestionByName(question.name)) {
           this.survey.getQuestionByName(question.name).readOnly =
@@ -317,11 +265,13 @@ export class FormModalComponent
           this.survey.getQuestionByName(field.name).readOnly = true;
       });
     }
+
     this.survey.onValueChanged.add(() => {
-      // Allow user to save as draft
       this.disableSaveAsDraft = false;
     });
+
     this.survey.onComplete.add(this.onComplete);
+
     if (this.storedMergedData) {
       this.survey.data = {
         ...this.survey.data,
@@ -331,9 +281,6 @@ export class FormModalComponent
     this.loading = false;
   }
 
-  /**
-   * Calls the complete method of the survey if no error.
-   */
   public submit(): void {
     this.saving = true;
     if (!this.survey?.hasErrors()) {
@@ -347,18 +294,14 @@ export class FormModalComponent
     }
   }
 
-  /**
-   * Closes the dialog asking for confirmation if needed.
-   */
   public close(): void {
     const surveyData = transformSurveyData(this.survey);
     const recordData = this.record?.data || {};
 
-    // To check if the user modified the data, we check if there's any key on the surveyData
-    // that is different from or doesn't exist in the recordData
     const isModified = Object.keys(surveyData).some(
       (key) => surveyData[key] !== recordData[key]
     );
+
     if (this.survey.confirmOnModalClose && isModified) {
       const dialogRef = this.confirmService.openConfirmModal({
         title: this.translate.instant('common.close'),
@@ -368,6 +311,7 @@ export class FormModalComponent
         confirmText: this.translate.instant('components.confirmModal.confirm'),
         confirmVariant: 'primary',
       });
+
       dialogRef.closed
         .pipe(takeUntil(this.destroy$))
         .subscribe((value: any) => {
@@ -380,20 +324,14 @@ export class FormModalComponent
     }
   }
 
-  /**
-   * Creates the record, or update it if provided.
-   *
-   * @param survey Survey instance.
-   */
   public onComplete = (survey: any) => {
     this.survey?.clear(false);
     const rowsSelected = Array.isArray(this.data.recordId)
       ? this.data.recordId.length
       : 1;
 
-    /** we can send to backend empty data if they are not required */
     this.formHelpersService.setEmptyQuestions(survey);
-    // Displays confirmation modal.
+
     if (this.data.askForConfirm) {
       const dialogRef = this.confirmService.openConfirmModal({
         title: this.translate.instant(
@@ -408,6 +346,7 @@ export class FormModalComponent
         confirmText: this.translate.instant('components.confirmModal.confirm'),
         confirmVariant: 'primary',
       });
+
       dialogRef.closed
         .pipe(takeUntil(this.destroy$))
         .subscribe(async (value: any) => {
@@ -417,18 +356,11 @@ export class FormModalComponent
             this.saving = false;
           }
         });
-      // Updates the data directly.
     } else {
       this.onUpdate(survey);
     }
   };
 
-  /**
-   * Handles update data event.
-   *
-   * @param survey current survey
-   * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
-   */
   public async onUpdate(survey: any, refreshWidgets = false): Promise<void> {
     this.formHelpersService
       .checkUniquePropriety(this.survey)
@@ -439,11 +371,11 @@ export class FormModalComponent
             this.temporaryFilesStorage,
             this.form?.id
           );
-          // await Promise.allSettled(promises);
+
           await this.formHelpersService.createTemporaryRecords(survey);
           const editRecord = response.overwriteRecord ?? this.data.recordId;
+
           if (editRecord) {
-            // If update or creation of record is overwriting another record because unique field values
             const recordId = response.overwriteRecord
               ? response.overwriteRecord.id
               : this.data.recordId;
@@ -453,6 +385,7 @@ export class FormModalComponent
               this.updateData(recordId, survey, refreshWidgets);
             }
           } else {
+            // FIX: Add takeUntil to prevent memory leaks
             this.apollo
               .mutate<AddRecordMutationResponse>({
                 mutation: ADD_RECORD,
@@ -462,6 +395,7 @@ export class FormModalComponent
                   data: survey.getParsedData?.() ?? survey.data,
                 },
               })
+              .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
               .subscribe({
                 next: async ({ errors, data }) => {
                   if (errors) {
@@ -513,14 +447,8 @@ export class FormModalComponent
       });
   }
 
-  /**
-   * Updates a specific record.
-   *
-   * @param id record id.
-   * @param survey current survey.
-   * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
-   */
   public updateData(id: any, survey: any, refreshWidgets = false): void {
+    // FIX: Add takeUntil to prevent memory leaks
     this.apollo
       .mutate<EditRecordMutationResponse>({
         mutation: EDIT_RECORD,
@@ -530,6 +458,7 @@ export class FormModalComponent
           template: this.data.template,
         },
       })
+      .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
       .subscribe({
         next: async ({ errors, data }) => {
           this.handleRecordMutationResponse({ data, errors }, 'editRecord');
@@ -550,19 +479,9 @@ export class FormModalComponent
       });
   }
 
-  /**
-   * Updates multiple records.
-   *
-   * @param ids list of record ids.
-   * @param survey current survey.
-   * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
-   */
-  public updateMultipleData(
-    ids: any,
-    survey: any,
-    refreshWidgets = false
-  ): void {
+  public updateMultipleData(ids: any, survey: any, refreshWidgets = false): void {
     const recordData = cleanRecord(survey.getParsedData?.() ?? survey.data);
+    // FIX: Add takeUntil to prevent memory leaks
     this.apollo
       .mutate<EditRecordsMutationResponse>({
         mutation: EDIT_RECORDS,
@@ -572,6 +491,7 @@ export class FormModalComponent
           template: this.data.template,
         },
       })
+      .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
       .subscribe({
         next: async ({ errors, data }) => {
           if (this.lastDraftRecord) {
@@ -601,14 +521,6 @@ export class FormModalComponent
       });
   }
 
-  /**
-   * Handle mutation type for the given response type, single or multiple records
-   *
-   * @param response Graphql mutation response
-   * @param response.data response data
-   * @param response.errors response errors
-   * @param responseType response type
-   */
   private handleRecordMutationResponse(
     response: { data: any; errors: any },
     responseType: 'editRecords' | 'editRecord'
@@ -642,35 +554,20 @@ export class FormModalComponent
     }
   }
 
-  /**
-   * Handles the show page event
-   *
-   * @param i The index of the page
-   */
   public onShowPage(i: number): void {
     if (this.selectedPageIndex.getValue() !== i) {
       this.selectedPageIndex.next(i);
     }
   }
 
-  /**
-   * Merge records
-   *
-   * @param records Records to merge
-   * @returns The merged records
-   */
   private mergedData(records: Record[]): any {
     const data: any = {};
-    // Loop on source fields
     for (const inputField of records[0].form?.fields || []) {
-      // If source field match with target field
       if (this.form?.fields?.some((x) => x.name === inputField.name)) {
         const targetField = this.form?.fields?.find(
           (x) => x.name === inputField.name
         );
-        // If source field got choices
         if (inputField.choices || inputField.choicesByUrl) {
-          // If the target has multiple choices we concatenate all the source values
           if (
             targetField.type === 'tagbox' ||
             targetField.type === 'checkbox'
@@ -692,9 +589,7 @@ export class FormModalComponent
                 (x) => x.data[inputField.name]
               );
             }
-          }
-          // If the target has single choice we we put the common choice if any or leave it empty
-          else {
+          } else {
             if (
               !records.some(
                 (x) =>
@@ -704,15 +599,10 @@ export class FormModalComponent
               data[inputField.name] = records[0].data[inputField.name];
             }
           }
-        }
-        // If source field is a free input and types are matching between source and target field
-        else if (inputField.type === targetField.type) {
-          // If type is text just put the text of the first record
+        } else if (inputField.type === targetField.type) {
           if (inputField.type === 'text') {
             data[inputField.name] = records[0].data[inputField.name];
-          }
-          // If type is different from text and there is a common value, put it. Otherwise leave empty
-          else {
+          } else {
             if (
               !records.some(
                 (x) =>
@@ -728,9 +618,6 @@ export class FormModalComponent
     return data;
   }
 
-  /**
-   * Opens the history of the record in a modal.
-   */
   public async onShowHistory(): Promise<void> {
     if (this.record) {
       const { RecordHistoryModalComponent } = await import(
@@ -748,16 +635,11 @@ export class FormModalComponent
     }
   }
 
-  /**
-   * Open a dialog modal to confirm the recovery of data
-   *
-   * @param record The record whose data we need to recover
-   * @param version The version to recover
-   */
   private confirmRevertDialog(record: any, version: any) {
     const dialogRef = this.formHelpersService.createRevertDialog(version);
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
       if (value) {
+        // FIX: Add takeUntil to prevent memory leaks
         this.apollo
           .mutate<EditRecordMutationResponse>({
             mutation: EDIT_RECORD,
@@ -766,6 +648,7 @@ export class FormModalComponent
               version: version.id,
             },
           })
+          .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
           .subscribe({
             next: (errors) => {
               if (errors) {
@@ -790,9 +673,6 @@ export class FormModalComponent
     });
   }
 
-  /**
-   * Saves the current data as a draft record
-   */
   public saveAsDraft(): void {
     const callback = (details: any) => {
       this.lastDraftRecord = details.id;
@@ -806,17 +686,11 @@ export class FormModalComponent
     );
   }
 
-  /**
-   * Handle draft record load .
-   *
-   * @param id if of the draft record loaded
-   */
   public onLoadDraftRecord(id: string): void {
     this.lastDraftRecord = id;
     this.disableSaveAsDraft = true;
   }
 
-  /** Confirms deletion of record using the confirm service and deletes the record if confirmed */
   public async deleteRecord(): Promise<void> {
     const dialogRef = this.confirmService.openConfirmModal({
       title: this.translate.instant('common.deleteObject', {
@@ -834,6 +708,7 @@ export class FormModalComponent
 
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe(async (value) => {
       if (value && this.record?.id) {
+        // FIX: Add takeUntil to prevent memory leaks
         this.apollo
           .mutate({
             mutation: ARCHIVE_RECORD,
@@ -841,6 +716,7 @@ export class FormModalComponent
               id: this.record.id,
             },
           })
+          .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
           .subscribe((res) => {
             if (res.errors) {
               this.snackBar.openSnackBar(
@@ -867,11 +743,48 @@ export class FormModalComponent
     });
   }
 
-  /**
-   * Clears the cache for the records created by resource questions
-   */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
-    this.survey?.dispose();
+
+    // Critical: Clean up all Apollo subscriptions
+    this.apolloDestroy$.next();
+    this.apolloDestroy$.complete();
+
+    // Clean up SurveyJS
+    if (this.survey) {
+      this.survey.dispose();
+
+      // Additional SurveyJS cleanup to prevent memory leaks
+      try {
+        // Clear all event handlers
+        this.survey.onValueChanged.clear();
+        this.survey.onComplete.clear();
+        this.survey.onCurrentPageChanged.clear();
+        this.survey.onAfterRenderQuestion.clear();
+        this.survey.onAfterRenderSurvey.clear();
+
+        // Clear all questions and panels
+        this.survey.getAllQuestions().forEach(question => {
+          try {
+            question.dispose();
+          } catch (e) {
+            console.warn('Error disposing question:', e);
+          }
+        });
+
+        // Clear survey data
+        this.survey.data = {};
+        this.survey.clear(true, true);
+      } catch (e) {
+        console.warn('Error during survey cleanup:', e);
+      }
+    }
+
+    // Clean up temporary files storage
+    this.temporaryFilesStorage.clear();
+
+    // Clean up behavior subjects
+    this.selectedPageIndex.complete();
+    this.pages.complete();
   }
 }

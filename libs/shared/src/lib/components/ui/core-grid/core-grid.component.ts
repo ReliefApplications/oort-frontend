@@ -60,6 +60,15 @@ import { Router } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { DashboardService } from '../../../services/dashboard/dashboard.service';
 
+// Define the interface for data query variables to fix TypeScript error
+interface DataQueryVariables {
+  first: number;
+  filter: CompositeFilterDescriptor;
+  sort: any;
+  styles: any;
+  at?: Date;
+}
+
 /**
  * Default file name when exporting grid data.
  */
@@ -84,8 +93,7 @@ const cloneData = (data: any[]) => data.map((item) => Object.assign({}, item));
 })
 export class CoreGridComponent
   extends UnsubscribeComponent
-  implements OnChanges, OnInit
-{
+  implements OnChanges, OnInit {
   // === INPUTS ===
   /** Grid settings */
   @Input() settings: GridSettings | any = {};
@@ -172,7 +180,8 @@ export class CoreGridComponent
   /** Details field for the grid. */
   public detailsField?: any;
   /** Data query reference for fetching data. */
-  private dataQuery!: QueryRef<QueryResponse>;
+  // FIX: Use the proper type with variables to resolve TypeScript error
+  private dataQuery!: QueryRef<QueryResponse, DataQueryVariables>;
   /** Meta query reference for fetching metadata. */
   private metaQuery!: any;
 
@@ -285,9 +294,8 @@ export class CoreGridComponent
       month: 'short',
       day: 'numeric',
     })} ${today.getFullYear()}`;
-    return `${
-      this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
-    } ${formatDate}`;
+    return `${this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
+      } ${formatDate}`;
   }
 
   /** @returns true if any updated item in the list */
@@ -338,6 +346,9 @@ export class CoreGridComponent
   private environment: any;
   /** Subject to emit signals for cancelling previous data queries */
   private cancelRefresh$ = new Subject<void>();
+
+  // FIX: Add Apollo-specific destroy subject for memory leak prevention
+  private apolloDestroy$ = new Subject<void>();
 
   /**
    * Main Grid data component to display Records.
@@ -418,6 +429,29 @@ export class CoreGridComponent
   }
 
   /**
+   * Clean up all subscriptions to prevent memory leaks
+   */
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+
+    // Clean up Apollo-specific subscriptions
+    this.apolloDestroy$.next();
+    this.apolloDestroy$.complete();
+
+    // Clean up other subjects
+    this.cancelRefresh$.next();
+    this.cancelRefresh$.complete();
+    this.refresh$.next(true);
+    this.refresh$.complete();
+
+    // Clear data to help garbage collection
+    this.items = [];
+    this.updatedItems = [];
+    this.gridData = { data: [], total: 0 };
+    this.fields = [];
+  }
+
+  /**
    * Detects changes of the settings to (re)load the data.
    *
    * @param changes The changes on the component
@@ -495,7 +529,6 @@ export class CoreGridComponent
       this.multiSelect = false;
     }
 
-    // this.selectableSettings = { ...this.selectableSettings, mode: this.multiSelect ? 'multiple' : 'single' };
     this.hasLayoutChanges = this.settings.defaultLayout
       ? !isEqual(this.defaultLayout, JSON.parse(this.settings.defaultLayout))
       : true;
@@ -520,7 +553,8 @@ export class CoreGridComponent
           ),
         };
       } else {
-        this.dataQuery = this.apollo.watchQuery({
+        // FIX: Properly typed dataQuery with variables
+        this.dataQuery = this.apollo.watchQuery<QueryResponse, DataQueryVariables>({
           query: builtQuery,
           variables: {
             first: this.pageSize,
@@ -532,8 +566,6 @@ export class CoreGridComponent
               : undefined,
           },
           fetchPolicy: 'no-cache',
-          // Enabling the option bellow makes it so that sometimes the items permissions are different from rhe actual query for some reason
-          // nextFetchPolicy: 'cache-first',
         });
       }
 
@@ -614,8 +646,6 @@ export class CoreGridComponent
             this.fields.find((f) => f.name === key)?.type === 'Date' &&
             !isNaN(new Date(x[key])?.getTime())
           ) {
-            // We assume the server sends dates in ISO format
-            // For dates, we disregard the time zone
             const withoutTimezone = x[key]?.split('T')[0];
             const dateParts = withoutTimezone?.split('-');
             if (dateParts?.length === 3) {
@@ -656,7 +686,7 @@ export class CoreGridComponent
       this.updatedItems.push({ id: item.id, ...value });
     }
 
-    // Use the draft option to apply triggers, and then update the data
+    // FIX: Add takeUntil to prevent memory leaks in nested Apollo calls
     this.apollo
       .mutate<EditRecordMutationResponse>({
         mutation: EDIT_RECORD,
@@ -666,7 +696,7 @@ export class CoreGridComponent
           draft: true,
         },
       })
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this.apolloDestroy$)) // Critical memory leak fix
       .subscribe(({ data }) => {
         if (data?.editRecord.data) {
           const editedData = data.editRecord.data;
@@ -677,7 +707,7 @@ export class CoreGridComponent
                 id: this.settings.resource,
               },
             })
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntil(this.apolloDestroy$)) // Critical memory leak fix
             .subscribe(({ data }) => {
               const queryName = data.resource.singleQueryName;
               if (queryName) {
@@ -699,14 +729,12 @@ export class CoreGridComponent
                         data: editedData,
                       },
                     })
-                    .pipe(takeUntil(this.destroy$))
+                    .pipe(takeUntil(this.apolloDestroy$)) // Critical memory leak fix
                     .subscribe(({ data }) => {
                       const dataItem = this.gridData.data.find(
                         (x) => x.id === item.id
                       );
-                      // Update data item element
                       Object.assign(dataItem, get(data, queryName));
-                      // Update data item raw value ( used by inline edition )
                       dataItem._meta.raw = editedData;
                       item.saved = false;
                       const index = this.updatedItems.findIndex(
@@ -755,7 +783,6 @@ export class CoreGridComponent
           );
           const item = this.items.find((x) => x.id === resRecord.id);
           if (resRecord?.validationErrors?.length) {
-            // if the item has an error, save the error with the item object
             this.updatedItems[updatedIndex].incrementalId =
               resRecord.incrementalId;
             this.updatedItems[updatedIndex].validationErrors =
@@ -763,22 +790,16 @@ export class CoreGridComponent
             item.incrementalId = resRecord.incrementalId;
             item.validationErrors = resRecord.validationErrors;
           } else {
-            // if no errors, the item has been saved in the database
-            // remove the item from updatedItems list
             this.updatedItems.splice(updatedIndex, 1);
-            // save the new value of the item in the originalItems list
             const originalIndex = this.originalItems.findIndex(
               (x) => x.id === resRecord.id
             );
             this.originalItems[originalIndex] = item;
-            // add a property to indicate the item is saved
             item.saved = true;
           }
         }
         this.inlineEdition.emit();
-        // the items still in the updatedItems list are the ones with errors
         if (this.updatedItems.length) {
-          // show an error message
           this.snackBar.openSnackBar(
             this.translate.instant(
               'components.widget.grid.errors.validationFailed',
@@ -841,7 +862,7 @@ export class CoreGridComponent
               template: this.settings.template,
               lang: this.translate.currentLang,
             },
-          })
+          }).pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
         )
       );
     }
@@ -888,16 +909,12 @@ export class CoreGridComponent
                     item.saved = false;
                   }
                 }
-                // if (!this.readOnly) {
-                //   this.initSelectedRows();
-                // }
               }
             } catch (error) {
               console.error(error);
             }
           }
           if (this.settings.query.temporaryRecords?.length) {
-            //Handles temporary records for resources creation in forms
             this.getTemporaryRecords();
           }
         },
@@ -944,7 +961,6 @@ export class CoreGridComponent
       total: this.totalCount,
     };
 
-    // Check if should automatically map visible rows into state automatically
     if (
       this.widget?.settings?.actions?.automaticallyMapView &&
       this.items.length
@@ -957,10 +973,7 @@ export class CoreGridComponent
    * Reloads data and unselect all rows.
    */
   public reloadData(): void {
-    // TODO = check what to do there
     this.onPageChange({ skip: 0, take: this.pageSize });
-    // this.selectedRows = [];
-    // this.updatedItems = [];
     this.refresh$.next(true);
   }
 
@@ -988,7 +1001,6 @@ export class CoreGridComponent
     }
     this.selectionChange.emit(selection);
 
-    // Check if should automatically map selected rows into state automatically
     if (this.widget?.settings?.actions.automaticallyMapSelected) {
       this.setState(this.selectedRows);
     }
@@ -1043,10 +1055,8 @@ export class CoreGridComponent
       case 'save': {
         this.onSaveChanges().then((hasError) => {
           if (hasError) {
-            // update the displayed items
             this.loadItems();
           } else {
-            // if no error, reload the grid
             this.reloadData();
           }
         });
@@ -1140,7 +1150,6 @@ export class CoreGridComponent
                 datasource: {
                   type: 'Point',
                   resource: this.settings.resource,
-                  // todo(change)
                   layout: this.settings.id,
                   geoField: event.field.name,
                 },
@@ -1205,7 +1214,6 @@ export class CoreGridComponent
         operator: 'in',
         value: items.map((x: { id: any }) => x.id),
       };
-      // for resources, open it inside the ResourceGrid
       const { ResourceGridModalComponent } = await import(
         '../../search-resource-grid-modal/search-resource-grid-modal.component'
       );
@@ -1231,7 +1239,6 @@ export class CoreGridComponent
       const { RecordModalComponent } = await import(
         '../../record-modal/record-modal.component'
       );
-      //case for temporary records
       this.dialog.open(RecordModalComponent, {
         data: {
           isTemporary: true,
@@ -1338,7 +1345,7 @@ export class CoreGridComponent
               ids,
             },
           })
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
           .subscribe(() => {
             this.reloadData();
             this.layoutService.setRightSidenav(null);
@@ -1376,7 +1383,7 @@ export class CoreGridComponent
                   form: value.targetForm.id,
                   copyRecord: value.copyRecord,
                 },
-              })
+              }).pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
             )
           );
         }
@@ -1396,7 +1403,6 @@ export class CoreGridComponent
    */
   public onViewHistory(item: any): void {
     const cdkOverlay = document.querySelector('.cdk-overlay-container');
-    // use modal to show history
     if (cdkOverlay && cdkOverlay.contains(this.el.nativeElement)) {
       import('../../record-history-modal/record-history-modal.component').then(
         ({ RecordHistoryModalComponent }) => {
@@ -1412,7 +1418,6 @@ export class CoreGridComponent
         }
       );
     } else {
-      // Use sidenav
       import('../../record-history/record-history.component').then(
         ({ RecordHistoryComponent }) => {
           this.layoutService.setRightSidenav({
@@ -1437,7 +1442,6 @@ export class CoreGridComponent
    * @param version id of the target version.
    */
   private confirmRevertDialog(record: any, version: any): void {
-    // eslint-disable-next-line radix
     const date = new Date(parseInt(version.createdAt, 0));
     const formatDate = new DatePipe(this.dateTranslate).transform(
       date,
@@ -1462,7 +1466,7 @@ export class CoreGridComponent
               version: version.id,
             },
           })
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
           .subscribe({
             next: ({ errors }) => {
               if (errors) {
@@ -1512,15 +1516,14 @@ export class CoreGridComponent
       return;
     }
 
-    // Builds the request body with all the useful data
     const currentLayout = this.layout;
     const body = {
       filter:
         e.records === 'selected'
           ? {
-              logic: 'and',
-              filters: [{ operator: 'eq', field: 'ids', value: ids }],
-            }
+            logic: 'and',
+            filters: [{ operator: 'eq', field: 'ids', value: ids }],
+          }
           : this.queryFilter,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       query: this.settings.query,
@@ -1530,7 +1533,6 @@ export class CoreGridComponent
       fileName: this.fileName,
       email: e.email,
       resource: this.settings.resource,
-      // we only export visible fields ( not hidden )
       ...(e.fields === 'visible' && {
         fields: Object.values(currentLayout.fields)
           .filter((x: any) => !x.hidden)
@@ -1546,7 +1548,6 @@ export class CoreGridComponent
               })),
           })),
       }),
-      // we export ALL fields of the grid ( including hidden columns )
       ...(e.fields === 'all' && {
         fields: Object.values(currentLayout.fields)
           .sort((a: any, b: any) => a.order - b.order)
@@ -1561,7 +1562,6 @@ export class CoreGridComponent
       }),
     };
 
-    // Builds and make the request
     this.downloadService.getRecordsExport(
       '/download/records',
       `text/${e.format};charset=utf-8;`,
@@ -1629,7 +1629,6 @@ export class CoreGridComponent
     this.search = typeof search === 'string' ? search.trim() : search;
     this.skip = 0;
 
-    // unselect all rows
     this.onSelectionChange({
       deselectedRows: this.selectedRows.map(
         (x) => ({ dataItem: { id: x } } as any)
@@ -1666,7 +1665,6 @@ export class CoreGridComponent
    * Saves the current layout of the grid as default layout
    */
   saveDefaultLayout(): void {
-    // this.defaultLayoutChanged.emit(this.layout);
     this.hasLayoutChanges = false;
   }
 
