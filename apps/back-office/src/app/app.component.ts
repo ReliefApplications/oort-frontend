@@ -41,7 +41,7 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Application title */
   title = 'back-office';
 
-  // Add destroy subject for unsubscription
+  /** Add destroy subject for unsubscription */
   private destroy$ = new Subject<void>();
 
   /**
@@ -78,7 +78,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.authService.initLoginSequence();
   }
 
-  // Clean up subscriptions to prevent memory leaks
+  /**
+   * Clean up subscriptions to prevent memory leaks
+   */
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

@@ -34,7 +34,7 @@ import {
   FormBuilderService,
   TemporaryFilesStorage,
 } from '../../services/form-builder/form-builder.service';
-import { BehaviorSubject, firstValueFrom, Subject, takeUntil } from 'rxjs'; // Added Subject
+import { BehaviorSubject, firstValueFrom, Subject, takeUntil } from 'rxjs';
 import isNil from 'lodash/isNil';
 import omitBy from 'lodash/omitBy';
 import { TranslateService } from '@ngx-translate/core';
@@ -116,6 +116,22 @@ export class FormModalComponent
   // Add cleanup subject for Apollo subscriptions
   private apolloDestroy$ = new Subject<void>();
 
+  /**
+   * Form Modal Component constructor
+   *
+   * @param data Dialog data
+   * @param dialog Dialog service
+   * @param dialogRef Dialog reference
+   * @param apollo Apollo service
+   * @param snackBar Snackbar service
+   * @param authService Auth service
+   * @param formBuilderService Form builder service
+   * @param formHelpersService Form helpers service
+   * @param confirmService Confirm service
+   * @param translate Translate service
+   * @param ngZone NgZone service
+   * @param contextService Context service
+   */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
     public dialog: Dialog,
@@ -133,6 +149,9 @@ export class FormModalComponent
     super();
   }
 
+  /**
+   * Component initialization
+   */
   async ngOnInit(): Promise<void> {
     this.data = { ...DEFAULT_DIALOG_DATA, ...this.data };
     this.isMultiEdition = Array.isArray(this.data.recordId);
@@ -154,7 +173,7 @@ export class FormModalComponent
                 getForm: !this.data.template,
               },
             })
-            .pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
+            .pipe(takeUntil(this.apolloDestroy$))
         ).then(({ data }) => {
           this.record = data.record;
           this.modifiedAt = this.isMultiEdition
@@ -177,7 +196,7 @@ export class FormModalComponent
                 id: this.data.template,
               },
             })
-            .pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
+            .pipe(takeUntil(this.apolloDestroy$))
         ).then(({ data }) => {
           this.form = data.form;
           if (this.data.prefillData) {
@@ -217,7 +236,6 @@ export class FormModalComponent
       componentRef.setInput('name', this.form?.name);
       componentRef.setInput('path', 'form');
 
-      // Add takeUntil to prevent memory leaks
       componentRef.instance.uploaded
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => (this.uploadedRecords = true));
@@ -226,6 +244,9 @@ export class FormModalComponent
     }
   }
 
+  /**
+   * Initialize the survey
+   */
   private initSurvey(): void {
     this.survey = this.formBuilderService.createSurvey(
       this.form?.structure || '',
@@ -292,6 +313,9 @@ export class FormModalComponent
     this.loading = false;
   }
 
+  /**
+   * Submit the form
+   */
   public submit(): void {
     this.saving = true;
     if (!this.survey?.hasErrors()) {
@@ -305,6 +329,9 @@ export class FormModalComponent
     }
   }
 
+  /**
+   * Close the modal
+   */
   public close(): void {
     const surveyData = transformSurveyData(this.survey);
     const recordData = this.record?.data || {};
@@ -335,6 +362,11 @@ export class FormModalComponent
     }
   }
 
+  /**
+   * Handle survey completion
+   *
+   * @param survey The completed survey
+   */
   public onComplete = (survey: any) => {
     this.survey?.clear(false);
     const rowsSelected = Array.isArray(this.data.recordId)
@@ -372,6 +404,12 @@ export class FormModalComponent
     }
   };
 
+  /**
+   * Update records after survey completion
+   *
+   * @param survey The completed survey
+   * @param refreshWidgets Whether to refresh widgets
+   */
   public async onUpdate(survey: any, refreshWidgets = false): Promise<void> {
     this.formHelpersService
       .checkUniquePropriety(this.survey)
@@ -396,7 +434,6 @@ export class FormModalComponent
               this.updateData(recordId, survey, refreshWidgets);
             }
           } else {
-            // FIX: Add takeUntil to prevent memory leaks
             this.apollo
               .mutate<AddRecordMutationResponse>({
                 mutation: ADD_RECORD,
@@ -406,7 +443,7 @@ export class FormModalComponent
                   data: survey.getParsedData?.() ?? survey.data,
                 },
               })
-              .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
+              .pipe(takeUntil(this.apolloDestroy$))
               .subscribe({
                 next: async ({ errors, data }) => {
                   if (errors) {
@@ -458,8 +495,14 @@ export class FormModalComponent
       });
   }
 
+  /**
+   * Update single record data
+   *
+   * @param id Record ID
+   * @param survey Survey data
+   * @param refreshWidgets Whether to refresh widgets
+   */
   public updateData(id: any, survey: any, refreshWidgets = false): void {
-    // FIX: Add takeUntil to prevent memory leaks
     this.apollo
       .mutate<EditRecordMutationResponse>({
         mutation: EDIT_RECORD,
@@ -469,7 +512,7 @@ export class FormModalComponent
           template: this.data.template,
         },
       })
-      .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
+      .pipe(takeUntil(this.apolloDestroy$))
       .subscribe({
         next: async ({ errors, data }) => {
           this.handleRecordMutationResponse({ data, errors }, 'editRecord');
@@ -490,13 +533,19 @@ export class FormModalComponent
       });
   }
 
+  /**
+   * Update multiple records data
+   *
+   * @param ids Record IDs
+   * @param survey Survey data
+   * @param refreshWidgets Whether to refresh widgets
+   */
   public updateMultipleData(
     ids: any,
     survey: any,
     refreshWidgets = false
   ): void {
     const recordData = cleanRecord(survey.getParsedData?.() ?? survey.data);
-    // FIX: Add takeUntil to prevent memory leaks
     this.apollo
       .mutate<EditRecordsMutationResponse>({
         mutation: EDIT_RECORDS,
@@ -506,7 +555,7 @@ export class FormModalComponent
           template: this.data.template,
         },
       })
-      .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
+      .pipe(takeUntil(this.apolloDestroy$))
       .subscribe({
         next: async ({ errors, data }) => {
           if (this.lastDraftRecord) {
@@ -536,6 +585,12 @@ export class FormModalComponent
       });
   }
 
+  /**
+   * Handle record mutation response
+   *
+   * @param response Mutation response
+   * @param responseType Type of response
+   */
   private handleRecordMutationResponse(
     response: { data: any; errors: any },
     responseType: 'editRecords' | 'editRecord'
@@ -569,12 +624,23 @@ export class FormModalComponent
     }
   }
 
+  /**
+   * Show specific page in survey
+   *
+   * @param i Page index
+   */
   public onShowPage(i: number): void {
     if (this.selectedPageIndex.getValue() !== i) {
       this.selectedPageIndex.next(i);
     }
   }
 
+  /**
+   * Merge data from multiple records
+   *
+   * @param records Records to merge
+   * @returns Merged data
+   */
   private mergedData(records: Record[]): any {
     const data: any = {};
     for (const inputField of records[0].form?.fields || []) {
@@ -633,6 +699,9 @@ export class FormModalComponent
     return data;
   }
 
+  /**
+   * Show record history
+   */
   public async onShowHistory(): Promise<void> {
     if (this.record) {
       const { RecordHistoryModalComponent } = await import(
@@ -650,11 +719,16 @@ export class FormModalComponent
     }
   }
 
+  /**
+   * Confirm revert dialog
+   *
+   * @param record Record to revert
+   * @param version Version to revert to
+   */
   private confirmRevertDialog(record: any, version: any) {
     const dialogRef = this.formHelpersService.createRevertDialog(version);
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
       if (value) {
-        // FIX: Add takeUntil to prevent memory leaks
         this.apollo
           .mutate<EditRecordMutationResponse>({
             mutation: EDIT_RECORD,
@@ -663,7 +737,7 @@ export class FormModalComponent
               version: version.id,
             },
           })
-          .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
+          .pipe(takeUntil(this.apolloDestroy$))
           .subscribe({
             next: (errors) => {
               if (errors) {
@@ -688,6 +762,9 @@ export class FormModalComponent
     });
   }
 
+  /**
+   * Save record as draft
+   */
   public saveAsDraft(): void {
     const callback = (details: any) => {
       this.lastDraftRecord = details.id;
@@ -701,11 +778,19 @@ export class FormModalComponent
     );
   }
 
+  /**
+   * Load draft record
+   *
+   * @param id Draft record ID
+   */
   public onLoadDraftRecord(id: string): void {
     this.lastDraftRecord = id;
     this.disableSaveAsDraft = true;
   }
 
+  /**
+   * Delete current record
+   */
   public async deleteRecord(): Promise<void> {
     const dialogRef = this.confirmService.openConfirmModal({
       title: this.translate.instant('common.deleteObject', {
@@ -723,7 +808,6 @@ export class FormModalComponent
 
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe(async (value) => {
       if (value && this.record?.id) {
-        // FIX: Add takeUntil to prevent memory leaks
         this.apollo
           .mutate({
             mutation: ARCHIVE_RECORD,
@@ -731,7 +815,7 @@ export class FormModalComponent
               id: this.record.id,
             },
           })
-          .pipe(takeUntil(this.apolloDestroy$)) // Critical fix
+          .pipe(takeUntil(this.apolloDestroy$))
           .subscribe((res) => {
             if (res.errors) {
               this.snackBar.openSnackBar(
@@ -758,10 +842,13 @@ export class FormModalComponent
     });
   }
 
+  /**
+   * Clean up component
+   */
   override ngOnDestroy(): void {
     super.ngOnDestroy();
 
-    // Critical: Clean up all Apollo subscriptions
+    // Clean up all Apollo subscriptions
     this.apolloDestroy$.next();
     this.apolloDestroy$.complete();
 

@@ -4,7 +4,6 @@ import {
   ErrorHandler,
   APP_INITIALIZER,
   LOCALE_ID,
-  OnDestroy,
 } from '@angular/core';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -54,7 +53,6 @@ import '@progress/kendo-angular-intl/locales/fr/all';
 import { PopupService } from '@progress/kendo-angular-popup';
 import { ResizeBatchService } from '@progress/kendo-angular-common';
 import { IconsService } from '@progress/kendo-angular-icons';
-// import { touchEnabled } from '@progress/kendo-common';
 // Apollo / GraphQL
 import { GraphQLModule } from './graphql.module';
 import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
@@ -150,11 +148,6 @@ export const httpTranslateLoader = (http: HttpClient) =>
       provide: OAuthStorage,
       useValue: localStorage,
     },
-    // TODO: check
-    // {
-    //   provide: TOUCH_ENABLED,
-    //   useValue: [touchEnabled],
-    // },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptorService,
@@ -188,7 +181,14 @@ export const httpTranslateLoader = (http: HttpClient) =>
           },
           {
             provide: APP_INITIALIZER,
-            useFactory: () => () => {},
+            useFactory: () => {
+              return () => {
+                // Sentry initialization placeholder
+                if (environment.sentry) {
+                  console.log('Sentry trace service initialized');
+                }
+              };
+            },
             deps: [Sentry.TraceService],
             multi: true,
           },
