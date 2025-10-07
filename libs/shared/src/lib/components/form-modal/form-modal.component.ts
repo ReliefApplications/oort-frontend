@@ -89,7 +89,8 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
 })
 export class FormModalComponent
   extends UnsubscribeComponent
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy
+{
   @ViewChild('formContainer') formContainer!: ElementRef;
   @ViewChild('uploadRecordsContent', { read: ViewContainerRef })
   uploadRecordsContent!: ViewContainerRef;
@@ -100,7 +101,8 @@ export class FormModalComponent
   public form?: Form;
   public record?: Record;
   public modifiedAt: Date | null = null;
-  public selectedPageIndex: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  public selectedPageIndex: BehaviorSubject<number> =
+    new BehaviorSubject<number>(0);
   public selectedPageIndex$ = this.selectedPageIndex.asObservable();
   public lastDraftRecord?: string;
   public disableSaveAsDraft = false;
@@ -135,22 +137,29 @@ export class FormModalComponent
     this.data = { ...DEFAULT_DIALOG_DATA, ...this.data };
     this.isMultiEdition = Array.isArray(this.data.recordId);
 
-    const promises: Promise<FormQueryResponse | RecordQueryResponse | void>[] = [];
+    const promises: Promise<FormQueryResponse | RecordQueryResponse | void>[] =
+      [];
 
     if (this.data.recordId) {
-      const id = this.isMultiEdition ? this.data.recordId[0] : this.data.recordId;
+      const id = this.isMultiEdition
+        ? this.data.recordId[0]
+        : this.data.recordId;
       promises.push(
         firstValueFrom(
-          this.apollo.query<RecordQueryResponse>({
-            query: GET_RECORD_BY_ID,
-            variables: {
-              id,
-              getForm: !this.data.template,
-            },
-          }).pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
+          this.apollo
+            .query<RecordQueryResponse>({
+              query: GET_RECORD_BY_ID,
+              variables: {
+                id,
+                getForm: !this.data.template,
+              },
+            })
+            .pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
         ).then(({ data }) => {
           this.record = data.record;
-          this.modifiedAt = this.isMultiEdition ? null : this.record?.modifiedAt || null;
+          this.modifiedAt = this.isMultiEdition
+            ? null
+            : this.record?.modifiedAt || null;
           if (!this.data.template) {
             this.form = this.record?.form;
           }
@@ -161,12 +170,14 @@ export class FormModalComponent
     if (!this.data.recordId || this.data.template) {
       promises.push(
         firstValueFrom(
-          this.apollo.query<FormQueryResponse>({
-            query: GET_FORM_BY_ID,
-            variables: {
-              id: this.data.template,
-            },
-          }).pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
+          this.apollo
+            .query<FormQueryResponse>({
+              query: GET_FORM_BY_ID,
+              variables: {
+                id: this.data.template,
+              },
+            })
+            .pipe(takeUntil(this.apolloDestroy$)) // Add takeUntil
         ).then(({ data }) => {
           this.form = data.form;
           if (this.data.prefillData) {
@@ -479,7 +490,11 @@ export class FormModalComponent
       });
   }
 
-  public updateMultipleData(ids: any, survey: any, refreshWidgets = false): void {
+  public updateMultipleData(
+    ids: any,
+    survey: any,
+    refreshWidgets = false
+  ): void {
     const recordData = cleanRecord(survey.getParsedData?.() ?? survey.data);
     // FIX: Add takeUntil to prevent memory leaks
     this.apollo
@@ -764,7 +779,7 @@ export class FormModalComponent
         this.survey.onAfterRenderSurvey.clear();
 
         // Clear all questions and panels
-        this.survey.getAllQuestions().forEach(question => {
+        this.survey.getAllQuestions().forEach((question) => {
           try {
             question.dispose();
           } catch (e) {

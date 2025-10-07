@@ -102,8 +102,8 @@ const getUpdateData = (
     const operation = regex.exec(op);
     return operation
       ? {
-        [operation[1]]: operation[2],
-      }
+          [operation[1]]: operation[2],
+        }
       : null;
   }
 };
@@ -122,7 +122,7 @@ export class FormBuilderService implements OnDestroy {
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService
-  ) { }
+  ) {}
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -388,8 +388,8 @@ export class FormBuilderService implements OnDestroy {
       fetch(options.content.slice(7), {
         headers: options.fileValue.includeOortToken
           ? {
-            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
-          }
+              Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+            }
           : {},
       })
         .then((response) => response.blob())

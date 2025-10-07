@@ -93,7 +93,8 @@ const cloneData = (data: any[]) => data.map((item) => Object.assign({}, item));
 })
 export class CoreGridComponent
   extends UnsubscribeComponent
-  implements OnChanges, OnInit {
+  implements OnChanges, OnInit
+{
   // === INPUTS ===
   /** Grid settings */
   @Input() settings: GridSettings | any = {};
@@ -294,8 +295,9 @@ export class CoreGridComponent
       month: 'short',
       day: 'numeric',
     })} ${today.getFullYear()}`;
-    return `${this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
-      } ${formatDate}`;
+    return `${
+      this.settings.title ? this.settings.title : DEFAULT_FILE_NAME
+    } ${formatDate}`;
   }
 
   /** @returns true if any updated item in the list */
@@ -554,7 +556,10 @@ export class CoreGridComponent
         };
       } else {
         // FIX: Properly typed dataQuery with variables
-        this.dataQuery = this.apollo.watchQuery<QueryResponse, DataQueryVariables>({
+        this.dataQuery = this.apollo.watchQuery<
+          QueryResponse,
+          DataQueryVariables
+        >({
           query: builtQuery,
           variables: {
             first: this.pageSize,
@@ -854,15 +859,17 @@ export class CoreGridComponent
       }
       promises.push(
         firstValueFrom(
-          this.apollo.mutate<EditRecordMutationResponse>({
-            mutation: EDIT_RECORD,
-            variables: {
-              id: item.id,
-              data,
-              template: this.settings.template,
-              lang: this.translate.currentLang,
-            },
-          }).pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
+          this.apollo
+            .mutate<EditRecordMutationResponse>({
+              mutation: EDIT_RECORD,
+              variables: {
+                id: item.id,
+                data,
+                template: this.settings.template,
+                lang: this.translate.currentLang,
+              },
+            })
+            .pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
         )
       );
     }
@@ -1376,14 +1383,16 @@ export class CoreGridComponent
         for (const item of items) {
           promises.push(
             firstValueFrom(
-              this.apollo.mutate<ConvertRecordMutationResponse>({
-                mutation: CONVERT_RECORD,
-                variables: {
-                  id: item.id ? item.id : item,
-                  form: value.targetForm.id,
-                  copyRecord: value.copyRecord,
-                },
-              }).pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
+              this.apollo
+                .mutate<ConvertRecordMutationResponse>({
+                  mutation: CONVERT_RECORD,
+                  variables: {
+                    id: item.id ? item.id : item,
+                    form: value.targetForm.id,
+                    copyRecord: value.copyRecord,
+                  },
+                })
+                .pipe(takeUntil(this.apolloDestroy$)) // Memory leak fix
             )
           );
         }
@@ -1521,9 +1530,9 @@ export class CoreGridComponent
       filter:
         e.records === 'selected'
           ? {
-            logic: 'and',
-            filters: [{ operator: 'eq', field: 'ids', value: ids }],
-          }
+              logic: 'and',
+              filters: [{ operator: 'eq', field: 'ids', value: ids }],
+            }
           : this.queryFilter,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       query: this.settings.query,

@@ -106,7 +106,7 @@ export class FormHelpersService implements OnDestroy {
     private dashboardService: DashboardService,
     private overlay: Overlay,
     private overlayPositionBuilder: OverlayPositionBuilder
-  ) { }
+  ) {}
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -134,8 +134,9 @@ export class FormHelpersService implements OnDestroy {
 
   createRevertDialog(version: any): DialogRef<any> {
     const date = new Date(parseInt(version.createdAt, 0));
-    const formatDate = `${date.getDate()}/${date.getMonth() + 1
-      }/${date.getFullYear()}`;
+    const formatDate = `${date.getDate()}/${
+      date.getMonth() + 1
+    }/${date.getFullYear()}`;
     const dialogRef = this.confirmService.openConfirmModal({
       title: this.translate.instant('components.record.recovery.title'),
       content: this.translate.instant(
@@ -782,9 +783,9 @@ export class FormHelpersService implements OnDestroy {
                 question: field.title,
                 value: field.value,
               }) +
-              this.translate.instant(
-                'components.record.uniqueField.cannotUpdate'
-              ),
+                this.translate.instant(
+                  'components.record.uniqueField.cannotUpdate'
+                ),
               { error: true }
             );
             return { verified: false };
@@ -823,9 +824,9 @@ export class FormHelpersService implements OnDestroy {
                 question: field.title,
                 value: field.value,
               }) +
-              this.translate.instant(
-                'components.record.uniqueField.updateRecord'
-              ),
+                this.translate.instant(
+                  'components.record.uniqueField.updateRecord'
+                ),
               { error: true }
             );
             const { FormModalComponent } = await import(
