@@ -8,6 +8,7 @@ import { get } from 'lodash';
 import { User } from '../../../models/user.model';
 import { AppAbility } from '../../../services/auth/auth.service';
 import { RestService } from '../../../services/rest/rest.service';
+import { ReferenceDataService } from '../../../services/reference-data/reference-data.service';
 
 /**
  * User summary details component.
@@ -30,14 +31,25 @@ export class UserDetailsComponent implements OnInit {
       this.form?.disable();
     } else {
       this.form?.enable();
-      this.form?.get('email')?.disable();
+      for (const field of this.readOnlyFields) {
+        this.form?.get(field)?.disable();
+      }
     }
   }
 
   /** Form */
   public form!: UntypedFormGroup;
   /** Attributes */
-  public attributes: { text: string; value: string }[] = [];
+  public attributes: {
+    text: string;
+    value: string;
+    choices?: any[];
+    valueField?: string;
+    textField?: string;
+    multiselect?: boolean;
+  }[] = [];
+  /** Read-only fields */
+  private readOnlyFields = ['email'];
 
   /**
    * User summary details component
@@ -45,11 +57,13 @@ export class UserDetailsComponent implements OnInit {
    * @param fb Angular form builder
    * @param restService Shared rest service
    * @param ability user ability
+   * @param refDataService Reference data service
    */
   constructor(
     private fb: UntypedFormBuilder,
     private restService: RestService,
-    private ability: AppAbility
+    private ability: AppAbility,
+    private refDataService: ReferenceDataService
   ) {}
 
   ngOnInit(): void {
@@ -69,7 +83,17 @@ export class UserDetailsComponent implements OnInit {
    * Update user profile.
    */
   onUpdate(): void {
-    this.edit.emit(this.form.value);
+    this.edit.emit({
+      ...this.form.value,
+      ...(this.form.value.attributes
+        ? {
+            attributes: {
+              ...this.user.attributes,
+              ...this.form.value.attributes,
+            },
+          }
+        : {}),
+    });
   }
 
   /**
@@ -94,15 +118,55 @@ export class UserDetailsComponent implements OnInit {
                       `attributes.${attribute.value}`,
                       null
                     ),
-                    disabled: !manualCreation,
+                    disabled:
+                      this.ability.cannot('update', 'User') ||
+                      (!attribute.adminCanEdit && !manualCreation),
                   }),
                 }),
                 {}
               )
             )
           );
+          for (const attribute of attributes) {
+            if (
+              this.ability.cannot('update', 'User') ||
+              (!attribute.adminCanEdit && !manualCreation)
+            ) {
+              this.readOnlyFields.push(`attributes.${attribute.value}`);
+            }
+          }
           this.attributes = attributes;
+          for (const attribute of attributes) {
+            // Fetch reference data from attribute field
+            if (attribute.referenceData) {
+              this.fetchAttributeChoices(attribute);
+            }
+          }
         });
     });
+  }
+
+  /**
+   * Fetch attribute choices from attribute definition
+   *
+   * @param attribute Current attribute
+   */
+  private fetchAttributeChoices(attribute: any): void {
+    this.refDataService
+      .loadReferenceData(attribute.referenceData)
+      .then((refData) => {
+        if (refData) {
+          this.refDataService.fetchItems(refData).then(({ items }) => {
+            const target = this.attributes.find(
+              (x) => x.value === attribute.value
+            );
+            if (target) {
+              target.textField = attribute.textField;
+              target.valueField = refData.valueField;
+              target.choices = items;
+            }
+          });
+        }
+      });
   }
 }
