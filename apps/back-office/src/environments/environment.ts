@@ -27,6 +27,7 @@ export const environment: Environment = {
   frontOfficeUri: 'http://localhost:4200/',
   backOfficeUri: 'http://localhost:4200/',
   availableLanguages: ['en', 'fr', 'test'],
+  defaultIntlLocale: 'fr',
   authConfig,
   theme,
   user: { attributes: ['unescoSector'] },
