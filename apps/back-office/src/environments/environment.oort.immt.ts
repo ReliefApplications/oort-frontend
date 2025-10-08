@@ -29,6 +29,7 @@ export const environment: Environment = {
   frontOfficeUri: 'https://pubplanner.unesco.org',
   backOfficeUri: 'https://immt.unesco.oortcloud.tech/admin/',
   availableLanguages: ['en', 'fr'],
+  defaultIntlLocale: 'fr',
   authConfig,
   theme,
   user: { attributes: ['unescoSector'] },
