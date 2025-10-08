@@ -1557,9 +1557,6 @@ export class CoreGridComponent
       return;
     }
 
-    // Get locale from user preferences
-    const userLocale = this.getUserLocale();
-
     // Builds the request body with all the useful data
     const currentLayout = this.layout;
     const body = {
@@ -1578,7 +1575,6 @@ export class CoreGridComponent
       fileName: this.fileName,
       email: e.email,
       resource: this.settings.resource,
-      locale: userLocale, // ADDED: Include locale in the request
       // we only export visible fields ( not hidden )
       ...(e.fields === 'visible' && {
         fields: Object.values(currentLayout.fields)
@@ -1617,21 +1613,6 @@ export class CoreGridComponent
       `${this.fileName}.${e.format}`,
       body
     );
-  }
-
-  /**
-   * Get user locale preference
-   *
-   * @returns locale string
-   */
-  private getUserLocale(): string {
-    const browserLang = navigator.language;
-    if (browserLang.startsWith('fr')) {
-      return 'fr';
-    }
-
-    // Option 3: Default to English
-    return 'en';
   }
 
   // === PAGINATION ===
