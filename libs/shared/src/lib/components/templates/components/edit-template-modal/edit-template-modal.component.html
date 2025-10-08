@@ -50,22 +50,22 @@
       </ng-container>
 
       <ng-container *ngIf="form.value.type === 'email'">
-      <div uiFormFieldDirective>
-        <label>{{ 'components.templates.edit.subject' | translate }}</label>
-        <shared-editor-control
-          formControlName="subject"
-          [editorConfig]="subjectEditor"
-        ></shared-editor-control>
-        <ui-icon
-          icon="info"
-          class="cursor-pointer"
-          variant="grey"
-          uiSuffix
-          [uiTooltip]="'common.tooltip.editor.insert' | translate"
-        ></ui-icon>
-      </div>
-      <editor [init]="bodyEditor" formControlName="body"></editor>
-    </ng-container>
+        <div uiFormFieldDirective>
+          <label>{{ 'components.templates.edit.subject' | translate }}</label>
+          <shared-editor-control
+            formControlName="subject"
+            [editorConfig]="subjectEditor"
+          ></shared-editor-control>
+          <ui-icon
+            icon="info"
+            class="cursor-pointer"
+            variant="grey"
+            uiSuffix
+            [uiTooltip]="'common.tooltip.editor.insert' | translate"
+          ></ui-icon>
+        </div>
+        <editor [init]="bodyEditor" formControlName="body"></editor>
+      </ng-container>
     </form>
   </ng-container>
   <ng-container ngProjectAs="actions">
