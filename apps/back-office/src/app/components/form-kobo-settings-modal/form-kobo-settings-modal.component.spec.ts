@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SynchronizeKoboModalComponent } from './synchronize-kobo-modal.component';
 
-
 describe('SynchronizeKoboModalComponent', () => {
   let component: SynchronizeKoboModalComponent;
   let fixture: ComponentFixture<SynchronizeKoboModalComponent>;

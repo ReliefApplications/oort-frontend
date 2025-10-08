@@ -1,11 +1,16 @@
 # Test
-/coverage
+coverage/
 
 # Doc
-/documentation
+documentation/
 
 # Widgets
 /widgets
 
-# Dist
-/dist
+# Artifacts
+dist/
+.angular/
+
+# Changelog
+CHANGELOG/
+CHANGELOG.md
