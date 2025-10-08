@@ -8,6 +8,7 @@ import {
   ButtonModule,
   FormWrapperModule,
   FixedWrapperModule,
+  SelectMenuModule,
 } from '@oort-front/ui';
 
 /**
@@ -24,6 +25,7 @@ import {
     AbilityModule,
     ButtonModule,
     FixedWrapperModule,
+    SelectMenuModule,
   ],
   exports: [UserDetailsComponent],
 })

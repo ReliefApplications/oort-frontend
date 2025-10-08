@@ -41,7 +41,13 @@ export default (options: GlobalOptions) => {
           operator: 'contains',
           value: role,
         },
-        { field: `attributes.${attribute}`, operator: 'eq', value },
+        {
+          logic: 'or',
+          filters: [
+            { field: `attributes.${attribute}`, operator: 'eq', value },
+            { field: `attributes.${attribute}`, operator: 'contains', value },
+          ],
+        },
       ],
     };
 
