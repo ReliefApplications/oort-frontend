@@ -20,6 +20,7 @@ export const GET_USERS = gql`
         node {
           id
           username
+          display
           name
           oid
         }
