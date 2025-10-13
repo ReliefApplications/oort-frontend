@@ -32,4 +32,5 @@ export const environment: Environment = {
   defaultIntlLocale: 'fr',
   authConfig,
   theme,
+  user: { attributes: ['unescoSector', 'unescoMajorProgramme'] },
 };

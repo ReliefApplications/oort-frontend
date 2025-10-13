@@ -32,7 +32,7 @@ export const environment: Environment = {
   defaultIntlLocale: 'fr',
   authConfig,
   theme,
-  user: { attributes: ['unescoSector'] },
+  user: { attributes: ['unescoSector', 'unescoMajorProgramme'] },
   availableWidgets: [
     'form',
     'donut-chart',
