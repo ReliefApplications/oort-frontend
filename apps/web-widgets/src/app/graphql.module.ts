@@ -52,6 +52,10 @@ export const createApollo = (httpLink: HttpLink): ApolloClientOptions<any> => {
       connectionParams: {
         authToken: localStorage.getItem('idtoken'),
       },
+      on: {
+        error: (err) => console.error('WebSocket Error', err),
+        closed: () => console.warn('WebSocket Closed'),
+      },
     })
   );
 
