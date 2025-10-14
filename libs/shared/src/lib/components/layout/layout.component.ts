@@ -16,9 +16,7 @@ import { Account, AuthService } from '../../services/auth/auth.service';
 import { User } from '../../models/user.model';
 import { Application } from '../../models/application.model';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Notification } from '../../models/notification.model';
 import { Dialog } from '@angular/cdk/dialog';
-import { NotificationService } from '../../services/notification/notification.service';
 import { ConfirmService } from '../../services/confirm/confirm.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DateTranslateService } from '../../services/date-translate/date-translate.service';
@@ -26,10 +24,7 @@ import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component
 import { takeUntil } from 'rxjs/operators';
 import { Breadcrumb, UILayoutService } from '@oort-front/ui';
 import { BreadcrumbService } from '../../services/breadcrumb/breadcrumb.service';
-import { RecordQueryResponse } from '../../models/record.model';
 import { Apollo } from 'apollo-angular';
-import { get } from 'lodash';
-import { GET_RECORD_BY_ID } from './graphql/queries';
 
 /**
  * Component for the main layout of the platform
@@ -100,51 +95,28 @@ export class LayoutComponent
    * Event emitted when the user clicks on the profile button
    */
   @Input() menuOpened = true;
-
   /**
    * Languages available
    */
   languages: string[] = [];
-
-  // === NOTIFICATIONS ===
-  /**
-   * Notifications
-   */
-  public notifications: Notification[] = [];
-  /**
-   * Boolean to check if there are more notifications
-   */
-  public hasMoreNotifications = false;
-  /**
-   * Boolean to check if notifications are loading
-   */
-  public loadingNotifications = false;
-
   /** Account information of logged user */
   public account: Account | null;
   /** Currently logged user */
   public user?: User;
-
   /** Is screen large */
   public largeDevice: boolean;
   /** Theme */
   public theme: any;
-
   /** Show sidenav */
   public showSidenav = false;
   /** Show preferences */
   public showPreferences = false;
-
   /** Other office */
   public otherOffice = '';
   /** Environment */
   public environment: any;
-
-  // === APP SEARCH ===
   /** Show app search */
   public showAppMenu = false;
-
-  // === BREADCRUMB ===
   /** Breadcrumbs */
   public breadcrumbs: Breadcrumb[] = [];
 
@@ -193,25 +165,12 @@ export class LayoutComponent
   }
 
   /**
-   * Returns number of unseen notifications
-   *
-   * @returns number of unseen notifications
-   */
-  get unseenNotifications() {
-    return this.notifications.filter(
-      (notification) =>
-        !notification.seenBy?.some((user) => user.id === this.user?.id)
-    ).length;
-  }
-
-  /**
    * The constructor function is a special function that is called when a new instance of the class is
    * created.
    *
    * @param environment This is the environment in which we are running the application
    * @param router The Angular Router service
    * @param authService This is the service that handles authentication
-   * @param notificationService This is the service that handles the notifications.
    * @param layoutService UI layout service
    * @param confirmService This is the service that is used to display a confirm window.
    * @param dialog This is the dialog service provided by Angular CDK
@@ -224,7 +183,6 @@ export class LayoutComponent
     @Inject('environment') environment: any,
     private router: Router,
     private authService: AuthService,
-    private notificationService: NotificationService,
     private layoutService: UILayoutService,
     private confirmService: ConfirmService,
     public dialog: Dialog,
@@ -250,23 +208,6 @@ export class LayoutComponent
       this.otherOffice = 'back office';
     }
     this.loadUser();
-    this.notificationService.init();
-    this.notificationService.notifications$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((notifications: Notification[]) => {
-        if (notifications) {
-          this.notifications = notifications;
-        } else {
-          this.notifications = [];
-        }
-      });
-
-    this.notificationService.hasNextPage$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((res) => {
-        this.hasMoreNotifications = res;
-        this.loadingNotifications = false;
-      });
 
     this.layoutService.rightSidenav$
       .pipe(takeUntil(this.destroy$))
@@ -393,103 +334,6 @@ export class LayoutComponent
   }
 
   /**
-   * Load more notifications
-   *
-   * @param e Event
-   */
-  public onLoadMoreNotifications(e: any): void {
-    e.stopPropagation();
-    this.notificationService.fetchMore();
-    this.loadingNotifications = true;
-  }
-
-  /**
-   * Determines whether current user saw the notification
-   *
-   * @param notification current notification
-   * @returns whether the notification has been seen
-   */
-  public seenByUser(notification: Notification): boolean {
-    return (
-      notification.seenBy?.map((user) => user.id).includes(this.user?.id) ??
-      false
-    );
-  }
-
-  /**
-   * Marks all the notifications as read
-   *
-   * @param e event
-   */
-  onMarkAllNotificationsAsRead(e: any): void {
-    e.stopPropagation();
-    this.notificationService.markAsSeen(
-      this.notifications.map((notification) => notification.id ?? '')
-    );
-  }
-
-  /**
-   * Marks notification as seen when clicking on the read button
-   *
-   * @param event prevent modal closing
-   * @param notification The notification that was clicked on
-   */
-  onNotificationRead(event: Event, notification: Notification): void {
-    event.stopPropagation();
-    this.notificationService.markAsSeen([notification.id ?? '']);
-  }
-
-  /**
-   * Check if notification has redirect option when clicking on it
-   *
-   * @param notification The notification that was clicked on
-   */
-  onNotificationRedirect(notification: Notification): void {
-    if (notification.redirect && notification.redirect.active) {
-      const redirect = notification.redirect;
-      if (redirect.type === 'recordIds' && redirect.recordIds) {
-        this.notificationService.redirectToRecords(notification);
-      } else if (redirect.type === 'url' && redirect.url) {
-        if (
-          redirect.field &&
-          redirect.recordIds &&
-          redirect.recordIds.length > 0
-        ) {
-          this.apollo
-            .query<RecordQueryResponse>({
-              query: GET_RECORD_BY_ID,
-              variables: {
-                id: redirect.recordIds[0],
-              },
-            })
-            .subscribe(({ data }) => {
-              if (data) {
-                const fieldValue =
-                  get(data, `record.${redirect.field}`) ??
-                  get(data, `record.data.${redirect.field}`);
-                const redirectUrl = `${redirect.url}?${redirect.field}=${
-                  fieldValue ?? ''
-                }`;
-                const fullUrl =
-                  this.environment.module === 'backoffice'
-                    ? `applications/${redirectUrl}`
-                    : redirectUrl;
-
-                this.router.navigateByUrl(fullUrl);
-              }
-            });
-        } else {
-          const fullUrl =
-            this.environment.module === 'backoffice'
-              ? `applications/${redirect.url}`
-              : `${redirect.url}`;
-          this.router.navigateByUrl(fullUrl);
-        }
-      }
-    }
-  }
-
-  /**
    * Changes current active language.
    *
    * @param language id of the language.
@@ -516,26 +360,5 @@ export class LayoutComponent
       this.translate.use(language);
     }
     return language;
-  }
-
-  /**
-   * Handles click on notification item
-   *
-   * @param notification Notification
-   */
-  onNotificationClick(notification: Notification): void {
-    if (notification.redirect && notification.redirect.active) {
-      this.onNotificationRedirect(notification);
-    }
-  }
-
-  /**
-   * Whether to display additional card
-   *
-   * @param notification Notification
-   * @returns boolean
-   */
-  shouldDisplayContentCard(notification: Notification) {
-    return typeof notification.content === 'string';
   }
 }

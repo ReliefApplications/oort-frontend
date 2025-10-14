@@ -11,7 +11,6 @@ export interface Notification {
   content?: any;
   createdAt?: string;
   channel?: Channel;
-  seenBy?: User[];
   user?: User;
   redirect?: {
     active: boolean;
@@ -22,6 +21,7 @@ export interface Notification {
     resource?: string;
     field?: string;
   };
+  read?: boolean;
 }
 
 /** Model for notification subscription response */

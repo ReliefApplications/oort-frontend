@@ -1,0 +1,9 @@
+<!-- List of notifications -->
+<div class="flex flex-col shrink overflow-y-auto">
+  <div
+    class="border-b border-gray-100"
+    *ngFor="let notification of notifications"
+  >
+    <shared-notification-item [notification]="notification"></shared-notification-item>
+  </div>
+</div>

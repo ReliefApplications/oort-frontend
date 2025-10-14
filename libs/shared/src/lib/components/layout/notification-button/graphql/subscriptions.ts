@@ -8,6 +8,7 @@ export const NOTIFICATION_SUBSCRIPTION = gql`
       action
       content
       createdAt
+      redirect
       channel {
         id
         title
@@ -18,10 +19,7 @@ export const NOTIFICATION_SUBSCRIPTION = gql`
       user {
         id
       }
-      seenBy {
-        id
-        name
-      }
+      read
     }
   }
 `;
