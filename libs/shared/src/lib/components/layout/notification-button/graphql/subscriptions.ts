@@ -8,6 +8,7 @@ export const NOTIFICATION_SUBSCRIPTION = gql`
       action
       content
       createdAt
+      redirect
       channel {
         id
         title
