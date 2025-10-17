@@ -1,5 +1,5 @@
 import { Apollo } from 'apollo-angular';
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   EDIT_FORM_NAME,
@@ -78,6 +78,14 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   /** Prevent form builder to display multiple modals when exiting. */
   private deactivating = false;
 
+  // === NEW SAVE FUNCTIONALITY ===
+  /** Saving state */
+  public saving = false;
+  /** Submitting state */
+  public submitting = false;
+  /** Confirmation dialog template */
+  @ViewChild('confirmSubmitTemplate') confirmSubmitTemplate!: TemplateRef<any>;
+
   /**
    * Form builder page
    *
@@ -105,7 +113,7 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     private breadcrumbService: BreadcrumbService,
     private overlay: Overlay,
     @Inject(DOCUMENT) private document: Document
-  ) {}
+  ) { }
 
   /**
    * Show modal confirmation before leave the page if has changes on form
@@ -273,60 +281,156 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Save form structure
-   *
-   * @param structure form structure
+   * Handle auto-save from form builder (skip validation - no notifications)
    */
-  public async onSave(structure: any): Promise<void> {
-    const loadingSnackbarRef = this.snackBarMessageInit();
-    const overlayRef = this.createLoadingOverlay();
+  onAutoSave(structure: any): void {
+    // Auto-save should skip validation and not trigger notifications
+    this.saveFormStructureDirect(structure, false);
+  }
+
+  /**
+   * Save as draft (without validation)
+   */
+  onSaveDraft(): void {
+    this.saving = true;
+    // Save without any validation - completely skip validation for draft
+    this.saveFormStructureDirect(this.structure, true).finally(() => {
+      this.saving = false;
+    });
+  }
+
+  /**
+   * Direct save without any validation - for draft saves and auto-save
+   */
+  private async saveFormStructureDirect(structure: any, showNotifications: boolean = true): Promise<void> {
+    const loadingSnackbarRef = showNotifications ? this.snackBarMessageInit() : null;
+    const overlayRef = showNotifications ? this.createLoadingOverlay() : null;
+
     if (!this.form?.id) {
-      alert('not valid');
-    } else {
-      this.apollo
+      if (showNotifications) {
+        this.snackBar.openSnackBar('Form ID not found', { error: true });
+      }
+      return;
+    }
+
+    try {
+      const result = await this.apollo
         .mutate<EditFormMutationResponse>({
           mutation: EDIT_FORM_STRUCTURE,
           variables: {
             id: this.form.id,
-            structure,
-          },
+            structure
+          }
         })
-        .subscribe({
-          next: ({ errors, data }) => {
-            // Dismiss the loading snackbar
-            loadingSnackbarRef.instance.dismiss();
-            // Open new snackbar with the request error or success message
-            const message = errors
-              ? errors[0].message
-              : this.translate.instant('common.notifications.objectUpdated', {
-                  type: this.translate.instant('common.form.one').toLowerCase(),
-                  value: '',
-                });
-            const snackbarConfig = {
-              ...REQUEST_SNACKBAR_CONF,
-              error: errors ? true : false,
-            };
-            this.snackBar.openSnackBar(message, snackbarConfig);
+        .toPromise();
 
-            if (!errors) {
-              this.form = { ...data?.editForm, structure };
-              this.structure = structure;
-              localStorage.removeItem(`form:${this.id}`);
-              this.hasChanges = false;
-              this.authService.canLogout.next(true);
-            }
-          },
-          error: (err) => {
-            // Dismiss the loading snackbar
-            loadingSnackbarRef.instance.dismiss();
-            this.snackBar.openSnackBar(err.message, { error: true });
-          },
-          complete: () => {
-            // Detach the current set overlay
-            overlayRef.detach();
-          },
-        });
+      if (result?.data) {
+        if (showNotifications && loadingSnackbarRef) {
+          loadingSnackbarRef.instance.dismiss();
+        }
+
+        if (result.errors && result.errors.length > 0) {
+          const errorMessage = result.errors[0].message;
+          if (showNotifications) {
+            this.snackBar.openSnackBar(errorMessage, { error: true });
+          }
+          throw new Error(errorMessage);
+        }
+
+        const data = result.data.editForm;
+
+        if (showNotifications) {
+          this.snackBar.openSnackBar(
+            this.translate.instant('common.notifications.objectUpdated', {
+              type: this.translate.instant('common.form.one').toLowerCase(),
+              value: '',
+            })
+          );
+        }
+
+        this.form = { ...data, structure };
+        this.structure = structure;
+        localStorage.removeItem(`form:${this.id}`);
+        this.hasChanges = false;
+        this.authService.canLogout.next(true);
+
+      } else {
+        throw new Error('No data received from mutation');
+      }
+    } catch (error: any) {
+      if (showNotifications && loadingSnackbarRef) {
+        loadingSnackbarRef.instance.dismiss();
+      }
+
+      let errorMessage = 'Unknown error occurred';
+
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.networkError) {
+        errorMessage = 'Network error occurred';
+      } else if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+        errorMessage = error.graphQLErrors[0].message;
+      }
+
+      if (showNotifications) {
+        this.snackBar.openSnackBar(errorMessage, { error: true });
+      }
+      throw new Error(errorMessage);
+    } finally {
+      if (showNotifications && overlayRef) {
+        overlayRef.detach();
+      }
     }
+  }
+
+  /**
+   * Save and submit with validation - opens confirmation dialog
+   */
+  onSaveAndSubmit(): void {
+    // Open confirmation dialog first
+    const dialogRef = this.dialog.open(this.confirmSubmitTemplate, {
+      width: '400px'
+    });
+
+    dialogRef.closed.subscribe((result) => {
+      if (result) {
+        this.confirmSubmit();
+      }
+    });
+  }
+
+  /**
+   * Confirm and proceed with submission
+   */
+  async confirmSubmit(): Promise<void> {
+    this.dialog.closeAll();
+    this.submitting = true;
+
+    try {
+      // For submit, use the same save method but it will validate on backend
+      await this.saveFormStructureDirect(this.structure, true);
+
+      // If save successful, show success message and navigate to review stage
+      this.snackBar.openSnackBar('Form submitted successfully!');
+
+      // Navigate to review stage
+      this.router.navigate([`/forms/${this.form?.id}/review`]);
+
+    } catch (error: any) {
+      this.snackBar.openSnackBar(
+        `Failed to submit form: ${error.message}`,
+        { error: true }
+      );
+    } finally {
+      this.submitting = false;
+    }
+  }
+
+  /**
+   * Close confirmation dialog
+   */
+  closeConfirmDialog(): void {
+    this.dialog.closeAll();
   }
 
   /**
@@ -389,12 +493,12 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     } else {
       const successMessage = formName
         ? this.translate.instant('common.notifications.objectUpdated', {
-            type: this.translate.instant('common.form.one').toLowerCase(),
-            value: formName,
-          })
+          type: this.translate.instant('common.form.one').toLowerCase(),
+          value: formName,
+        })
         : this.translate.instant('common.notifications.statusUpdated', {
-            value: data?.editForm.status,
-          });
+          value: data?.editForm.status,
+        });
       this.snackBar.openSnackBar(successMessage);
       if (formName) {
         this.form = { ...this.form, name: data?.editForm.name };
@@ -508,13 +612,13 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           // Open new snackbar with the request error or success message
           const message = errors
             ? this.translate.instant('common.notifications.objectNotUpdated', {
-                type: this.translate.instant('common.access'),
-                error: errors ? errors[0].message : '',
-              })
+              type: this.translate.instant('common.access'),
+              error: errors ? errors[0].message : '',
+            })
             : this.translate.instant('common.notifications.objectUpdated', {
-                type: this.translate.instant('common.access'),
-                value: '',
-              });
+              type: this.translate.instant('common.access'),
+              value: '',
+            });
           const snackbarConfig = {
             ...REQUEST_SNACKBAR_CONF,
             error: errors ? true : false,

@@ -1,62 +1,78 @@
 <ng-container *ngIf="form">
   <div class="flex flex-wrap items-center justify-between gap-4 mx-8">
     <div class="flex items-center overflow-hidden">
-      <shared-editable-text
-        [text]="form.name"
-        [canEdit]="canEditName"
-        (onChange)="saveName($event)"
-        (formActiveEvent)="formActive = $event"
-      >
+      <shared-editable-text [text]="form.name" [canEdit]="canEditName" (onChange)="saveName($event)"
+        (formActiveEvent)="formActive = $event">
         <h1 class="!m-0 overflow-hidden text-ellipsis">
           {{ form.name }} {{ activeVersion ? activeVersion.id : '' }}
         </h1>
       </shared-editable-text>
 
-      <shared-access
-        [access]="form.permissions"
-        [objectTypeName]="'common.form.one' | translate"
-        (save)="saveAccess($event)"
-        *ngIf="form.canUpdate && !formActive"
-      ></shared-access>
+      <shared-access [access]="form.permissions" [objectTypeName]="'common.form.one' | translate"
+        (save)="saveAccess($event)" *ngIf="form.canUpdate && !formActive"></shared-access>
     </div>
     <div class="flex items-center" *ngIf="!formActive">
       <div uiFormFieldDirective [outline]="false" class="p-0">
         <label>{{ 'common.status' | translate }}</label>
-        <ui-select-menu
-          [formControl]="statusControl"
-          [customTemplate]="{
+        <ui-select-menu [formControl]="statusControl" [customTemplate]="{
             template: statusTemplate,
             context: { $implicit: statusControl.value }
-          }"
-        >
-          <ui-select-option
-            *ngFor="let status of statusChoices"
-            [value]="status"
-          >
-            <ng-container
-              *ngTemplateOutlet="statusTemplate; context: { $implicit: status }"
-            ></ng-container>
+          }">
+          <ui-select-option *ngFor="let status of statusChoices" [value]="status">
+            <ng-container *ngTemplateOutlet="statusTemplate; context: { $implicit: status }"></ng-container>
           </ui-select-option>
         </ui-select-menu>
       </div>
     </div>
   </div>
-  <app-history
-    *ngIf="activeVersions"
-    [dataSource]="form.versions || []"
-    (open)="onOpenVersion($event)"
-  ></app-history>
+  <app-history *ngIf="activeVersions" [dataSource]="form.versions || []" (open)="onOpenVersion($event)"></app-history>
   <div class="w-full grow relative">
-    <shared-form-builder
-      class="absolute top-0 left-0 w-full h-full"
-      [form]="form"
-      (save)="onSave($event)"
-      (formChange)="formStructureChange($event)"
-    ></shared-form-builder>
+    <shared-form-builder class="absolute top-0 left-0 w-full h-full" [form]="form" (save)="onAutoSave($event)"
+      (formChange)="formStructureChange($event)"></shared-form-builder>
+  </div>
+
+  <!-- Custom Save Buttons - Show when there are changes -->
+  <div class="fixed bottom-4 right-4 flex gap-2 z-50" *ngIf="hasChanges && !formActive">
+    <button
+      class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+      (click)="onSaveDraft()" [disabled]="saving">
+      <span *ngIf="saving" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+      <span *ngIf="!saving">💾</span>
+      {{ 'common.save' | translate }}
+    </button>
+
+    <button
+      class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center gap-2"
+      (click)="onSaveAndSubmit()" [disabled]="submitting">
+      <span *ngIf="submitting"
+        class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+      <span *ngIf="!submitting">📤</span>
+      Save & Submit
+    </button>
   </div>
 </ng-container>
 
 <!-- Template to display status -->
 <ng-template #statusTemplate let-status>
   <shared-status-options [status]="status"></shared-status-options>
+</ng-template>
+
+<!-- Confirmation Dialog Template -->
+<ng-template #confirmSubmitTemplate>
+  <div class="p-6 bg-white rounded-lg shadow-xl">
+    <h2 class="text-xl font-semibold mb-3">
+      Submit Form
+    </h2>
+    <p class="mb-6 text-gray-600">
+      Are you sure you want to submit this form? This will save all changes and proceed to the review stage.
+    </p>
+    <div class="flex justify-end gap-3">
+      <button class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600" (click)="closeConfirmDialog()">
+        Cancel
+      </button>
+      <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" (click)="confirmSubmit()">
+        Confirm
+      </button>
+    </div>
+  </div>
 </ng-template>
