@@ -1,5 +1,12 @@
 import { Apollo } from 'apollo-angular';
-import { Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   EDIT_FORM_NAME,
@@ -113,7 +120,7 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     private breadcrumbService: BreadcrumbService,
     private overlay: Overlay,
     @Inject(DOCUMENT) private document: Document
-  ) { }
+  ) {}
 
   /**
    * Show modal confirmation before leave the page if has changes on form
@@ -302,8 +309,13 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   /**
    * Direct save without any validation - for draft saves and auto-save
    */
-  private async saveFormStructureDirect(structure: any, showNotifications: boolean = true): Promise<void> {
-    const loadingSnackbarRef = showNotifications ? this.snackBarMessageInit() : null;
+  private async saveFormStructureDirect(
+    structure: any,
+    showNotifications: boolean = true
+  ): Promise<void> {
+    const loadingSnackbarRef = showNotifications
+      ? this.snackBarMessageInit()
+      : null;
     const overlayRef = showNotifications ? this.createLoadingOverlay() : null;
 
     if (!this.form?.id) {
@@ -319,8 +331,8 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           mutation: EDIT_FORM_STRUCTURE,
           variables: {
             id: this.form.id,
-            structure
-          }
+            structure,
+          },
         })
         .toPromise();
 
@@ -353,7 +365,6 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
         localStorage.removeItem(`form:${this.id}`);
         this.hasChanges = false;
         this.authService.canLogout.next(true);
-
       } else {
         throw new Error('No data received from mutation');
       }
@@ -389,7 +400,7 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   onSaveAndSubmit(): void {
     // Open confirmation dialog first
     const dialogRef = this.dialog.open(this.confirmSubmitTemplate, {
-      width: '400px'
+      width: '400px',
     });
 
     dialogRef.closed.subscribe((result) => {
@@ -415,12 +426,10 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
 
       // Navigate to review stage
       this.router.navigate([`/forms/${this.form?.id}/review`]);
-
     } catch (error: any) {
-      this.snackBar.openSnackBar(
-        `Failed to submit form: ${error.message}`,
-        { error: true }
-      );
+      this.snackBar.openSnackBar(`Failed to submit form: ${error.message}`, {
+        error: true,
+      });
     } finally {
       this.submitting = false;
     }
@@ -493,12 +502,12 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     } else {
       const successMessage = formName
         ? this.translate.instant('common.notifications.objectUpdated', {
-          type: this.translate.instant('common.form.one').toLowerCase(),
-          value: formName,
-        })
+            type: this.translate.instant('common.form.one').toLowerCase(),
+            value: formName,
+          })
         : this.translate.instant('common.notifications.statusUpdated', {
-          value: data?.editForm.status,
-        });
+            value: data?.editForm.status,
+          });
       this.snackBar.openSnackBar(successMessage);
       if (formName) {
         this.form = { ...this.form, name: data?.editForm.name };
@@ -612,13 +621,13 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           // Open new snackbar with the request error or success message
           const message = errors
             ? this.translate.instant('common.notifications.objectNotUpdated', {
-              type: this.translate.instant('common.access'),
-              error: errors ? errors[0].message : '',
-            })
+                type: this.translate.instant('common.access'),
+                error: errors ? errors[0].message : '',
+              })
             : this.translate.instant('common.notifications.objectUpdated', {
-              type: this.translate.instant('common.access'),
-              value: '',
-            });
+                type: this.translate.instant('common.access'),
+                value: '',
+              });
           const snackbarConfig = {
             ...REQUEST_SNACKBAR_CONF,
             error: errors ? true : false,
