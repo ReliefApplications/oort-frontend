@@ -9,6 +9,7 @@ import {
 } from './graphql/mutations';
 import { GET_SHORT_FORM_BY_ID } from './graphql/queries';
 import { Dialog } from '@angular/cdk/dialog';
+
 import {
   AuthService,
   Form,
@@ -109,7 +110,7 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     private breadcrumbService: BreadcrumbService,
     private overlay: Overlay,
     @Inject(DOCUMENT) private document: Document
-  ) { }
+  ) {}
 
   /**
    * Show modal confirmation before leave the page if has changes on form
@@ -172,8 +173,7 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
             id: this.id,
           },
         })
-        .valueChanges
-        .pipe(takeUntil(this.destroy$))
+        .valueChanges.pipe(takeUntil(this.destroy$))
         .subscribe({
           next: ({ data, loading }) => {
             if (data.form) {
@@ -310,9 +310,9 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           const message = errors
             ? errors[0].message
             : this.translate.instant('common.notifications.objectUpdated', {
-              type: this.translate.instant('common.form.one').toLowerCase(),
-              value: '',
-            });
+                type: this.translate.instant('common.form.one').toLowerCase(),
+                value: '',
+              });
           const snackbarConfig = {
             ...REQUEST_SNACKBAR_CONF,
             error: errors ? true : false,
@@ -395,12 +395,12 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     } else {
       const successMessage = formName
         ? this.translate.instant('common.notifications.objectUpdated', {
-          type: this.translate.instant('common.form.one').toLowerCase(),
-          value: formName,
-        })
+            type: this.translate.instant('common.form.one').toLowerCase(),
+            value: formName,
+          })
         : this.translate.instant('common.notifications.statusUpdated', {
-          value: data?.editForm.status,
-        });
+            value: data?.editForm.status,
+          });
       this.snackBar.openSnackBar(successMessage);
       if (formName) {
         this.form = { ...this.form, name: data?.editForm.name };
@@ -427,8 +427,7 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           id,
         },
       })
-      .valueChanges
-      .pipe(takeUntil(this.destroy$))
+      .valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(({ data }) => {
         this.structure = data.form.structure;
       });
@@ -511,13 +510,13 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           loadingSnackbarRef.instance.dismiss();
           const message = errors
             ? this.translate.instant('common.notifications.objectNotUpdated', {
-              type: this.translate.instant('common.access'),
-              error: errors ? errors[0].message : '',
-            })
+                type: this.translate.instant('common.access'),
+                error: errors ? errors[0].message : '',
+              })
             : this.translate.instant('common.notifications.objectUpdated', {
-              type: this.translate.instant('common.access'),
-              value: '',
-            });
+                type: this.translate.instant('common.access'),
+                value: '',
+              });
           const snackbarConfig = {
             ...REQUEST_SNACKBAR_CONF,
             error: errors ? true : false,

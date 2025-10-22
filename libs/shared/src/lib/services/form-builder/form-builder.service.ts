@@ -216,8 +216,8 @@ const getUpdateData = (
 
     return operation
       ? {
-        [operation[1]]: operation[2],
-      }
+          [operation[1]]: operation[2],
+        }
       : null;
   }
 };
@@ -263,7 +263,7 @@ export class FormBuilderService implements OnDestroy {
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService
-  ) { }
+  ) {}
 
   /**
    * Clean up all subscriptions when service is destroyed
@@ -397,7 +397,10 @@ export class FormBuilderService implements OnDestroy {
     survey.onAfterRenderQuestion.add(afterRenderQuestionHandler);
 
     // Store reference to error handler
-    const settingQuestionErrorsHandler = (sender: SurveyModel, options: any) => {
+    const settingQuestionErrorsHandler = (
+      sender: SurveyModel,
+      options: any
+    ) => {
       // Skip required validation if the survey has the _skipRequiredValidation flag set
       // Flag is built by the skipRequiredValidation expression
       if (sender._skipRequiredValidation) {
@@ -671,10 +674,14 @@ export class FormBuilderService implements OnDestroy {
     });
 
     // Store reference to event handlers for proper cleanup
-    const clearFilesHandler = (survey: SurveyModel, options: any) => this.onClearFiles(options);
+    const clearFilesHandler = (survey: SurveyModel, options: any) =>
+      this.onClearFiles(options);
     const uploadFilesHandler = (survey: SurveyModel, options: any) =>
       this.onUploadFiles(temporaryFilesStorage, options);
-    const downloadFileHandler = (survey: SurveyModel, options: DownloadFileEvent) => {
+    const downloadFileHandler = (
+      survey: SurveyModel,
+      options: DownloadFileEvent
+    ) => {
       this.onDownloadFile(options);
     };
     const currentPageChangedHandler = (survey: SurveyModel) => {
@@ -805,8 +812,8 @@ export class FormBuilderService implements OnDestroy {
       fetch(options.content.slice(7), {
         headers: options.fileValue.includeOortToken
           ? {
-            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
-          }
+              Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+            }
           : {},
       })
         .then((response) => response.blob())
