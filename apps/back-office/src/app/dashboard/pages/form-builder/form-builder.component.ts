@@ -20,8 +20,8 @@ import {
   SnackbarSpinnerComponent,
 } from '@oort-front/shared';
 import { SpinnerComponent } from '@oort-front/ui';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { SnackbarService } from '@oort-front/ui';
 import { FormControl } from '@angular/forms';
@@ -78,6 +78,10 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   /** Prevent form builder to display multiple modals when exiting. */
   private deactivating = false;
 
+  // === MEMORY MANAGEMENT ===
+  /** Subject for unsubscribing from all subscriptions */
+  private destroy$ = new Subject<void>();
+
   /**
    * Form builder page
    *
@@ -105,7 +109,7 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     private breadcrumbService: BreadcrumbService,
     private overlay: Overlay,
     @Inject(DOCUMENT) private document: Document
-  ) {}
+  ) { }
 
   /**
    * Show modal confirmation before leave the page if has changes on form
@@ -148,12 +152,18 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     }
 
     this.formActive = false;
-    this.statusControl.valueChanges.subscribe((status) => {
-      if (status) {
-        this.updateStatus(status);
-      }
-    });
+
+    // Subscribe to status control changes with proper cleanup
+    this.statusControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((status) => {
+        if (status) {
+          this.updateStatus(status);
+        }
+      });
+
     this.id = this.route.snapshot.paramMap.get('id') || '';
+
     if (this.id !== null) {
       this.apollo
         .watchQuery<FormQueryResponse>({
@@ -162,7 +172,9 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
             id: this.id,
           },
         })
-        .valueChanges.subscribe({
+        .valueChanges
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
           next: ({ data, loading }) => {
             if (data.form) {
               this.loading = loading;
@@ -178,7 +190,6 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
                 '@resource',
                 this.form.resource?.name as string
               );
-              // this.breadcrumbService.setResourceName();
               this.canEditName = this.form?.canUpdate || false;
               const storedStructure = window.localStorage.getItem(
                 `form:${this.id}`
@@ -203,19 +214,16 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
                 ),
                 { error: true }
               );
-              // redirect to default screen if error
               this.router.navigate(['/forms']);
             }
           },
           error: (err) => {
             this.snackBar.openSnackBar(err.message, { error: true });
-            // redirect to default screen if error
             this.router.navigate(['/forms']);
           },
         });
     } else {
       this.loading = false;
-      // redirect to default screen if error
       this.router.navigate(['/forms']);
     }
   }
@@ -240,7 +248,6 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     translationKey: string = 'common.loading',
     duration: number = 0
   ) {
-    // Opens a loader in a snackbar
     const snackBarRef = this.snackBar.openComponentSnackBar(
       SnackbarSpinnerComponent,
       {
@@ -280,53 +287,54 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   public async onSave(structure: any): Promise<void> {
     const loadingSnackbarRef = this.snackBarMessageInit();
     const overlayRef = this.createLoadingOverlay();
+
     if (!this.form?.id) {
       alert('not valid');
-    } else {
-      this.apollo
-        .mutate<EditFormMutationResponse>({
-          mutation: EDIT_FORM_STRUCTURE,
-          variables: {
-            id: this.form.id,
-            structure,
-          },
-        })
-        .subscribe({
-          next: ({ errors, data }) => {
-            // Dismiss the loading snackbar
-            loadingSnackbarRef.instance.dismiss();
-            // Open new snackbar with the request error or success message
-            const message = errors
-              ? errors[0].message
-              : this.translate.instant('common.notifications.objectUpdated', {
-                  type: this.translate.instant('common.form.one').toLowerCase(),
-                  value: '',
-                });
-            const snackbarConfig = {
-              ...REQUEST_SNACKBAR_CONF,
-              error: errors ? true : false,
-            };
-            this.snackBar.openSnackBar(message, snackbarConfig);
-
-            if (!errors) {
-              this.form = { ...data?.editForm, structure };
-              this.structure = structure;
-              localStorage.removeItem(`form:${this.id}`);
-              this.hasChanges = false;
-              this.authService.canLogout.next(true);
-            }
-          },
-          error: (err) => {
-            // Dismiss the loading snackbar
-            loadingSnackbarRef.instance.dismiss();
-            this.snackBar.openSnackBar(err.message, { error: true });
-          },
-          complete: () => {
-            // Detach the current set overlay
-            overlayRef.detach();
-          },
-        });
+      loadingSnackbarRef.instance.dismiss();
+      overlayRef.detach();
+      return;
     }
+
+    this.apollo
+      .mutate<EditFormMutationResponse>({
+        mutation: EDIT_FORM_STRUCTURE,
+        variables: {
+          id: this.form.id,
+          structure,
+        },
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ errors, data }) => {
+          loadingSnackbarRef.instance.dismiss();
+          const message = errors
+            ? errors[0].message
+            : this.translate.instant('common.notifications.objectUpdated', {
+              type: this.translate.instant('common.form.one').toLowerCase(),
+              value: '',
+            });
+          const snackbarConfig = {
+            ...REQUEST_SNACKBAR_CONF,
+            error: errors ? true : false,
+          };
+          this.snackBar.openSnackBar(message, snackbarConfig);
+
+          if (!errors) {
+            this.form = { ...data?.editForm, structure };
+            this.structure = structure;
+            localStorage.removeItem(`form:${this.id}`);
+            this.hasChanges = false;
+            this.authService.canLogout.next(true);
+          }
+        },
+        error: (err) => {
+          loadingSnackbarRef.instance.dismiss();
+          this.snackBar.openSnackBar(err.message, { error: true });
+        },
+        complete: () => {
+          overlayRef.detach();
+        },
+      });
   }
 
   /**
@@ -346,19 +354,17 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           status,
         },
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ errors, data }) => {
-          // Dismiss the loading snackbar
           loadingSnackbarRef.instance.dismiss();
           this.handleFormMutationResponse(data, errors);
         },
         error: (err) => {
-          // Dismiss the loading snackbar
           loadingSnackbarRef.instance.dismiss();
           this.snackBar.openSnackBar(err.message, { error: true });
         },
         complete: () => {
-          // Detach the current set overlay
           overlayRef.detach();
         },
       });
@@ -389,12 +395,12 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
     } else {
       const successMessage = formName
         ? this.translate.instant('common.notifications.objectUpdated', {
-            type: this.translate.instant('common.form.one').toLowerCase(),
-            value: formName,
-          })
+          type: this.translate.instant('common.form.one').toLowerCase(),
+          value: formName,
+        })
         : this.translate.instant('common.notifications.statusUpdated', {
-            value: data?.editForm.status,
-          });
+          value: data?.editForm.status,
+        });
       this.snackBar.openSnackBar(successMessage);
       if (formName) {
         this.form = { ...this.form, name: data?.editForm.name };
@@ -421,7 +427,9 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           id,
         },
       })
-      .valueChanges.subscribe(({ data }) => {
+      .valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ data }) => {
         this.structure = data.form.structure;
       });
   }
@@ -434,8 +442,6 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   public onOpenVersion(e: any): void {
     this.activeVersion = e;
     this.structure = this.activeVersion.data;
-    // this.surveyCreator.makeNewViewActive('test');
-    // this.surveyCreator.saveSurveyFunc = null;
   }
 
   /**
@@ -444,8 +450,6 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   public resetActiveVersion(): void {
     this.activeVersion = null;
     this.structure = this.form?.structure;
-    // this.surveyCreator.makeNewViewActive('designer');
-    // this.surveyCreator.saveSurveyFunc = this.saveMySurvey;
   }
 
   /**
@@ -454,34 +458,34 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
    * @param {string} formName new form name
    */
   public async saveName(formName: string): Promise<void> {
+    if (!formName || formName === this.form?.name) {
+      return;
+    }
+
     const loadingSnackbarRef = this.snackBarMessageInit();
     const overlayRef = this.createLoadingOverlay();
 
-    if (formName && formName !== this.form?.name) {
-      this.apollo
-        .mutate<EditFormMutationResponse>({
-          mutation: EDIT_FORM_NAME,
-          variables: {
-            id: this.id,
-            name: formName,
-          },
-        })
-        .subscribe({
-          next: ({ errors, data }) => {
-            // Dismiss the loading snackbar
-            loadingSnackbarRef.instance.dismiss();
-            this.handleFormMutationResponse(data, errors, formName);
-          },
-          error: () => {
-            // Dismiss the loading snackbar
-            loadingSnackbarRef.instance.dismiss();
-          },
-          complete: () => {
-            // Detach the current set overlay
-            overlayRef.detach();
-          },
-        });
-    }
+    this.apollo
+      .mutate<EditFormMutationResponse>({
+        mutation: EDIT_FORM_NAME,
+        variables: {
+          id: this.id,
+          name: formName,
+        },
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ errors, data }) => {
+          loadingSnackbarRef.instance.dismiss();
+          this.handleFormMutationResponse(data, errors, formName);
+        },
+        error: () => {
+          loadingSnackbarRef.instance.dismiss();
+        },
+        complete: () => {
+          overlayRef.detach();
+        },
+      });
   }
 
   /**
@@ -501,20 +505,19 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           permissions: e,
         },
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ errors, data }) => {
-          // Dismiss the loading snackbar
           loadingSnackbarRef.instance.dismiss();
-          // Open new snackbar with the request error or success message
           const message = errors
             ? this.translate.instant('common.notifications.objectNotUpdated', {
-                type: this.translate.instant('common.access'),
-                error: errors ? errors[0].message : '',
-              })
+              type: this.translate.instant('common.access'),
+              error: errors ? errors[0].message : '',
+            })
             : this.translate.instant('common.notifications.objectUpdated', {
-                type: this.translate.instant('common.access'),
-                value: '',
-              });
+              type: this.translate.instant('common.access'),
+              value: '',
+            });
           const snackbarConfig = {
             ...REQUEST_SNACKBAR_CONF,
             error: errors ? true : false,
@@ -529,7 +532,6 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
           this.snackBar.openSnackBar(err.message, { error: true });
         },
         complete: () => {
-          // Detach the current set overlay
           overlayRef.detach();
         },
       });
@@ -550,6 +552,10 @@ export class FormBuilderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Complete the destroy$ subject to unsubscribe from all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+
     if (this.removePadding) {
       // If we removed the padding, add it back on cleanup
       const appPageContainer = this.document.getElementById('appPageContainer');

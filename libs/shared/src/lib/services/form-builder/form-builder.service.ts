@@ -1,4 +1,4 @@
-import { inject, Injectable, Injector } from '@angular/core';
+import { inject, Injectable, Injector, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
   Model,
@@ -216,8 +216,8 @@ const getUpdateData = (
 
     return operation
       ? {
-          [operation[1]]: operation[2],
-        }
+        [operation[1]]: operation[2],
+      }
       : null;
   }
 };
@@ -229,7 +229,7 @@ const getUpdateData = (
 @Injectable({
   providedIn: 'root',
 })
-export class FormBuilderService {
+export class FormBuilderService implements OnDestroy {
   /** If updating record, saves recordId if necessary gets files from questions */
   public recordId?: string;
   /** Summary of the errors of the form */
@@ -241,6 +241,12 @@ export class FormBuilderService {
   }[] = [];
   /** Injector */
   private injector = inject(Injector);
+
+  /** Track all active subscriptions for memory management */
+  private destroy$ = new Subject<void>();
+
+  /** Track survey-specific subscriptions */
+  private surveySubscriptions = new Map<SurveyModel, Subject<void>>();
 
   /**
    * Constructor of the service
@@ -257,7 +263,44 @@ export class FormBuilderService {
     private snackBar: SnackbarService,
     private restService: RestService,
     private formHelpersService: FormHelpersService
-  ) {}
+  ) { }
+
+  /**
+   * Clean up all subscriptions when service is destroyed
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    // Clean up all survey-specific subscriptions
+    this.surveySubscriptions.forEach((subject, survey) => {
+      subject.next();
+      subject.complete();
+    });
+    this.surveySubscriptions.clear();
+  }
+
+  /**
+   * Get or create a destroy subject for a specific survey
+   */
+  private getSurveyDestroy$(survey: SurveyModel): Subject<void> {
+    if (!this.surveySubscriptions.has(survey)) {
+      this.surveySubscriptions.set(survey, new Subject<void>());
+    }
+    return this.surveySubscriptions.get(survey)!;
+  }
+
+  /**
+   * Clean up subscriptions for a specific survey
+   */
+  private cleanupSurvey(survey: SurveyModel): void {
+    const surveyDestroy$ = this.surveySubscriptions.get(survey);
+    if (surveyDestroy$) {
+      surveyDestroy$.next();
+      surveyDestroy$.complete();
+      this.surveySubscriptions.delete(survey);
+    }
+  }
 
   /**
    * Creates new survey from the structure and add on complete expression to it.
@@ -284,14 +327,15 @@ export class FormBuilderService {
     const survey = new Model(structure);
     survey.checkErrorsMode = 'onComplete';
 
+    // Get survey-specific destroy subject
+    const surveyDestroy$ = this.getSurveyDestroy$(survey);
+
     // Cleanup callbacks
-    const dispose$ = new Subject<boolean>();
     const onDispose = new Event<() => void, SurveyModel, undefined>();
     survey.onDispose = onDispose;
     survey.disposeCallback = () => {
       onDispose.fire(survey, undefined);
-      dispose$.next(true);
-      dispose$.unsubscribe();
+      this.cleanupSurvey(survey);
     };
 
     // Adds function to survey to be able to get the current parsed data
@@ -326,7 +370,9 @@ export class FormBuilderService {
 
     const addQuestionTooltips =
       this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService);
-    survey.onAfterRenderQuestion.add((survey, options) => {
+
+    // Store reference to the event handler for proper cleanup
+    const afterRenderQuestionHandler = (survey: SurveyModel, options: any) => {
       renderGlobalProperties(this.injector)(survey, options);
 
       //Add tooltips to questions if exist
@@ -347,16 +393,11 @@ export class FormBuilderService {
           this.formHelpersService.setDownloadListener(options, this.recordId);
           break;
       }
-    });
+    };
+    survey.onAfterRenderQuestion.add(afterRenderQuestionHandler);
 
-    // @TODO: Check if commenting this breaks guyane prescriptions
-    // survey.onQuestionValueChanged = {};
-    // survey.onValueChanged.add((_, options) => {
-    //   if (survey.onQuestionValueChanged[options.name]) {
-    //     survey.onQuestionValueChanged[options.name](options);
-    //   }
-    // });
-    survey.onSettingQuestionErrors.add((sender: SurveyModel, options) => {
+    // Store reference to error handler
+    const settingQuestionErrorsHandler = (sender: SurveyModel, options: any) => {
       // Skip required validation if the survey has the _skipRequiredValidation flag set
       // Flag is built by the skipRequiredValidation expression
       if (sender._skipRequiredValidation) {
@@ -382,10 +423,11 @@ export class FormBuilderService {
           (error) => error != existingError
         );
       }
-    });
+    };
+    survey.onSettingQuestionErrors.add(settingQuestionErrorsHandler);
 
-    // Handles logic for after record creation, selection and deselection on resource type questions
-    survey.onCompleting.add(() => {
+    // Store reference to completing handler
+    const completingHandler = () => {
       survey.getAllQuestions().forEach((question) => {
         const isResource = question.getType() === 'resource';
         const isResources = question.getType() === 'resources';
@@ -410,11 +452,11 @@ export class FormBuilderService {
           ) {
             // Newly created records
             const data = getUpdateData(question.afterRecordCreation, survey);
-            data && this.updateRecord(recordID, data);
+            data && this.updateRecord(recordID, data, surveyDestroy$);
           } else if (question.afterRecordSelection && !wasSelected(recordID)) {
             // Newly selected records
             const data = getUpdateData(question.afterRecordSelection, survey);
-            data && this.updateRecord(recordID, data);
+            data && this.updateRecord(recordID, data, surveyDestroy$);
           }
         }
 
@@ -423,11 +465,13 @@ export class FormBuilderService {
         if (question.afterRecordDeselection) {
           for (const recordID of deselectedRecords) {
             const data = getUpdateData(question.afterRecordDeselection, survey);
-            data && this.updateRecord(recordID, data);
+            data && this.updateRecord(recordID, data, surveyDestroy$);
           }
         }
       });
-    });
+    };
+    survey.onCompleting.add(completingHandler);
+
     if (fields.length > 0) {
       for (const f of fields.filter((x) => !x.automated)) {
         const accessible = !!f.canSee;
@@ -452,12 +496,6 @@ export class FormBuilderService {
         if (question.getPropertyValue('startOnLastElement')) {
           question.currentIndex = question.visiblePanelCount - 1;
         }
-
-        // This fixes one weird bug from SurveyJS's new version
-        // Without it, the panel property isn't updated on survey initialization
-        // if (question.allowAddPanelExpression) {
-        //   question.allowAddPanel = true;
-        // }
       }
       // Avoid reference data to be removed when saving & question isn't loaded yet
       if (isSelectQuestion(question)) {
@@ -469,7 +507,9 @@ export class FormBuilderService {
 
     // Adds upload button
     const showUploadButtonTypes = ['paneldynamic', 'matrixdynamic'];
-    survey.onAfterRenderQuestion.add((_, options) => {
+
+    // Store reference to upload button handler
+    const uploadButtonHandler = (survey: SurveyModel, options: any) => {
       const questionType = options.question.getType();
       if (
         !showUploadButtonTypes.includes(questionType) ||
@@ -477,26 +517,31 @@ export class FormBuilderService {
       ) {
         return;
       }
-    });
+    };
+    survey.onAfterRenderQuestion.add(uploadButtonHandler);
 
     // Add an array of cells to the matrix obj
-    survey.onMatrixAfterCellRender.add((_, options) => {
+    // Store reference to matrix cell handler
+    const matrixCellHandler = (survey: SurveyModel, options: any) => {
       options.question.cells ||= new Map<string, MatrixDropdownCell>();
       const col = options.column as MatrixDropdownColumn;
       const row = options.row.rowName;
       options.question.cells.set(`${row}:${col.name}`, options.cell);
-    });
+    };
+    survey.onMatrixAfterCellRender.add(matrixCellHandler);
 
-    survey.onAfterRenderPanel.add((survey, options) => {
+    // Store reference to panel render handler
+    const panelRenderHandler = (survey: SurveyModel, options: any) => {
       addQuestionTooltips(survey, options);
       const htmlClass = options.panel.getPropertyValue('elementClasses');
       if (htmlClass) {
         options.htmlElement.classList.add(...htmlClass.split(' '));
       }
-    });
+    };
+    survey.onAfterRenderPanel.add(panelRenderHandler);
 
-    // When adding panel actions, check if panel can be removed or not by current user
-    survey.onGetPanelFooterActions.add((survey, options) => {
+    // Store reference to panel footer handler
+    const panelFooterHandler = (survey: SurveyModel, options: any) => {
       const question = options.question;
       if (!question || question.getType() !== 'paneldynamic') {
         return;
@@ -507,14 +552,15 @@ export class FormBuilderService {
           ...survey.data,
           panel: options.panel.getValue(),
         });
-        const removeAction = options.actions.find((a) =>
+        const removeAction = options.actions.find((a: any) =>
           a.id?.startsWith('remove-panel')
         );
         if (removeAction) {
           removeAction.visible = canRemove;
         }
       }
-    });
+    };
+    survey.onGetPanelFooterActions.add(panelFooterHandler);
 
     const surveyLocales = survey.getUsedLocales();
     const onLangChange = (lang: string) => {
@@ -526,9 +572,13 @@ export class FormBuilderService {
     };
 
     onLangChange(this.translate.currentLang || this.translate.defaultLang);
-    this.translate.onLangChange.pipe(takeUntil(dispose$)).subscribe((e) => {
-      onLangChange(e.lang);
-    });
+
+    // Subscribe to language changes with proper cleanup
+    this.translate.onLangChange
+      .pipe(takeUntil(surveyDestroy$), takeUntil(this.destroy$))
+      .subscribe((e) => {
+        onLangChange(e.lang);
+      });
 
     // Set query params as variables
     this.formHelpersService.addQueryParamsVariables(survey);
@@ -544,13 +594,17 @@ export class FormBuilderService {
         });
       });
     }
-    survey.onTextMarkdown.add((_, options) => {
+
+    // Store reference to markdown handler
+    const markdownHandler = (survey: SurveyModel, options: any) => {
       const str = marked(options.text).trim();
       options.html =
         str.startsWith('<p>') && str.endsWith('</p>')
           ? str.substring(3, str.length - 4)
           : str;
-    });
+    };
+    survey.onTextMarkdown.add(markdownHandler);
+
     survey.showProgressBar = 'off';
     survey.focusFirstQuestionAutomatic = false;
     survey.applyTheme({ isPanelless: true });
@@ -572,9 +626,11 @@ export class FormBuilderService {
     temporaryFilesStorage: TemporaryFilesStorage,
     destroy$: Subject<boolean>
   ) {
+    const surveyDestroy$ = this.getSurveyDestroy$(survey);
+
     selectedPageIndex
       .asObservable()
-      .pipe(takeUntil(destroy$))
+      .pipe(takeUntil(surveyDestroy$), takeUntil(destroy$))
       .subscribe((index) => {
         survey.currentPageNo = index;
       });
@@ -585,6 +641,7 @@ export class FormBuilderService {
         survey.record?.data[survey.openOnPageByQuestionValue] ?? ''
       );
       if (page) {
+        // Store reference to initial page handler
         const setInitialPage = () => {
           selectedPageIndex.next(page.visibleIndex);
           survey.render();
@@ -613,24 +670,40 @@ export class FormBuilderService {
       }
     });
 
-    survey.onClearFiles.add((_, options: any) => this.onClearFiles(options));
-    survey.onUploadFiles.add((_, options: any) =>
-      this.onUploadFiles(temporaryFilesStorage, options)
-    );
-    survey.onDownloadFile.add((_, options: DownloadFileEvent) => {
+    // Store reference to event handlers for proper cleanup
+    const clearFilesHandler = (survey: SurveyModel, options: any) => this.onClearFiles(options);
+    const uploadFilesHandler = (survey: SurveyModel, options: any) =>
+      this.onUploadFiles(temporaryFilesStorage, options);
+    const downloadFileHandler = (survey: SurveyModel, options: DownloadFileEvent) => {
       this.onDownloadFile(options);
-    });
-    survey.onCurrentPageChanged.add((survey: SurveyModel) => {
+    };
+    const currentPageChangedHandler = (survey: SurveyModel) => {
       if (survey.currentPageNo !== selectedPageIndex.getValue()) {
         selectedPageIndex.next(survey.currentPageNo);
       }
-    });
-    survey.onFocusInQuestion.add((survey, e) => {
+    };
+    const focusInQuestionHandler = (survey: SurveyModel, e: any) => {
       const { title: rootTitle, name: rootName } = getRootParent(e.question);
       survey.setVariable('__FOCUSED__.name', e.question.name);
       survey.setVariable('__FOCUSED__.title', e.question.title);
       survey.setVariable('__FOCUSED__.root.name', rootName);
       survey.setVariable('__FOCUSED__.root.title', rootTitle);
+    };
+
+    // Add event handlers
+    survey.onClearFiles.add(clearFilesHandler);
+    survey.onUploadFiles.add(uploadFilesHandler);
+    survey.onDownloadFile.add(downloadFileHandler);
+    survey.onCurrentPageChanged.add(currentPageChangedHandler);
+    survey.onFocusInQuestion.add(focusInQuestionHandler);
+
+    // Clean up event handlers when survey is destroyed
+    surveyDestroy$.subscribe(() => {
+      survey.onClearFiles.remove(clearFilesHandler);
+      survey.onUploadFiles.remove(uploadFilesHandler);
+      survey.onDownloadFile.remove(downloadFileHandler);
+      survey.onCurrentPageChanged.remove(currentPageChangedHandler);
+      survey.onFocusInQuestion.remove(focusInQuestionHandler);
     });
   }
 
@@ -694,6 +767,7 @@ export class FormBuilderService {
         .post(`${this.restService.apiUrl}/gis/validate-shapefile`, formData, {
           headers,
         })
+        .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             // JSON is valid, continue
@@ -731,8 +805,8 @@ export class FormBuilderService {
       fetch(options.content.slice(7), {
         headers: options.fileValue.includeOortToken
           ? {
-              Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
-            }
+            Authorization: `Bearer ${localStorage.getItem('idtoken')}`,
+          }
           : {},
       })
         .then((response) => response.blob())
@@ -760,8 +834,9 @@ export class FormBuilderService {
    *
    * @param id Id of the record to update
    * @param data Data to update
+   * @param destroy$ Subject to manage subscription lifecycle
    */
-  private updateRecord(id: string, data: any): void {
+  private updateRecord(id: string, data: any, destroy$: Subject<void>): void {
     if (id && data) {
       this.apollo
         .mutate<EditRecordMutationResponse>({
@@ -771,6 +846,7 @@ export class FormBuilderService {
             data,
           },
         })
+        .pipe(takeUntil(destroy$), takeUntil(this.destroy$))
         .subscribe({
           next: ({ errors }) => {
             if (errors) {
