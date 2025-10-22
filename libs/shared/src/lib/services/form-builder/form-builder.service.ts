@@ -273,7 +273,7 @@ export class FormBuilderService implements OnDestroy {
     this.destroy$.complete();
 
     // Clean up all survey-specific subscriptions
-    this.surveySubscriptions.forEach((subject, survey) => {
+    this.surveySubscriptions.forEach((subject) => {
       subject.next();
       subject.complete();
     });
@@ -282,16 +282,21 @@ export class FormBuilderService implements OnDestroy {
 
   /**
    * Get or create a destroy subject for a specific survey
+   *
+   * @param survey Survey instance
+   * @returns Destroy subject for the survey
    */
   private getSurveyDestroy$(survey: SurveyModel): Subject<void> {
     if (!this.surveySubscriptions.has(survey)) {
       this.surveySubscriptions.set(survey, new Subject<void>());
     }
-    return this.surveySubscriptions.get(survey)!;
+    return this.surveySubscriptions.get(survey) as Subject<void>;
   }
 
   /**
    * Clean up subscriptions for a specific survey
+   *
+   * @param survey Survey instance to clean up
    */
   private cleanupSurvey(survey: SurveyModel): void {
     const surveyDestroy$ = this.surveySubscriptions.get(survey);
@@ -372,11 +377,11 @@ export class FormBuilderService implements OnDestroy {
       this.formHelpersService.addQuestionTooltips.bind(this.formHelpersService);
 
     // Store reference to the event handler for proper cleanup
-    const afterRenderQuestionHandler = (survey: SurveyModel, options: any) => {
-      renderGlobalProperties(this.injector)(survey, options);
+    const afterRenderQuestionHandler = (_survey: SurveyModel, options: any) => {
+      renderGlobalProperties(this.injector)(_survey, options);
 
       //Add tooltips to questions if exist
-      addQuestionTooltips(survey, options);
+      addQuestionTooltips(_survey, options);
 
       const questionType = options.question.getType();
       switch (questionType) {
@@ -512,7 +517,7 @@ export class FormBuilderService implements OnDestroy {
     const showUploadButtonTypes = ['paneldynamic', 'matrixdynamic'];
 
     // Store reference to upload button handler
-    const uploadButtonHandler = (survey: SurveyModel, options: any) => {
+    const uploadButtonHandler = (_survey: SurveyModel, options: any) => {
       const questionType = options.question.getType();
       if (
         !showUploadButtonTypes.includes(questionType) ||
@@ -525,7 +530,7 @@ export class FormBuilderService implements OnDestroy {
 
     // Add an array of cells to the matrix obj
     // Store reference to matrix cell handler
-    const matrixCellHandler = (survey: SurveyModel, options: any) => {
+    const matrixCellHandler = (_survey: SurveyModel, options: any) => {
       options.question.cells ||= new Map<string, MatrixDropdownCell>();
       const col = options.column as MatrixDropdownColumn;
       const row = options.row.rowName;
@@ -534,8 +539,8 @@ export class FormBuilderService implements OnDestroy {
     survey.onMatrixAfterCellRender.add(matrixCellHandler);
 
     // Store reference to panel render handler
-    const panelRenderHandler = (survey: SurveyModel, options: any) => {
-      addQuestionTooltips(survey, options);
+    const panelRenderHandler = (_survey: SurveyModel, options: any) => {
+      addQuestionTooltips(_survey, options);
       const htmlClass = options.panel.getPropertyValue('elementClasses');
       if (htmlClass) {
         options.htmlElement.classList.add(...htmlClass.split(' '));
@@ -544,7 +549,7 @@ export class FormBuilderService implements OnDestroy {
     survey.onAfterRenderPanel.add(panelRenderHandler);
 
     // Store reference to panel footer handler
-    const panelFooterHandler = (survey: SurveyModel, options: any) => {
+    const panelFooterHandler = (_survey: SurveyModel, options: any) => {
       const question = options.question;
       if (!question || question.getType() !== 'paneldynamic') {
         return;
@@ -552,7 +557,7 @@ export class FormBuilderService implements OnDestroy {
       const expr = question.getPropertyValue('allowRemovePanelExpression');
       if (expr) {
         const canRemove = new ExpressionRunner(expr).run({
-          ...survey.data,
+          ..._survey.data,
           panel: options.panel.getValue(),
         });
         const removeAction = options.actions.find((a: any) =>
@@ -599,7 +604,7 @@ export class FormBuilderService implements OnDestroy {
     }
 
     // Store reference to markdown handler
-    const markdownHandler = (survey: SurveyModel, options: any) => {
+    const markdownHandler = (_survey: SurveyModel, options: any) => {
       const str = marked(options.text).trim();
       options.html =
         str.startsWith('<p>') && str.endsWith('</p>')
@@ -628,7 +633,7 @@ export class FormBuilderService implements OnDestroy {
     selectedPageIndex: BehaviorSubject<number>,
     temporaryFilesStorage: TemporaryFilesStorage,
     destroy$: Subject<boolean>
-  ) {
+  ): void {
     const surveyDestroy$ = this.getSurveyDestroy$(survey);
 
     selectedPageIndex
@@ -674,27 +679,27 @@ export class FormBuilderService implements OnDestroy {
     });
 
     // Store reference to event handlers for proper cleanup
-    const clearFilesHandler = (survey: SurveyModel, options: any) =>
+    const clearFilesHandler = (_survey: SurveyModel, options: any) =>
       this.onClearFiles(options);
-    const uploadFilesHandler = (survey: SurveyModel, options: any) =>
+    const uploadFilesHandler = (_survey: SurveyModel, options: any) =>
       this.onUploadFiles(temporaryFilesStorage, options);
     const downloadFileHandler = (
-      survey: SurveyModel,
+      _survey: SurveyModel,
       options: DownloadFileEvent
     ) => {
       this.onDownloadFile(options);
     };
-    const currentPageChangedHandler = (survey: SurveyModel) => {
-      if (survey.currentPageNo !== selectedPageIndex.getValue()) {
-        selectedPageIndex.next(survey.currentPageNo);
+    const currentPageChangedHandler = (_survey: SurveyModel) => {
+      if (_survey.currentPageNo !== selectedPageIndex.getValue()) {
+        selectedPageIndex.next(_survey.currentPageNo);
       }
     };
-    const focusInQuestionHandler = (survey: SurveyModel, e: any) => {
+    const focusInQuestionHandler = (_survey: SurveyModel, e: any) => {
       const { title: rootTitle, name: rootName } = getRootParent(e.question);
-      survey.setVariable('__FOCUSED__.name', e.question.name);
-      survey.setVariable('__FOCUSED__.title', e.question.title);
-      survey.setVariable('__FOCUSED__.root.name', rootName);
-      survey.setVariable('__FOCUSED__.root.title', rootTitle);
+      _survey.setVariable('__FOCUSED__.name', e.question.name);
+      _survey.setVariable('__FOCUSED__.title', e.question.title);
+      _survey.setVariable('__FOCUSED__.root.name', rootName);
+      _survey.setVariable('__FOCUSED__.root.title', rootTitle);
     };
 
     // Add event handlers
