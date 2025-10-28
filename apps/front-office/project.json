@@ -92,203 +92,11 @@
         ]
       },
       "configurations": {
-        "oort-prod": {
+        "mab-prod": {
           "fileReplacements": [
             {
               "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.prod.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/oort"]
-          }
-        },
-        "oort-dev": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.dev.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/oort"]
-          }
-        },
-        "oort-guyane": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.guyane.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/oort"]
-          }
-        },
-        "oort-alimentaide": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.alimentaide.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/alimentaide"]
-          }
-        },
-        "oort-pci": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.pci.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/pci"]
-          }
-        },
-        "oort-hit-uat": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.hit.uat.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/hit-uat"]
-          }
-        },
-        "oort-demo": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.demo.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/oort"]
-          }
-        },
-        "oort-lift": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.lift.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/lift"]
-          }
-        },
-        "oort-mab": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.mab.ts"
+              "with": "apps/front-office/src/environments/environment.mab.prod.ts"
             }
           ],
           "budgets": [
@@ -308,7 +116,48 @@
             "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
           }
         },
-        "oort-mab-local": {
+        "mab-prod-local": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true,
+          "stylePreprocessorOptions": {
+            "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
+          },
+          "fileReplacements": [
+            {
+              "replace": "apps/front-office/src/environments/environment.ts",
+              "with": "apps/front-office/src/environments/environment.mab.prod.local.ts"
+            }
+          ]
+        },
+        "mab-dev": {
+          "fileReplacements": [
+            {
+              "replace": "apps/front-office/src/environments/environment.ts",
+              "with": "apps/front-office/src/environments/environment.mab.dev.ts"
+            }
+          ],
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "12mb",
+              "maximumError": "15mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb",
+              "maximumError": "14kb"
+            }
+          ],
+          "outputHashing": "all",
+          "stylePreprocessorOptions": {
+            "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
+          }
+        },
+        "mab-dev-local": {
           "buildOptimizer": false,
           "optimization": false,
           "vendorChunk": true,
@@ -321,74 +170,9 @@
           "fileReplacements": [
             {
               "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.mab.local.ts"
+              "with": "apps/front-office/src/environments/environment.mab.dev.local.ts"
             }
           ]
-        },
-        "oort-immt": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.immt.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
-          }
-        },
-        "oort-expertisefr": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.expertisefr.ts"
-            }
-          ],
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "12mb",
-              "maximumError": "15mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "6kb",
-              "maximumError": "14kb"
-            }
-          ],
-          "outputHashing": "all",
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/expertisefr"]
-          }
-        },
-        "oort-local": {
-          "fileReplacements": [
-            {
-              "replace": "apps/front-office/src/environments/environment.ts",
-              "with": "apps/front-office/src/environments/environment.oort.local.ts"
-            }
-          ],
-          "buildOptimizer": false,
-          "optimization": false,
-          "vendorChunk": true,
-          "extractLicenses": false,
-          "sourceMap": true,
-          "namedChunks": true,
-          "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/oort"]
-          }
         },
         "development": {
           "buildOptimizer": false,
@@ -398,23 +182,26 @@
           "sourceMap": true,
           "namedChunks": true,
           "stylePreprocessorOptions": {
-            "includePaths": ["libs/styles/src/lib/themes/default"]
+            "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
           }
         }
       },
-      "defaultConfiguration": "oort-prod"
+      "defaultConfiguration": "mab-prod"
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
       "configurations": {
-        "oort-prod": {
-          "browserTarget": "front-office:build:oort-prod"
+        "mab-prod": {
+          "browserTarget": "front-office:build:mab-prod"
         },
-        "oort-mab-local": {
-          "browserTarget": "front-office:build:oort-mab-local"
+        "mab-prod-local": {
+          "browserTarget": "front-office:build:mab-prod-local"
         },
-        "oort-local": {
-          "browserTarget": "front-office:build:oort-local"
+        "mab-dev": {
+          "browserTarget": "front-office:build:mab-dev"
+        },
+        "mab-dev-local": {
+          "browserTarget": "front-office:build:mab-dev-local"
         },
         "development": {
           "browserTarget": "front-office:build:development"

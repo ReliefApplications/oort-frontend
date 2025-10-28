@@ -1,5 +1,5 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
-import { theme } from '../themes/lift/lift.prod';
+import { theme } from '../themes/oort/oort.prod';
 import { sharedEnvironment } from './environment.shared';
 import { Environment } from './environment.type';
 
@@ -7,10 +7,10 @@ import { Environment } from './environment.type';
  * Authentication configuration
  */
 const authConfig: AuthConfig = {
-  issuer: 'https://id-lift.oortcloud.tech/realms/oort',
-  redirectUri: 'https://lift.oortcloud.tech/admin/',
-  postLogoutRedirectUri: 'https://lift.oortcloud.tech/admin/auth/',
-  clientId: 'oort-client',
+  issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
+  redirectUri: 'https://oort-dev.oortcloud.tech/admin/',
+  postLogoutRedirectUri: 'https://oort-dev.oortcloud.tech/admin/auth/',
+  clientId: 'mab-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
@@ -22,13 +22,14 @@ const authConfig: AuthConfig = {
 export const environment: Environment = {
   ...sharedEnvironment,
   production: true,
-  apiUrl: 'https://lift.oortcloud.tech/api',
-  subscriptionApiUrl: 'wss://lift.oortcloud.tech/api',
-  frontOfficeUri: 'https://lift.oortcloud.tech',
-  backOfficeUri: 'https://lift.oortcloud.tech/admin/',
+  apiUrl: 'https://oort-dev.oortcloud.tech/api',
+  subscriptionApiUrl: 'wss://oort-dev.oortcloud.tech/api',
+  frontOfficeUri: 'https://oort-dev.oortcloud.tech',
+  backOfficeUri: 'https://oort-dev.oortcloud.tech/admin/',
   availableLanguages: ['en', 'fr'],
   authConfig,
   theme,
+  user: { attributes: ['country'] },
   availableWidgets: [
     'form',
     'donut-chart',
