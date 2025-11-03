@@ -25,6 +25,7 @@ import { ConfirmService } from '../../../../services/confirm/confirm.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UIPageChangeEvent, handleTablePageEvent } from '@oort-front/ui';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
+import { ReferenceDataService } from '../../../../services/reference-data/reference-data.service';
 
 /** Default number of items per request for pagination */
 const DEFAULT_PAGE_SIZE = 10;
@@ -45,16 +46,8 @@ export class UserListComponent
   @Input() autoAssigned = false;
   /** Filter to apply on the users query */
   @Input() filter: CompositeFilterDescriptor | null = null;
-  /** Columns to display */
-  public displayedColumns = [
-    'select',
-    'name',
-    'username',
-    'oid',
-    'roles',
-    'attributes',
-    'actions',
-  ];
+  /** User attributes to display */
+  @Input() attributes: any[] = [];
 
   /** Users */
   public users: Array<User> = new Array<User>();
@@ -66,6 +59,20 @@ export class UserListComponent
   @Input() roles: Role[] = [];
   /** Position attribute categories */
   @Input() positionAttributeCategories: PositionAttributeCategory[] = [];
+
+  /** Attribute choices for reference data */
+  public attributeChoices: Map<string, any[]> = new Map();
+
+  /** Columns to display */
+  public get displayedColumns(): string[] {
+    const baseColumns = this.autoAssigned
+      ? ['name', 'username', 'oid', 'roles']
+      : ['select', 'name', 'username', 'oid', 'roles'];
+    const attributeColumns = this.attributes.map(
+      (attr) => `attr_${attr.value}`
+    );
+    return [...baseColumns, ...attributeColumns, 'actions'];
+  }
 
   /** Loading state */
   public loading = new BehaviorSubject<boolean>(true);
@@ -99,6 +106,7 @@ export class UserListComponent
    * @param confirmService Shared confirm service
    * @param router Angular router
    * @param route Angular activated route
+   * @param refDataService
    */
   constructor(
     private apollo: Apollo,
@@ -106,7 +114,8 @@ export class UserListComponent
     private translate: TranslateService,
     private confirmService: ConfirmService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private refDataService: ReferenceDataService
   ) {
     super();
   }
@@ -119,12 +128,6 @@ export class UserListComponent
       .subscribe(() => {
         this.loadingStatusChange.emit(this.loading.value);
       });
-
-    if (this.autoAssigned) {
-      this.displayedColumns = this.displayedColumns.filter(
-        (x) => x !== 'select'
-      );
-    }
     this.applicationService.application$
       .pipe(takeUntil(this.destroy$))
       .subscribe((application) => {
@@ -151,6 +154,9 @@ export class UserListComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.filter) {
       this.fetchUsers(true);
+    }
+    if (changes.attributes && this.attributes.length > 0) {
+      this.loadAttributeChoices();
     }
   }
 
@@ -281,6 +287,44 @@ export class UserListComponent
    */
   onClick(user: User): void {
     this.router.navigate([`./${user.id}`], { relativeTo: this.route });
+  }
+
+  /**
+   * Load reference data choices for attributes
+   */
+  private loadAttributeChoices(): void {
+    for (const attribute of this.attributes) {
+      if (attribute.referenceData) {
+        this.refDataService
+          .loadReferenceData(attribute.referenceData)
+          .then((refData) => {
+            if (refData) {
+              this.refDataService.fetchItems(refData).then(({ items }) => {
+                this.attributeChoices.set(attribute.value, items);
+              });
+            }
+          });
+      }
+    }
+  }
+
+  /**
+   * Get display value for an attribute
+   *
+   * @param attribute The attribute configuration
+   * @param value The attribute value
+   * @returns The display value (mapped from reference data if applicable)
+   */
+  public getAttributeDisplayValue(attribute: any, value: any): string {
+    if (!value) return '-';
+
+    const choices = this.attributeChoices.get(attribute.value);
+    if (choices && attribute.referenceData) {
+      const item = choices.find((c) => c[attribute.valueField] === value);
+      return item ? item[attribute.textField] : value;
+    }
+
+    return value;
   }
 
   /**

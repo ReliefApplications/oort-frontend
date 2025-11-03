@@ -31,6 +31,7 @@ export const GET_USERS = gql`
             id
             title
           }
+          attributes
           oid
         }
         cursor
@@ -41,5 +42,12 @@ export const GET_USERS = gql`
         endCursor
       }
     }
+  }
+`;
+
+/** User attributes query */
+export const GET_USER_ATTRIBUTES = gql`
+  query GetUserAttributes {
+    userAttributes
   }
 `;

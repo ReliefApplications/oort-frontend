@@ -9,6 +9,7 @@ import { AddUsersMutationResponse, Role } from '../../models/user.model';
 import { ApplicationService } from '../../services/application/application.service';
 import { UserListComponent } from './components/user-list/user-list.component';
 import { ADD_USERS } from './graphql/mutations';
+import { GET_USER_ATTRIBUTES } from './graphql/queries';
 import { SnackbarService } from '@oort-front/ui';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
 
@@ -30,6 +31,8 @@ export class ApplicationUsersComponent
   public roles: Role[] = [];
   /** Position attribute categories */
   public positionAttributeCategories: PositionAttributeCategory[] = [];
+  /** User attributes */
+  public attributes: any[] = [];
   /** Prefetch subject */
   refetch$: Subject<boolean> = new Subject<boolean>();
   /** User list component */
@@ -65,6 +68,14 @@ export class ApplicationUsersComponent
           this.positionAttributeCategories =
             application.positionAttributeCategories || [];
         }
+      });
+
+    // Fetch user attributes configuration
+    this.apollo
+      .query({ query: GET_USER_ATTRIBUTES })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ data }: any) => {
+        this.attributes = data.userAttributes || [];
       });
   }
 

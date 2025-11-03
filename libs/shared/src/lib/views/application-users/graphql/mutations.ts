@@ -11,13 +11,7 @@ export const ADD_USERS = gql`
         id
         title
       }
-      positionAttributes {
-        value
-        category {
-          id
-          title
-        }
-      }
+      attributes
       oid
     }
   }

@@ -25,9 +25,7 @@ export const GET_APPLICATION_USERS = gql`
               id
               title
             }
-            positionAttributes {
-              value
-            }
+            attributes
             oid
           }
           cursor
@@ -39,5 +37,12 @@ export const GET_APPLICATION_USERS = gql`
         totalCount
       }
     }
+  }
+`;
+
+/** User attributes query */
+export const GET_USER_ATTRIBUTES = gql`
+  query GetUserAttributes {
+    userAttributes
   }
 `;

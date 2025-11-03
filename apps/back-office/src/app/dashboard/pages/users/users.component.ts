@@ -1,6 +1,6 @@
 import { Apollo, QueryRef } from 'apollo-angular';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { GET_USERS, GET_ROLES } from './graphql/queries';
+import { GET_USERS, GET_ROLES, GET_USER_ATTRIBUTES } from './graphql/queries';
 import { ADD_USERS, DELETE_USERS } from './graphql/mutations';
 import {
   AddUsersMutationResponse,
@@ -14,6 +14,7 @@ import {
   UsersNodeQueryResponse,
   getCachedValues,
   updateQueryUniqueValues,
+  ReferenceDataService,
 } from '@oort-front/shared';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -51,15 +52,20 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
   public users = new Array<User>();
   /** Back-office roles */
   public roles: Role[] = [];
+  /** User attributes */
+  public attributes: any[] = [];
+  /** Attribute choices for reference data */
+  public attributeChoices: Map<string, any[]> = new Map();
+
   /** Table columns */
-  public displayedColumns = [
-    'select',
-    'name',
-    'username',
-    'oid',
-    'roles',
-    'actions',
-  ];
+  public get displayedColumns(): string[] {
+    const baseColumns = ['select', 'name', 'username', 'oid', 'roles'];
+    const attributeColumns = this.attributes.map(
+      (attr) => `attr_${attr.value}`
+    );
+    return [...baseColumns, ...attributeColumns, 'actions'];
+  }
+
   /** Users selection */
   public selection = new SelectionModel<User>(true, []);
   /** Cached users */
@@ -92,6 +98,7 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
    * @param confirmService Shared confirm service
    * @param translate Angular translation service
    * @param activatedRoute Angular active route
+   * @param refDataService
    */
   constructor(
     private apollo: Apollo,
@@ -101,7 +108,8 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
     private downloadService: DownloadService,
     private confirmService: ConfirmService,
     private translate: TranslateService,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private refDataService: ReferenceDataService
   ) {
     super();
   }
@@ -124,6 +132,16 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
         this.roles = data.roles;
         this.loading = loading;
       });
+
+    // Fetch user attributes configuration
+    this.apollo
+      .query({ query: GET_USER_ATTRIBUTES })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ data }: any) => {
+        this.attributes = data.userAttributes || [];
+        this.loadAttributeChoices();
+      });
+
     this.usersQuery.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(({ data, loading }) => {
@@ -435,5 +453,43 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
       this.pageInfo.pageSize * (this.pageInfo.pageIndex + 1)
     );
     this.loading = loading;
+  }
+
+  /**
+   * Load reference data choices for attributes
+   */
+  private loadAttributeChoices(): void {
+    for (const attribute of this.attributes) {
+      if (attribute.referenceData) {
+        this.refDataService
+          .loadReferenceData(attribute.referenceData)
+          .then((refData) => {
+            if (refData) {
+              this.refDataService.fetchItems(refData).then(({ items }) => {
+                this.attributeChoices.set(attribute.value, items);
+              });
+            }
+          });
+      }
+    }
+  }
+
+  /**
+   * Get display value for an attribute
+   *
+   * @param attribute The attribute configuration
+   * @param value The attribute value
+   * @returns The display value (mapped from reference data if applicable)
+   */
+  public getAttributeDisplayValue(attribute: any, value: any): string {
+    if (!value) return '-';
+
+    const choices = this.attributeChoices.get(attribute.value);
+    if (choices && attribute.referenceData) {
+      const item = choices.find((c) => c[attribute.valueField] === value);
+      return item ? item[attribute.textField] : value;
+    }
+
+    return value;
   }
 }
