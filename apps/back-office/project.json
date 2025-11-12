@@ -200,19 +200,19 @@
       "executor": "@angular-devkit/build-angular:dev-server",
       "configurations": {
         "mab-prod": {
-          "browserTarget": "front-office:build:mab-prod"
+          "browserTarget": "back-office:build:mab-prod"
         },
         "mab-prod-local": {
-          "browserTarget": "front-office:build:mab-prod-local"
+          "browserTarget": "back-office:build:mab-prod-local"
         },
         "mab-dev": {
-          "browserTarget": "front-office:build:mab-dev"
+          "browserTarget": "back-office:build:mab-dev"
         },
         "mab-dev-local": {
-          "browserTarget": "front-office:build:mab-dev-local"
+          "browserTarget": "back-office:build:mab-dev-local"
         },
         "development": {
-          "browserTarget": "front-office:build:development"
+          "browserTarget": "back-office:build:development"
         }
       },
       "defaultConfiguration": "development"
