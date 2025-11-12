@@ -11,6 +11,7 @@ import { UserListComponent } from './components/user-list/user-list.component';
 import { ADD_USERS } from './graphql/mutations';
 import { SnackbarService } from '@oort-front/ui';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
+import { RestService } from '../../services/rest/rest.service';
 
 /**
  * Application users component.
@@ -30,6 +31,8 @@ export class ApplicationUsersComponent
   public roles: Role[] = [];
   /** Position attribute categories */
   public positionAttributeCategories: PositionAttributeCategory[] = [];
+  /** User attributes */
+  public attributes: any[] = [];
   /** Prefetch subject */
   refetch$: Subject<boolean> = new Subject<boolean>();
   /** User list component */
@@ -45,13 +48,15 @@ export class ApplicationUsersComponent
    * @param apollo Apollo service
    * @param translate Translate service
    * @param snackBar Shared snackbar service
+   * @param restService Shared REST service
    */
   constructor(
     private dialog: Dialog,
     private applicationService: ApplicationService,
     private apollo: Apollo,
     private translate: TranslateService,
-    private snackBar: SnackbarService
+    private snackBar: SnackbarService,
+    private restService: RestService
   ) {
     super();
   }
@@ -65,6 +70,14 @@ export class ApplicationUsersComponent
           this.positionAttributeCategories =
             application.positionAttributeCategories || [];
         }
+      });
+
+    // Fetch user attributes configuration
+    this.restService
+      .get('/permissions/attributes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data: any) => {
+        this.attributes = (data || []).filter((x: any) => x.showInList);
       });
   }
 

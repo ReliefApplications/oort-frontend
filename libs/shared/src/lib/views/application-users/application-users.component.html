@@ -50,6 +50,7 @@
       [roles]="roles"
       [filter]="filters"
       [positionAttributeCategories]="positionAttributeCategories"
+      [attributes]="attributes"
       (loadingStatusChange)="loading = $event"
     ></shared-user-list>
   </ui-tab>
@@ -61,6 +62,7 @@
     <shared-user-list
       [filter]="filters"
       [autoAssigned]="true"
+      [attributes]="attributes"
       (loadingStatusChange)="loading = $event"
     ></shared-user-list>
   </ui-tab>

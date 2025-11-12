@@ -14,6 +14,8 @@ import {
   UsersNodeQueryResponse,
   getCachedValues,
   updateQueryUniqueValues,
+  ReferenceDataService,
+  RestService,
 } from '@oort-front/shared';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -30,6 +32,9 @@ import { ApolloQueryResult } from '@apollo/client';
 
 /** Default items per page for pagination. */
 const ITEMS_PER_PAGE = 10;
+
+/** List of default columns */
+const DEFAULT_COLUMNS = ['select', 'name', 'username', 'oid', 'roles'];
 
 /**
  * Component which will show all the user in the app.
@@ -51,15 +56,12 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
   public users = new Array<User>();
   /** Back-office roles */
   public roles: Role[] = [];
+  /** User attributes */
+  public attributes: any[] = [];
+  /** Attribute choices for reference data */
+  public attributeChoices: Map<string, any[]> = new Map();
   /** Table columns */
-  public displayedColumns = [
-    'select',
-    'name',
-    'username',
-    'oid',
-    'roles',
-    'actions',
-  ];
+  public displayedColumns = [...DEFAULT_COLUMNS, 'actions'];
   /** Users selection */
   public selection = new SelectionModel<User>(true, []);
   /** Cached users */
@@ -92,6 +94,8 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
    * @param confirmService Shared confirm service
    * @param translate Angular translation service
    * @param activatedRoute Angular active route
+   * @param refDataService Shared reference data service
+   * @param restService Shared REST service
    */
   constructor(
     private apollo: Apollo,
@@ -101,7 +105,9 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
     private downloadService: DownloadService,
     private confirmService: ConfirmService,
     private translate: TranslateService,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private refDataService: ReferenceDataService,
+    private restService: RestService
   ) {
     super();
   }
@@ -124,6 +130,20 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
         this.roles = data.roles;
         this.loading = loading;
       });
+
+    // Fetch user attributes configuration
+    this.restService
+      .get('/permissions/attributes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data: any) => {
+        this.attributes = (data || []).filter((x: any) => x.showInList);
+        this.displayedColumns = [
+          ...DEFAULT_COLUMNS,
+          ...this.attributes.map((attr: any) => `attr_${attr.value}`),
+          'actions',
+        ];
+      });
+
     this.usersQuery.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(({ data, loading }) => {
@@ -435,5 +455,43 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
       this.pageInfo.pageSize * (this.pageInfo.pageIndex + 1)
     );
     this.loading = loading;
+  }
+
+  /**
+   * Load reference data choices for attributes
+   */
+  private loadAttributeChoices(): void {
+    for (const attribute of this.attributes) {
+      if (attribute.referenceData) {
+        this.refDataService
+          .loadReferenceData(attribute.referenceData)
+          .then((refData) => {
+            if (refData) {
+              this.refDataService.fetchItems(refData).then(({ items }) => {
+                this.attributeChoices.set(attribute.value, items);
+              });
+            }
+          });
+      }
+    }
+  }
+
+  /**
+   * Get display value for an attribute
+   *
+   * @param attribute The attribute configuration
+   * @param value The attribute value
+   * @returns The display value (mapped from reference data if applicable)
+   */
+  public getAttributeDisplayValue(attribute: any, value: any): string {
+    if (!value) return '-';
+
+    const choices = this.attributeChoices.get(attribute.value);
+    if (choices && attribute.referenceData) {
+      const item = choices.find((c) => c[attribute.valueField] === value);
+      return item ? item[attribute.textField] : value;
+    }
+
+    return value;
   }
 }
