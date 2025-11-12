@@ -33,6 +33,9 @@ import { ApolloQueryResult } from '@apollo/client';
 /** Default items per page for pagination. */
 const ITEMS_PER_PAGE = 10;
 
+/** List of default columns */
+const DEFAULT_COLUMNS = ['select', 'name', 'username', 'oid', 'roles'];
+
 /**
  * Component which will show all the user in the app.
  * Accessible with '/settings/users' route.
@@ -57,16 +60,8 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
   public attributes: any[] = [];
   /** Attribute choices for reference data */
   public attributeChoices: Map<string, any[]> = new Map();
-
   /** Table columns */
-  public get displayedColumns(): string[] {
-    const baseColumns = ['select', 'name', 'username', 'oid', 'roles'];
-    const attributeColumns = this.attributes.map(
-      (attr) => `attr_${attr.value}`
-    );
-    return [...baseColumns, ...attributeColumns, 'actions'];
-  }
-
+  public displayedColumns = [...DEFAULT_COLUMNS, 'actions'];
   /** Users selection */
   public selection = new SelectionModel<User>(true, []);
   /** Cached users */
@@ -142,6 +137,11 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe((data: any) => {
         this.attributes = (data || []).filter((x: any) => x.showInList);
+        this.displayedColumns = [
+          ...DEFAULT_COLUMNS,
+          ...this.attributes.map((attr: any) => `attr_${attr.value}`),
+          'actions',
+        ];
       });
 
     this.usersQuery.valueChanges
