@@ -1,6 +1,6 @@
 import { Apollo, QueryRef } from 'apollo-angular';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { GET_USERS, GET_ROLES, GET_USER_ATTRIBUTES } from './graphql/queries';
+import { GET_USERS, GET_ROLES } from './graphql/queries';
 import { ADD_USERS, DELETE_USERS } from './graphql/mutations';
 import {
   AddUsersMutationResponse,
@@ -15,6 +15,7 @@ import {
   getCachedValues,
   updateQueryUniqueValues,
   ReferenceDataService,
+  RestService,
 } from '@oort-front/shared';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -98,7 +99,8 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
    * @param confirmService Shared confirm service
    * @param translate Angular translation service
    * @param activatedRoute Angular active route
-   * @param refDataService
+   * @param refDataService Shared reference data service
+   * @param restService Shared REST service
    */
   constructor(
     private apollo: Apollo,
@@ -109,7 +111,8 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
     private confirmService: ConfirmService,
     private translate: TranslateService,
     private activatedRoute: ActivatedRoute,
-    private refDataService: ReferenceDataService
+    private refDataService: ReferenceDataService,
+    private restService: RestService
   ) {
     super();
   }
@@ -134,12 +137,11 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
       });
 
     // Fetch user attributes configuration
-    this.apollo
-      .query({ query: GET_USER_ATTRIBUTES })
+    this.restService
+      .get('/permissions/attributes')
       .pipe(takeUntil(this.destroy$))
-      .subscribe(({ data }: any) => {
-        this.attributes = data.userAttributes || [];
-        this.loadAttributeChoices();
+      .subscribe((data: any) => {
+        this.attributes = (data || []).filter((x: any) => x.showInList);
       });
 
     this.usersQuery.valueChanges

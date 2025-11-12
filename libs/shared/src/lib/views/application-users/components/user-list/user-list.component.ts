@@ -30,6 +30,9 @@ import { ReferenceDataService } from '../../../../services/reference-data/refere
 /** Default number of items per request for pagination */
 const DEFAULT_PAGE_SIZE = 10;
 
+/** List of default columns */
+const DEFAULT_COLUMNS = ['name', 'username', 'oid', 'roles'];
+
 /**
  * Users list component.
  */
@@ -48,7 +51,6 @@ export class UserListComponent
   @Input() filter: CompositeFilterDescriptor | null = null;
   /** User attributes to display */
   @Input() attributes: any[] = [];
-
   /** Users */
   public users: Array<User> = new Array<User>();
   /** Cached users */
@@ -59,21 +61,14 @@ export class UserListComponent
   @Input() roles: Role[] = [];
   /** Position attribute categories */
   @Input() positionAttributeCategories: PositionAttributeCategory[] = [];
-
   /** Attribute choices for reference data */
   public attributeChoices: Map<string, any[]> = new Map();
-
   /** Columns to display */
-  public get displayedColumns(): string[] {
-    const baseColumns = this.autoAssigned
-      ? ['name', 'username', 'oid', 'roles']
-      : ['select', 'name', 'username', 'oid', 'roles'];
-    const attributeColumns = this.attributes.map(
-      (attr) => `attr_${attr.value}`
-    );
-    return [...baseColumns, ...attributeColumns, 'actions'];
-  }
-
+  public displayedColumns = [
+    ...(!this.autoAssigned ? ['select'] : []),
+    ...DEFAULT_COLUMNS,
+    'actions',
+  ];
   /** Loading state */
   public loading = new BehaviorSubject<boolean>(true);
   /** Emits loading value */
@@ -106,7 +101,7 @@ export class UserListComponent
    * @param confirmService Shared confirm service
    * @param router Angular router
    * @param route Angular activated route
-   * @param refDataService
+   * @param refDataService Shared reference data service
    */
   constructor(
     private apollo: Apollo,
@@ -155,8 +150,17 @@ export class UserListComponent
     if (changes.filter) {
       this.fetchUsers(true);
     }
-    if (changes.attributes && this.attributes.length > 0) {
-      this.loadAttributeChoices();
+    if (changes.attributes) {
+      this.displayedColumns = [
+        ...(!this.autoAssigned ? ['select'] : []),
+        ...DEFAULT_COLUMNS,
+        ...this.attributes.map((attr) => `attr_${attr.value}`),
+        'actions',
+      ];
+      console.log(this.displayedColumns);
+      if (this.attributes.length > 0) {
+        this.loadAttributeChoices();
+      }
     }
   }
 

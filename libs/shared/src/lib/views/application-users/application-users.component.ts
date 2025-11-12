@@ -9,9 +9,9 @@ import { AddUsersMutationResponse, Role } from '../../models/user.model';
 import { ApplicationService } from '../../services/application/application.service';
 import { UserListComponent } from './components/user-list/user-list.component';
 import { ADD_USERS } from './graphql/mutations';
-import { GET_USER_ATTRIBUTES } from './graphql/queries';
 import { SnackbarService } from '@oort-front/ui';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
+import { RestService } from '../../services/rest/rest.service';
 
 /**
  * Application users component.
@@ -48,13 +48,15 @@ export class ApplicationUsersComponent
    * @param apollo Apollo service
    * @param translate Translate service
    * @param snackBar Shared snackbar service
+   * @param restService Shared REST service
    */
   constructor(
     private dialog: Dialog,
     private applicationService: ApplicationService,
     private apollo: Apollo,
     private translate: TranslateService,
-    private snackBar: SnackbarService
+    private snackBar: SnackbarService,
+    private restService: RestService
   ) {
     super();
   }
@@ -71,11 +73,11 @@ export class ApplicationUsersComponent
       });
 
     // Fetch user attributes configuration
-    this.apollo
-      .query({ query: GET_USER_ATTRIBUTES })
+    this.restService
+      .get('/permissions/attributes')
       .pipe(takeUntil(this.destroy$))
-      .subscribe(({ data }: any) => {
-        this.attributes = data.userAttributes || [];
+      .subscribe((data: any) => {
+        this.attributes = (data || []).filter((x: any) => x.showInList);
       });
   }
 

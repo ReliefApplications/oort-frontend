@@ -39,10 +39,3 @@ export const GET_APPLICATION_USERS = gql`
     }
   }
 `;
-
-/** User attributes query */
-export const GET_USER_ATTRIBUTES = gql`
-  query GetUserAttributes {
-    userAttributes
-  }
-`;
