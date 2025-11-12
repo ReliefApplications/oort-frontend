@@ -137,6 +137,9 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe((data: any) => {
         this.attributes = (data || []).filter((x: any) => x.showInList);
+        if (this.attributes.length > 0) {
+          this.loadAttributeChoices();
+        }
         this.displayedColumns = [
           ...DEFAULT_COLUMNS,
           ...this.attributes.map((attr: any) => `attr_${attr.value}`),
