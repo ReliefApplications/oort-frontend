@@ -9,3 +9,42 @@
     overflow-y: auto;
   }
 }
+
+:host ::ng-deep {
+  --comment-color: theme('colors.primary.500');
+
+  .comment-button {
+    z-index: 100;
+    width: 25px;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    right: -40px;
+    transform: translateY(-50%);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--comment-color);
+    background-color: var(--comment-color);
+    color: white;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .comment-button:after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: -2px;
+    width: 6px;
+    height: 6px;
+    background: var(--comment-color);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+
+  .sd-question:hover .comment-button,
+  .sd-panel:hover > .comment-button {
+    opacity: 1;
+  }
+}
