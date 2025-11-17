@@ -78,16 +78,15 @@
             </td>
           </ng-container>
 
-          <ng-container cdkColumnDef="attributes">
+          <!-- Dynamic attribute columns -->
+          <ng-container *ngFor="let attribute of attributes" [cdkColumnDef]="'attr_' + attribute.value">
             <th uiCellHeader *cdkHeaderCellDef scope="col">
               <span class="headerTitle">
-                {{ 'common.positionAttribute.few' | translate }}
+                {{ attribute.text }}
               </span>
             </th>
             <td uiCell *cdkCellDef="let element">
-              <span *ngFor="let attribute of element.positionAttributes">
-                {{ attribute.value }},
-              </span>
+              {{ getAttributeDisplayValue(attribute, element.attributes?.[attribute.value]) }}
             </td>
           </ng-container>
 

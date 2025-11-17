@@ -31,6 +31,7 @@ export const GET_USERS = gql`
             id
             title
           }
+          attributes
           oid
         }
         cursor

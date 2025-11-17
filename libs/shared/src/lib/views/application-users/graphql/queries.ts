@@ -25,9 +25,7 @@ export const GET_APPLICATION_USERS = gql`
               id
               title
             }
-            positionAttributes {
-              value
-            }
+            attributes
             oid
           }
           cursor

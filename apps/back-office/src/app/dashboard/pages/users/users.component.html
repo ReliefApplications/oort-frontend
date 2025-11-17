@@ -113,6 +113,18 @@
         </td>
       </ng-container>
 
+      <!-- Dynamic attribute columns -->
+      <ng-container *ngFor="let attribute of attributes" [cdkColumnDef]="'attr_' + attribute.value">
+        <th uiCellHeader *cdkHeaderCellDef scope="col">
+          <span class="headerTitle">
+            {{ attribute.text }}
+          </span>
+        </th>
+        <td uiCell *cdkCellDef="let element">
+          {{ getAttributeDisplayValue(attribute, element.attributes?.[attribute.value]) }}
+        </td>
+      </ng-container>
+
       <ng-container cdkColumnDef="oid">
         <th uiCellHeader *cdkHeaderCellDef scope="col">
           <span class="headerTitle">

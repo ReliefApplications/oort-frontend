@@ -1,5 +1,5 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
-import { theme } from '../themes/expertisefr/expertisefr.prod';
+import { theme } from '../themes/oort/oort.prod';
 import { sharedEnvironment } from './environment.shared';
 import { Environment } from './environment.type';
 
@@ -7,10 +7,10 @@ import { Environment } from './environment.type';
  * Authentication configuration
  */
 const authConfig: AuthConfig = {
-  issuer: 'https://id-tess-mav.oortcloud.tech/auth/realms/oort',
-  redirectUri: 'https://tess-mav.oortcloud.tech/admin/',
-  postLogoutRedirectUri: 'https://tess-mav.oortcloud.tech/admin/auth/',
-  clientId: 'oort-client',
+  issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
+  redirectUri: 'http://localhost:4200/',
+  postLogoutRedirectUri: 'http://localhost:4200/auth/',
+  clientId: 'mab-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
@@ -22,14 +22,14 @@ const authConfig: AuthConfig = {
 export const environment: Environment = {
   ...sharedEnvironment,
   production: true,
-  apiUrl: 'https://tess-mav.oortcloud.tech/api',
-  subscriptionApiUrl: 'wss://tess-mav.oortcloud.tech/api',
-  frontOfficeUri: 'https://tess-mav.oortcloud.tech',
-  backOfficeUri: 'https://tess-mav.oortcloud.tech/admin/',
+  apiUrl: 'https://oort-dev.oortcloud.tech/api',
+  subscriptionApiUrl: 'wss://oort-dev.oortcloud.tech/api',
+  frontOfficeUri: 'https://oort-dev.oortcloud.tech',
+  backOfficeUri: 'https://oort-dev.oortcloud.tech/admin/',
   availableLanguages: ['en', 'fr'],
   authConfig,
-  esriApiKey: '',
   theme,
+  user: { attributes: ['country'] },
   availableWidgets: [
     'form',
     'donut-chart',
