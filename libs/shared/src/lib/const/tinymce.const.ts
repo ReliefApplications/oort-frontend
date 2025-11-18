@@ -286,7 +286,7 @@ export const FIELD_EDITOR_CONFIG: RawEditorOptions = {
     'preview importcss searchreplace autolink code visualblocks visualchars fullscreen link media table charmap nonbreaking insertdatetime advlist lists wordcount help charmap quickbars emoticons',
   menubar: 'edit view insert format tools table help',
   toolbar:
-    'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | charmap emoticons | fullscreen  preview save | insertfile media link avatar recordeditor',
+    'undo redo | bold italic underline strikethrough | fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | charmap emoticons | fullscreen  preview save | insertfile media link avatar recordeditor',
   importcss_append: true,
   height: 300,
   quickbars_insert_toolbar: 'quicktable',
@@ -295,6 +295,7 @@ export const FIELD_EDITOR_CONFIG: RawEditorOptions = {
   toolbar_mode: 'sliding',
   contextmenu: 'link table',
   content_style: 'body { font-family: Roboto, "Helvetica Neue", sans-serif; }',
+  font_family_formats: 'Roboto=Roboto, "Helvetica Neue", sans-serif',
   help_tabs: [
     'shortcuts', // the default shortcuts tab
     'keyboardnav', // the default keyboard navigation tab
