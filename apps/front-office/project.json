@@ -7,6 +7,7 @@
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:browser",
+      "dependsOn": ["generate-build-version"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/front-office",
@@ -190,6 +191,7 @@
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
+      "dependsOn": ["generate-build-version"],
       "configurations": {
         "mab-prod": {
           "browserTarget": "front-office:build:mab-prod"
@@ -286,6 +288,12 @@
         "ci": {
           "quiet": true
         }
+      }
+    },
+    "generate-build-version": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/set-build-version.js apps/front-office/src/environments/build-version.ts"
       }
     }
   },
