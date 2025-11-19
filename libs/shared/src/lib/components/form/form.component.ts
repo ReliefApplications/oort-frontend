@@ -30,6 +30,7 @@ import addCustomFunctions from '../../survey/custom-functions';
 import { AuthService } from '../../services/auth/auth.service';
 import {
   FormBuilderService,
+  getRootParent,
   TemporaryFilesStorage,
 } from '../../services/form-builder/form-builder.service';
 import { RecordHistoryComponent } from '../record-history/record-history.component';
@@ -43,6 +44,9 @@ import { SnackbarService, UILayoutService } from '@oort-front/ui';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { DashboardState } from '../../models/dashboard.model';
 import { animate, style, transition, trigger } from '@angular/animations';
+
+/** Question type which should not display the add comment button when hovered */
+const UNCOMMENTABLE_TYPES = ['html'];
 
 /** Interface of the type of the mapping question o state rules */
 interface MapQuestionToState {
@@ -632,6 +636,44 @@ export class FormComponent
     }
     if (!this.record && !this.form.canCreateRecords) {
       this.survey.mode = 'display';
+    }
+
+    // Should trigger for comment button creation
+    if (this.survey.canBeCommented && this.survey.mode === 'display') {
+      this.survey.onAfterRenderQuestion.add((survey, options) => {
+        // Replace the focus, as form isn't focusable in display mode
+        const el = options.htmlElement;
+        const question = this.survey
+          .getAllQuestions()
+          .find((question) => question.id === options.question.id);
+        if (!question || UNCOMMENTABLE_TYPES.includes(question.getType())) {
+          // Prevent unreachable question or uncommentable types to trigger comment
+          return;
+        }
+
+        // Create comment button
+        const buttonId = 'comment_button_' + el.id;
+        if (document.getElementById(buttonId)) {
+          return;
+        }
+
+        const button = document.createElement('button');
+        button.className = 'comment-button';
+        button.id = buttonId;
+        button.textContent = '+';
+
+        button.onclick = (e) => {
+          e.stopPropagation();
+
+          const { title: rootTitle, name: rootName } = getRootParent(question);
+          console.log('Root', rootTitle, rootName);
+          survey.setVariable('__FOCUSED__.name', question.name);
+          survey.setVariable('__FOCUSED__.title', question.title);
+          survey.setVariable('__FOCUSED__.root.name', rootName);
+          survey.setVariable('__FOCUSED__.root.title', rootTitle);
+        };
+        el.appendChild(button);
+      });
     }
     // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {

@@ -404,6 +404,7 @@ export class FormModalComponent
           .getAllQuestions()
           .find((question) => question.id === options.question.id);
         if (!question || UNCOMMENTABLE_TYPES.includes(question.getType())) {
+          // Prevent unreachable question or uncommentable types to trigger comment
           return;
         }
         const buttonId = 'popup_button_' + questionElement.id;
