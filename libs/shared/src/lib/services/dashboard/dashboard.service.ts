@@ -11,7 +11,7 @@ import {
   EditPageContextMutationResponse,
   PageContextT,
 } from '../../models/page.model';
-import { BehaviorSubject, Observable, firstValueFrom, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { Apollo } from 'apollo-angular';
 import { EDIT_DASHBOARD, UPDATE_PAGE_CONTEXT } from './graphql/mutations';
 import { GraphQLError } from 'graphql';
@@ -40,14 +40,6 @@ export class DashboardService {
 
   /** List of widgets of the current open dashboard*/
   public widgets: any[] = [];
-
-  /** Event to trigger adding a new comment */
-  public addCommentTrigger = new Subject<void>();
-
-  /** @returns Add comment trigger as observable */
-  get addCommentTrigger$(): Observable<void> {
-    return this.addCommentTrigger.asObservable();
-  }
 
   /**
    * Shared dashboard service. Handles dashboard events.
@@ -371,12 +363,5 @@ export class DashboardService {
     // To save new dashboards
     this.saveDashboardStates(this.dashboard.id, states);
     return id;
-  }
-
-  /**
-   * Triggers adding a new comment in the comments form
-   */
-  public triggerAddComment(): void {
-    this.addCommentTrigger.next();
   }
 }

@@ -30,8 +30,8 @@ import addCustomFunctions from '../../survey/custom-functions';
 import { AuthService } from '../../services/auth/auth.service';
 import {
   FormBuilderService,
-  TemporaryFilesStorage,
   getRootParent,
+  TemporaryFilesStorage,
 } from '../../services/form-builder/form-builder.service';
 import { RecordHistoryComponent } from '../record-history/record-history.component';
 import { TranslateService } from '@ngx-translate/core';
@@ -151,8 +151,6 @@ export class FormComponent
   // public storageDate?: Date;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
-  /** Flag to ensure add comment listener is set up only once */
-  private addCommentListenerSetup = false;
 
   /**
    * Gets the error questions for current page
@@ -619,34 +617,6 @@ export class FormComponent
 
     this.survey.onAfterRenderSurvey.add(() => {
       this.setupStateMappingListeners();
-
-      const isCommentsContext =
-        window.location.href.includes('fillable_form_id');
-      const isCommentsForm =
-        window.location.href.includes('comments_record_id');
-
-      if (
-        isCommentsContext &&
-        isCommentsForm &&
-        this.survey.mode !== 'display' &&
-        !this.addCommentListenerSetup
-      ) {
-        this.addCommentListenerSetup = true;
-
-        this.dashboardService.addCommentTrigger$
-          .pipe(takeUntil(this.destroy$))
-          .subscribe(() => {
-            const commentsPanelQuestion = this.survey
-              .getAllQuestions()
-              .find(
-                (q: Question) => q.getType() === 'paneldynamic'
-              ) as QuestionPanelDynamicModel;
-
-            if (commentsPanelQuestion) {
-              commentsPanelQuestion.addPanel();
-            }
-          });
-      }
     });
 
     // After the survey is created we add common callback to survey events
@@ -669,6 +639,7 @@ export class FormComponent
 
     if (isCommentsContext && this.survey.mode === 'display') {
       this.survey.onAfterRenderQuestion.add((survey, options) => {
+        // Replace the focus, as form isn't focusable in display mode
         const el = options.htmlElement;
         const question = options.question;
 
@@ -683,46 +654,15 @@ export class FormComponent
         button.id = buttonId;
         button.textContent = '+';
 
-        // Click handler - set focused question and trigger add comment
         button.onclick = (e) => {
           e.stopPropagation();
 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { title: _, name: rootName } = getRootParent(question);
-
-          const returnRecursiveTitle = (question: Question): string => {
-            const path: string[] = [];
-            let current: any = question;
-
-            // Traverse up the parent hierarchy
-            while (current) {
-              if (current.title) path.unshift(current.title);
-              if (current.getType && current.getType() === 'page') break;
-              if (current.parentQuestion) current = current.parentQuestion;
-              else current = current.parent;
-            }
-
-            const result = path.join(' > ');
-            return result;
-          };
-
-          const completeTitle = returnRecursiveTitle(question);
-
-          // Set __FOCUSED__ variables (triggers valueExpression in comments form)
+          const { title: rootTitle, name: rootName } = getRootParent(question);
+          console.log('Root', rootTitle, rootName);
           survey.setVariable('__FOCUSED__.name', question.name);
           survey.setVariable('__FOCUSED__.title', question.title);
           survey.setVariable('__FOCUSED__.root.name', rootName);
-          survey.setVariable('__FOCUSED__.root.title', completeTitle);
-
-          // Trigger add comment event via dashboard service
-          this.dashboardService.triggerAddComment();
-
-          setTimeout(() => {
-            this.survey.setVariable('__FOCUSED__.name', '');
-            this.survey.setVariable('__FOCUSED__.title', '');
-            this.survey.setVariable('__FOCUSED__.root.name', '');
-            this.survey.setVariable('__FOCUSED__.root.title', '');
-          }, 200);
+          survey.setVariable('__FOCUSED__.root.title', rootTitle);
         };
         el.appendChild(button);
       });
