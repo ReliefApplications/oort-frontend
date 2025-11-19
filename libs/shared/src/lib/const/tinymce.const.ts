@@ -285,8 +285,16 @@ export const FIELD_EDITOR_CONFIG: RawEditorOptions = {
   plugins:
     'preview importcss searchreplace autolink code visualblocks visualchars fullscreen link media table charmap nonbreaking insertdatetime advlist lists wordcount help charmap quickbars emoticons',
   menubar: 'edit view insert format tools table help',
+  // Custom format menu to remove font family option
+  menu: {
+    format: {
+      title: 'Format',
+      items:
+        'bold italic underline strikethrough superscript subscript codeformat | styles blocks fontsizes align lineheight | forecolor backcolor | removeformat',
+    },
+  },
   toolbar:
-    'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | charmap emoticons | fullscreen  preview save | insertfile media link avatar recordeditor',
+    'undo redo | bold italic underline strikethrough | fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | charmap emoticons | fullscreen  preview save | insertfile media link avatar recordeditor',
   importcss_append: true,
   height: 300,
   quickbars_insert_toolbar: 'quicktable',
