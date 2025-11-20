@@ -170,6 +170,12 @@ const CORE_QUESTION_ALLOWED_PROPERTIES = [
   'canDeselectRecords',
   'autoSaveChanges',
   'prefillWithValues',
+  'gqlUrl',
+  'gqlQuery',
+  'gqlPath',
+  'gqlValueName',
+  'gqlTitleName',
+  'gqlVariableMapping',
 ];
 
 /**

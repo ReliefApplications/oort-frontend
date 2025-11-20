@@ -33,6 +33,7 @@ import {
   CustomQuestionTypes,
   InitCustomQuestionComponent,
 } from './custom-question-types';
+import * as ChoicesByGraphQLProperties from './global-properties/choices-by-graphql';
 
 /**
  * Executes all init methods of custom SurveyJS.
@@ -109,6 +110,7 @@ export const initCustomSurvey = (
   }
 
   // load global properties
+  ChoicesByGraphQLProperties.init();
   ReferenceDataProperties.init(referenceDataService);
   TooltipProperty.init();
   OtherProperties.init(environment);

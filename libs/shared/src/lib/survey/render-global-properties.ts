@@ -1,6 +1,7 @@
 import { AfterRenderQuestionEvent, SurveyModel } from 'survey-core';
 import * as OthersProperties from './global-properties/others';
 import * as ReferenceDataProperties from './global-properties/reference-data';
+import * as ChoicesByGraphQLProperties from './global-properties/choices-by-graphql';
 import { Injector } from '@angular/core';
 
 /**
@@ -15,4 +16,5 @@ export const renderGlobalProperties =
   (_: SurveyModel, options: AfterRenderQuestionEvent) => {
     OthersProperties.render(options.question);
     ReferenceDataProperties.render(options.question, injector);
+    ChoicesByGraphQLProperties.render(options.question, injector);
   };
