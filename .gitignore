@@ -51,3 +51,7 @@ libs/ui/documentation.json
 
 # Kendo license
 kendo-ui-license.txt
+
+# Build versions
+apps/front-office/src/environments/build-version.ts
+apps/back-office/src/environments/build-version.ts
