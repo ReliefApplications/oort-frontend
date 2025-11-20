@@ -118,9 +118,8 @@ export class CalculatedFieldsTabComponent
    */
   private handleCalculatedFieldResponse(value: any, field?: any) {
     if (value) {
+      // Remove empty spaces and non breaking spaces from expression
       const expression = value.expression
-        .replace(/<[^>]*>/gi, ' ')
-        .replace(/<\/[^>]*>/gi, ' ')
         .replace(/&nbsp;|&#160;/gi, ' ')
         .replace(/\s+/gi, ' ')
         .trim();
