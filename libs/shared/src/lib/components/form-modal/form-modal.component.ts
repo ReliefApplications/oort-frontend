@@ -140,6 +140,10 @@ export class FormModalComponent
   public autosaving = false;
   /** last date saved */
   public latestSaveDate: Date | null = null;
+  /** Submitting state for Save & Submit */
+  public submitting = false;
+  /** Flag to skip confirmation dialog when using Save & Submit */
+  private skipConfirmation = false;
   /** Loaded form */
   public form?: Form;
   /** Loaded record (optional) */
@@ -575,7 +579,202 @@ export class FormModalComponent
   }
 
   /**
-   * Calls the complete method of the survey if no error.
+   * Check if Save and Submit feature is enabled
+   *
+   * @returns True if Save and Submit feature is enabled
+   */
+  get enableSaveAndSubmit(): boolean {
+    return this.survey?.enableSaveAndSubmit === true;
+  }
+
+  /**
+   * Check if Save and Submit button should be enabled based on expression
+   *
+   * @returns True if Save and Submit button should be enabled
+   */
+  get isSaveAndSubmitEnabled(): boolean {
+    if (!this.enableSaveAndSubmit) return false;
+
+    const enableIfExpression = this.survey?.getPropertyValue(
+      'enableSaveAndSubmitIf'
+    );
+    if (!enableIfExpression) return true;
+
+    try {
+      const result = this.survey.runExpression(enableIfExpression);
+      return result === true;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Get the description/tooltip for Save and Submit button
+   *
+   * @returns The description/tooltip text or undefined
+   */
+  get saveAndSubmitDescription(): string | undefined {
+    return this.survey?.getPropertyValue('saveAndSubmitDescription');
+  }
+
+  /**
+   * Save without validation (for Save button when enableSaveAndSubmit is true)
+   * This saves the record as a draft without validation and keeps the modal open
+   */
+  public async saveWithoutValidation(): Promise<void> {
+    if (this.saving || this.submitting || this.autosaving) return;
+
+    this.saving = true;
+
+    try {
+      // Upload files first
+      await this.formHelpersService.uploadFiles(
+        this.temporaryFilesStorage,
+        this.form?.id
+      );
+      this.temporaryFilesStorage.clear();
+
+      // Create temporary records
+      await this.formHelpersService.createTemporaryRecords(this.survey);
+
+      // Save the record without closing the modal
+      const recordId = this.data.recordId;
+      if (recordId && !Array.isArray(recordId)) {
+        await firstValueFrom(
+          this.apollo.mutate<EditRecordMutationResponse>({
+            mutation: EDIT_RECORD,
+            variables: {
+              id: recordId,
+              data: this.survey.getParsedData?.() ?? this.survey.data,
+              template: this.data.template,
+            },
+          })
+        ).then(({ errors, data }) => {
+          if (errors) {
+            throw new Error(errors[0].message);
+          }
+          this.modifiedAt = data?.editRecord?.modifiedAt || null;
+          this.latestSaveDate = new Date();
+        });
+      } else if (Array.isArray(recordId)) {
+        // Multi-edit case
+        await firstValueFrom(
+          this.apollo.mutate<EditRecordsMutationResponse>({
+            mutation: EDIT_RECORDS,
+            variables: {
+              ids: recordId,
+              data: cleanRecord(
+                this.survey.getParsedData?.() ?? this.survey.data
+              ),
+              template: this.data.template,
+            },
+          })
+        ).then(({ errors }) => {
+          if (errors) {
+            throw new Error(errors[0].message);
+          }
+          this.latestSaveDate = new Date();
+        });
+      } else {
+        // New record case
+        await firstValueFrom(
+          this.apollo.mutate<AddRecordMutationResponse>({
+            mutation: ADD_RECORD,
+            variables: {
+              id: this.survey.getVariable('record.id'),
+              form: this.data.template,
+              data: this.survey.getParsedData?.() ?? this.survey.data,
+            },
+          })
+        ).then(({ errors, data }) => {
+          if (errors) {
+            throw new Error(errors[0].message);
+          }
+          // Update the record ID so subsequent saves are updates
+          this.data.recordId = data?.addRecord.id;
+          this.record = data?.addRecord;
+          this.modifiedAt = data?.addRecord?.modifiedAt || null;
+          this.latestSaveDate = new Date();
+        });
+      }
+
+      this.snackBar.openSnackBar(
+        this.translate.instant('common.notifications.objectUpdated', {
+          type: this.translate.instant('common.record.one').toLowerCase(),
+          value: '',
+        })
+      );
+    } catch (error: any) {
+      this.snackBar.openSnackBar(error.message || 'Save failed', {
+        error: true,
+      });
+    } finally {
+      this.saving = false;
+    }
+  }
+
+  /**
+   * Save and submit with validation (for Save & Submit button)
+   */
+  public async saveAndSubmit(): Promise<void> {
+    if (this.saving || this.submitting || this.autosaving) return;
+
+    const originalSkipValidation = (this.survey as any)._skipRequiredValidation;
+    (this.survey as any)._skipRequiredValidation = false;
+
+    const isValid = this.survey.validate(true, true);
+    (this.survey as any)._skipRequiredValidation = originalSkipValidation;
+
+    if (!isValid || this.survey.hasErrors()) {
+      this.snackBar.openSnackBar(
+        this.translate.instant('models.form.notifications.savingFailed'),
+        { error: true }
+      );
+      return;
+    }
+
+    const dialogRef = this.confirmService.openConfirmModal({
+      title: this.translate.instant('components.form.saveAndSubmit.title'),
+      content: this.translate.instant('components.form.saveAndSubmit.message'),
+      confirmText: this.translate.instant('components.confirmModal.confirm'),
+      confirmVariant: 'primary',
+    });
+
+    dialogRef.closed
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed: any) => {
+        if (confirmed) {
+          this.confirmSaveAndSubmit();
+        }
+      });
+  }
+
+  /**
+   * Confirm and execute save and submit
+   */
+  private async confirmSaveAndSubmit(): Promise<void> {
+    this.submitting = true;
+    this.skipConfirmation = true;
+
+    const originalSkipValidation = (this.survey as any)._skipRequiredValidation;
+    (this.survey as any)._skipRequiredValidation = false;
+    this.survey.showCompletedPage = true;
+
+    try {
+      this.survey.completeLastPage();
+    } catch (error: any) {
+      this.snackBar.openSnackBar(error.message || 'Submit failed', {
+        error: true,
+      });
+      this.submitting = false;
+      this.skipConfirmation = false;
+      this.survey.showCompletedPage = false;
+      (this.survey as any)._skipRequiredValidation = originalSkipValidation;
+    }
+  }
+
+  /**
+   * Calls the complete method of the survey if no error (original submit for backward compatibility)
    */
   public submit(): void {
     this.saving = true;
@@ -632,13 +831,22 @@ export class FormModalComponent
    * Creates the record, or update it if provided.
    */
   public onComplete = () => {
-    this.survey?.clear(false);
+    if (!this.submitting) {
+      this.survey?.clear(false);
+    }
+
     const rowsSelected = Array.isArray(this.data.recordId)
       ? this.data.recordId.length
       : 1;
 
-    /** we can send to backend empty data if they are not required */
     this.formHelpersService.setEmptyQuestions(this.survey);
+
+    if (this.skipConfirmation) {
+      this.skipConfirmation = false;
+      this.onUpdate();
+      return;
+    }
+
     // Displays confirmation modal.
     if (this.data.askForConfirm) {
       const dialogRef = this.confirmService.openConfirmModal({
@@ -661,6 +869,7 @@ export class FormModalComponent
             await this.onUpdate();
           } else {
             this.saving = false;
+            this.submitting = false;
           }
         });
       // Updates the data directly.
@@ -815,6 +1024,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.submitting = false;
           this.latestSaveDate = new Date();
         },
         error: (err) => {
@@ -822,6 +1032,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.submitting = false;
         },
       });
   }
@@ -883,6 +1094,9 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.submitting = false;
+          this.submitting = false;
+          this.submitting = false;
         },
       });
   }
@@ -906,6 +1120,7 @@ export class FormModalComponent
       responseType === 'editRecords'
         ? this.translate.instant('common.record.few')
         : this.translate.instant('common.record.one');
+
     if (errors) {
       this.snackBar.openSnackBar(
         this.translate.instant('common.notifications.objectNotUpdated', {
@@ -915,18 +1130,25 @@ export class FormModalComponent
         { error: true }
       );
     } else if (data) {
-      if (!autoSave) {
+      if (!autoSave && !this.submitting) {
         this.snackBar.openSnackBar(
           this.translate.instant('common.notifications.objectUpdated', {
             type,
             value: '',
           })
         );
+      } else if (this.submitting) {
+        this.snackBar.openSnackBar(
+          this.translate.instant('components.form.display.submissionMessage')
+        );
       }
-      this.closeDialog(autoSave, {
-        template: this.form?.id,
-        data: data[responseType],
-      } as any);
+
+      if (!this.submitting) {
+        this.closeDialog(autoSave, {
+          template: this.form?.id,
+          data: data[responseType],
+        } as any);
+      }
     }
   }
 

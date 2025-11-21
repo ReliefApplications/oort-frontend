@@ -938,6 +938,10 @@
           }
         }
       },
+      "saveAndSubmit": {
+        "message": "Êtes-vous sûr de vouloir soumettre ce formulaire ?",
+        "title": "Soumettre le formulaire"
+      },
       "searchExistingRecords": {
         "matches": "Résultats",
         "noMatches": "Aucun résultat",

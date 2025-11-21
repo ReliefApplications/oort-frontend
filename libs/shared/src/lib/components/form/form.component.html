@@ -11,21 +11,21 @@
 <!-- Loading indicator -->
 <ui-spinner
   class="flex justify-center items-center h-screen"
-  *ngIf="saving"
+  *ngIf="saving || submitting"
 ></ui-spinner>
 <!-- Form -->
 <div #formContainer></div>
 <!-- Floating div for form buttons actions -->
-<ng-container *ngIf="surveyActive && floatingActions">
+<ng-container *ngIf="surveyActive && floatingActions && !survey.showCompletedPage">
   <ui-fixed-wrapper>
     <ng-container *ngTemplateOutlet="actionButtons"></ng-container>
   </ui-fixed-wrapper>
 </ng-container>
 
-<div class="flex">
+<div class="flex" *ngIf="!saving && !submitting">
   <shared-form-pages-layout
     class="h-fit sticky top-0 z-10"
-    *ngIf="!survey.hidePagesTab"
+    *ngIf="!survey.hidePagesTab && !survey.showCompletedPage"
     (showPage)="onShowPage($event)"
     [pages]="survey.visiblePages"
     [selectedPageIndex]="(selectedPageIndex$ | async) ?? 0"
@@ -53,7 +53,7 @@
 </div>
 
 <!-- Form buttons actions without floating div-->
-<div class="relative" *ngIf="surveyActive && !floatingActions">
+<div class="relative" *ngIf="surveyActive && !floatingActions && !survey.showCompletedPage">
   <ng-container *ngTemplateOutlet="actionButtons"></ng-container>
 </div>
 
@@ -106,7 +106,39 @@
     <!-- <ui-button [disabled]="disableSaveAsDraft" (click)="saveAsDraft()">{{
       'components.form.draftRecords.save' | translate
     }}</ui-button> -->
-    <p *ngIf="survey.mode === 'edit'">
+    
+    <!-- Save & Submit buttons when feature is enabled -->
+    <ng-container *ngIf="survey.mode === 'edit' && enableSaveAndSubmit">
+      <ui-button
+        variant="default"
+        [disabled]="saving || submitting || autosaving"
+        (click)="saveWithoutValidation()"
+      >
+        <ui-spinner *ngIf="saving" [size]="'small'" class="mr-1" />
+        {{ 'common.save' | translate }}
+      </ui-button>
+      <ui-button
+        variant="primary"
+        category="secondary"
+        [disabled]="saving || submitting || autosaving || !isSaveAndSubmitEnabled"
+        [title]="saveAndSubmitDescription || ''"
+        (click)="saveAndSubmit()"
+      >
+        <span class="flex items-center whitespace-nowrap">
+          <ui-spinner *ngIf="submitting" [size]="'small'" class="mr-1" />
+          Save & Submit
+          <ui-icon
+            *ngIf="saveAndSubmitDescription"
+            icon="help_outline"
+            class="ml-1"
+            [size]="16"
+          ></ui-icon>
+        </span>
+      </ui-button>
+    </ng-container>
+    
+    <!-- Regular save button when feature is disabled -->
+    <p *ngIf="survey.mode === 'edit' && !enableSaveAndSubmit">
       <ui-button
         variant="primary"
         category="secondary"
