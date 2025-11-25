@@ -940,6 +940,7 @@
       },
       "saveAndSubmit": {
         "message": "Êtes-vous sûr de vouloir soumettre ce formulaire ?",
+        "text": "Sauvegarder et soumettre",
         "title": "Soumettre le formulaire"
       },
       "searchExistingRecords": {

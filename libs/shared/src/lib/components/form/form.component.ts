@@ -818,7 +818,6 @@ export class FormComponent
           e.stopPropagation();
 
           const { title: rootTitle, name: rootName } = getRootParent(question);
-          console.log('Root', rootTitle, rootName);
           survey.setVariable('__FOCUSED__.name', question.name);
           survey.setVariable('__FOCUSED__.title', question.title);
           survey.setVariable('__FOCUSED__.root.name', rootName);

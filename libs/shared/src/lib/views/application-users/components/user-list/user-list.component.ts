@@ -157,7 +157,6 @@ export class UserListComponent
         ...this.attributes.map((attr) => `attr_${attr.value}`),
         'actions',
       ];
-      console.log(this.displayedColumns);
       if (this.attributes.length > 0) {
         this.loadAttributeChoices();
       }

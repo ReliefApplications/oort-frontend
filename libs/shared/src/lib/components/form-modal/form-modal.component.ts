@@ -58,7 +58,7 @@ import omitBy from 'lodash/omitBy';
 import { TranslateService } from '@ngx-translate/core';
 import { cleanRecord } from '../../utils/cleanRecord';
 import { CommonModule } from '@angular/common';
-import { IconModule } from '@oort-front/ui';
+import { IconModule, TooltipModule } from '@oort-front/ui';
 import { ButtonModule, SnackbarService, TabsModule } from '@oort-front/ui';
 import { RecordSummaryModule } from '../record-summary/record-summary.module';
 import { TranslateModule } from '@ngx-translate/core';
@@ -119,6 +119,7 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
     CommentsPopupComponent,
     FormPagesLayoutComponent,
     DateModule,
+    TooltipModule,
   ],
 })
 export class FormModalComponent
@@ -138,12 +139,10 @@ export class FormModalComponent
   public saving = false;
   /** autosaving operations */
   public autosaving = false;
-  /** last date saved */
-  public latestSaveDate: Date | null = null;
   /** Submitting state for Save & Submit */
   public submitting = false;
-  /** Flag to skip confirmation dialog when using Save & Submit */
-  private skipConfirmation = false;
+  /** last date saved */
+  public latestSaveDate: Date | null = null;
   /** Loaded form */
   public form?: Form;
   /** Loaded record (optional) */
@@ -543,18 +542,13 @@ export class FormModalComponent
   /**
    * Closes the dialog if not in autosave mode
    *
-   * @param autoSave whether the save is automatic or manual
    * @param result Optional result to return to the dialog opener.
    * @param options Additional options to customize the closing behavior.
    */
   closeDialog(
-    autoSave: boolean,
     result?: FormModalComponent | undefined,
     options?: DialogCloseOptions
   ) {
-    if (autoSave) {
-      return;
-    }
     this.dialogRef.close(result, options);
   }
 
@@ -580,21 +574,12 @@ export class FormModalComponent
   }
 
   /**
-   * Check if Save and Submit feature is enabled
-   *
-   * @returns True if Save and Submit feature is enabled
-   */
-  get enableSaveAndSubmit(): boolean {
-    return this.survey?.enableSaveAndSubmit === true;
-  }
-
-  /**
    * Check if Save and Submit button should be enabled based on expression
    *
    * @returns True if Save and Submit button should be enabled
    */
   get isSaveAndSubmitEnabled(): boolean {
-    if (!this.enableSaveAndSubmit) return false;
+    if (!this.survey?.enableSaveAndSubmit) return false;
 
     const enableIfExpression = this.survey?.getPropertyValue(
       'enableSaveAndSubmitIf'
@@ -619,168 +604,36 @@ export class FormModalComponent
   }
 
   /**
-   * Save without validation (for Save button when enableSaveAndSubmit is true)
-   * This saves the record as a draft without validation and keeps the modal open
-   */
-  public async saveWithoutValidation(): Promise<void> {
-    if (this.saving || this.submitting || this.autosaving) return;
-
-    this.saving = true;
-
-    try {
-      // Upload files first
-      await this.formHelpersService.uploadFiles(
-        this.temporaryFilesStorage,
-        this.form?.id
-      );
-      this.temporaryFilesStorage.clear();
-
-      // Create temporary records
-      await this.formHelpersService.createTemporaryRecords(this.survey);
-
-      // Save the record without closing the modal
-      const recordId = this.data.recordId;
-      if (recordId && !Array.isArray(recordId)) {
-        await firstValueFrom(
-          this.apollo.mutate<EditRecordMutationResponse>({
-            mutation: EDIT_RECORD,
-            variables: {
-              id: recordId,
-              data: this.survey.getParsedData?.() ?? this.survey.data,
-              template: this.data.template,
-            },
-          })
-        ).then(({ errors, data }) => {
-          if (errors) {
-            throw new Error(errors[0].message);
-          }
-          this.modifiedAt = data?.editRecord?.modifiedAt || null;
-          this.latestSaveDate = new Date();
-        });
-      } else if (Array.isArray(recordId)) {
-        // Multi-edit case
-        await firstValueFrom(
-          this.apollo.mutate<EditRecordsMutationResponse>({
-            mutation: EDIT_RECORDS,
-            variables: {
-              ids: recordId,
-              data: cleanRecord(
-                this.survey.getParsedData?.() ?? this.survey.data
-              ),
-              template: this.data.template,
-            },
-          })
-        ).then(({ errors }) => {
-          if (errors) {
-            throw new Error(errors[0].message);
-          }
-          this.latestSaveDate = new Date();
-        });
-      } else {
-        // New record case
-        await firstValueFrom(
-          this.apollo.mutate<AddRecordMutationResponse>({
-            mutation: ADD_RECORD,
-            variables: {
-              id: this.survey.getVariable('record.id'),
-              form: this.data.template,
-              data: this.survey.getParsedData?.() ?? this.survey.data,
-            },
-          })
-        ).then(({ errors, data }) => {
-          if (errors) {
-            throw new Error(errors[0].message);
-          }
-          // Update the record ID so subsequent saves are updates
-          this.data.recordId = data?.addRecord.id;
-          this.record = data?.addRecord;
-          this.modifiedAt = data?.addRecord?.modifiedAt || null;
-          this.latestSaveDate = new Date();
-        });
-      }
-
-      this.snackBar.openSnackBar(
-        this.translate.instant('common.notifications.objectUpdated', {
-          type: this.translate.instant('common.record.one').toLowerCase(),
-          value: '',
-        })
-      );
-    } catch (error: any) {
-      this.snackBar.openSnackBar(error.message || 'Save failed', {
-        error: true,
-      });
-    } finally {
-      this.saving = false;
-    }
-  }
-
-  /**
-   * Save and submit with validation (for Save & Submit button)
-   */
-  public async saveAndSubmit(): Promise<void> {
-    if (this.saving || this.submitting || this.autosaving) return;
-
-    const originalSkipValidation = (this.survey as any)._skipRequiredValidation;
-    (this.survey as any)._skipRequiredValidation = false;
-
-    const isValid = this.survey.validate(true, true);
-    (this.survey as any)._skipRequiredValidation = originalSkipValidation;
-
-    if (!isValid || this.survey.hasErrors()) {
-      this.snackBar.openSnackBar(
-        this.translate.instant('models.form.notifications.savingFailed'),
-        { error: true }
-      );
-      return;
-    }
-
-    const dialogRef = this.confirmService.openConfirmModal({
-      title: this.translate.instant('components.form.saveAndSubmit.title'),
-      content: this.translate.instant('components.form.saveAndSubmit.message'),
-      confirmText: this.translate.instant('components.confirmModal.confirm'),
-      confirmVariant: 'primary',
-    });
-
-    dialogRef.closed
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((confirmed: any) => {
-        if (confirmed) {
-          this.confirmSaveAndSubmit();
-        }
-      });
-  }
-
-  /**
-   * Confirm and execute save and submit
-   */
-  private async confirmSaveAndSubmit(): Promise<void> {
-    this.submitting = true;
-    this.skipConfirmation = true;
-
-    const originalSkipValidation = (this.survey as any)._skipRequiredValidation;
-    (this.survey as any)._skipRequiredValidation = false;
-    this.survey.showCompletedPage = true;
-
-    try {
-      this.survey.completeLastPage();
-    } catch (error: any) {
-      this.snackBar.openSnackBar(error.message || 'Submit failed', {
-        error: true,
-      });
-      this.submitting = false;
-      this.skipConfirmation = false;
-      this.survey.showCompletedPage = false;
-      (this.survey as any)._skipRequiredValidation = originalSkipValidation;
-    }
-  }
-
-  /**
    * Calls the complete method of the survey if no error (original submit for backward compatibility)
    */
   public submit(): void {
     this.saving = true;
     if (!this.survey?.hasErrors()) {
-      this.survey.completeLastPage();
+      if (this.survey.enableSaveAndSubmit) {
+        this.submitting = true;
+        const dialogRef = this.confirmService.openConfirmModal({
+          title: this.translate.instant('components.form.saveAndSubmit.title'),
+          content: this.translate.instant(
+            'components.form.saveAndSubmit.message'
+          ),
+          confirmText: this.translate.instant(
+            'components.confirmModal.confirm'
+          ),
+          confirmVariant: 'primary',
+        });
+        dialogRef.closed
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((confirmed: any) => {
+            if (confirmed) {
+              this.survey.completeLastPage();
+            } else {
+              this.saving = false;
+              this.submitting = false;
+            }
+          });
+      } else {
+        this.survey.completeLastPage();
+      }
     } else {
       this.snackBar.openSnackBar(
         this.translate.instant('models.form.notifications.savingFailed'),
@@ -832,9 +685,7 @@ export class FormModalComponent
    * Creates the record, or update it if provided.
    */
   public onComplete = () => {
-    if (!this.submitting) {
-      this.survey?.clear(false);
-    }
+    this.survey?.clear(false);
 
     const rowsSelected = Array.isArray(this.data.recordId)
       ? this.data.recordId.length
@@ -842,14 +693,8 @@ export class FormModalComponent
 
     this.formHelpersService.setEmptyQuestions(this.survey);
 
-    if (this.skipConfirmation) {
-      this.skipConfirmation = false;
-      this.onUpdate();
-      return;
-    }
-
     // Displays confirmation modal.
-    if (this.data.askForConfirm) {
+    if (!this.survey.enableSaveAndSubmit && this.data.askForConfirm) {
       const dialogRef = this.confirmService.openConfirmModal({
         title: this.translate.instant(
           `common.row.update.${rowsSelected > 1 ? 'few' : 'one'}.title`
@@ -912,14 +757,9 @@ export class FormModalComponent
               ? response.overwriteRecord.id
               : this.data.recordId;
             if (this.isMultiEdition) {
-              this.updateMultipleData(
-                recordId,
-                this.survey,
-                refreshWidgets,
-                autoSave
-              );
+              this.updateMultipleData(recordId, this.survey, refreshWidgets);
             } else {
-              this.updateData(recordId, this.survey, refreshWidgets, autoSave);
+              this.updateData(recordId, this.survey, refreshWidgets);
             }
           } else {
             this.apollo
@@ -938,7 +778,9 @@ export class FormModalComponent
                       error: true,
                     });
                     this.ngZone.run(() => {
-                      this.closeDialog(autoSave);
+                      if (this.autosaving) {
+                        this.closeDialog();
+                      }
                     });
                   } else {
                     if (this.lastDraftRecord) {
@@ -959,10 +801,12 @@ export class FormModalComponent
                       );
                     }
                     this.ngZone.run(() => {
-                      this.closeDialog(autoSave, {
-                        template: this.data.template,
-                        data: data?.addRecord,
-                      } as any);
+                      if (!this.autosaving) {
+                        this.closeDialog({
+                          template: this.data.template,
+                          data: data?.addRecord,
+                        } as any);
+                      }
                     });
                     this.data.recordId = data?.addRecord.id;
                   }
@@ -990,13 +834,11 @@ export class FormModalComponent
    * @param id record id.
    * @param survey current survey.
    * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
-   * @param autoSave whether the save is automatic or manual
    */
   public updateData(
     id: any,
     survey: SurveyModel,
-    refreshWidgets = false,
-    autoSave = false
+    refreshWidgets = false
   ): void {
     this.apollo
       .mutate<EditRecordMutationResponse>({
@@ -1009,11 +851,7 @@ export class FormModalComponent
       })
       .subscribe({
         next: async ({ errors, data }) => {
-          this.handleRecordMutationResponse(
-            { data, errors },
-            'editRecord',
-            autoSave
-          );
+          this.handleRecordMutationResponse({ data, errors }, 'editRecord');
           if (refreshWidgets) {
             this.contextService.setWidgets(
               await this.formHelpersService.checkResourceOnFilter(
@@ -1044,13 +882,11 @@ export class FormModalComponent
    * @param ids list of record ids.
    * @param survey current survey.
    * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
-   * @param autoSave whether the save is automatic or manual
    */
   public updateMultipleData(
     ids: any,
     survey: SurveyModel,
-    refreshWidgets = false,
-    autoSave = false
+    refreshWidgets = false
   ): void {
     const recordData = cleanRecord(survey.getParsedData?.() ?? survey.data);
     this.apollo
@@ -1073,11 +909,7 @@ export class FormModalComponent
               callback
             );
           }
-          this.handleRecordMutationResponse(
-            { data, errors },
-            'editRecords',
-            autoSave
-          );
+          this.handleRecordMutationResponse({ data, errors }, 'editRecords');
           if (refreshWidgets) {
             this.contextService.setWidgets(
               await this.formHelpersService.checkResourceOnFilter(
@@ -1096,8 +928,6 @@ export class FormModalComponent
           this.autosaving = false;
           this.saving = false;
           this.submitting = false;
-          this.submitting = false;
-          this.submitting = false;
         },
       });
   }
@@ -1109,12 +939,10 @@ export class FormModalComponent
    * @param response.data response data
    * @param response.errors response errors
    * @param responseType response type
-   * @param autoSave whether we are autosaving the record
    */
   private handleRecordMutationResponse(
     response: { data: any; errors: any },
-    responseType: 'editRecords' | 'editRecord',
-    autoSave: boolean
+    responseType: 'editRecords' | 'editRecord'
   ) {
     const { data, errors } = response;
     const type =
@@ -1131,24 +959,32 @@ export class FormModalComponent
         { error: true }
       );
     } else if (data) {
-      if (!autoSave && !this.submitting) {
-        this.snackBar.openSnackBar(
-          this.translate.instant('common.notifications.objectUpdated', {
-            type,
-            value: '',
-          })
-        );
-      } else if (this.submitting) {
+      if (this.submitting) {
+        // Form was submitted, show submission message & close dialog
         this.snackBar.openSnackBar(
           this.translate.instant('components.form.display.submissionMessage')
         );
-      }
-
-      if (!this.submitting) {
-        this.closeDialog(autoSave, {
+        this.closeDialog({
           template: this.form?.id,
           data: data[responseType],
         } as any);
+      } else {
+        if (!this.autosaving) {
+          // Form is not in autosave mode
+          this.snackBar.openSnackBar(
+            this.translate.instant('common.notifications.objectUpdated', {
+              type,
+              value: '',
+            })
+          );
+          // Form doesn't use Save and Submit feature, close the dialog
+          if (!this.survey.enableSaveAndSubmit) {
+            this.closeDialog({
+              template: this.form?.id,
+              data: data[responseType],
+            } as any);
+          }
+        }
       }
     }
   }
