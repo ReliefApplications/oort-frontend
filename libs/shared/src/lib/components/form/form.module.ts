@@ -5,6 +5,7 @@ import {
   IconModule,
   SpinnerModule,
   TabsModule,
+  TooltipModule,
 } from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormComponent } from './form.component';
@@ -35,6 +36,7 @@ import { DateModule } from '../../pipes/date/date.module';
     SpinnerModule,
     FormPagesLayoutComponent,
     DateModule,
+    TooltipModule,
   ],
   exports: [FormComponent],
 })

@@ -927,6 +927,11 @@
           }
         }
       },
+      "saveAndSubmit": {
+        "message": "Are you sure you want to submit this form?",
+        "text": "Save and Submit",
+        "title": "Submit Form"
+      },
       "searchExistingRecords": {
         "matches": "Matches",
         "noMatches": "No matches found",

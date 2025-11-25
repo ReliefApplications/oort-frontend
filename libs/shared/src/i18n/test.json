@@ -927,6 +927,11 @@
           }
         }
       },
+      "saveAndSubmit": {
+        "message": "******",
+        "text": "******",
+        "title": "******"
+      },
       "searchExistingRecords": {
         "matches": "******",
         "noMatches": "******",

@@ -37,70 +37,120 @@
       </ng-template>
     </div>
   </ng-container>
+  <!-- Form footer actions -->
   <ng-container ngProjectAs="actions">
-    <div class="text-sm text-gray-400 flex absolute left-2 items-center">
-      <ng-container *ngIf="autosaving; else latestSave">
-        <ui-spinner size="small" class="mr-1" />
-        {{ 'common.notifications.autoSaving' | translate }}
-      </ng-container>
-      <ng-template #latestSave>
-        <span *ngIf="latestSaveDate"
-          >{{
-            'components.form.lastSavedAt'
-              | translate : { date: latestSaveDate | sharedDate : 'shortTime' }
-          }}
-        </span>
-      </ng-template>
-    </div>
+    <ng-container *ngIf="survey">
+      <!-- Save status -->
+      <div class="text-sm text-gray-400 flex absolute left-2 items-center">
+        <ng-container *ngIf="autosaving; else latestSave">
+          <ui-spinner size="small" class="mr-1" />
+          {{ 'common.notifications.autoSaving' | translate }}
+        </ng-container>
+        <ng-template #latestSave>
+          <span *ngIf="latestSaveDate"
+            >{{
+              'components.form.lastSavedAt'
+                | translate
+                  : { date: latestSaveDate | sharedDate : 'shortTime' }
+            }}
+          </span>
+        </ng-template>
+      </div>
 
-    <ui-button (click)="close()" *ngIf="survey?.showCloseButtonOnModal">
-      {{ 'common.close' | translate }}
-    </ui-button>
-    <ui-button
-      (click)="deleteRecord()"
-      *ngIf="survey?.showDeleteButtonOnModal"
-      category="secondary"
-      variant="danger"
-    >
-      {{ 'common.delete' | translate }}
-    </ui-button>
-    <ng-container *ngIf="survey?.visiblePages ?? [] as pages">
-      <ui-button
-        category="secondary"
-        variant="primary"
-        *ngIf="pages.length > 1 && !survey?.hideNavigationButtons"
-        (click)="survey && survey.prevPage()"
-        cdkFocusInitial
-        [disabled]="!survey || survey.isFirstPage"
-      >
-        {{ 'common.previous' | translate }}
+      <!-- Close modal -->
+      <ui-button (click)="close()" *ngIf="survey.showCloseButtonOnModal">
+        {{ 'common.close' | translate }}
       </ui-button>
+
+      <!-- Delete record -->
       <ui-button
+        (click)="deleteRecord()"
+        *ngIf="survey.showDeleteButtonOnModal"
+        category="secondary"
+        variant="danger"
+      >
+        {{ 'common.delete' | translate }}
+      </ui-button>
+
+      <!-- Navigation buttons -->
+      <ng-container *ngIf="survey.visiblePages as pages">
+        <!-- Open previous page -->
+        <ui-button
+          category="secondary"
+          variant="primary"
+          *ngIf="pages.length > 1 && !survey.hideNavigationButtons"
+          (click)="survey && survey.prevPage()"
+          cdkFocusInitial
+          [disabled]="!survey || survey.isFirstPage"
+        >
+          {{ 'common.previous' | translate }}
+        </ui-button>
+        <!-- Open next page -->
+        <ui-button
+          category="secondary"
+          variant="primary"
+          *ngIf="pages.length > 1 && !survey.hideNavigationButtons"
+          (click)="survey && survey.nextPage()"
+          cdkFocusInitial
+          [disabled]="!survey || survey.isLastPage"
+        >
+          {{ 'common.next' | translate }}
+        </ui-button>
+      </ng-container>
+
+      <!-- Save & Submit buttons when feature is enabled -->
+      <ng-container *ngIf="survey.enableSaveAndSubmit">
+        <!-- Save the form, without completing it -->
+        <ui-button
+          category="secondary"
+          variant="primary"
+          [disabled]="saving || submitting || autosaving"
+          (click)="survey.completeLastPage()"
+          cdkFocusInitial
+        >
+          <span class="flex items-center whitespace-nowrap">
+            {{ 'common.save' | translate }}
+            <ui-spinner *ngIf="saving" [size]="'small'" class="mr-1" />
+          </span>
+        </ui-button>
+        <!-- Save & Submit, complete the form -->
+        <ui-button
+          category="secondary"
+          variant="primary"
+          [disabled]="
+            saving || submitting || autosaving || !isSaveAndSubmitEnabled
+          "
+          [uiTooltip]="survey.saveAndSubmitDescription || ''"
+          (click)="submit()"
+        >
+          <span class="flex items-center whitespace-nowrap">
+            {{ 'components.form.saveAndSubmit.text' | translate }}
+            <ui-icon
+              *ngIf="survey.saveAndSubmitDescription && !submitting"
+              icon="help_outline"
+              class="ml-1"
+              [size]="16"
+            ></ui-icon>
+            <ui-spinner *ngIf="submitting" [size]="'small'" class="mr-1" />
+          </span>
+        </ui-button>
+      </ng-container>
+
+      <!-- Regular save button when feature is disabled -->
+      <ui-button
+        *ngIf="!survey.enableSaveAndSubmit"
         category="secondary"
         variant="primary"
-        *ngIf="pages.length > 1 && !survey?.hideNavigationButtons"
-        (click)="survey && survey.nextPage()"
+        [disabled]="saving || autosaving"
+        (click)="submit()"
         cdkFocusInitial
-        [disabled]="!survey || survey.isLastPage"
       >
-        {{ 'common.next' | translate }}
+        <ng-container *ngIf="!autosaving">
+          {{ 'components.record.modal.saveClose' | translate }}
+        </ng-container>
+        <ui-spinner *ngIf="autosaving" [size]="'small'" />
       </ui-button>
     </ng-container>
-    <!-- <ui-button [disabled]="disableSaveAsDraft" (click)="saveAsDraft()">{{
-      'components.form.draftRecords.save' | translate
-    }}</ui-button> -->
-    <ui-button
-      category="secondary"
-      variant="primary"
-      [disabled]="saving || autosaving"
-      (click)="submit()"
-      cdkFocusInitial
-    >
-      <ng-container *ngIf="!autosaving">
-        {{ 'components.record.modal.saveClose' | translate }}
-      </ng-container>
-      <ui-spinner *ngIf="autosaving" [size]="'small'" />
-    </ui-button>
   </ng-container>
 </ui-dialog>
 

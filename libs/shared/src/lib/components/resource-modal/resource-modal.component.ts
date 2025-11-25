@@ -12,6 +12,7 @@ import {
   IconModule,
   SpinnerModule,
   TabsModule,
+  TooltipModule,
 } from '@oort-front/ui';
 import { SurveyModule } from 'survey-angular-ui';
 import { CheckUniqueProprietyReturnT } from '../../services/form-helper/form-helper.service';
@@ -53,6 +54,7 @@ export function scrollFactory(overlay: Overlay): () => BlockScrollStrategy {
     CommentsPopupComponent,
     FormPagesLayoutComponent,
     DateModule,
+    TooltipModule,
   ],
 })
 export class ResourceModalComponent extends FormModalComponent {

@@ -58,18 +58,23 @@ import omitBy from 'lodash/omitBy';
 import { TranslateService } from '@ngx-translate/core';
 import { cleanRecord } from '../../utils/cleanRecord';
 import { CommonModule } from '@angular/common';
-import { IconModule } from '@oort-front/ui';
-import { ButtonModule, SnackbarService, TabsModule } from '@oort-front/ui';
+import {
+  IconModule,
+  TooltipModule,
+  ButtonModule,
+  SnackbarService,
+  TabsModule,
+  SpinnerModule,
+  DialogModule,
+} from '@oort-front/ui';
 import { RecordSummaryModule } from '../record-summary/record-summary.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { SpinnerModule } from '@oort-front/ui';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
 import {
   CheckUniqueProprietyReturnT,
   FormHelpersService,
   transformSurveyData,
 } from '../../services/form-helper/form-helper.service';
-import { DialogModule } from '@oort-front/ui';
 import { UploadRecordsComponent } from '../upload-records/upload-records.component';
 import { ContextService } from '../../services/context/context.service';
 import { CommentsPopupComponent } from './comments-popup/comments-popup.component';
@@ -119,6 +124,7 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
     CommentsPopupComponent,
     FormPagesLayoutComponent,
     DateModule,
+    TooltipModule,
   ],
 })
 export class FormModalComponent
@@ -138,6 +144,8 @@ export class FormModalComponent
   public saving = false;
   /** autosaving operations */
   public autosaving = false;
+  /** Submitting state for Save & Submit */
+  public submitting = false;
   /** last date saved */
   public latestSaveDate: Date | null = null;
   /** Loaded form */
@@ -178,6 +186,8 @@ export class FormModalComponent
   public comments: { [key: string]: Comment[] } = {};
   /** Comments loaded event */
   protected commentsLoaded = new EventEmitter();
+  /** isSaveAndSubmitEnabled state */
+  public isSaveAndSubmitEnabled = false;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
 
@@ -394,7 +404,18 @@ export class FormModalComponent
         ...omitBy(this.storedMergedData, isNil),
       };
     }
-    this.loading = false;
+
+    // Listen to value changes to enable/disable Save & Submit button
+    if (this.survey.enableSaveAndSubmit) {
+      this.isSaveAndSubmitEnabled =
+        this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      this.survey.onValueChanged.add(() => {
+        this.isSaveAndSubmitEnabled =
+          this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      });
+    }
+
+    // Add comment buttons to questions if enabled
     if (this.survey.canBeCommented && this.record) {
       this.getComments();
       //Cannot comment on newly created record
@@ -433,6 +454,8 @@ export class FormModalComponent
         questionElement.appendChild(button);
       });
     }
+
+    this.loading = false;
   }
 
   /**
@@ -539,18 +562,13 @@ export class FormModalComponent
   /**
    * Closes the dialog if not in autosave mode
    *
-   * @param autoSave whether the save is automatic or manual
    * @param result Optional result to return to the dialog opener.
    * @param options Additional options to customize the closing behavior.
    */
   closeDialog(
-    autoSave: boolean,
     result?: FormModalComponent | undefined,
     options?: DialogCloseOptions
   ) {
-    if (autoSave) {
-      return;
-    }
     this.dialogRef.close(result, options);
   }
 
@@ -576,12 +594,36 @@ export class FormModalComponent
   }
 
   /**
-   * Calls the complete method of the survey if no error.
+   * Calls the complete method of the survey if no error (original submit for backward compatibility)
    */
   public submit(): void {
     this.saving = true;
     if (!this.survey?.hasErrors()) {
-      this.survey.completeLastPage();
+      if (this.survey.enableSaveAndSubmit) {
+        this.submitting = true;
+        const dialogRef = this.confirmService.openConfirmModal({
+          title: this.translate.instant('components.form.saveAndSubmit.title'),
+          content: this.translate.instant(
+            'components.form.saveAndSubmit.message'
+          ),
+          confirmText: this.translate.instant(
+            'components.confirmModal.confirm'
+          ),
+          confirmVariant: 'primary',
+        });
+        dialogRef.closed
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((confirmed: any) => {
+            if (confirmed) {
+              this.survey.completeLastPage();
+            } else {
+              this.saving = false;
+              this.submitting = false;
+            }
+          });
+      } else {
+        this.survey.completeLastPage();
+      }
     } else {
       this.snackBar.openSnackBar(
         this.translate.instant('models.form.notifications.savingFailed'),
@@ -634,14 +676,15 @@ export class FormModalComponent
    */
   public onComplete = () => {
     this.survey?.clear(false);
+
     const rowsSelected = Array.isArray(this.data.recordId)
       ? this.data.recordId.length
       : 1;
 
-    /** we can send to backend empty data if they are not required */
     this.formHelpersService.setEmptyQuestions(this.survey);
+
     // Displays confirmation modal.
-    if (this.data.askForConfirm) {
+    if (!this.survey.enableSaveAndSubmit && this.data.askForConfirm) {
       const dialogRef = this.confirmService.openConfirmModal({
         title: this.translate.instant(
           `common.row.update.${rowsSelected > 1 ? 'few' : 'one'}.title`
@@ -662,6 +705,7 @@ export class FormModalComponent
             await this.onUpdate();
           } else {
             this.saving = false;
+            this.submitting = false;
           }
         });
       // Updates the data directly.
@@ -703,14 +747,9 @@ export class FormModalComponent
               ? response.overwriteRecord.id
               : this.data.recordId;
             if (this.isMultiEdition) {
-              this.updateMultipleData(
-                recordId,
-                this.survey,
-                refreshWidgets,
-                autoSave
-              );
+              this.updateMultipleData(recordId, this.survey, refreshWidgets);
             } else {
-              this.updateData(recordId, this.survey, refreshWidgets, autoSave);
+              this.updateData(recordId, this.survey, refreshWidgets);
             }
           } else {
             this.apollo
@@ -729,7 +768,9 @@ export class FormModalComponent
                       error: true,
                     });
                     this.ngZone.run(() => {
-                      this.closeDialog(autoSave);
+                      if (this.autosaving) {
+                        this.closeDialog();
+                      }
                     });
                   } else {
                     if (this.lastDraftRecord) {
@@ -750,10 +791,12 @@ export class FormModalComponent
                       );
                     }
                     this.ngZone.run(() => {
-                      this.closeDialog(autoSave, {
-                        template: this.data.template,
-                        data: data?.addRecord,
-                      } as any);
+                      if (!this.autosaving) {
+                        this.closeDialog({
+                          template: this.data.template,
+                          data: data?.addRecord,
+                        } as any);
+                      }
                     });
                     this.data.recordId = data?.addRecord.id;
                   }
@@ -781,13 +824,11 @@ export class FormModalComponent
    * @param id record id.
    * @param survey current survey.
    * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
-   * @param autoSave whether the save is automatic or manual
    */
   public updateData(
     id: any,
     survey: SurveyModel,
-    refreshWidgets = false,
-    autoSave = false
+    refreshWidgets = false
   ): void {
     this.apollo
       .mutate<EditRecordMutationResponse>({
@@ -800,11 +841,7 @@ export class FormModalComponent
       })
       .subscribe({
         next: async ({ errors, data }) => {
-          this.handleRecordMutationResponse(
-            { data, errors },
-            'editRecord',
-            autoSave
-          );
+          this.handleRecordMutationResponse({ data, errors }, 'editRecord');
           if (refreshWidgets) {
             this.contextService.setWidgets(
               await this.formHelpersService.checkResourceOnFilter(
@@ -816,6 +853,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.submitting = false;
           this.latestSaveDate = new Date();
         },
         error: (err) => {
@@ -823,6 +861,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.submitting = false;
         },
       });
   }
@@ -833,13 +872,11 @@ export class FormModalComponent
    * @param ids list of record ids.
    * @param survey current survey.
    * @param refreshWidgets if updating/creating resource on resource-modal and widgets using it need to be refreshed
-   * @param autoSave whether the save is automatic or manual
    */
   public updateMultipleData(
     ids: any,
     survey: SurveyModel,
-    refreshWidgets = false,
-    autoSave = false
+    refreshWidgets = false
   ): void {
     const recordData = cleanRecord(survey.getParsedData?.() ?? survey.data);
     this.apollo
@@ -862,11 +899,7 @@ export class FormModalComponent
               callback
             );
           }
-          this.handleRecordMutationResponse(
-            { data, errors },
-            'editRecords',
-            autoSave
-          );
+          this.handleRecordMutationResponse({ data, errors }, 'editRecords');
           if (refreshWidgets) {
             this.contextService.setWidgets(
               await this.formHelpersService.checkResourceOnFilter(
@@ -884,6 +917,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.submitting = false;
         },
       });
   }
@@ -895,18 +929,17 @@ export class FormModalComponent
    * @param response.data response data
    * @param response.errors response errors
    * @param responseType response type
-   * @param autoSave whether we are autosaving the record
    */
   private handleRecordMutationResponse(
     response: { data: any; errors: any },
-    responseType: 'editRecords' | 'editRecord',
-    autoSave: boolean
+    responseType: 'editRecords' | 'editRecord'
   ) {
     const { data, errors } = response;
     const type =
       responseType === 'editRecords'
         ? this.translate.instant('common.record.few')
         : this.translate.instant('common.record.one');
+
     if (errors) {
       this.snackBar.openSnackBar(
         this.translate.instant('common.notifications.objectNotUpdated', {
@@ -916,18 +949,33 @@ export class FormModalComponent
         { error: true }
       );
     } else if (data) {
-      if (!autoSave) {
+      if (this.submitting) {
+        // Form was submitted, show submission message & close dialog
         this.snackBar.openSnackBar(
-          this.translate.instant('common.notifications.objectUpdated', {
-            type,
-            value: '',
-          })
+          this.translate.instant('components.form.display.submissionMessage')
         );
+        this.closeDialog({
+          template: this.form?.id,
+          data: data[responseType],
+        } as any);
+      } else {
+        if (!this.autosaving) {
+          // Form is not in autosave mode
+          this.snackBar.openSnackBar(
+            this.translate.instant('common.notifications.objectUpdated', {
+              type,
+              value: '',
+            })
+          );
+          // Form doesn't use Save and Submit feature, close the dialog
+          if (!this.survey.enableSaveAndSubmit) {
+            this.closeDialog({
+              template: this.form?.id,
+              data: data[responseType],
+            } as any);
+          }
+        }
       }
-      this.closeDialog(autoSave, {
-        template: this.form?.id,
-        data: data[responseType],
-      } as any);
     }
   }
 

@@ -113,6 +113,26 @@ export const init = (environment: any): void => {
     category: 'validation',
     default: false,
   });
+  // Enable Save and Submit button for forms
+  serializer.addProperty('survey', {
+    name: 'enableSaveAndSubmit:boolean',
+    category: 'validation',
+    default: false,
+  });
+
+  // Expression to conditionally enable/disable Save and Submit button
+  serializer.addProperty('survey', {
+    name: 'enableSaveAndSubmitIf:expression',
+    category: 'validation',
+    visibleIf: (obj: SurveyModel) => obj.enableSaveAndSubmit === true,
+  });
+
+  // Description/tooltip for Save and Submit button
+  serializer.addProperty('survey', {
+    name: 'saveAndSubmitDescription:text',
+    category: 'validation',
+    visibleIf: (obj: SurveyModel) => obj.enableSaveAndSubmit === true,
+  });
   // Adds a property to the survey settings to open the form on a specific page using the question value
   // of the selected question (the value must be a page name)
   serializer.addProperty('survey', {

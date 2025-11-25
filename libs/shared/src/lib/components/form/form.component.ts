@@ -12,6 +12,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
+import { ConfirmService } from '../../services/confirm/confirm.service';
 import {
   PanelModel,
   Question,
@@ -147,11 +148,10 @@ export class FormComponent
   public latestSaveDate: Date | null = null;
   /** Timeout for reset survey */
   private resetTimeoutListener!: NodeJS.Timeout;
-  /** As we save the draft record in the db, the local storage is no longer used */
-  /** ID for local storage */
-  // private storageId = '';
-  /** Date of local storage */
-  // public storageDate?: Date;
+  /** Submitting state for Save & Submit */
+  public submitting = false;
+  /** isSaveAndSubmitEnabled state */
+  public isSaveAndSubmitEnabled = false;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
 
@@ -200,6 +200,7 @@ export class FormComponent
    * @param formHelpersService This is the service that will handle forms.
    * @param translate This is the service used to translate text
    * @param dashboardService Shared dashboard service
+   * @param confirmService This is the service that will be used to display confirm window.
    */
   constructor(
     public dialog: Dialog,
@@ -210,7 +211,8 @@ export class FormComponent
     public formBuilderService: FormBuilderService,
     public formHelpersService: FormHelpersService,
     private translate: TranslateService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private confirmService: ConfirmService
   ) {
     super();
   }
@@ -305,13 +307,39 @@ export class FormComponent
    * Calls the complete method of the survey if no error.
    */
   public submit(): void {
+    this.saving = true;
     if (!this.survey?.hasErrors()) {
-      this.survey?.completeLastPage();
+      if (this.survey.enableSaveAndSubmit) {
+        this.submitting = true;
+        const dialogRef = this.confirmService.openConfirmModal({
+          title: this.translate.instant('components.form.saveAndSubmit.title'),
+          content: this.translate.instant(
+            'components.form.saveAndSubmit.message'
+          ),
+          confirmText: this.translate.instant(
+            'components.confirmModal.confirm'
+          ),
+          confirmVariant: 'primary',
+        });
+        dialogRef.closed
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((confirmed: any) => {
+            if (confirmed) {
+              this.survey.completeLastPage();
+            } else {
+              this.saving = false;
+              this.submitting = false;
+            }
+          });
+      } else {
+        this.survey?.completeLastPage();
+      }
     } else {
       this.snackBar.openSnackBar(
         this.translate.instant('models.form.notifications.savingFailed'),
         { error: true }
       );
+      this.saving = false;
     }
   }
 
@@ -353,9 +381,7 @@ export class FormComponent
           let mutation: any;
           this.surveyActive = autoSave;
           this.autosaving = autoSave;
-          this.saving = !autoSave;
-          // const promises: Promise<any>[] =
-          //   this.formHelpersService.uploadTemporaryRecords(this.survey);
+          this.saving = true;
 
           await this.formHelpersService.uploadFiles(
             this.temporaryFilesStorage,
@@ -423,24 +449,36 @@ export class FormComponent
                     callback
                   );
                 }
-                // localStorage.removeItem(this.storageId);
-                if (
+
+                const shouldClearSurvey =
+                  !this.submitting &&
                   !this.survey.alwaysShowCompletedPage &&
                   (data.editRecord ||
-                    data.addRecord.form.uniqueRecord ||
-                    autoSave)
-                ) {
+                    data.addRecord?.form.uniqueRecord ||
+                    autoSave);
+
+                if (shouldClearSurvey) {
+                  console.log('should clear survey');
                   this.survey.clear(false, false);
                   if (data.addRecord) {
                     this.record = data.addRecord;
                     this.modifiedAt = this.record?.modifiedAt || null;
                   } else {
+                    this.modifiedAt = data.editRecord?.modifiedAt;
+                  }
+                  this.surveyActive = true;
+                } else if (this.submitting) {
+                  if (data.addRecord) {
+                    this.record = data.addRecord;
+                    this.modifiedAt = this.record?.modifiedAt || null;
+                  } else if (data.editRecord) {
                     this.modifiedAt = data.editRecord.modifiedAt;
                   }
                   this.surveyActive = true;
                 } else {
                   this.survey.showCompletedPage = true;
                 }
+
                 this.save.emit({
                   completed: true,
                   hideNewRecord: autoSave
@@ -448,8 +486,10 @@ export class FormComponent
                     : data.addRecord && data.addRecord.form.uniqueRecord,
                 });
               }
+
               this.saving = false;
               this.autosaving = false;
+              this.submitting = false;
               this.latestSaveDate = new Date();
             });
         } else {
@@ -666,7 +706,6 @@ export class FormComponent
           e.stopPropagation();
 
           const { title: rootTitle, name: rootName } = getRootParent(question);
-          console.log('Root', rootTitle, rootName);
           survey.setVariable('__FOCUSED__.name', question.name);
           survey.setVariable('__FOCUSED__.title', question.title);
           survey.setVariable('__FOCUSED__.root.name', rootName);
@@ -675,14 +714,28 @@ export class FormComponent
         el.appendChild(button);
       });
     }
+
+    // Listen to value changes to enable/disable Save & Submit button
+    if (this.survey.enableSaveAndSubmit) {
+      this.isSaveAndSubmitEnabled =
+        this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      this.survey.onValueChanged.add(() => {
+        this.isSaveAndSubmitEnabled =
+          this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      });
+    }
+
     // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {
       this.autoSaveInterval = interval(15000)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
+          // Don't autosave if we're submitting or if completed page is showing
           if (
             !this.saving &&
             !this.autosaving &&
+            !this.submitting &&
+            !this.survey.showCompletedPage &&
             this.survey.data &&
             Object.keys(this.survey.data).length > 0
           ) {
@@ -704,26 +757,7 @@ export class FormComponent
       if (field.readOnly && this.survey.getQuestionByName(field.name))
         this.survey.getQuestionByName(field.name).readOnly = true;
     });
-    // Fetch cached data from local storage
-    //this.storageId = `record:${this.record ? 'update' : ''}:${this.form.id}`;
-    //const storedData = localStorage.getItem(this.storageId);
-    //const cachedData = storedData ? JSON.parse(storedData).data : null;
-    //this.storageDate = storedData
-    //? new Date(JSON.parse(storedData).date)
-    //: undefined;
-    // this.isFromCacheData = !!cachedData;
-    //if (this.isFromCacheData) {
-    //this.snackBar.openSnackBar(
-    //this.translate.instant('common.notifications.loadedFromCache', {
-    //type: this.translate.instant('common.record.one'),
-    //})
-    //);
-    //}
 
-    //if (cachedData) {
-    //this.survey.data = cachedData;
-    // this.setUserVariables();
-    //}
     if (this.form.uniqueRecord && this.form.uniqueRecord.data) {
       this.survey.data = this.form.uniqueRecord.data;
       this.modifiedAt = this.form.uniqueRecord.modifiedAt || null;
