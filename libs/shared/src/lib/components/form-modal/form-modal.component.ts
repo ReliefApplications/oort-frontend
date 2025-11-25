@@ -180,29 +180,10 @@ export class FormModalComponent
   public comments: { [key: string]: Comment[] } = {};
   /** Comments loaded event */
   protected commentsLoaded = new EventEmitter();
+  /** isSaveAndSubmitEnabled state */
+  public isSaveAndSubmitEnabled = false;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
-
-  /**
-   * Check if Save and Submit button should be enabled based on expression
-   *
-   * @returns True if Save and Submit button should be enabled
-   */
-  get isSaveAndSubmitEnabled(): boolean {
-    if (!this.survey?.enableSaveAndSubmit) return false;
-
-    const enableIfExpression = this.survey?.getPropertyValue(
-      'enableSaveAndSubmitIf'
-    );
-    if (!enableIfExpression) return true;
-
-    try {
-      const result = this.survey.runExpression(enableIfExpression);
-      return result === true;
-    } catch {
-      return true;
-    }
-  }
 
   /**
    * Modal to edit or add a record.
@@ -417,7 +398,18 @@ export class FormModalComponent
         ...omitBy(this.storedMergedData, isNil),
       };
     }
-    this.loading = false;
+
+    // Listen to value changes to enable/disable Save & Submit button
+    if (this.survey.enableSaveAndSubmit) {
+      this.isSaveAndSubmitEnabled =
+        this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      this.survey.onValueChanged.add(() => {
+        this.isSaveAndSubmitEnabled =
+          this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      });
+    }
+
+    // Add comment buttons to questions if enabled
     if (this.survey.canBeCommented && this.record) {
       this.getComments();
       //Cannot comment on newly created record
@@ -456,6 +448,8 @@ export class FormModalComponent
         questionElement.appendChild(button);
       });
     }
+
+    this.loading = false;
   }
 
   /**

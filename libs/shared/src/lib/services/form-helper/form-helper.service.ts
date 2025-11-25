@@ -771,6 +771,7 @@ export class FormHelpersService {
       application?.description ?? null
     );
   };
+
   /**
    * Registration of new custom variables for the survey.
    * Custom variables can be used in the logic fields.
@@ -1157,5 +1158,26 @@ export class FormHelpersService {
         }
       }
     );
+  }
+
+  /**
+   * Checks if the Save & Submit button should be enabled based on the
+   * enableSaveAndSubmitIf expression.
+   *
+   * @param survey Survey instance
+   * @returns True if the Save & Submit button should be enabled, false otherwise
+   */
+  public evaluateSaveAndSubmitEnableIf(survey: SurveyModel): boolean {
+    const enableIfExpression = survey.getPropertyValue('enableSaveAndSubmitIf');
+    if (enableIfExpression) {
+      try {
+        const result = survey.runExpression(enableIfExpression);
+        return result;
+      } catch {
+        return true;
+      }
+    } else {
+      return true;
+    }
   }
 }

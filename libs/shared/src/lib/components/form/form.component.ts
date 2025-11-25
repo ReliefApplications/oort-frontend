@@ -150,6 +150,8 @@ export class FormComponent
   private resetTimeoutListener!: NodeJS.Timeout;
   /** Submitting state for Save & Submit */
   public submitting = false;
+  /** isSaveAndSubmitEnabled state */
+  public isSaveAndSubmitEnabled = false;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
 
@@ -183,27 +185,6 @@ export class FormComponent
    */
   get collapsed() {
     return this.panels.every((panel) => panel.isCollapsed);
-  }
-
-  /**
-   * Check if Save and Submit button should be enabled based on expression
-   *
-   * @returns True if Save and Submit button should be enabled
-   */
-  get isSaveAndSubmitEnabled(): boolean {
-    if (!this.survey.enableSaveAndSubmit) return false;
-
-    const enableIfExpression = this.survey?.getPropertyValue(
-      'enableSaveAndSubmitIf'
-    );
-    if (!enableIfExpression) return true;
-
-    try {
-      const result = this.survey.runExpression(enableIfExpression);
-      return result === true;
-    } catch {
-      return true;
-    }
   }
 
   /**
@@ -733,6 +714,17 @@ export class FormComponent
         el.appendChild(button);
       });
     }
+
+    // Listen to value changes to enable/disable Save & Submit button
+    if (this.survey.enableSaveAndSubmit) {
+      this.isSaveAndSubmitEnabled =
+        this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      this.survey.onValueChanged.add(() => {
+        this.isSaveAndSubmitEnabled =
+          this.formHelpersService.evaluateSaveAndSubmitEnableIf(this.survey);
+      });
+    }
+
     // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {
       this.autoSaveInterval = interval(15000)
