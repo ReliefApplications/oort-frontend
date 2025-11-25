@@ -37,8 +37,10 @@
       </ng-template>
     </div>
   </ng-container>
+  <!-- Form footer actions -->
   <ng-container ngProjectAs="actions">
     <ng-container *ngIf="survey">
+      <!-- Save status -->
       <div class="text-sm text-gray-400 flex absolute left-2 items-center">
         <ng-container *ngIf="autosaving; else latestSave">
           <ui-spinner size="small" class="mr-1" />
@@ -55,9 +57,12 @@
         </ng-template>
       </div>
 
+      <!-- Close modal -->
       <ui-button (click)="close()" *ngIf="survey.showCloseButtonOnModal">
         {{ 'common.close' | translate }}
       </ui-button>
+
+      <!-- Delete record -->
       <ui-button
         (click)="deleteRecord()"
         *ngIf="survey.showDeleteButtonOnModal"
@@ -66,7 +71,10 @@
       >
         {{ 'common.delete' | translate }}
       </ui-button>
+
+      <!-- Navigation buttons -->
       <ng-container *ngIf="survey.visiblePages as pages">
+        <!-- Open previous page -->
         <ui-button
           category="secondary"
           variant="primary"
@@ -77,6 +85,7 @@
         >
           {{ 'common.previous' | translate }}
         </ui-button>
+        <!-- Open next page -->
         <ui-button
           category="secondary"
           variant="primary"
@@ -88,9 +97,6 @@
           {{ 'common.next' | translate }}
         </ui-button>
       </ng-container>
-      <!-- <ui-button [disabled]="disableSaveAsDraft" (click)="saveAsDraft()">{{
-      'components.form.draftRecords.save' | translate
-    }}</ui-button> -->
 
       <!-- Save & Submit buttons when feature is enabled -->
       <ng-container *ngIf="survey.enableSaveAndSubmit">
@@ -114,6 +120,7 @@
           [disabled]="
             saving || submitting || autosaving || !isSaveAndSubmitEnabled
           "
+          [title]="saveAndSubmitDescription || ''"
           (click)="submit()"
         >
           <span class="flex items-center whitespace-nowrap">

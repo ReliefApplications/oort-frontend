@@ -58,7 +58,7 @@ import omitBy from 'lodash/omitBy';
 import { TranslateService } from '@ngx-translate/core';
 import { cleanRecord } from '../../utils/cleanRecord';
 import { CommonModule } from '@angular/common';
-import { IconModule, TooltipModule } from '@oort-front/ui';
+import { IconModule } from '@oort-front/ui';
 import { ButtonModule, SnackbarService, TabsModule } from '@oort-front/ui';
 import { RecordSummaryModule } from '../record-summary/record-summary.module';
 import { TranslateModule } from '@ngx-translate/core';
@@ -119,7 +119,6 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
     CommentsPopupComponent,
     FormPagesLayoutComponent,
     DateModule,
-    TooltipModule,
   ],
 })
 export class FormModalComponent
@@ -183,6 +182,36 @@ export class FormModalComponent
   protected commentsLoaded = new EventEmitter();
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
+
+  /**
+   * Check if Save and Submit button should be enabled based on expression
+   *
+   * @returns True if Save and Submit button should be enabled
+   */
+  get isSaveAndSubmitEnabled(): boolean {
+    if (!this.survey?.enableSaveAndSubmit) return false;
+
+    const enableIfExpression = this.survey?.getPropertyValue(
+      'enableSaveAndSubmitIf'
+    );
+    if (!enableIfExpression) return true;
+
+    try {
+      const result = this.survey.runExpression(enableIfExpression);
+      return result === true;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Get the description/tooltip for Save and Submit button
+   *
+   * @returns The description/tooltip text or undefined
+   */
+  get saveAndSubmitDescription(): string | undefined {
+    return this.survey?.getPropertyValue('saveAndSubmitDescription');
+  }
 
   /**
    * Modal to edit or add a record.
@@ -571,36 +600,6 @@ export class FormModalComponent
     ) {
       this.closePopup();
     }
-  }
-
-  /**
-   * Check if Save and Submit button should be enabled based on expression
-   *
-   * @returns True if Save and Submit button should be enabled
-   */
-  get isSaveAndSubmitEnabled(): boolean {
-    if (!this.survey?.enableSaveAndSubmit) return false;
-
-    const enableIfExpression = this.survey?.getPropertyValue(
-      'enableSaveAndSubmitIf'
-    );
-    if (!enableIfExpression) return true;
-
-    try {
-      const result = this.survey.runExpression(enableIfExpression);
-      return result === true;
-    } catch {
-      return true;
-    }
-  }
-
-  /**
-   * Get the description/tooltip for Save and Submit button
-   *
-   * @returns The description/tooltip text or undefined
-   */
-  get saveAndSubmitDescription(): string | undefined {
-    return this.survey?.getPropertyValue('saveAndSubmitDescription');
   }
 
   /**

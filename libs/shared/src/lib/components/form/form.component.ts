@@ -150,11 +150,6 @@ export class FormComponent
   private resetTimeoutListener!: NodeJS.Timeout;
   /** Submitting state for Save & Submit */
   public submitting = false;
-  /** As we save the draft record in the db, the local storage is no longer used */
-  /** ID for local storage */
-  // private storageId = '';
-  /** Date of local storage */
-  // public storageDate?: Date;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
 
@@ -188,6 +183,36 @@ export class FormComponent
    */
   get collapsed() {
     return this.panels.every((panel) => panel.isCollapsed);
+  }
+
+  /**
+   * Check if Save and Submit button should be enabled based on expression
+   *
+   * @returns True if Save and Submit button should be enabled
+   */
+  get isSaveAndSubmitEnabled(): boolean {
+    if (!this.survey.enableSaveAndSubmit) return false;
+
+    const enableIfExpression = this.survey?.getPropertyValue(
+      'enableSaveAndSubmitIf'
+    );
+    if (!enableIfExpression) return true;
+
+    try {
+      const result = this.survey.runExpression(enableIfExpression);
+      return result === true;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Get the description/tooltip for Save and Submit button
+   *
+   * @returns The description/tooltip text or undefined
+   */
+  get saveAndSubmitDescription(): string | undefined {
+    return this.survey?.getPropertyValue('saveAndSubmitDescription');
   }
 
   /**
@@ -310,145 +335,39 @@ export class FormComponent
    * Calls the complete method of the survey if no error.
    */
   public submit(): void {
+    this.saving = true;
     if (!this.survey?.hasErrors()) {
-      this.survey?.completeLastPage();
+      if (this.survey.enableSaveAndSubmit) {
+        this.submitting = true;
+        const dialogRef = this.confirmService.openConfirmModal({
+          title: this.translate.instant('components.form.saveAndSubmit.title'),
+          content: this.translate.instant(
+            'components.form.saveAndSubmit.message'
+          ),
+          confirmText: this.translate.instant(
+            'components.confirmModal.confirm'
+          ),
+          confirmVariant: 'primary',
+        });
+        dialogRef.closed
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((confirmed: any) => {
+            if (confirmed) {
+              this.survey.completeLastPage();
+            } else {
+              this.saving = false;
+              this.submitting = false;
+            }
+          });
+      } else {
+        this.survey?.completeLastPage();
+      }
     } else {
       this.snackBar.openSnackBar(
         this.translate.instant('models.form.notifications.savingFailed'),
         { error: true }
       );
-    }
-  }
-
-  /**
-   * Check if Save and Submit feature is enabled
-   *
-   * @returns True if Save and Submit feature is enabled
-   */
-  get enableSaveAndSubmit(): boolean {
-    return this.survey?.enableSaveAndSubmit === true;
-  }
-
-  /**
-   * Check if Save and Submit button should be enabled based on expression
-   *
-   * @returns True if Save and Submit button should be enabled
-   */
-  get isSaveAndSubmitEnabled(): boolean {
-    if (!this.enableSaveAndSubmit) return false;
-
-    const enableIfExpression = this.survey?.getPropertyValue(
-      'enableSaveAndSubmitIf'
-    );
-    if (!enableIfExpression) return true;
-
-    try {
-      const result = this.survey.runExpression(enableIfExpression);
-      return result === true;
-    } catch {
-      return true;
-    }
-  }
-
-  /**
-   * Get the description/tooltip for Save and Submit button
-   *
-   * @returns The description/tooltip text or undefined
-   */
-  get saveAndSubmitDescription(): string | undefined {
-    return this.survey?.getPropertyValue('saveAndSubmitDescription');
-  }
-
-  /**
-   * Save as draft without validation (for Save button)
-   */
-  public async saveWithoutValidation(): Promise<void> {
-    if (this.saving || this.submitting || this.autosaving) return;
-
-    this.saving = true;
-    try {
-      // Temporarily disable validation
-      const originalSkipValidation = (this.survey as any)
-        ._skipRequiredValidation;
-      (this.survey as any)._skipRequiredValidation = true;
-
-      // Save without completing the survey
-      await this.onComplete(false, true);
-
-      // Restore validation setting
-      (this.survey as any)._skipRequiredValidation = originalSkipValidation;
-
-      this.snackBar.openSnackBar(
-        this.translate.instant('common.notifications.objectUpdated', {
-          type: this.translate.instant('common.record.one').toLowerCase(),
-          value: '',
-        })
-      );
-    } catch (error: any) {
-      this.snackBar.openSnackBar(error.message || 'Save failed', {
-        error: true,
-      });
-    } finally {
       this.saving = false;
-    }
-  }
-
-  /**
-   * Save and submit with validation (for Save & Submit button)
-   */
-  public async saveAndSubmit(): Promise<void> {
-    if (this.saving || this.submitting || this.autosaving) return;
-
-    // Temporarily disable skipRequiredValidation to force validation
-    const originalSkipValidation = (this.survey as any)._skipRequiredValidation;
-    (this.survey as any)._skipRequiredValidation = false;
-
-    // Validate the survey first - must call validate() before hasErrors()
-    const isValid = this.survey.validate(true, true);
-
-    // Restore the original skip validation setting
-    (this.survey as any)._skipRequiredValidation = originalSkipValidation;
-
-    if (!isValid || this.survey.hasErrors()) {
-      this.snackBar.openSnackBar(
-        this.translate.instant('models.form.notifications.savingFailed'),
-        { error: true }
-      );
-      return;
-    }
-
-    // Show confirmation dialog
-    const dialogRef = this.confirmService.openConfirmModal({
-      title: this.translate.instant('components.form.saveAndSubmit.title'),
-      content: this.translate.instant('components.form.saveAndSubmit.message'),
-      confirmText: this.translate.instant('components.confirmModal.confirm'),
-      confirmVariant: 'primary',
-    });
-
-    dialogRef.closed
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((confirmed: any) => {
-        if (confirmed) {
-          this.confirmSaveAndSubmit();
-        }
-      });
-  }
-
-  /**
-   * Confirm and execute save and submit
-   */
-  private async confirmSaveAndSubmit(): Promise<void> {
-    this.submitting = true;
-    this.survey.showCompletedPage = true;
-
-    try {
-      this.survey.completeLastPage();
-    } catch (error: any) {
-      this.snackBar.openSnackBar(error.message || 'Submit failed', {
-        error: true,
-      });
-      this.submitting = false;
-      this.survey.showCompletedPage = false;
     }
   }
 
@@ -481,10 +400,8 @@ export class FormComponent
    * Creates the record when it is complete, or update it if provided.
    *
    * @param autoSave whether the save is automatic or manual
-   * @param skipValidation whether to skip validation (for Save button)
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async onComplete(autoSave = false, skipValidation = false) {
+  private async onComplete(autoSave = false) {
     this.formHelpersService
       .checkUniquePropriety(this.survey)
       .then(async (response: CheckUniqueProprietyReturnT) => {
@@ -492,9 +409,7 @@ export class FormComponent
           let mutation: any;
           this.surveyActive = autoSave;
           this.autosaving = autoSave;
-          this.saving = !autoSave;
-          // const promises: Promise<any>[] =
-          //   this.formHelpersService.uploadTemporaryRecords(this.survey);
+          this.saving = true;
 
           await this.formHelpersService.uploadFiles(
             this.temporaryFilesStorage,
