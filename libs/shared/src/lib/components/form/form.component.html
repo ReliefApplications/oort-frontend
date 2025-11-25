@@ -24,7 +24,7 @@
   </ui-fixed-wrapper>
 </ng-container>
 
-<div class="flex" *ngIf="!saving && !submitting">
+<div class="flex" *ngIf="autosaving || (!saving && !submitting)">
   <shared-form-pages-layout
     class="h-fit sticky top-0 z-10"
     *ngIf="!survey.hidePagesTab && !survey.showCompletedPage"
