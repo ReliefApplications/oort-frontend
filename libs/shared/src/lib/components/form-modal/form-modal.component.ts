@@ -205,15 +205,6 @@ export class FormModalComponent
   }
 
   /**
-   * Get the description/tooltip for Save and Submit button
-   *
-   * @returns The description/tooltip text or undefined
-   */
-  get saveAndSubmitDescription(): string | undefined {
-    return this.survey?.getPropertyValue('saveAndSubmitDescription');
-  }
-
-  /**
    * Modal to edit or add a record.
    *
    * @param data This is the data that is passed to the modal when it is opened.

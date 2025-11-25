@@ -207,15 +207,6 @@ export class FormComponent
   }
 
   /**
-   * Get the description/tooltip for Save and Submit button
-   *
-   * @returns The description/tooltip text or undefined
-   */
-  get saveAndSubmitDescription(): string | undefined {
-    return this.survey?.getPropertyValue('saveAndSubmitDescription');
-  }
-
-  /**
    * The constructor function is a special function that is called when a new instance of the class is
    * created.
    *
@@ -486,6 +477,7 @@ export class FormComponent
                     autoSave);
 
                 if (shouldClearSurvey) {
+                  console.log('should clear survey');
                   this.survey.clear(false, false);
                   if (data.addRecord) {
                     this.record = data.addRecord;

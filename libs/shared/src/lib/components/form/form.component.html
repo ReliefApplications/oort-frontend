@@ -139,13 +139,13 @@
           [disabled]="
             saving || submitting || autosaving || !isSaveAndSubmitEnabled
           "
-          [title]="saveAndSubmitDescription || ''"
+          [title]="survey.saveAndSubmitDescription || ''"
           (click)="submit()"
         >
           <span class="flex items-center whitespace-nowrap">
             {{ 'components.form.saveAndSubmit.text' | translate }}
             <ui-icon
-              *ngIf="saveAndSubmitDescription && !submitting"
+              *ngIf="survey.saveAndSubmitDescription && !submitting"
               icon="help_outline"
               class="ml-1"
               [size]="16"
