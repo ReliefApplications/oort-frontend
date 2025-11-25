@@ -765,26 +765,7 @@ export class FormComponent
       if (field.readOnly && this.survey.getQuestionByName(field.name))
         this.survey.getQuestionByName(field.name).readOnly = true;
     });
-    // Fetch cached data from local storage
-    //this.storageId = `record:${this.record ? 'update' : ''}:${this.form.id}`;
-    //const storedData = localStorage.getItem(this.storageId);
-    //const cachedData = storedData ? JSON.parse(storedData).data : null;
-    //this.storageDate = storedData
-    //? new Date(JSON.parse(storedData).date)
-    //: undefined;
-    // this.isFromCacheData = !!cachedData;
-    //if (this.isFromCacheData) {
-    //this.snackBar.openSnackBar(
-    //this.translate.instant('common.notifications.loadedFromCache', {
-    //type: this.translate.instant('common.record.one'),
-    //})
-    //);
-    //}
 
-    //if (cachedData) {
-    //this.survey.data = cachedData;
-    // this.setUserVariables();
-    //}
     if (this.form.uniqueRecord && this.form.uniqueRecord.data) {
       this.survey.data = this.form.uniqueRecord.data;
       this.modifiedAt = this.form.uniqueRecord.modifiedAt || null;
