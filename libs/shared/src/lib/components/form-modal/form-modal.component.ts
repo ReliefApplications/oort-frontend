@@ -58,18 +58,23 @@ import omitBy from 'lodash/omitBy';
 import { TranslateService } from '@ngx-translate/core';
 import { cleanRecord } from '../../utils/cleanRecord';
 import { CommonModule } from '@angular/common';
-import { IconModule } from '@oort-front/ui';
-import { ButtonModule, SnackbarService, TabsModule } from '@oort-front/ui';
+import {
+  IconModule,
+  TooltipModule,
+  ButtonModule,
+  SnackbarService,
+  TabsModule,
+  SpinnerModule,
+  DialogModule,
+} from '@oort-front/ui';
 import { RecordSummaryModule } from '../record-summary/record-summary.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { SpinnerModule } from '@oort-front/ui';
 import { UnsubscribeComponent } from '../utils/unsubscribe/unsubscribe.component';
 import {
   CheckUniqueProprietyReturnT,
   FormHelpersService,
   transformSurveyData,
 } from '../../services/form-helper/form-helper.service';
-import { DialogModule } from '@oort-front/ui';
 import { UploadRecordsComponent } from '../upload-records/upload-records.component';
 import { ContextService } from '../../services/context/context.service';
 import { CommentsPopupComponent } from './comments-popup/comments-popup.component';
@@ -119,6 +124,7 @@ const DEFAULT_DIALOG_DATA = { askForConfirm: true };
     CommentsPopupComponent,
     FormPagesLayoutComponent,
     DateModule,
+    TooltipModule,
   ],
 })
 export class FormModalComponent
