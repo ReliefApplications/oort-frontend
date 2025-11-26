@@ -24,6 +24,7 @@
         <input formControlName="username" type="text" />
       </div>
       <ui-button
+        *ngIf="updatePasswordUrl"
         category="secondary"
         variant="primary"
         icon="vpn_key"

@@ -31,7 +31,7 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
     'actions',
   ];
   /** URL for updating user password */
-  public updatePasswordUrl: string;
+  public updatePasswordUrl = '';
 
   /**
    * Shared profile page.
@@ -55,9 +55,13 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
     super();
 
     // Set update password URL
-    const { issuer, clientId } = environment.authConfig ?? {};
+    const { issuer, clientId }: { issuer: string; clientId: string } =
+      environment.authConfig ?? {};
     const currentUrl = window.location.href;
-    this.updatePasswordUrl = `${issuer}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${currentUrl}&response_type=code&scope=openid&kc_action=UPDATE_PASSWORD`;
+    if (!issuer.startsWith('https://login.microsoftonline.com/')) {
+      // Using keycloak
+      this.updatePasswordUrl = `${issuer}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${currentUrl}&response_type=code&scope=openid&kc_action=UPDATE_PASSWORD`;
+    }
   }
 
   /**
