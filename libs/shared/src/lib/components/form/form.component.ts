@@ -154,6 +154,8 @@ export class FormComponent
   public isSaveAndSubmitEnabled = false;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
+  /** Stringified version of last saved survey data for autosave comparison */
+  private lastSavedDataState?: string;
 
   /**
    * Gets the error questions for current page
@@ -491,6 +493,7 @@ export class FormComponent
               this.autosaving = false;
               this.submitting = false;
               this.latestSaveDate = new Date();
+              this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
             });
         } else {
           this.snackBar.openSnackBar(
@@ -737,7 +740,8 @@ export class FormComponent
             !this.submitting &&
             !this.survey.showCompletedPage &&
             this.survey.data &&
-            Object.keys(this.survey.data).length > 0
+            Object.keys(this.survey.data).length > 0 &&
+            JSON.stringify(this.survey.data) !== this.lastSavedDataState
           ) {
             this.formHelpersService.autoSaveRecord(
               this.onComplete.bind(this, true),
@@ -765,6 +769,9 @@ export class FormComponent
       this.survey.data = this.record.data;
       this.modifiedAt = this.record.modifiedAt || null;
     }
+
+    // Initialize last saved state for autosave comparison
+    this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
 
     // if (this.survey.getUsedLocales().length > 1) {
     //   this.survey.getUsedLocales().forEach((lang) => {
