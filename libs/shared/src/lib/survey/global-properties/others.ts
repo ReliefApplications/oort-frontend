@@ -10,6 +10,7 @@ import {
   SurveyModel,
   PageModel,
   surveyLocalization,
+  MatrixDropdownColumn,
 } from 'survey-core';
 import { MatrixManager } from '../controllers/matrixManager';
 import { CustomPropertyGridComponentTypes } from '../components/utils/components.enum';
@@ -35,6 +36,60 @@ export const init = (environment: any): void => {
     category: 'general',
     isRequired: true,
   });
+
+  const showReducedOptionsDropdown = (obj: Question | null): boolean => {
+    if (!obj) {
+      return false;
+    }
+    const type = obj.getType?.() || '';
+    return type === 'dropdown' || type === 'tagbox';
+  };
+
+  const showReducedOptionsMatrices = (obj: any): boolean => {
+    if (!obj) {
+      return false;
+    }
+    const column: MatrixDropdownColumn | undefined =
+      (obj as MatrixDropdownColumn).cellType !== undefined
+        ? (obj as MatrixDropdownColumn)
+        : (obj.locOwner as MatrixDropdownColumn | undefined);
+
+    if (!column) {
+      return false;
+    }
+
+    const owner = (column as any).colOwnerValue;
+    const columnCellType = column.cellType as string;
+    const matrixCellType = owner?.cellType as string | undefined;
+
+    const effectiveType =
+      columnCellType && columnCellType !== 'default'
+        ? columnCellType
+        : matrixCellType || '';
+
+    return effectiveType === 'dropdown' || effectiveType === 'tagbox';
+  };
+
+  // Controls Kendo virtualization for select-based questions (dropdown, tagbox, etc.)
+  serializer.addProperty('selectbase', {
+    name: 'showReducedOptions:boolean',
+    category: 'general',
+    visibleIndex: 9,
+    default: false,
+    showMode: 'form',
+    visibleIf: (obj: Question | null) => showReducedOptionsDropdown(obj),
+  });
+
+  // Controls Kendo virtualization for dropdown / tagbox cells inside matrix questions
+  serializer.addProperty('matrixdropdowncolumn', {
+    name: 'showReducedOptions:boolean',
+    category: 'general',
+    visibleIndex: 8,
+    default: false,
+    showMode: 'form',
+    visibleIf: (obj: any) => showReducedOptionsMatrices(obj),
+  });
+
   // Pass token before the request to fetch choices by URL if it's targeting SHARED API
   ChoicesRestful.onBeforeSendRequest = (
     sender: ChoicesRestful,
