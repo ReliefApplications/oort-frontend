@@ -3,6 +3,7 @@
   [ngClass]="{ 'mr-4': !isPanelCollapsed }"
   *ngIf="pages.length > 1"
 >
+  <!-- Arrow button to show / hide sidenav -->
   <ui-button
     (click)="togglePanel()"
     class="absolute -right-6 top-1/2 group-hover:opacity-100"
@@ -14,28 +15,33 @@
     [size]="'medium'"
   >
   </ui-button>
+  <!-- List of pages, as sidenav -->
   <div [@toggle]="isPanelCollapsed ? 'collapsed' : 'expanded'">
+    <!-- Page button. On click, open the corresponding page -->
     <button
       *ngFor="let page of pages; let i = index; let last = last"
       (click)="showPage.emit(i)"
       class="mb-4 flex items-center relative"
     >
+      <!-- Connector line between page buttons -->
       <div
         *ngIf="!last"
         class="absolute left-[7px] h-10 w-0.5 bg-gray-300 -z-10 translate-y-3"
       ></div>
+      <!-- Circle indicating the current page -->
       <span
         class="w-4 h-4 rounded-full inline-block mr-4"
         [ngClass]="selectedPageIndex === i ? 'bg-primary-500 ' : 'bg-gray-300'"
       ></span>
+      <!-- Page title -->
       <div
         [ngClass]="{
-          'text-primary-500': selectedPageIndex === i,
-          'text-gray-300': selectedPageIndex < i
+          'text-primary-500': selectedPageIndex === i
         }"
         class="flex items-center"
       >
         {{ page.title ? page.title : page.name }}
+        <!-- Error icon indicating the page contains errors -->
         <ui-icon
           class="ml-1"
           *ngIf="page.containsErrors"
