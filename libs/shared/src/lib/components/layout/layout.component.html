@@ -63,16 +63,28 @@
   <!-- Notification button -->
   <shared-notification-button></shared-notification-button>
   <ui-menu #accountMenu>
-    <a uiMenuItem [routerLink]="[profileRoute]">
+    <a
+      *ngIf="environment.module === 'backoffice'"
+      uiMenuItem
+      [routerLink]="[profileRoute]"
+    >
       {{ 'pages.profile.title' | translate }}
     </a>
-    <ng-container *ngIf="showPreferences">
+    <ng-container
+      *ngIf="showPreferences && environment.module === 'backoffice'"
+    >
       <ui-divider class="py-1"></ui-divider>
       <button uiMenuItem (click)="onOpenPreferences()">
         {{ 'components.preferences.title' | translate }}
       </button>
     </ng-container>
-    <ng-container *ngIf="applications && applications.length > 0">
+    <ng-container
+      *ngIf="
+        applications &&
+        applications.length > 0 &&
+        environment.module === 'backoffice'
+      "
+    >
       <ui-divider class="py-1"></ui-divider>
       <button
         uiMenuItem
@@ -95,7 +107,10 @@
       </ng-template>
     </ng-container>
     <ng-container *ngIf="user && user.isAdmin">
-      <ui-divider class="py-1"></ui-divider>
+      <ui-divider
+        *ngIf="environment.module === 'backoffice'"
+        class="py-1"
+      ></ui-divider>
       <a uiMenuItem [href]="otherOfficeUri">
         {{ 'components.header.goToPlatform' | translate }} {{ otherOffice }}
       </a>
