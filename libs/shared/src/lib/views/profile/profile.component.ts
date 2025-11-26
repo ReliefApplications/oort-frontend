@@ -222,7 +222,7 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
             (x: any) => x.userCanEdit
           )) {
             // Fetch reference data from attribute field
-            if (attribute.referenceData) {
+            if (attribute.referenceData || attribute.resource) {
               this.fetchAttributeChoices(attribute);
             }
           }
@@ -236,21 +236,11 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
    * @param attribute Current attribute
    */
   private fetchAttributeChoices(attribute: any): void {
-    this.refDataService
-      .loadReferenceData(attribute.referenceData)
-      .then((refData) => {
-        if (refData) {
-          this.refDataService.fetchItems(refData).then(({ items }) => {
-            const target = this.attributes.find(
-              (x) => x.value === attribute.value
-            );
-            if (target) {
-              target.textField = attribute.textField;
-              target.valueField = refData.valueField;
-              target.choices = items;
-            }
-          });
-        }
+    this.restService
+      .get(`/permissions/attributes/${attribute.value}/choices`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((choices: any) => {
+        attribute.choices = choices;
       });
   }
 }

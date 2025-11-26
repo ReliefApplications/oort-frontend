@@ -25,7 +25,7 @@ import { ConfirmService } from '../../../../services/confirm/confirm.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UIPageChangeEvent, handleTablePageEvent } from '@oort-front/ui';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
-import { ReferenceDataService } from '../../../../services/reference-data/reference-data.service';
+import { RestService } from '../../../../services/rest/rest.service';
 
 /** Default number of items per request for pagination */
 const DEFAULT_PAGE_SIZE = 10;
@@ -101,7 +101,7 @@ export class UserListComponent
    * @param confirmService Shared confirm service
    * @param router Angular router
    * @param route Angular activated route
-   * @param refDataService Shared reference data service
+   * @param restService Shared rest service
    */
   constructor(
     private apollo: Apollo,
@@ -110,7 +110,7 @@ export class UserListComponent
     private confirmService: ConfirmService,
     private router: Router,
     private route: ActivatedRoute,
-    private refDataService: ReferenceDataService
+    private restService: RestService
   ) {
     super();
   }
@@ -297,15 +297,12 @@ export class UserListComponent
    */
   private loadAttributeChoices(): void {
     for (const attribute of this.attributes) {
-      if (attribute.referenceData) {
-        this.refDataService
-          .loadReferenceData(attribute.referenceData)
-          .then((refData) => {
-            if (refData) {
-              this.refDataService.fetchItems(refData).then(({ items }) => {
-                this.attributeChoices.set(attribute.value, items);
-              });
-            }
+      if (attribute.referenceData || attribute.resource) {
+        this.restService
+          .get(`/permissions/attributes/${attribute.value}/choices`)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((choices: any) => {
+            this.attributeChoices.set(attribute.value, choices);
           });
       }
     }
@@ -322,9 +319,14 @@ export class UserListComponent
     if (!value) return '-';
 
     const choices = this.attributeChoices.get(attribute.value);
-    if (choices && attribute.referenceData) {
-      const item = choices.find((c) => c[attribute.valueField] === value);
-      return item ? item[attribute.textField] : value;
+    if (choices && (attribute.referenceData || attribute.resource)) {
+      if (attribute.type === 'array') {
+        const items = choices.filter((c) => value.includes(c.value));
+        return items.map((i) => i.text).join(', ');
+      } else {
+        const item = choices.find((c) => c.value === value);
+        return item ? item.text : value;
+      }
     }
 
     return value;

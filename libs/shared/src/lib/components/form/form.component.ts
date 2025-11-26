@@ -460,7 +460,6 @@ export class FormComponent
                     autoSave);
 
                 if (shouldClearSurvey) {
-                  console.log('should clear survey');
                   this.survey.clear(false, false);
                   if (data.addRecord) {
                     this.record = data.addRecord;

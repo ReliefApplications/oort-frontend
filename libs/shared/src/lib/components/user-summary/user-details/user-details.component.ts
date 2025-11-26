@@ -8,7 +8,8 @@ import { get } from 'lodash';
 import { User } from '../../../models/user.model';
 import { AppAbility } from '../../../services/auth/auth.service';
 import { RestService } from '../../../services/rest/rest.service';
-import { ReferenceDataService } from '../../../services/reference-data/reference-data.service';
+import { UnsubscribeComponent } from '../../utils/unsubscribe/unsubscribe.component';
+import { takeUntil } from 'rxjs';
 
 /**
  * User summary details component.
@@ -18,7 +19,10 @@ import { ReferenceDataService } from '../../../services/reference-data/reference
   templateUrl: './user-details.component.html',
   styleUrls: ['./user-details.component.scss'],
 })
-export class UserDetailsComponent implements OnInit {
+export class UserDetailsComponent
+  extends UnsubscribeComponent
+  implements OnInit
+{
   /** User */
   @Input() user!: User;
 
@@ -32,6 +36,12 @@ export class UserDetailsComponent implements OnInit {
     } else {
       this.form?.enable();
       this.form?.get('email')?.disable();
+      for (const attribute of this.attributes) {
+        // Disable attribute controls if user cannot edit
+        if (!attribute.userCanEdit) {
+          this.form.get('attributes')?.get(attribute.value)?.disable();
+        }
+      }
     }
   }
 
@@ -44,6 +54,8 @@ export class UserDetailsComponent implements OnInit {
     choices?: any[];
     valueField?: string;
     textField?: string;
+    type?: string;
+    userCanEdit?: boolean;
   }[] = [];
 
   /**
@@ -52,14 +64,14 @@ export class UserDetailsComponent implements OnInit {
    * @param fb Angular form builder
    * @param restService Shared rest service
    * @param ability user ability
-   * @param refDataService Reference data service
    */
   constructor(
     private fb: UntypedFormBuilder,
     private restService: RestService,
-    private ability: AppAbility,
-    private refDataService: ReferenceDataService
-  ) {}
+    private ability: AppAbility
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -85,40 +97,48 @@ export class UserDetailsComponent implements OnInit {
    * Get attributes from back-end, and set controls if any
    */
   private getAttributes(): void {
-    this.restService.get('/permissions/configuration').subscribe((config) => {
-      // can user edit attributes
-      const manualCreation = get(config, 'attributes.local', true);
-      this.restService
-        .get('/permissions/attributes')
-        .subscribe((attributes: any) => {
-          this.form.addControl(
-            'attributes',
-            this.fb.group(
-              attributes.reduce(
-                (group: any, attribute: any) => ({
-                  ...group,
-                  [attribute.value]: this.fb.control({
-                    value: get(
-                      this.user,
-                      `attributes.${attribute.value}`,
-                      null
-                    ),
-                    disabled: !manualCreation,
+    this.restService
+      .get('/permissions/configuration')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((config) => {
+        // can user edit attributes
+        const manualCreation = get(config, 'attributes.local', true);
+        this.restService
+          .get('/permissions/attributes')
+          .subscribe((attributes: any) => {
+            const visibleAttributes = attributes.filter(
+              (attr: any) => attr.userCanView !== false
+            );
+            this.form.addControl(
+              'attributes',
+              this.fb.group(
+                visibleAttributes.reduce(
+                  (group: any, attribute: any) => ({
+                    ...group,
+                    [attribute.value]: this.fb.control({
+                      value: get(
+                        this.user,
+                        `attributes.${attribute.value}`,
+                        null
+                      ),
+                      disabled: !manualCreation || !attribute.userCanEdit,
+                    }),
                   }),
-                }),
-                {}
+                  {}
+                )
               )
-            )
-          );
-          this.attributes = attributes;
-          for (const attribute of attributes) {
-            // Fetch reference data from attribute field
-            if (attribute.referenceData) {
-              this.fetchAttributeChoices(attribute);
+            );
+            this.attributes = visibleAttributes;
+            for (const attribute of attributes) {
+              // Fetch reference data from attribute field
+              if (attribute.referenceData || attribute.resource) {
+                this.fetchAttributeChoices(attribute);
+              }
+              attribute.userCanEdit =
+                manualCreation && attribute.userCanEdit !== false;
             }
-          }
-        });
-    });
+          });
+      });
   }
 
   /**
@@ -127,21 +147,11 @@ export class UserDetailsComponent implements OnInit {
    * @param attribute Current attribute
    */
   private fetchAttributeChoices(attribute: any): void {
-    this.refDataService
-      .loadReferenceData(attribute.referenceData)
-      .then((refData) => {
-        if (refData) {
-          this.refDataService.fetchItems(refData).then(({ items }) => {
-            const target = this.attributes.find(
-              (x) => x.value === attribute.value
-            );
-            if (target) {
-              target.textField = attribute.textField;
-              target.valueField = refData.valueField;
-              target.choices = items;
-            }
-          });
-        }
+    this.restService
+      .get(`/permissions/attributes/${attribute.value}/choices`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((choices: any) => {
+        attribute.choices = choices;
       });
   }
 }
