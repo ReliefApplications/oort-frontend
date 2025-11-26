@@ -48,9 +48,9 @@
           >
             <ui-select-option
               *ngFor="let choice of attribute.choices"
-              [value]="choice[attribute.valueField!]"
+              [value]="choice.value"
             >
-              {{ choice[attribute.textField!] }}
+              {{ choice.text }}
             </ui-select-option>
           </ui-select-menu>
         </div>
