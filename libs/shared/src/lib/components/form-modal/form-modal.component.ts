@@ -190,6 +190,8 @@ export class FormModalComponent
   public isSaveAndSubmitEnabled = false;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
+  /** Stringified version of last saved survey data for autosave comparison */
+  private lastSavedDataState?: string;
 
   /**
    * Modal to edit or add a record.
@@ -384,7 +386,8 @@ export class FormModalComponent
             !this.saving &&
             !this.autosaving &&
             this.survey.data &&
-            Object.keys(this.survey.data).length > 0
+            Object.keys(this.survey.data).length > 0 &&
+            JSON.stringify(this.survey.data) !== this.lastSavedDataState
           ) {
             this.formHelpersService.autoSaveRecord(
               this.onUpdate.bind(this, false, true),
@@ -454,6 +457,9 @@ export class FormModalComponent
         questionElement.appendChild(button);
       });
     }
+
+    // Initialize last saved state for autosave comparison
+    this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
 
     this.loading = false;
   }
@@ -855,6 +861,7 @@ export class FormModalComponent
           this.saving = false;
           this.submitting = false;
           this.latestSaveDate = new Date();
+          this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
