@@ -535,7 +535,7 @@ const replaceRecordFields = (
     const regex = /{{data\.(.*?)}}/g;
     const replacedHtml = formattedHtml.replace(regex, (match, p1) => {
       // Replace the key with correct value
-      return get(fieldsValue, p1, '');
+      return jsonpath.query(fieldsValue, p1).join(', ') || '';
     });
     formattedHtml = replacedHtml;
   }
