@@ -174,13 +174,11 @@ export const init = (
       element
     );
     const dropdownInstance: ComboBoxComponent = dropdown.instance;
-    const showReducedOptions =
-      (question as unknown as QuestionSelectBase).showReducedOptions === true;
-    dropdownInstance.virtual = showReducedOptions
-      ? {
-          itemHeight: 28,
-        }
-      : false;
+    const useVirtualization =
+      (question as unknown as QuestionSelectBase).useVirtualization === true;
+    if (useVirtualization) {
+      dropdownInstance.virtual = { itemHeight: 28 };
+    }
     dropdownInstance.valuePrimitive = Boolean(question.isPrimitiveValue);
     dropdownInstance.filterable = true;
     dropdownInstance.loading = true;
@@ -189,7 +187,7 @@ export const init = (
     dropdownInstance.valueField = 'value';
     dropdownInstance.popupSettings = {
       appendTo: 'component',
-      width: showReducedOptions
+      width: useVirtualization
         ? question.popupWidth
         : question.popupWidth || 'auto',
     };

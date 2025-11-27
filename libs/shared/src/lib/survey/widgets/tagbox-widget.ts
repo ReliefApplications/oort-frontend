@@ -253,13 +253,13 @@ export const init = (
       element
     );
     const tagboxInstance: MultiSelectComponent = tagbox.instance;
-    const showReducedOptions =
-      (question as unknown as any).showReducedOptions === true;
-    tagboxInstance.virtual = showReducedOptions
-      ? {
-          itemHeight: 28,
-        }
-      : false;
+    const useVirtualization =
+      (question as unknown as any).useVirtualization === true;
+    if (useVirtualization) {
+      tagboxInstance.virtual = {
+        itemHeight: 28,
+      };
+    }
     tagboxInstance.valuePrimitive = Boolean(question.isPrimitiveValue);
     tagboxInstance.filterable = true;
     tagboxInstance.loading = true;
@@ -268,7 +268,7 @@ export const init = (
     tagboxInstance.valueField = 'value';
     tagboxInstance.popupSettings = {
       appendTo: 'component',
-      width: showReducedOptions
+      width: useVirtualization
         ? question.popupWidth
         : question.popupWidth || 'auto',
     };

@@ -37,7 +37,7 @@ export const init = (environment: any): void => {
     isRequired: true,
   });
 
-  const showReducedOptionsDropdown = (obj: Question | null): boolean => {
+  const useVirtualizationDropdown = (obj: Question | null): boolean => {
     if (!obj) {
       return false;
     }
@@ -45,7 +45,7 @@ export const init = (environment: any): void => {
     return type === 'dropdown' || type === 'tagbox';
   };
 
-  const showReducedOptionsMatrices = (obj: any): boolean => {
+  const useVirtualizationMatrices = (obj: any): boolean => {
     if (!obj) {
       return false;
     }
@@ -72,22 +72,22 @@ export const init = (environment: any): void => {
 
   // Controls Kendo virtualization for select-based questions (dropdown, tagbox, etc.)
   serializer.addProperty('selectbase', {
-    name: 'showReducedOptions:boolean',
+    name: 'useVirtualization:boolean',
     category: 'general',
     visibleIndex: 9,
     default: false,
     showMode: 'form',
-    visibleIf: (obj: Question | null) => showReducedOptionsDropdown(obj),
+    visibleIf: (obj: Question | null) => useVirtualizationDropdown(obj),
   });
 
   // Controls Kendo virtualization for dropdown / tagbox cells inside matrix questions
   serializer.addProperty('matrixdropdowncolumn', {
-    name: 'showReducedOptions:boolean',
+    name: 'useVirtualization:boolean',
     category: 'general',
     visibleIndex: 8,
     default: false,
     showMode: 'form',
-    visibleIf: (obj: any) => showReducedOptionsMatrices(obj),
+    visibleIf: (obj: any) => useVirtualizationMatrices(obj),
   });
 
   // Pass token before the request to fetch choices by URL if it's targeting SHARED API

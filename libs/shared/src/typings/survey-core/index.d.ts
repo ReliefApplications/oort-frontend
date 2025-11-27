@@ -27,7 +27,7 @@ declare module 'survey-core' {
     referenceDataFilterFilterCondition?: string;
     referenceDataFilterLocalField?: string;
     referenceDataChoicesLoaded?: boolean;
-    showReducedOptions?: boolean;
+    useVirtualization?: boolean;
   }
 
   // Augmenting MatrixDropdownColumn from survey-core
@@ -40,7 +40,7 @@ declare module 'survey-core' {
     referenceDataFilterFilterCondition?: string;
     referenceDataFilterLocalField?: string;
     referenceDataChoicesLoaded?: boolean;
-    showReducedOptions?: boolean;
+    useVirtualization?: boolean;
   }
 
   interface QuestionUsers extends QuestionCustomModel {
