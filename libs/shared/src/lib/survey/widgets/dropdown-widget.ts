@@ -174,9 +174,11 @@ export const init = (
       element
     );
     const dropdownInstance: ComboBoxComponent = dropdown.instance;
-    dropdownInstance.virtual = {
-      itemHeight: 28,
-    };
+    const useVirtualization =
+      (question as unknown as QuestionSelectBase).useVirtualization === true;
+    if (useVirtualization) {
+      dropdownInstance.virtual = { itemHeight: 28 };
+    }
     dropdownInstance.valuePrimitive = Boolean(question.isPrimitiveValue);
     dropdownInstance.filterable = true;
     dropdownInstance.loading = true;
@@ -185,7 +187,9 @@ export const init = (
     dropdownInstance.valueField = 'value';
     dropdownInstance.popupSettings = {
       appendTo: 'component',
-      width: question.popupWidth,
+      width: useVirtualization
+        ? question.popupWidth
+        : question.popupWidth || 'auto',
     };
     // Automatic display of dropdown panel on element focus by default
     dropdownInstance.wrapper.nativeElement
