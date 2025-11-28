@@ -116,7 +116,7 @@ export const transformSurveyData = (survey: SurveyModel) => {
   });
   if (survey.showPercentageProgressBar) {
     // isRequiredCpy is declared in the form builder service, and copy the isRequired property of the question we build when using skipRequiredValidation
-    // getVisibleQuestions is too slow. Now, we prevent _progress from becoming NaN, resulting in division by 0, or requiredQuestions.length from having sudden changes.
+    // By using getVisibleQuestions, _progress used only currently visible questions, its denominator changed as visibility changed, even when answers didn’t.
     const requiredQuestions = survey
       .getAllQuestions()
       .filter(
