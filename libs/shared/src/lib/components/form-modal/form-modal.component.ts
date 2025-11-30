@@ -325,8 +325,16 @@ export class FormModalComponent
    * Initializes the form
    */
   private initSurvey(): void {
+    // Override completedHtml in structure before creating survey
+    const formStructure = JSON.parse(this.form?.structure || '{}');
+    if (formStructure) {
+      formStructure.completedHtml = `<h3>${this.translate.instant(
+        'components.form.display.submissionMessage'
+      )}</h3>`;
+    }
+
     this.survey = this.formBuilderService.createSurvey(
-      this.form?.structure || '',
+      JSON.stringify(formStructure),
       this.form?.metadata,
       this.record,
       this.form
@@ -957,14 +965,8 @@ export class FormModalComponent
       );
     } else if (data) {
       if (this.submitting) {
-        // Form was submitted, show submission message & close dialog
-        this.snackBar.openSnackBar(
-          this.translate.instant('components.form.display.submissionMessage')
-        );
-        this.closeDialog({
-          template: this.form?.id,
-          data: data[responseType],
-        } as any);
+        // Form was submitted, show completion page instead of closing dialog
+        this.survey.showCompletedPage = true;
       } else {
         if (!this.autosaving) {
           // Form is not in autosave mode

@@ -890,7 +890,7 @@
       },
       "display": {
         "cancelMessage": "Operation canceled",
-        "submissionMessage": "The form has successfully been submitted."
+        "submissionMessage": "Thank you for submitting"
       },
       "draftRecords": {
         "buttonLoad": "Load draft record",
