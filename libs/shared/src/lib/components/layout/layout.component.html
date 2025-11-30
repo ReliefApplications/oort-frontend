@@ -72,7 +72,7 @@
         {{ 'components.preferences.title' | translate }}
       </button>
     </ng-container>
-    <ng-container *ngIf="applications && applications.length > 0">
+    <ng-container *ngIf="applications && applications.length > 0 && environment.module === 'backoffice'">
       <ui-divider class="py-1"></ui-divider>
       <button
         uiMenuItem
