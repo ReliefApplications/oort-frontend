@@ -1,15 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import {
   Resource,
-  ResourcesQueryResponse,
   UnsubscribeComponent,
-  updateQueryUniqueValues,
   CustomNotification,
   ApplicationService,
   ResourceQueryResponse,
   cronValidator,
   ConfirmService,
   FiltersService,
+  RestService,
 } from '@oort-front/shared';
 import {
   animate,
@@ -18,33 +17,18 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
-import { Apollo, QueryRef } from 'apollo-angular';
-import {
-  handleTablePageEvent,
-  SnackbarService,
-  UIPageChangeEvent,
-} from '@oort-front/ui';
-import { takeUntil } from 'rxjs';
-import { GET_RESOURCE, GET_RESOURCES } from './graphql/queries';
+import { Apollo } from 'apollo-angular';
+import { SnackbarService, UIPageChangeEvent } from '@oort-front/ui';
+import { firstValueFrom, takeUntil } from 'rxjs';
+import { GET_RESOURCE } from './graphql/queries';
 import { Triggers, TriggersType } from './triggers.types';
-import { clone, get, isEqual, isNil, omit } from 'lodash';
+import { get, omit } from 'lodash';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
 import { TranslateService } from '@ngx-translate/core';
 
 /** Default page size  */
 const DEFAULT_PAGE_SIZE = 10;
-
-/** Interface of table elements */
-interface TableTriggerResourceElement {
-  resource: Resource;
-  triggers: {
-    name: TriggersType;
-    icon: string;
-    variant: string;
-    tooltip: string;
-  }[];
-}
 
 /**
  * Triggers page component for application.
@@ -65,15 +49,8 @@ interface TableTriggerResourceElement {
   ],
 })
 export class TriggersComponent extends UnsubscribeComponent implements OnInit {
-  /** TABLE ELEMENTS */
-  /** Resources query */
-  private resourcesQuery!: QueryRef<ResourcesQueryResponse>;
-  /** Displayed columns */
-  public displayedColumns: string[] = ['name', 'info'];
-  /** Resources */
-  public resources = new Array<TableTriggerResourceElement>();
-  /** Cached resources */
-  public cachedResources: Resource[] = [];
+  /** Triggers list */
+  public triggers: CustomNotification[] = [];
 
   /** FILTERING */
   /** Filter */
@@ -84,8 +61,6 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
   /** SINGLE RESOURCE */
   /** Updating status */
   public updating = false;
-  /** Opened resource */
-  public openedResource?: Resource;
 
   /** TRIGGERS */
   /** Trigger form group */
@@ -101,11 +76,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
     length: 0,
-    endCursor: '',
   };
 
   /** Current application id */
   public applicationId!: string;
+  /** Resource cache */
+  private resourcesCache = new Map<string, Resource>();
 
   /**
    * Triggers page component for application.
@@ -118,6 +94,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
    * @param translate Angular translate service
    * @param confirmService Shared confirmation service
    * @param filtersService Shared filters service
+   * @param restService REST service
    */
   constructor(
     private apollo: Apollo,
@@ -127,42 +104,17 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
     public dialog: Dialog,
     private translate: TranslateService,
     private confirmService: ConfirmService,
-    private filtersService: FiltersService
+    private filtersService: FiltersService,
+    private restService: RestService
   ) {
     super();
     this.applicationId =
       this.applicationService.application.getValue()?.id ?? '';
   }
 
-  /** Load the resources. */
+  /** Load the triggers. */
   ngOnInit(): void {
-    this.resourcesQuery = this.apollo.watchQuery<ResourcesQueryResponse>({
-      query: GET_RESOURCES,
-      variables: {
-        first: DEFAULT_PAGE_SIZE,
-        sortField: 'name',
-        sortOrder: 'asc',
-        application: this.applicationId,
-      },
-    });
-
-    this.resourcesQuery.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(({ data, loading }) => {
-        this.updateValues(data, loading);
-      });
-  }
-
-  /**
-   * Custom TrackByFunction to compute the identity of items in an iterable, so when
-   * updating fields the scroll don't get back to the beginning of the table.
-   *
-   * @param index index of the item in the table
-   * @param item item table
-   * @returns unique value for all unique inputs
-   */
-  public getUniqueIdentifier(index: number, item: any): any {
-    return item.resource.id;
+    this.fetchTriggers();
   }
 
   /**
@@ -173,7 +125,8 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
   public onFilter(filter: any): void {
     this.filterLoading = true;
     this.filter = filter;
-    this.fetchResources(true);
+    this.pageInfo.pageIndex = 0;
+    this.fetchTriggers();
   }
 
   /**
@@ -182,16 +135,9 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
    * @param e page event.
    */
   public onPage(e: UIPageChangeEvent): void {
-    const cachedData = handleTablePageEvent(
-      e,
-      this.pageInfo,
-      this.cachedResources
-    );
-    if (cachedData && cachedData.length === this.pageInfo.pageSize) {
-      this.resources = this.setTableElements(cachedData);
-    } else {
-      this.fetchResources();
-    }
+    this.pageInfo.pageIndex = e.pageIndex;
+    this.pageInfo.pageSize = e.pageSize;
+    this.fetchTriggers();
   }
 
   /**
@@ -215,25 +161,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
         this.applicationService.deleteCustomNotification(
           trigger.id as string,
           () => {
-            const index = this.openedResource?.customNotifications?.findIndex(
-              (cn: CustomNotification) => isEqual(cn.id, trigger.id)
+            this.snackBar.openSnackBar(
+              this.translate.instant('common.notifications.objectDeleted', {
+                value: this.translate.instant('common.trigger.one'),
+              })
             );
-            if (!isNil(index) && index !== -1) {
-              const customNotifications = clone(
-                this.openedResource?.customNotifications
-              ) as CustomNotification[];
-              customNotifications.splice(index, 1);
-
-              this.refreshResourcesOnCustomNotificationUpdate(
-                customNotifications
-              );
-
-              this.snackBar.openSnackBar(
-                this.translate.instant('common.notifications.objectDeleted', {
-                  value: this.translate.instant('common.trigger.one'),
-                })
-              );
-            }
+            this.fetchTriggers();
           }
         );
       }
@@ -250,7 +183,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
     trigger: CustomNotification,
     triggerType: TriggersType
   ): Promise<void> {
-    const triggerFormGroup = await this.getTriggerForm(trigger, triggerType);
+    const resource = await this.getResource(trigger.resource as string);
+    const triggerFormGroup = await this.getTriggerForm(
+      trigger,
+      triggerType,
+      resource.id as string
+    );
     const { ManageTriggerModalComponent } = await import(
       './components/manage-trigger-modal/manage-trigger-modal.component'
     );
@@ -259,7 +197,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
         trigger,
         triggerType,
         formGroup: triggerFormGroup,
-        resource: this.openedResource,
+        resource,
       },
     });
 
@@ -275,33 +213,11 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
                 value: '',
               })
             );
-            this.handleTriggerEdition({ ...value, id: trigger.id });
+            this.fetchTriggers();
           }
         );
       }
     });
-  }
-
-  /**
-   * Handle trigger edition
-   *
-   * @param trigger trigger object updated
-   */
-  public handleTriggerEdition(trigger: CustomNotification): void {
-    const index = this.openedResource?.customNotifications?.findIndex(
-      (cn: CustomNotification) => isEqual(cn.id, trigger.id)
-    );
-    if (!isNil(index) && index !== -1) {
-      const customNotifications = clone(
-        this.openedResource?.customNotifications
-      ) as CustomNotification[];
-      const updatedTrigger = {
-        ...customNotifications[index],
-        ...trigger,
-      };
-      customNotifications[index] = updatedTrigger;
-      this.refreshResourcesOnCustomNotificationUpdate(customNotifications);
-    }
   }
 
   /**
@@ -314,7 +230,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
     trigger: CustomNotification,
     triggerType: TriggersType
   ): Promise<void> {
-    const triggerFormGroup = await this.getTriggerForm(trigger, triggerType);
+    const resource = await this.getResource(trigger.resource as string);
+    const triggerFormGroup = await this.getTriggerForm(
+      trigger,
+      triggerType,
+      resource.id as string
+    );
     const { ManageTriggerModalComponent } = await import(
       './components/manage-trigger-modal/manage-trigger-modal.component'
     );
@@ -323,7 +244,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
         trigger: omit(trigger, 'id'),
         triggerType,
         formGroup: triggerFormGroup,
-        resource: this.openedResource,
+        resource,
       },
     });
 
@@ -333,19 +254,6 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
           value,
           (newTrigger: CustomNotification) => {
             if (newTrigger) {
-              const newValue = {
-                ...value,
-                ...newTrigger,
-                filter: trigger.filter,
-              };
-              const customNotifications = (
-                (this.openedResource?.customNotifications || []).concat([
-                  newValue,
-                ]) as CustomNotification[]
-              ).sort((a, b) =>
-                (a.name ?? '').localeCompare(b.name ?? '')
-              ) as CustomNotification[];
-
               if (trigger.filter) {
                 // Avoid duplicating filter if empty
                 this.applicationService.editCustomNotificationFilters(
@@ -353,10 +261,6 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
                   trigger.filter
                 );
               }
-
-              this.refreshResourcesOnCustomNotificationUpdate(
-                customNotifications
-              );
 
               this.snackBar.openSnackBar(
                 this.translate.instant(
@@ -367,6 +271,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
                   }
                 )
               );
+              this.fetchTriggers();
             }
           }
         );
@@ -380,7 +285,42 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
    * @param triggerType Trigger type
    */
   public async onCreateTrigger(triggerType: TriggersType): Promise<void> {
-    const triggerFormGroup = await this.getTriggerForm(null, triggerType);
+    const { SelectTriggerResourceModalComponent } = await import(
+      './components/select-trigger-resource-modal/select-trigger-resource-modal.component'
+    );
+    const selectDialogRef = this.dialog.open(
+      SelectTriggerResourceModalComponent
+    );
+
+    selectDialogRef.closed
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((resourceId) => {
+        void this.handleCreateTrigger(
+          triggerType,
+          resourceId as string | undefined
+        );
+      });
+  }
+
+  /**
+   * Handle trigger creation after selecting a resource.
+   *
+   * @param triggerType Trigger type
+   * @param resourceId Selected resource id
+   */
+  private async handleCreateTrigger(
+    triggerType: TriggersType,
+    resourceId?: string
+  ): Promise<void> {
+    if (!resourceId) {
+      return;
+    }
+    const resource = await this.getResource(resourceId);
+    const triggerFormGroup = await this.getTriggerForm(
+      null,
+      triggerType,
+      resource.id as string
+    );
     const { ManageTriggerModalComponent } = await import(
       './components/manage-trigger-modal/manage-trigger-modal.component'
     );
@@ -388,7 +328,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
       data: {
         triggerType,
         formGroup: triggerFormGroup,
-        resource: this.openedResource,
+        resource,
       },
     });
 
@@ -398,29 +338,13 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
           value,
           (newTrigger: any) => {
             if (newTrigger) {
-              const newValue = {
-                ...value,
-                ...newTrigger,
-              };
-
-              const customNotifications = (
-                (this.openedResource?.customNotifications || []).concat([
-                  newValue,
-                ]) as CustomNotification[]
-              ).sort((a, b) =>
-                (a.name ?? '').localeCompare(b.name ?? '')
-              ) as CustomNotification[];
-
-              this.refreshResourcesOnCustomNotificationUpdate(
-                customNotifications
-              );
-
               this.snackBar.openSnackBar(
                 this.translate.instant('common.notifications.objectCreated', {
                   type: this.translate.instant('common.trigger.one'),
                   value: '',
                 })
               );
+              this.fetchTriggers();
             }
           }
         );
@@ -429,43 +353,17 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
   }
 
   /**
-   * Toggles the accordion for the clicked resource and fetches its forms
-   *
-   * @param resource The resource element for the resource to be toggled
-   */
-  public toggleResource(resource: Resource): void {
-    if (resource.id === this.openedResource?.id) {
-      this.openedResource = undefined;
-    } else {
-      this.updating = true;
-      this.apollo
-        .query<ResourceQueryResponse>({
-          query: GET_RESOURCE,
-          variables: {
-            id: resource.id,
-            application: this.applicationId,
-          },
-        })
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(({ data }) => {
-          if (data.resource) {
-            this.openedResource = data.resource;
-          }
-          this.updating = false;
-        });
-    }
-  }
-
-  /**
    * Build trigger reactive form group.
    *
    * @param trigger Selected trigger, if any
    * @param triggerType Trigger type
+   * @param resourceId Resource id
    * @returns Notification form group
    */
   private getTriggerForm(
     trigger: CustomNotification | null,
-    triggerType: TriggersType
+    triggerType: TriggersType,
+    resourceId?: string
   ): Promise<FormGroup> {
     return new Promise((resolve) => {
       const formGroup = this.fb.group({
@@ -481,7 +379,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
         ],
         resource: [
           {
-            value: get(trigger, 'resource', this.openedResource?.id),
+            value: resourceId ?? get(trigger, 'resource', null),
             disabled: true,
           },
           Validators.required,
@@ -521,191 +419,130 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
   }
 
   /**
-   * Serialize single table element from resource
-   *
-   * @param resource resource to serialize
-   * @returns serialized element
+   * Fetch triggers list from REST API.
    */
-  private setTableElement(resource: Resource): TableTriggerResourceElement {
-    return {
-      resource,
-      triggers: [
-        Triggers.cronBased,
-        Triggers.onRecordCreation,
-        Triggers.onRecordUpdate,
-      ].map((trigger) => ({
-        name: trigger,
-        icon: this.getIcon(trigger),
-        variant: this.getVariant(resource, trigger),
-        tooltip: this.getTooltip(resource, trigger),
-      })),
-    };
-  }
-
-  /**
-   * Gets the correspondent icon for a given trigger
-   *
-   * @param trigger The trigger name
-   * @returns the name of the icon to be displayed
-   */
-  private getIcon(trigger: Triggers) {
-    switch (trigger) {
-      case Triggers.cronBased:
-        return 'schedule_send';
-      case Triggers.onRecordCreation:
-        return 'add_circle';
-      case Triggers.onRecordUpdate:
-        return 'edit';
+  private fetchTriggers(): void {
+    if (!this.applicationId) {
+      this.triggers = [];
+      this.loading = false;
+      this.filterLoading = false;
+      return;
     }
-  }
 
-  /**
-   * Gets the correspondent variant for a given trigger
-   *
-   * @param resource A resource
-   * @param trigger The trigger name
-   * @returns the name of the variant to be displayed
-   */
-  private getVariant(resource: Resource, trigger: Triggers) {
-    const fieldName = trigger === Triggers.cronBased ? 'schedule' : trigger;
-    const hasTrigger =
-      resource.customNotifications?.some(
-        (notification: CustomNotification) => notification[fieldName]
-      ) ?? false;
-    switch (hasTrigger) {
-      case true:
-        return 'primary';
-      case false:
-        return 'grey';
-    }
-  }
-
-  /**
-   * Gets the correspondent tooltip for a given trigger
-   *
-   * @param resource A resource
-   * @param trigger The trigger name
-   * @returns the tooltip to be displayed
-   */
-  private getTooltip(resource: Resource, trigger: Triggers) {
-    const fieldName = trigger === Triggers.cronBased ? 'schedule' : trigger;
-    const hasTrigger =
-      resource.customNotifications?.some(
-        (notification: CustomNotification) => notification[fieldName]
-      ) ?? false;
-    switch (hasTrigger) {
-      case true: {
-        switch (trigger) {
-          case Triggers.cronBased:
-            return 'components.triggers.tooltip.withCronBasedTrigger';
-          case Triggers.onRecordCreation:
-            return 'components.triggers.tooltip.withOnRecordCreationTrigger';
-          case Triggers.onRecordUpdate:
-            return 'components.triggers.tooltip.withOnRecordUpdateTrigger';
-        }
-      }
-      // eslint-disable-next-line no-fallthrough
-      case false: {
-        switch (trigger) {
-          case Triggers.cronBased:
-            return 'components.triggers.tooltip.withoutCronBasedTrigger';
-          case Triggers.onRecordCreation:
-            return 'components.triggers.tooltip.withoutOnRecordCreationTrigger';
-          case Triggers.onRecordUpdate:
-            return 'components.triggers.tooltip.withoutOnRecordUpdateTrigger';
-        }
-      }
-    }
-  }
-
-  /**
-   * Serialize list of table elements from resource
-   *
-   * @param resources resources to serialize
-   * @returns serialized elements
-   */
-  private setTableElements(
-    resources: Resource[]
-  ): TableTriggerResourceElement[] {
-    return resources.map((x: Resource) => this.setTableElement(x));
-  }
-
-  /**
-   *  Update resource data value
-   *
-   * @param data query response data
-   * @param loading loading status
-   */
-  private updateValues(data: ResourcesQueryResponse, loading: boolean) {
-    const mappedValues = data.resources?.edges?.map((x) => x.node);
-    this.cachedResources = updateQueryUniqueValues(
-      this.cachedResources,
-      mappedValues
-    );
-    this.resources = this.setTableElements(
-      this.cachedResources.slice(
-        this.pageInfo.pageSize * this.pageInfo.pageIndex,
-        this.pageInfo.pageSize * (this.pageInfo.pageIndex + 1)
-      )
-    );
-    this.pageInfo.length = data.resources.totalCount;
-    this.pageInfo.endCursor = data.resources.pageInfo.endCursor;
-    this.loading = loading;
-    this.updating = loading;
-    this.filterLoading = false;
-  }
-
-  /**
-   * Update resources query.
-   *
-   * @param refetch erase previous query results
-   */
-  private fetchResources(refetch?: boolean): void {
+    this.loading = true;
     this.updating = true;
-    if (refetch) {
-      this.cachedResources = [];
-      this.pageInfo.pageIndex = 0;
-      this.resourcesQuery.refetch({
-        first: this.pageInfo.pageSize,
-        filter: this.filter,
-        afterCursor: null,
-      });
-    } else {
-      this.loading = true;
-      this.resourcesQuery
-        .fetchMore({
-          variables: {
-            first: this.pageInfo.pageSize,
-            filter: this.filter,
-            afterCursor: this.pageInfo.endCursor,
-          },
-        })
-        .then((results: any) =>
-          this.updateValues(results.data, results.loading)
-        );
+
+    const params: any = {
+      application: this.applicationId,
+      page: this.pageInfo.pageIndex,
+      pageSize: this.pageInfo.pageSize,
+    };
+
+    const filters = this.filter?.filters || [];
+    const nameFilter = filters.find((f: any) => f.field === 'name');
+    const startDateFilter = filters.find(
+      (f: any) => f.field === 'createdAt' && f.operator === 'gte'
+    );
+    const endDateFilter = filters.find(
+      (f: any) => f.field === 'createdAt' && f.operator === 'lte'
+    );
+
+    if (nameFilter?.value) {
+      params.search = nameFilter.value;
     }
+    if (startDateFilter?.value) {
+      params.startDate =
+        startDateFilter.value instanceof Date
+          ? startDateFilter.value.toISOString()
+          : startDateFilter.value;
+    }
+    if (endDateFilter?.value) {
+      params.endDate =
+        endDateFilter.value instanceof Date
+          ? endDateFilter.value.toISOString()
+          : endDateFilter.value;
+    }
+
+    this.restService
+      .get('/notifications/triggers', { params })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.triggers = res.items || [];
+          this.pageInfo.length = res.totalCount || 0;
+          this.loading = false;
+          this.updating = false;
+          this.filterLoading = false;
+        },
+        error: (err) => {
+          this.triggers = [];
+          this.loading = false;
+          this.updating = false;
+          this.filterLoading = false;
+          this.snackBar.openSnackBar(err.message, { error: true });
+        },
+      });
   }
 
   /**
-   * Set the triggers lists by type of the current opened resource
+   * Fetch resource details for a given id, using a local cache.
    *
-   * @param customNotifications updated custom notifications list of the opened resource
+   * @param resourceId resource id
+   * @returns resource
    */
-  private refreshResourcesOnCustomNotificationUpdate(
-    customNotifications: CustomNotification[]
-  ): void {
-    this.openedResource = {
-      ...this.openedResource,
-      customNotifications,
-    };
-    const tableElements = clone(this.resources);
-    const resourceIndex = tableElements.findIndex((element) =>
-      isEqual(element.resource.id, this.openedResource?.id)
-    );
-    if (!isNil(resourceIndex) && resourceIndex !== -1) {
-      const updatedElement = this.setTableElement(this.openedResource);
-      tableElements[resourceIndex] = updatedElement;
-      this.resources = tableElements;
+  private async getResource(resourceId: string): Promise<Resource> {
+    const cached = this.resourcesCache.get(resourceId);
+    if (cached) {
+      return cached;
     }
+    const result = await firstValueFrom(
+      this.apollo.query<ResourceQueryResponse>({
+        query: GET_RESOURCE,
+        variables: {
+          id: resourceId,
+          application: this.applicationId,
+        },
+      })
+    );
+    const resource = result.data.resource;
+    this.resourcesCache.set(resourceId, resource);
+    return resource;
+  }
+
+  /**
+   * Open filter modal for the selected trigger.
+   *
+   * @param trigger Selected trigger
+   */
+  public async onOpenFilter(trigger: CustomNotification): Promise<void> {
+    const resource = await this.getResource(trigger.resource as string);
+    const { TriggersResourceFiltersComponent } = await import(
+      './components/triggers-resource-filters/triggers-resource-filters.component'
+    );
+    const dialogRef = this.dialog.open(TriggersResourceFiltersComponent, {
+      data: {
+        trigger,
+        resource,
+      },
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      if (value) {
+        this.updating = true;
+        this.applicationService.editCustomNotificationFilters(
+          trigger.id ?? '',
+          value,
+          () => {
+            this.updating = false;
+            this.snackBar.openSnackBar(
+              this.translate.instant('common.notifications.objectUpdated', {
+                type: this.translate.instant('common.trigger.one'),
+                value: '',
+              })
+            );
+            this.fetchTriggers();
+          }
+        );
+      }
+    });
   }
 }

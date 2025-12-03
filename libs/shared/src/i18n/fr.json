@@ -1451,7 +1451,7 @@
     },
     "triggers": {
       "addTrigger": "Ajouter un déclencheur",
-      "confirmDelete": "Confirmez-vous la suppression du déclencheur {{name}} ?",
+      "confirmDelete": "Confirmez-vous la suppression du déclencheur {{name}} ?",
       "createTrigger": "Nouveau {{type}} déclencheur",
       "cronBased": "Basé sur Cron",
       "customNotificationRecipientsType": {
@@ -1481,7 +1481,8 @@
         "withoutCronBasedTrigger": "Ressource sans aucun déclencheur basé sur cron",
         "withoutOnRecordCreationTrigger": "Ressource sans aucun déclencheur lors de la création d'un enregistrement",
         "withoutOnRecordUpdateTrigger": "Ressource sans aucun déclencheur lors de la mise à jour de l'enregistrement"
-      }
+      },
+      "trigger": "Déclencheur"
     },
     "user": {
       "delete": {

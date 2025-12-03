@@ -7,16 +7,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { triggers, Triggers, TriggersType } from '../../triggers.types';
-import {
-  ApplicationService,
-  CustomNotification,
-  Resource,
-  UnsubscribeComponent,
-} from '@oort-front/shared';
-import { Dialog } from '@angular/cdk/dialog';
-import { takeUntil } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { SnackbarService } from '@oort-front/ui';
+import { CustomNotification } from '@oort-front/shared';
 
 type TriggerTableElement = {
   name: string;
@@ -32,18 +23,13 @@ type TriggerTableElement = {
   templateUrl: './triggers-list.component.html',
   styleUrls: ['./triggers-list.component.scss'],
 })
-export class TriggersListComponent
-  extends UnsubscribeComponent
-  implements OnChanges
-{
+export class TriggersListComponent implements OnChanges {
   /** Triggers list */
   @Input() triggersList: CustomNotification[] = [];
   /** Disabled flag */
   @Input() disabled = false;
   /** Current application id */
   @Input() applicationId!: string;
-  /** Trigger resource */
-  @Input() openedResource?: Resource;
 
   /** Event emitter for edit trigger */
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
@@ -65,37 +51,23 @@ export class TriggersListComponent
   /** Event emitter for add new trigger */
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
   @Output() onAdd = new EventEmitter<{ type: TriggersType }>();
-  /** I updating data */
-  @Output() updating = new EventEmitter<boolean>();
-  /** Event emitter for handle trigger objet updated */
-  // eslint-disable-next-line @angular-eslint/no-output-on-prefix
-  @Output() edited = new EventEmitter<{
-    trigger: CustomNotification;
-  }>();
+  /** Event emitter for opening filter modal */
+  @Output() openFilter = new EventEmitter<CustomNotification>();
 
   /** Triggers */
   public triggers = new Array<TriggerTableElement>();
   /** Triggers types */
   public TriggersTypes = triggers;
   /** Displayed columns */
-  public displayedColumns: string[] = ['name', 'type', 'actions'];
-
-  /**
-   * Triggers list component.
-   *
-   * @param dialog Dialog service
-   * @param applicationService Shared application service
-   * @param translate Angular translate service
-   * @param snackBar shared snackbar service
-   */
-  constructor(
-    public dialog: Dialog,
-    public applicationService: ApplicationService,
-    private translate: TranslateService,
-    private snackBar: SnackbarService
-  ) {
-    super();
-  }
+  public displayedColumns: string[] = [
+    'name',
+    'type',
+    'trigger',
+    'lastExecution',
+    'actions',
+  ];
+  /** Triggers enum */
+  public TriggersEnum = Triggers;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.triggersList) {
@@ -108,35 +80,8 @@ export class TriggersListComponent
    *
    * @param trigger Selected trigger
    */
-  public async onOpenFilter(trigger: CustomNotification): Promise<void> {
-    const { TriggersResourceFiltersComponent } = await import(
-      '../triggers-resource-filters/triggers-resource-filters.component'
-    );
-    const dialogRef = this.dialog.open(TriggersResourceFiltersComponent, {
-      data: {
-        trigger,
-        resource: this.openedResource,
-      },
-    });
-    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value) => {
-      if (value) {
-        this.updating.emit(true);
-        this.applicationService.editCustomNotificationFilters(
-          trigger.id ?? '',
-          value,
-          (value) => {
-            this.edited.emit({ trigger: value.editCustomNotification });
-            this.updating.emit(false);
-            this.snackBar.openSnackBar(
-              this.translate.instant('common.notifications.objectUpdated', {
-                type: this.translate.instant('common.trigger.one'),
-                value: '',
-              })
-            );
-          }
-        );
-      }
-    });
+  public onOpenFilter(trigger: CustomNotification): void {
+    this.openFilter.emit(trigger);
   }
 
   /**

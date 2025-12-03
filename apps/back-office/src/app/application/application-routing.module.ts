@@ -162,14 +162,6 @@ const routes: Routes = [
             // canActivate: [PermissionGuard]
           },
           {
-            path: 'notifications',
-            loadChildren: () =>
-              import('@oort-front/shared').then(
-                (m) => m.ApplicationNotificationsViewModule
-              ),
-            // canActivate: [PermissionGuard]
-          },
-          {
             path: 'archive',
             loadChildren: () =>
               import('./pages/archive/archive.module').then(

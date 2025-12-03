@@ -55,7 +55,7 @@
           </td>
         </ng-container>
 
-        <!-- Type column -->
+        <!-- Notification type column -->
         <ng-container cdkColumnDef="type">
           <th uiCellHeader *cdkHeaderCellDef scope="col">
             {{ 'common.type.one' | translate }}
@@ -65,7 +65,59 @@
             *cdkCellDef="let element"
             class="!text-gray-900 !font-medium"
           >
-            {{ 'components.triggers.' + element.type | translate }}
+            <ui-icon
+              [icon]="
+                element.trigger.notificationType === 'email'
+                  ? 'email'
+                  : 'notifications'
+              "
+              variant="grey"
+              [uiTooltip]="
+                element.trigger.notificationType === 'email'
+                  ? ('common.email.one' | translate)
+                  : ('components.triggers.notification' | translate)
+              "
+            >
+            </ui-icon>
+          </td>
+        </ng-container>
+
+        <!-- Trigger type column -->
+        <ng-container cdkColumnDef="trigger">
+          <th uiCellHeader *cdkHeaderCellDef scope="col">
+            {{ 'components.triggers.trigger' | translate }}
+          </th>
+          <td uiCell *cdkCellDef="let element" class="!text-gray-900">
+            <ui-icon
+              [icon]="
+                element.type === TriggersEnum.cronBased
+                  ? 'schedule_send'
+                  : element.type === TriggersEnum.onRecordCreation
+                  ? 'add_circle'
+                  : 'edit'
+              "
+              variant="grey"
+              [uiTooltip]="
+                ('components.triggers.' + element.type) | translate
+              "
+            >
+            </ui-icon>
+          </td>
+        </ng-container>
+
+        <!-- Last execution column -->
+        <ng-container cdkColumnDef="lastExecution">
+          <th uiCellHeader *cdkHeaderCellDef scope="col">
+            {{ 'models.customNotification.lastExecution' | translate }}
+          </th>
+          <td uiCell *cdkCellDef="let element">
+            <span *ngIf="element.trigger.lastExecution; else noExecution">
+              {{
+                element.trigger.lastExecution
+                  | date: 'short'
+              }}
+            </span>
+            <ng-template #noExecution>-</ng-template>
           </td>
         </ng-container>
 
