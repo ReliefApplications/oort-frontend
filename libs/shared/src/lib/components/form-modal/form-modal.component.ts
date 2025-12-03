@@ -18,7 +18,6 @@ import {
   DialogCloseOptions,
   DialogRef,
 } from '@angular/cdk/dialog';
-import { QuestionPanelDynamicModel } from 'survey-core';
 import {
   GET_RECORD_BY_ID,
   GET_FORM_BY_ID,
@@ -608,75 +607,19 @@ export class FormModalComponent
    * Calls the complete method of the survey if no error (original submit for backward compatibility)
    */
   public submit(): void {
-    this.saving = true;
-
-    // Force render all dynamic panels to ensure nested questions are validated
-    this.survey.getAllQuestions().forEach((question) => {
-      if (question.getType() === 'paneldynamic') {
-        const panel = question as QuestionPanelDynamicModel;
-        // Temporarily expand all panels to trigger rendering
-        const wasCollapsed = panel.panels?.map((p: any) => p.isCollapsed) || [];
-        panel.panels?.forEach((p: any) => {
-          if (p.isCollapsed) {
-            p.expand();
-          }
-        });
-        // Restore collapsed state after validation
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            panel.panels?.forEach((p: any, index: number) => {
-              if (wasCollapsed[index]) {
-                p.collapse();
-              }
-            });
-          });
-        });
-      }
-    });
-
-    // Wait for browser to render before validating
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        // Validate all pages and questions
-        this.survey.validate(true, true);
-
-        if (!this.survey?.hasErrors()) {
-          if (this.survey.enableSaveAndSubmit) {
-            this.submitting = true;
-            const dialogRef = this.confirmService.openConfirmModal({
-              title: this.translate.instant(
-                'components.form.saveAndSubmit.title'
-              ),
-              content: this.translate.instant(
-                'components.form.saveAndSubmit.message'
-              ),
-              confirmText: this.translate.instant(
-                'components.confirmModal.confirm'
-              ),
-              confirmVariant: 'primary',
-            });
-            dialogRef.closed
-              .pipe(takeUntil(this.destroy$))
-              .subscribe((confirmed: any) => {
-                if (confirmed) {
-                  this.survey.completeLastPage();
-                } else {
-                  this.saving = false;
-                  this.submitting = false;
-                }
-              });
-          } else {
-            this.survey.completeLastPage();
-          }
-        } else {
-          this.snackBar.openSnackBar(
-            this.translate.instant('models.form.notifications.savingFailed'),
-            { error: true }
-          );
-          this.saving = false;
-        }
-      });
-    });
+    this.formHelpersService.validateAndSubmit(
+      this.survey,
+      {
+        // Pass setters for your booleans
+        setSaving: (val) => {
+          this.saving = val;
+        },
+        setSubmitting: (val) => {
+          this.submitting = val;
+        },
+      },
+      this.destroy$
+    );
   }
 
   /**
