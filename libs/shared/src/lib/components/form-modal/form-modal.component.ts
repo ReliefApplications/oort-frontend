@@ -332,6 +332,10 @@ export class FormModalComponent
       this.record,
       this.form
     );
+    // Override completedHtml in structure
+    this.survey.completedHtml = `<h3>${this.translate.instant(
+      'components.form.display.submissionMessage'
+    )}</h3>`;
     // After the survey is created we add common callback to survey events
     this.formBuilderService.addEventsCallBacksToSurvey(
       this.survey,
