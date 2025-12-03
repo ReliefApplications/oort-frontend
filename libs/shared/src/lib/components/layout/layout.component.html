@@ -63,16 +63,19 @@
   <!-- Notification button -->
   <shared-notification-button></shared-notification-button>
   <ui-menu #accountMenu>
+    <!-- Open user profile -->
     <a uiMenuItem [routerLink]="[profileRoute]">
       {{ 'pages.profile.title' | translate }}
     </a>
+    <!-- User preferences -->
     <ng-container *ngIf="showPreferences">
       <ui-divider class="py-1"></ui-divider>
       <button uiMenuItem (click)="onOpenPreferences()">
         {{ 'components.preferences.title' | translate }}
       </button>
     </ng-container>
-    <ng-container *ngIf="applications && applications.length > 0">
+    <!-- Application switch, hidden in front-office -->
+    <ng-container *ngIf="applications && applications.length > 0 && environment.module === 'backoffice'">
       <ui-divider class="py-1"></ui-divider>
       <button
         uiMenuItem
@@ -94,6 +97,7 @@
         ></shared-search-menu>
       </ng-template>
     </ng-container>
+    <!-- Go to other office -->
     <ng-container *ngIf="user && user.isAdmin">
       <ui-divider class="py-1"></ui-divider>
       <a uiMenuItem [href]="otherOfficeUri">
@@ -101,6 +105,7 @@
       </a>
     </ng-container>
     <ui-divider class="py-1"></ui-divider>
+    <!-- Logout -->
     <button uiMenuItem class="text-red-500" (click)="logout()">
       {{ 'components.header.logout' | translate }}
     </button>
