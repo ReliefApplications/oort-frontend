@@ -309,40 +309,19 @@ export class FormComponent
    * Calls the complete method of the survey if no error.
    */
   public submit(): void {
-    this.saving = true;
-    if (!this.survey?.hasErrors()) {
-      if (this.survey.enableSaveAndSubmit) {
-        this.submitting = true;
-        const dialogRef = this.confirmService.openConfirmModal({
-          title: this.translate.instant('components.form.saveAndSubmit.title'),
-          content: this.translate.instant(
-            'components.form.saveAndSubmit.message'
-          ),
-          confirmText: this.translate.instant(
-            'components.confirmModal.confirm'
-          ),
-          confirmVariant: 'primary',
-        });
-        dialogRef.closed
-          .pipe(takeUntil(this.destroy$))
-          .subscribe((confirmed: any) => {
-            if (confirmed) {
-              this.survey.completeLastPage();
-            } else {
-              this.saving = false;
-              this.submitting = false;
-            }
-          });
-      } else {
-        this.survey?.completeLastPage();
-      }
-    } else {
-      this.snackBar.openSnackBar(
-        this.translate.instant('models.form.notifications.savingFailed'),
-        { error: true }
-      );
-      this.saving = false;
-    }
+    this.formHelpersService.validateAndSubmit(
+      this.survey,
+      {
+        // Pass setters for your booleans
+        setSaving: (val) => {
+          this.saving = val;
+        },
+        setSubmitting: (val) => {
+          this.submitting = val;
+        },
+      },
+      this.destroy$
+    );
   }
 
   /**

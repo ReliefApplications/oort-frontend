@@ -12,7 +12,7 @@ import {
 import { Apollo } from 'apollo-angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmService } from '../confirm/confirm.service';
-import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom, Subject, takeUntil } from 'rxjs';
 import { ADD_RECORD } from '../../components/form/graphql/mutations';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import {
@@ -58,6 +58,12 @@ export type CheckUniqueProprietyReturnT = {
   verified: boolean;
   overwriteRecord?: RecordModel;
 };
+
+/** Interface to handle the Component's booleans */
+export interface SubmissionStateCallbacks {
+  setSaving: (isSaving: boolean) => void;
+  setSubmitting: (isSubmitting: boolean) => void;
+}
 
 /**
  * Applies custom logic to survey data values.
@@ -1179,5 +1185,89 @@ export class FormHelpersService {
     } else {
       return true;
     }
+  }
+
+  /**
+   * Validate survey and submit the record
+   *
+   * @param survey Survey
+   * @param state SubmissionStateCallbacks to set saving and submitting states
+   * @param destroy$ Subject to handle subscription
+   */
+  public validateAndSubmit(
+    survey: SurveyModel,
+    state: SubmissionStateCallbacks,
+    destroy$: Subject<boolean>
+  ): void {
+    state.setSaving(true);
+
+    // Force render all dynamic panels to ensure nested questions are validated
+    survey.getAllQuestions().forEach((question) => {
+      if (question.getType() === 'paneldynamic') {
+        const panel = question as QuestionPanelDynamicModel;
+        // Temporarily expand all panels to trigger rendering
+        const wasCollapsed = panel.panels?.map((p: any) => p.isCollapsed) || [];
+        panel.panels?.forEach((p: any) => {
+          if (p.isCollapsed) {
+            p.expand();
+          }
+        });
+        // Restore collapsed state after validation
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            panel.panels?.forEach((p: any, index: number) => {
+              if (wasCollapsed[index]) {
+                p.collapse();
+              }
+            });
+          });
+        });
+      }
+    });
+
+    // Wait for browser to render before validating
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Validate all pages and questions
+        survey.validate(true, true);
+
+        if (!survey?.hasErrors()) {
+          if (survey.enableSaveAndSubmit) {
+            state.setSubmitting(true);
+
+            const dialogRef = this.confirmService.openConfirmModal({
+              title: this.translate.instant(
+                'components.form.saveAndSubmit.title'
+              ),
+              content: this.translate.instant(
+                'components.form.saveAndSubmit.message'
+              ),
+              confirmText: this.translate.instant(
+                'components.confirmModal.confirm'
+              ),
+              confirmVariant: 'primary',
+            });
+            dialogRef.closed
+              .pipe(takeUntil(destroy$))
+              .subscribe((confirmed: any) => {
+                if (confirmed) {
+                  survey.completeLastPage();
+                } else {
+                  state.setSaving(false);
+                  state.setSubmitting(false);
+                }
+              });
+          } else {
+            survey?.completeLastPage();
+          }
+        } else {
+          this.snackBar.openSnackBar(
+            this.translate.instant('models.form.notifications.savingFailed'),
+            { error: true }
+          );
+          state.setSaving(false);
+        }
+      });
+    });
   }
 }
