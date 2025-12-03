@@ -115,13 +115,10 @@ export const transformSurveyData = (survey: SurveyModel) => {
     }
   });
   if (survey.showPercentageProgressBar) {
-    // isRequiredCpy is declared in the form builder service, and copy the isRequired property of the question we build when using skipRequiredValidation
-    // By using getVisibleQuestions, _progress used only currently visible questions, its denominator changed as visibility changed, even when answers didn’t.
+    // Filter only required questions that are not read-only and have input
     const requiredQuestions = survey
       .getAllQuestions()
-      .filter(
-        (q) => (q.isRequired || q.isRequiredCpy) && !q.readOnly && q.hasInput
-      );
+      .filter((q) => q.isRequired && !q.readOnly && q.hasInput);
 
     if (requiredQuestions.length) {
       data._progress =
