@@ -901,7 +901,7 @@
       },
       "display": {
         "cancelMessage": "Opération annulée",
-        "submissionMessage": "Le formulaire a été sauvegardé."
+        "submissionMessage": "Votre réponse a bien été enregistrée."
       },
       "draftRecords": {
         "buttonLoad": "Charger un brouillon",

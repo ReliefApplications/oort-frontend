@@ -475,6 +475,7 @@ export class FormComponent
                   } else if (data.editRecord) {
                     this.modifiedAt = data.editRecord.modifiedAt;
                   }
+                  this.survey.showCompletedPage = true; // Show completion message after Save & Submit
                   this.surveyActive = true;
                 } else {
                   this.survey.showCompletedPage = true;
@@ -482,9 +483,7 @@ export class FormComponent
 
                 this.save.emit({
                   completed: true,
-                  hideNewRecord: autoSave
-                    ? true
-                    : data.addRecord && data.addRecord.form.uniqueRecord,
+                  hideNewRecord: true, // Always hide new record button after submission
                 });
               }
 
@@ -638,11 +637,8 @@ export class FormComponent
     });
 
     const structure = JSON.parse(this.form.structure || '{}');
-    if (
-      structure &&
-      !structure.completedHtml &&
-      !structure.completedHtmlOnCondition
-    ) {
+    // Override completedHtml with standard message
+    if (structure) {
       structure.completedHtml = `<h3>${this.translate.instant(
         'components.form.display.submissionMessage'
       )}</h3>`;
