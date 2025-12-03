@@ -483,7 +483,7 @@ export class FormComponent
 
                 this.save.emit({
                   completed: true,
-                  hideNewRecord: true, // Hide new record button after submission
+                  hideNewRecord: true, // Always hide new record button after submission
                 });
               }
 
@@ -723,6 +723,7 @@ export class FormComponent
       });
     }
 
+    // Auto save survey
     if (this.survey.autoSave && this.survey.mode !== 'display') {
       this.autoSaveInterval = interval(15000)
         .pipe(takeUntil(this.destroy$))
