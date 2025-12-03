@@ -31,11 +31,10 @@ export class ProgressBarComponent implements OnInit {
 
   ngOnInit() {
     this.title = this.model.data.form_and_br;
-    // isRequiredCpy is declared in the form builder service, and copy the isRequired property of the question we build when using skipRequiredValidation
     const updateCurrentPageQuestions = () => {
       this.currentPageRequiredQuestions = getVisibleQuestions(
         this.model.currentPage.questions
-      ).filter((q) => q.isRequired || q.isRequiredCpy);
+      ).filter((q) => q.isRequired && q.hasInput);
       this.updateValue();
     };
     updateCurrentPageQuestions();
