@@ -265,7 +265,6 @@ export class FormBuilderService {
     record?: RecordModel,
     form?: Form
   ): SurveyModel {
-    console.log('=== CREATE SURVEY ===');
     settings.useCachingForChoicesRestful = false;
     settings.useCachingForChoicesRestfull = false;
     settings.lazyRender = {
@@ -366,12 +365,10 @@ export class FormBuilderService {
 
     // Generates error summary on page change
     survey.onCurrentPageChanged.add((survey, options) => {
-      console.log('Current page changed, updating error summary...');
       survey.errorsSummary = [];
       const errorsSummary: any[] = [];
       options.newCurrentPage.questions.forEach((question) => {
         if (question.errors && question.errors.length > 0) {
-          console.log('Question with error:', question.name);
           errorsSummary.push({
             questionName: question.name,
             message: question.errors[0].getText(),
