@@ -111,14 +111,6 @@ export const init = (environment: any): void => {
     category: 'validation',
     default: false,
   });
-  // Summary of errors for the form, not serialized
-  serializer.addProperty('survey', {
-    name: 'errorsSummary',
-    type: 'itemvalues[]',
-    default: [],
-    isSerializable: false,
-    visible: false,
-  });
   // Adds a property to the survey settings to open the form on a specific page using the question value
   // of the selected question (the value must be a page name)
   serializer.addProperty('survey', {

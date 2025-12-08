@@ -364,6 +364,7 @@ export class FormBuilderService {
     });
 
     // Generates error summary on page change
+    // We didn't use a surveyjs property for that, as each change on the errorsSummary would trigger a re-render
     survey.onCurrentPageChanged.add((survey, options) => {
       survey.errorsSummary = [];
       const errorsSummary: any[] = [];
@@ -376,16 +377,24 @@ export class FormBuilderService {
           });
         }
       });
-      if (errorsSummary.length > 0) {
-        survey.errorsSummary = errorsSummary;
-      }
+      options.newCurrentPage.getPanels().forEach((panel) => {
+        // errors property is not defined in the PanelModelBase class
+        if ((panel as any).errors && (panel as any).errors.length > 0) {
+          errorsSummary.push({
+            questionName: panel.name,
+            message: (panel as any).errors[0].getText(),
+            label: (panel as any).title,
+          });
+        }
+      });
+      survey.errorsSummary = errorsSummary;
     });
     // Listen to value changes to update the error summary
     survey.onValueChanged.add((survey, options) => {
       const question = survey.getQuestionByName(options.name);
       if (question) {
         // Remove existing error for the question
-        survey.errorsSummary = survey.errorsSummary.filter(
+        survey.errorsSummary = (survey.errorsSummary || []).filter(
           (error: any) => error.questionName !== question.name
         );
 
@@ -396,6 +405,23 @@ export class FormBuilderService {
             message: question.errors[0].getText(),
             label: question.title,
           });
+        }
+        let parent = question.parent;
+        while (parent && parent.getType() !== 'page') {
+          // Remove existing error for the panel
+          survey.errorsSummary = survey.errorsSummary.filter(
+            (error: any) => error.questionName !== parent.name
+          );
+          // Check for errors in the parent panel
+          if ((parent as any).errors && (parent as any).errors.length > 0) {
+            // Add the first error of the panel to the summary
+            survey.errorsSummary.push({
+              questionName: parent.name,
+              message: (parent as any).errors[0].getText(),
+              label: (parent as any).title,
+            });
+          }
+          parent = parent.parent;
         }
       }
     });

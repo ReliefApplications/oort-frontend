@@ -496,6 +496,18 @@ export class FormComponent
       setTimeout(() => {
         question._focus?.();
       }, 100);
+    } else {
+      const panel = this.survey.getPanelByName(questionName);
+      if (panel) {
+        panel.expand();
+        const firstQuestion = panel.questions[0];
+        if (firstQuestion) {
+          firstQuestion.focus(false, true);
+          setTimeout(() => {
+            firstQuestion._focus?.();
+          }, 100);
+        }
+      }
     }
   }
 
