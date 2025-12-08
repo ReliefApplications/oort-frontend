@@ -23,6 +23,7 @@ import { firstValueFrom, takeUntil } from 'rxjs';
 import { Apollo } from 'apollo-angular';
 import { GET_CHANNELS, GET_LAYOUT } from './graphql/queries';
 import { TranslateService } from '@ngx-translate/core';
+import { SnackbarService } from '@oort-front/ui';
 
 /**
  * Dialog data interface.
@@ -105,8 +106,9 @@ export class ManageTriggerModalComponent
    * @param dialog Dialog service
    * @param apollo The apollo client
    * @param queryBuilder Query builder service
-   * @param restService Shared est service
+   * @param restService Shared rest service
    * @param translate Translate service
+   * @param snackBar Snackbar service
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
@@ -116,7 +118,8 @@ export class ManageTriggerModalComponent
     private apollo: Apollo,
     private queryBuilder: QueryBuilderService,
     private restService: RestService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private snackBar: SnackbarService
   ) {
     super();
     this.formGroup = this.data.formGroup;
@@ -254,6 +257,122 @@ export class ManageTriggerModalComponent
             this.formGroup.get('template')?.setValue(template.id || null);
           }
         );
+      }
+    });
+  }
+
+  /**
+   * Opens modal for editing the selected template
+   */
+  public async editTemplate() {
+    const templateId = this.formGroup.value.template;
+    if (!templateId) {
+      return;
+    }
+
+    const template = this.templates.find((t) => t.id === templateId);
+    if (!template) {
+      return;
+    }
+
+    const { EditTemplateModalComponent } = await import('@oort-front/shared');
+    const dialogRef = this.dialog.open(EditTemplateModalComponent, {
+      data: template,
+      disableClose: true,
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
+      if (value) {
+        const content =
+          value.type === TemplateTypeEnum.EMAIL
+            ? {
+                subject: value.subject,
+                body: value.body,
+              }
+            : {
+                title: value.title,
+                description: value.description,
+              };
+        this.applicationService.editTemplate({
+          id: template.id,
+          name: value.name,
+          type: value.type,
+          content,
+        });
+        this.snackBar.openSnackBar(
+          this.translate.instant('common.notifications.objectUpdated', {
+            value: value.name,
+            type: this.translate.instant('common.template.one'),
+          })
+        );
+        this.formGroup.get('template')?.markAsDirty();
+      }
+    });
+  }
+
+  /**
+   * Opens modal for adding a new distribution list
+   */
+  public async addDistributionList() {
+    const { EditDistributionListModalComponent } = await import(
+      '@oort-front/shared'
+    );
+    const dialogRef = this.dialog.open(EditDistributionListModalComponent, {
+      disableClose: true,
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
+      if (value) {
+        this.applicationService.addDistributionList(
+          {
+            name: value.name,
+            emails: value.emails,
+          },
+          (distributionList: DistributionList) => {
+            this.formGroup
+              .get('recipients')
+              ?.setValue(distributionList.id || null);
+          }
+        );
+      }
+    });
+  }
+
+  /**
+   * Opens modal for editing the selected distribution list
+   */
+  public async editDistributionList() {
+    const distributionListId = this.formGroup.value.recipients;
+    if (!distributionListId) {
+      return;
+    }
+
+    const distributionList = this.distributionLists.find(
+      (dl) => dl.id === distributionListId
+    );
+    if (!distributionList) {
+      return;
+    }
+
+    const { EditDistributionListModalComponent } = await import(
+      '@oort-front/shared'
+    );
+    const dialogRef = this.dialog.open(EditDistributionListModalComponent, {
+      data: distributionList,
+      disableClose: true,
+    });
+    dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
+      if (value) {
+        this.applicationService.editDistributionList({
+          id: distributionList.id,
+          name: value.name,
+          emails: value.emails,
+        });
+        this.snackBar.openSnackBar(
+          this.translate.instant('common.notifications.objectUpdated', {
+            value: value.name,
+            type: this.translate.instant('common.distributionList.one'),
+          })
+        );
+        this.formGroup.get('recipients')?.markAsDirty();
       }
     });
   }

@@ -65,6 +65,16 @@
         <ui-button
           uiSuffix
           [isIcon]="true"
+          icon="edit"
+          variant="primary"
+          (click)="$event.stopPropagation(); editTemplate()"
+          [disabled]="!formGroup.value.template"
+          [uiTooltip]="'common.edit' | translate"
+        >
+        </ui-button>
+        <ui-button
+          uiSuffix
+          [isIcon]="true"
           icon="add_circle_outline"
           variant="primary"
           (click)="$event.stopPropagation(); addTemplate()"
@@ -267,6 +277,25 @@
               {{ list.name }}
             </ui-select-option>
           </ui-select-menu>
+          <ui-button
+            uiSuffix
+            [isIcon]="true"
+            icon="edit"
+            variant="primary"
+            (click)="$event.stopPropagation(); editDistributionList()"
+            [disabled]="!formGroup.value.recipients"
+            [uiTooltip]="'common.edit' | translate"
+          >
+          </ui-button>
+          <ui-button
+            uiSuffix
+            [isIcon]="true"
+            icon="add_circle_outline"
+            variant="primary"
+            (click)="$event.stopPropagation(); addDistributionList()"
+            [uiTooltip]="'components.distributionLists.edit.new' | translate"
+          >
+          </ui-button>
         </div>
 
         <!-- Recipients == user field -->
