@@ -14,7 +14,7 @@ import {
   MatrixDropdownCell,
   MatrixDropdownColumn,
   Event,
-  PageModel,
+  // PageModel,
 } from 'survey-core';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
 import { Apollo } from 'apollo-angular';
@@ -228,13 +228,6 @@ const getUpdateData = (
 export class FormBuilderService {
   /** If updating record, saves recordId if necessary gets files from questions */
   public recordId?: string;
-  /** Summary of the errors of the form */
-  public errorsSummary: {
-    label: string;
-    message: string;
-    page: number;
-    questionName: string;
-  }[] = [];
 
   /**
    * Constructor of the service
@@ -272,7 +265,7 @@ export class FormBuilderService {
     record?: RecordModel,
     form?: Form
   ): SurveyModel {
-    this.errorsSummary = [];
+    console.log('=== CREATE SURVEY ===');
     settings.useCachingForChoicesRestful = false;
     settings.useCachingForChoicesRestfull = false;
     settings.lazyRender = {
@@ -371,28 +364,42 @@ export class FormBuilderService {
       }
     });
 
-    // @TODO: Check if commenting this breaks guyane prescriptions
-    // survey.onQuestionValueChanged = {};
-    // survey.onValueChanged.add((_, options) => {
-    //   if (survey.onQuestionValueChanged[options.name]) {
-    //     survey.onQuestionValueChanged[options.name](options);
-    //   }
-    // });
-    survey.onSettingQuestionErrors.add((_, options) => {
-      const existingError = this.errorsSummary.find(
-        (error) => error.questionName == options.question.name
-      );
-      if (options.errors.length && !existingError) {
-        this.errorsSummary.push({
-          label: options.question.title,
-          message: options.errors[0].getText(),
-          page: survey.visiblePages.indexOf(options.question.page as PageModel),
-          questionName: options.question.name,
-        });
-      } else if (existingError) {
-        this.errorsSummary = this.errorsSummary.filter(
-          (error) => error != existingError
+    // Generates error summary on page change
+    survey.onCurrentPageChanged.add((survey, options) => {
+      console.log('Current page changed, updating error summary...');
+      survey.errorsSummary = [];
+      const errorsSummary: any[] = [];
+      options.newCurrentPage.questions.forEach((question) => {
+        if (question.errors && question.errors.length > 0) {
+          console.log('Question with error:', question.name);
+          errorsSummary.push({
+            questionName: question.name,
+            message: question.errors[0].getText(),
+            label: question.title,
+          });
+        }
+      });
+      if (errorsSummary.length > 0) {
+        survey.errorsSummary = errorsSummary;
+      }
+    });
+    // Listen to value changes to update the error summary
+    survey.onValueChanged.add((survey, options) => {
+      const question = survey.getQuestionByName(options.name);
+      if (question) {
+        // Remove existing error for the question
+        survey.errorsSummary = survey.errorsSummary.filter(
+          (error: any) => error.questionName !== question.name
         );
+
+        // If there are errors, add the first one to the summary
+        if (question.errors && question.errors.length > 0) {
+          survey.errorsSummary.push({
+            questionName: question.name,
+            message: question.errors[0].getText(),
+            label: question.title,
+          });
+        }
       }
     });
 
