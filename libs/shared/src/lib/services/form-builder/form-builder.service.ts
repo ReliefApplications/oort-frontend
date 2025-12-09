@@ -28,7 +28,7 @@ import { RestService } from '../rest/rest.service';
 import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
 import { SnackbarService } from '@oort-front/ui';
 import { FormHelpersService } from '../form-helper/form-helper.service';
-import { cloneDeep, difference, get } from 'lodash';
+import { cloneDeep, difference, get, isNil } from 'lodash';
 import { Form } from '../../models/form.model';
 import { marked } from 'marked';
 import { DownloadService } from '../download/download.service';
@@ -635,7 +635,7 @@ export class FormBuilderService {
    * @param options Options regarding the upload
    */
   private onUploadFiles(
-    temporaryFilesStorage: TemporaryFilesStorage,
+    temporaryFilesStorage: any,
     options: UploadFilesEvent
   ): void {
     const question = options.question as QuestionFileModel;
@@ -661,7 +661,13 @@ export class FormBuilderService {
         });
       return;
     }
-    temporaryFilesStorage.set(question, options.files);
+    if (!isNil(temporaryFilesStorage[options.name])) {
+      temporaryFilesStorage[options.name] = temporaryFilesStorage[
+        options.name
+      ].concat(options.files);
+    } else {
+      temporaryFilesStorage[options.name] = options.files;
+    }
 
     let content: any[] = [];
     options.files.forEach((file: any) => {
