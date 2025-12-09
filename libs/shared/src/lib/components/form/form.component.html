@@ -32,7 +32,7 @@
   ></shared-form-pages-layout>
   <!-- Form errors, click on error to navigate to the question -->
   <div
-    *ngIf="survey.showErrorsOnSide && survey.errorsSummary.length"
+    *ngIf="survey.showErrorsOnSide && survey.errorsSummary?.length"
     @fadeInOut
     class="border border-red-500 bg-red-50 p-4 rounded-lg mr-4 h-fit sticky top-4 max-h-[calc(100vh-220px)] overflow-y-auto max-w-[30%]"
   >
