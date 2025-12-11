@@ -218,8 +218,8 @@ export class FormComponent
   }
 
   ngOnInit(): void {
-      this.initSurvey();
-    }
+    this.initSurvey();
+  }
 
   /** Sets up listeners to keep mapped fields updated */
   private setupStateMappingListeners(): void {
