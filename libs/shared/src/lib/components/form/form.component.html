@@ -22,7 +22,7 @@
   </ui-fixed-wrapper>
 </ng-container>
 
-<div *ngIf="survey" class="flex">
+<div class="flex">
   <shared-form-pages-layout
     class="h-fit sticky top-0 z-10"
     *ngIf="!survey.hidePagesTab"
@@ -53,7 +53,7 @@
 </div>
 
 <!-- Form buttons actions without floating div-->
-<div class="relative" *ngIf="survey && surveyActive && !floatingActions">
+<div class="relative" *ngIf="surveyActive && !floatingActions">
   <ng-container *ngTemplateOutlet="actionButtons"></ng-container>
 </div>
 
