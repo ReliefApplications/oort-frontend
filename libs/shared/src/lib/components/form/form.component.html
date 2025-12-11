@@ -53,7 +53,7 @@
 </div>
 
 <!-- Form buttons actions without floating div-->
-<div class="relative" *ngIf="surveyActive && !floatingActions">
+<div class="relative" *ngIf="survey && surveyActive && !floatingActions">
   <ng-container *ngTemplateOutlet="actionButtons"></ng-container>
 </div>
 
