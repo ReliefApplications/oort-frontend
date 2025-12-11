@@ -22,7 +22,7 @@
   </ui-fixed-wrapper>
 </ng-container>
 
-<div class="flex">
+<div *ngIf="survey" class="flex">
   <shared-form-pages-layout
     class="h-fit sticky top-0 z-10"
     *ngIf="!survey.hidePagesTab"
