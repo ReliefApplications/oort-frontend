@@ -229,7 +229,9 @@ export class FormComponent
   }
 
   ngOnInit(): void {
-    this.initSurvey();
+    if (!this.record) {
+      this.initSurvey();
+    }
   }
 
   /** Sets up listeners to keep mapped fields updated */
@@ -607,6 +609,8 @@ export class FormComponent
    * fetches cached data from local storage, and sets the lookup data.
    */
   private initSurvey(): void {
+    this.survey?.dispose();
+
     addCustomFunctions({
       record: this.record,
       authService: this.authService,
