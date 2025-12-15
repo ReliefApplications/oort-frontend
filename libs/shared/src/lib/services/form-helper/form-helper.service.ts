@@ -219,30 +219,39 @@ export class FormHelpersService {
       throw new Error('Form id is not defined');
     }
 
-    for (const [question, files] of temporaryFilesStorage) {
+    for (const [, entry] of temporaryFilesStorage) {
+      const value = entry.question.value || [];
+
       const paths = await Promise.all(
-        files.map((file) =>
-          this.downloadService.uploadBlob(file, BlobType.RECORD_FILE, formId)
-        )
+        entry.files
+          .filter(
+            (file) => value.findIndex((f: any) => f.name === file.name) !== -1
+          )
+          .map((file) =>
+            this.downloadService.uploadBlob(file, BlobType.RECORD_FILE, formId)
+          )
       );
 
-      const questionFiles =
-        (question.value as Array<File & { readyToSave: boolean }>) || [];
+      const alreadySavedFiles = value.filter(
+        (file: any) =>
+          file.content &&
+          !(file.content.indexOf('base64') !== -1) &&
+          !file.content.startsWith('http') &&
+          !file.content.startsWith('custom:')
+      );
 
-      // Maps the files array, replacing the content with the path from the blob storage
-      const mappedFiles = questionFiles
-        .filter((f) => !f.readyToSave)
-        .map((f: File, idx: number) => {
-          return {
-            ...f,
-            content: paths[idx],
-            readyToSave: true, //used to autosave only once
-          };
-        });
+      const newFiles = entry.files
+        .filter(
+          (file) => value.findIndex((f: any) => f.name === file.name) !== -1
+        )
+        .map((file: File, idx: number) => ({
+          name: file.name,
+          type: file.type,
+          content: paths[idx],
+        }))
+        .filter((f) => f.content);
 
-      question.value = questionFiles
-        .filter((f) => f.readyToSave)
-        .concat(mappedFiles);
+      entry.question.value = [...alreadySavedFiles, ...newFiles];
     }
   }
 
@@ -1128,8 +1137,12 @@ export class FormHelpersService {
    * Set download listener for files in the survey
    *
    * @param e Event raised after rendering a question
+   * @param recordId Current record id
    */
-  public setDownloadListener(e: AfterRenderQuestionEvent): void {
+  public setDownloadListener(
+    e: AfterRenderQuestionEvent,
+    recordId?: string
+  ): void {
     const { question, htmlElement } = e;
     const survey = question.survey as SurveyModel;
     const files = question.value;
@@ -1141,9 +1154,10 @@ export class FormHelpersService {
           file.content &&
           !(file.content.indexOf('base64') !== -1) &&
           !file.content.startsWith('http') &&
-          !file.content.startsWith('custom:')
+          !file.content.startsWith('custom:') &&
+          recordId
         ) {
-          const path = `${this.environment.apiUrl}/download/file/${file.content}/${file.name}`;
+          const path = `download/file/${file.content}/${recordId}/${question.name}`;
           this.downloadService.getFile(path, file.type, file.name);
         }
       });

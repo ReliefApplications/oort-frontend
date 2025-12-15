@@ -28,7 +28,7 @@ import { RestService } from '../rest/rest.service';
 import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
 import { SnackbarService } from '@oort-front/ui';
 import { FormHelpersService } from '../form-helper/form-helper.service';
-import { cloneDeep, difference, get, isNil } from 'lodash';
+import { cloneDeep, difference, get } from 'lodash';
 import { Form } from '../../models/form.model';
 import { marked } from 'marked';
 import { DownloadService } from '../download/download.service';
@@ -59,7 +59,10 @@ const createNewObjectId = () => {
 };
 
 /** Type for the temporary file storage */
-export type TemporaryFilesStorage = Map<Question, File[]>;
+export type TemporaryFilesStorage = Map<
+  string,
+  { question: Question; files: File[] }
+>;
 
 /**
  * Applies custom logic to survey data values.
@@ -342,32 +345,8 @@ export class FormBuilderService {
           this.formHelpersService.addUploadButton(options);
           break;
         case 'file':
-          this.formHelpersService.setDownloadListener(options);
+          this.formHelpersService.setDownloadListener(options, this.recordId);
           break;
-      }
-
-      if (options.question.getType() === 'file') {
-        const files = options.question.value;
-        const fileElement = options.htmlElement.querySelector('a');
-        const listener = (event: MouseEvent) => {
-          event.preventDefault();
-          files.forEach((file: any) => {
-            if (
-              file.content &&
-              !(file.content.indexOf('base64') !== -1) &&
-              !file.content.startsWith('http') &&
-              !file.content.startsWith('custom:') &&
-              this.recordId
-            ) {
-              const path = `${this.restService.apiUrl}/download/file/${file.content}/${this.recordId}/${file.name}`;
-              this.downloadService.getFile(path, file.type, file.name);
-            }
-          });
-        };
-        fileElement?.addEventListener('click', listener);
-        survey.onDispose.add?.(() => {
-          fileElement?.removeEventListener('click', listener);
-        });
       }
     });
 
@@ -635,7 +614,7 @@ export class FormBuilderService {
    * @param options Options regarding the upload
    */
   private onUploadFiles(
-    temporaryFilesStorage: any,
+    temporaryFilesStorage: TemporaryFilesStorage,
     options: UploadFilesEvent
   ): void {
     const question = options.question as QuestionFileModel;
@@ -661,12 +640,27 @@ export class FormBuilderService {
         });
       return;
     }
-    if (!isNil(temporaryFilesStorage[options.name])) {
-      temporaryFilesStorage[options.name] = temporaryFilesStorage[
-        options.name
-      ].concat(options.files);
+
+    const key = options.name;
+
+    if (temporaryFilesStorage.has(key) && temporaryFilesStorage.get(key)) {
+      const entry = temporaryFilesStorage.get(key);
+      if (entry) {
+        entry.files = entry.files.concat(options.files);
+        entry.question = question;
+      } else {
+        // This should never happen, but in case it does, we create the entry
+        temporaryFilesStorage.set(key, {
+          question,
+          files: options.files,
+        });
+      }
     } else {
-      temporaryFilesStorage[options.name] = options.files;
+      // Create the entry in the map
+      temporaryFilesStorage.set(key, {
+        question,
+        files: options.files,
+      });
     }
 
     let content: any[] = [];
