@@ -24,6 +24,7 @@ import {
   SurveyModel,
   SvgRegistry,
   QuestionResource,
+  surveyLocalization,
 } from 'survey-core';
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
@@ -155,6 +156,13 @@ export const init = (
     resourceFieldsName: [] as any[],
     onInit: (): void => {
       Serializer.addProperty('resources', {
+        name: 'displayOnly:boolean',
+        category: 'general',
+        displayName: surveyLocalization.getString('oort:displayOnly'),
+        visibleIndex: 7,
+        default: false,
+      });
+      Serializer.addProperty('resources', {
         name: 'resource',
         category: 'Custom Questions',
         type: CustomPropertyGridComponentTypes.resourcesDropdown,
@@ -192,7 +200,7 @@ export const init = (
         category: 'Custom Questions',
         dependsOn: 'resource',
         isRequired: true,
-        visibleIf: visibleIfResource,
+        visibleIf: (obj: any) => visibleIfResource(obj) && !obj.displayOnly,
         visibleIndex: 4,
       });
 
@@ -720,13 +728,13 @@ export const init = (
         resourcesFilterValues
       );
 
-      if (canDisplayButtons && question.canSearch) {
+      if (canDisplayButtons && question.canSearch && !question.displayOnly) {
         actionsButtons.appendChild(searchBtn);
       }
 
       const setSearchBtn = () => {
         const shouldDisplay = survey.mode !== 'display' && !question.isReadOnly;
-        if (shouldDisplay && question.canSearch) {
+        if (shouldDisplay && question.canSearch && !question.displayOnly) {
           // add the search button to the actions buttons
           searchBtn = buildSearchButton(
             question,
@@ -924,7 +932,11 @@ export const init = (
    * @param question survey question.
    */
   const setGridInputs = async (instance: CoreGridComponent, question: any) => {
-    instance.multiSelect = true;
+    if (question.displayOnly) {
+      question.readOnly = true;
+    }
+    instance.multiSelect = !question.displayOnly;
+    instance.selectable = !question.displayOnly;
     const promises: any[] = [];
     const settings = await processNewCreatedRecords(question, true, promises);
     if (
@@ -944,6 +956,19 @@ export const init = (
           remove: question.canDeselectRecords,
         },
       });
+    }
+    if (question.displayOnly) {
+      const filters: any[] = [];
+      if (question.filters) {
+        filters.push(question.filters);
+      }
+      if (question.gridFieldsSettings?.filter) {
+        filters.push(question.gridFieldsSettings.filter);
+      }
+      settings.query.filter = {
+        logic: 'and',
+        filters: filters,
+      };
     }
     instance.settings = settings;
     Promise.allSettled(promises).then(() => {
