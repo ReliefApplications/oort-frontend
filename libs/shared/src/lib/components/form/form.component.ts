@@ -222,7 +222,8 @@ export class FormComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (
       changes.record &&
-      changes.record.currentValue?.id !== changes.record.previousValue?.id
+      changes.record.currentValue?.id !== changes.record.previousValue?.id &&
+      changes.record.previousValue !== undefined
     ) {
       this.initSurvey();
     }
@@ -607,6 +608,8 @@ export class FormComponent
    * fetches cached data from local storage, and sets the lookup data.
    */
   private initSurvey(): void {
+    this.survey?.dispose();
+
     addCustomFunctions({
       record: this.record,
       authService: this.authService,
