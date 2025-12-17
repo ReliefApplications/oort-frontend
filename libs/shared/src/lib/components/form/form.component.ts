@@ -222,16 +222,15 @@ export class FormComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (
       changes.record &&
-      changes.record.currentValue?.id !== changes.record.previousValue?.id
+      changes.record.currentValue?.id !== changes.record.previousValue?.id &&
+      changes.record.previousValue !== undefined
     ) {
       this.initSurvey();
     }
   }
 
   ngOnInit(): void {
-    if (!this.record) {
-      this.initSurvey();
-    }
+    this.initSurvey();
   }
 
   /** Sets up listeners to keep mapped fields updated */
