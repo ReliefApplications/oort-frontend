@@ -715,9 +715,13 @@ export const init = (
         }
       }, 500);
 
-      // Conditions to display any of the buttons
-      const canDisplayButtons =
+      // Helper to check if buttons can be displayed
+      const canDisplayButtons = () =>
         survey.mode !== 'display' && !question.isReadOnly;
+
+      // Helper to check if search button should be shown
+      const shouldShowSearchBtn = () =>
+        canDisplayButtons() && question.canSearch && !question.displayOnly;
 
       let searchBtn = buildSearchButton(
         question,
@@ -728,13 +732,12 @@ export const init = (
         resourcesFilterValues
       );
 
-      if (canDisplayButtons && question.canSearch && !question.displayOnly) {
+      if (shouldShowSearchBtn()) {
         actionsButtons.appendChild(searchBtn);
       }
 
       const setSearchBtn = () => {
-        const shouldDisplay = survey.mode !== 'display' && !question.isReadOnly;
-        if (shouldDisplay && question.canSearch && !question.displayOnly) {
+        if (shouldShowSearchBtn()) {
           // add the search button to the actions buttons
           searchBtn = buildSearchButton(
             question,
@@ -753,15 +756,18 @@ export const init = (
         }
       };
 
+      // Helper to check if add button should be shown
+      const shouldShowAddBtn = () =>
+        canDisplayButtons() && question.addRecord && question.addTemplate;
+
       let addBtn = buildAddButton(question, true, dialog, ngZone, document);
-      if (canDisplayButtons && question.addRecord && question.addTemplate) {
+      if (shouldShowAddBtn()) {
         actionsButtons.appendChild(addBtn);
       }
 
       // Checks whether the add button should be displayed based on current question state
       const setAddBtn = () => {
-        const shouldDisplay = survey.mode !== 'display' && !question.isReadOnly;
-        if (shouldDisplay && question.addRecord && question.addTemplate) {
+        if (shouldShowAddBtn()) {
           // add the add button to the actions buttons
           addBtn = buildAddButton(question, true, dialog, ngZone, document);
           actionsButtons.appendChild(addBtn);
