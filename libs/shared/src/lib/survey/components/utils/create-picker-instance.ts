@@ -50,26 +50,30 @@ export const createPickerInstance = (
   inputType: DateInputFormat,
   element: any,
   domService: DomService,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   translateService: TranslateService
 ):
   | DatePickerComponent
   | DateTimePickerComponent
   | TimePickerComponent
   | null => {
-  const getDataLang = () => {
-    // Pick the first available language from the following order:
-    const lang = [
-      localStorage.getItem('date-lang'),
-      translateService.currentLang,
-      translateService.defaultLang,
-    ].find((l) =>
-      languages.includes(l as AvailableLanguages)
-    ) as AvailableLanguages;
+  // const getDataLang = () => {
+  //   // Pick the first available language from the following order:
+  //   const lang = [
+  //     localStorage.getItem('date-lang'),
+  //     translateService.currentLang,
+  //     translateService.defaultLang,
+  //   ].find((l) =>
+  //     languages.includes(l as AvailableLanguages)
+  //   ) as AvailableLanguages;
 
-    // If no language is found or valid, use 'en'
-    return lang ?? 'en';
-  };
-  const currentFormatLang = getDataLang();
+  //   console.log('Using date language:', lang);
+
+  //   // If no language is found or valid, use 'en'
+  //   return lang ?? 'en';
+  // };
+  // const currentFormatLang = getDataLang();
+  const currentFormatLang = 'fr';
 
   let component: ReturnType<typeof createPickerInstance>;
   switch (inputType) {
@@ -110,27 +114,28 @@ export const createPickerInstance = (
       break;
   }
 
-  translateService.onLangChange.subscribe(() => {
-    if (!component) {
-      return;
-    }
-    const currentFormatLang = getDataLang();
-    switch (inputType) {
-      case 'date':
-        component.format = DateFormat[currentFormatLang as AvailableLanguages];
-        break;
-      case 'datetime':
-      case 'datetime-local':
-        component.format =
-          DateTimeFormat[currentFormatLang as AvailableLanguages];
-        break;
-      case 'time':
-        component.format = TimeFormat[currentFormatLang as AvailableLanguages];
-        break;
-      default:
-        break;
-    }
-  });
+  // disabled language change handling for now
+  // translateService.onLangChange.subscribe(() => {
+  //   if (!component) {
+  //     return;
+  //   }
+  //   const currentFormatLang = getDataLang();
+  //   switch (inputType) {
+  //     case 'date':
+  //       component.format = DateFormat[currentFormatLang as AvailableLanguages];
+  //       break;
+  //     case 'datetime':
+  //     case 'datetime-local':
+  //       component.format =
+  //         DateTimeFormat[currentFormatLang as AvailableLanguages];
+  //       break;
+  //     case 'time':
+  //       component.format = TimeFormat[currentFormatLang as AvailableLanguages];
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // });
 
   return component;
 };

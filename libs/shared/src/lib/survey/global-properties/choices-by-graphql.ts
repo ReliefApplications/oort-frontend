@@ -79,7 +79,6 @@ const setQuestionValue = (question: Question, choices: ItemValue[]) => {
  * Initialize choices by graphql properties.
  */
 export const init = (): void => {
-  console.log('initialize graph ql');
   // declare the serializer
   const serializer: JsonMetadata = Serializer;
 
