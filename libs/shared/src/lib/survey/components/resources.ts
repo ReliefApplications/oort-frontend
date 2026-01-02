@@ -29,6 +29,10 @@ import {
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
 import { ResourceQueryResponse } from '../../models/resource.model';
+import {
+  CompositeFilterDescriptor,
+  FilterDescriptor,
+} from '@progress/kendo-data-query';
 
 /** Create the list of filter values for resources */
 export const resourcesFilterValues = new BehaviorSubject<
@@ -200,7 +204,8 @@ export const init = (
         category: 'Custom Questions',
         dependsOn: 'resource',
         isRequired: true,
-        visibleIf: (obj: any) => visibleIfResource(obj) && !obj.displayOnly,
+        visibleIf: (obj: QuestionResource | null) =>
+          visibleIfResource(obj) && !obj?.displayOnly,
         visibleIndex: 4,
       });
 
@@ -715,7 +720,6 @@ export const init = (
         }
       }, 500);
 
-      // Helper to check if buttons can be displayed
       const canDisplayButtons = () =>
         survey.mode !== 'display' && !question.isReadOnly;
 
@@ -964,7 +968,7 @@ export const init = (
       });
     }
     if (question.displayOnly) {
-      const filters: any[] = [];
+      const filters: (FilterDescriptor | CompositeFilterDescriptor)[] = [];
       if (question.filters) {
         filters.push(question.filters);
       }

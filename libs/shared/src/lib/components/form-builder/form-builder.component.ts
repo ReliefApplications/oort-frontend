@@ -673,10 +673,13 @@ export class FormBuilderComponent
       });
     }
     if (['resource', 'resources'].includes(question.getType())) {
-      // Check that relatedName is set and not duplicated
-      // Skip check if display only
       const isDisplayOnly = question.getPropertyValue('displayOnly') === true;
-      if (!isDisplayOnly && !question.relatedName) {
+
+      // Display-only questions don't require relatedName
+      if (isDisplayOnly) return true;
+
+      // Validate relatedName is present
+      if (!question.relatedName) {
         this.snackBar.openSnackBar(
           this.translate.instant(
             'components.formBuilder.errors.missingRelatedName',
