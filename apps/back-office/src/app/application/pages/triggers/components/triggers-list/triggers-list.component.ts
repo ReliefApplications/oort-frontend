@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { Triggers, TriggersType } from '../../triggers.types';
 import { CustomNotification } from '@oort-front/shared';
+import { get } from 'lodash';
 
 type TriggerTableElement = {
   name: string;
@@ -105,7 +106,10 @@ export class TriggersListComponent implements OnChanges {
         : trigger.onRecordUpdate
         ? Triggers.onRecordUpdate
         : Triggers.cronBased,
-      trigger,
+      trigger: {
+        ...trigger,
+        id: get(trigger, '_id', ''), // not provided by default by the API
+      },
     };
   }
 }

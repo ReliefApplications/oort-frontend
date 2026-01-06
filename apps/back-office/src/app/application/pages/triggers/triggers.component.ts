@@ -176,6 +176,7 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
     trigger: CustomNotification,
     triggerType: TriggersType
   ): Promise<void> {
+    console.log('Editing trigger', trigger, triggerType);
     const resource = await this.getResource(trigger.resource as string);
     const triggerFormGroup = await this.getTriggerForm(
       trigger,
