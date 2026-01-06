@@ -1469,7 +1469,8 @@
         "withoutCronBasedTrigger": "******",
         "withoutOnRecordCreationTrigger": "******",
         "withoutOnRecordUpdateTrigger": "******"
-      }
+      },
+      "trigger": "******"
     },
     "user": {
       "delete": {

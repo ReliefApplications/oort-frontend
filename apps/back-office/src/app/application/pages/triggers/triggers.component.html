@@ -1,124 +1,47 @@
 <h1>{{ 'common.trigger.few' | translate }}</h1>
 
-<!-- Filtering -->
-<app-triggers-filter
-  class="block mb-8"
-  (filter)="onFilter($event)"
-  [loading]="filterLoading"
-></app-triggers-filter>
+<div class="flex flex-row flew-wrap gap-8 justify-between items-center mb-8">
+  <!-- Filtering -->
+  <app-triggers-filter
+    (filter)="onFilter($event)"
+    [loading]="filterLoading"
+  ></app-triggers-filter>
+  <!-- Add new trigger -->
+  <ui-button
+    variant="primary"
+    category="secondary"
+    [uiMenuTriggerFor]="triggersOptionsMenu"
+    (click)="$event.stopPropagation()"
+    [disabled]="loading || updating"
+  >
+    {{ 'components.triggers.addTrigger' | translate }}
+  </ui-button>
+</div>
 
-<!-- Table container -->
+<!-- Triggers list -->
 <div class="overflow-x-hidden shadow-2lg">
-  <!-- Table scroll container -->
   <div class="overflow-x-auto">
-    <table
+    <app-triggers-list
       *ngIf="!loading"
-      cdk-table
-      uiTableWrapper
-      [dataSource]="resources"
-      [trackBy]="getUniqueIdentifier"
-      multiTemplateDataRows
-    >
-    <!-- Resource Name -->
-    <ng-container cdkColumnDef="name">
-      <th uiCellHeader *cdkHeaderCellDef scope="col">
-        {{ 'common.name' | translate }}
-      </th>
-      <td
-        uiCell
-        *cdkCellDef="let element"
-        class="!text-gray-900 !font-medium"
-      >
-        {{ element.resource.name }}
-      </td>
-    </ng-container>
+      [disabled]="loading || updating"
+      [applicationId]="applicationId"
+      [triggersList]="triggers"
+      (onEdit)="onEditTrigger($event.trigger, $event.type)"
+      (onDuplicate)="onDuplicateTrigger($event.trigger, $event.type)"
+      (onDelete)="onDeleteTrigger($event.trigger)"
+      (openFilter)="onOpenFilter($event)"
+    ></app-triggers-list>
 
-    <!-- Resource information about existing triggers -->
-    <ng-container cdkColumnDef="info" [stickyEnd]="true">
-      <th uiCellHeader *cdkHeaderCellDef scope="col" class="w-16"></th>
-      <td uiCell *cdkCellDef="let element">
-        <div class="flex flex-row items-center">
-          <!-- Info about existing triggers -->
-          <ng-container *ngFor="let trigger of element.triggers">
-            <ui-icon
-              class="ml-2"
-              [icon]="trigger.icon"
-              [variant]="trigger.variant"
-              [uiTooltip]="trigger.tooltip | translate"
-            >
-            </ui-icon>
-          </ng-container>
-          <!-- Open Resource -->
-          <ui-button
-            [isIcon]="true"
-            [icon]="
-              element.resource.id === openedResource?.id
-                ? 'keyboard_arrow_up'
-                : 'keyboard_arrow_down'
-            "
-            (click)="toggleResource(element.resource)"
-            [disabled]="loading || updating"
-            [uiTooltip]="
-              'common.' +
-                (element.resource.id === openedResource?.id
-                  ? 'close'
-                  : 'edit') | translate
-            "
-          >
-          </ui-button>
-        </div>
-      </td>
-    </ng-container>
-
-    <!-- Expanded details -->
-    <ng-container cdkColumnDef="expandedDetail">
-      <td
-      uiCell
-      *cdkCellDef="let element"
-      [attr.colspan]="displayedColumns.length"
-      [ngClass]="element.resource.id === openedResource?.id ? '' : 'hidden'"
-    >
-      <div
-        class="expanded-form"
-        [@detailExpand]="
-          element.resource.id === openedResource?.id
-            ? 'expanded'
-            : 'collapsed'
-        "
-      >
-        <ng-container *ngIf="openedResource && element.resource.id === openedResource?.id">
-           <!-- Triggers list -->
-           <app-triggers-list
-            [disabled]="loading || updating"
-            [applicationId]="applicationId"
-            [openedResource]="openedResource"
-            [triggersList]="$any(openedResource.customNotifications)"
-            (onAdd)="onCreateTrigger($event.type)"
-            (onEdit)="onEditTrigger($event.trigger, $event.type)"
-            (onDuplicate)="onDuplicateTrigger($event.trigger, $event.type)"
-            (onDelete)="onDeleteTrigger($event.trigger)"
-            (edited)="handleTriggerEdition($event.trigger)"
-            (updating)="updating = $event"
-           ></app-triggers-list>
-        </ng-container>
-      </div>
-    </td>
-    </ng-container>
-
-    <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
-    <tr *cdkRowDef="let row; columns: displayedColumns" cdk-row></tr>
-    <tr cdk-row *cdkRowDef="let row; columns: ['expandedDetail']"></tr>
-  </table>
-
-  <!-- Empty table skeleton -->
-  <shared-skeleton-table
-    class="my-4 mx-0 w-full"
-    *ngIf="loading"
-    [columns]="['common.name']"
-  ></shared-skeleton-table>
+    <!-- Empty table skeleton -->
+    <shared-skeleton-table
+      class="my-4 mx-0 w-full"
+      *ngIf="loading"
+      [columns]="['common.name']"
+    ></shared-skeleton-table>
   </div>
 </div>
 
+<!-- Paginator for triggers list -->
 <ui-paginator
   [disabled]="loading || updating"
   [pageIndex]="pageInfo.pageIndex"
@@ -129,3 +52,15 @@
   (pageChange)="onPage($event)"
 >
 </ui-paginator>
+
+<!-- Add new trigger menu -->
+<ui-menu #triggersOptionsMenu>
+  <button 
+    uiMenuItem
+    *ngFor="let item of TriggersTypes"
+    (click)="onCreateTrigger(item)"
+  >
+      {{ 'components.triggers.' + item | translate }}
+  </button>
+</ui-menu>
+

@@ -172,14 +172,6 @@ export class AppPreviewComponent
               visible: true,
             });
           }
-          if (ability.can('manage', 'CustomNotification')) {
-            adminNavItems.push({
-              name: this.translate.instant('common.customNotification.few'),
-              path: './settings/notifications',
-              icon: 'schedule_send',
-              visible: true,
-            });
-          }
           if (ability.can('read', 'User')) {
             adminNavItems.push({
               name: this.translate.instant('common.user.few'),

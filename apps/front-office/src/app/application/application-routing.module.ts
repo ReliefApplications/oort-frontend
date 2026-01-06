@@ -68,14 +68,6 @@ export const routes: Routes = [
             },
           },
           {
-            path: 'notifications',
-            loadChildren: () =>
-              import('@oort-front/shared').then(
-                (m) => m.ApplicationNotificationsViewModule
-              ),
-            // canActivate: [PermissionGuard]
-          },
-          {
             path: 'roles',
             children: [
               {
