@@ -3,7 +3,6 @@ import {
   GET_SHORT_RESOURCE_BY_ID,
   GET_RESOURCE_BY_ID,
   UPDATE_RECORD,
-  GET_RESOURCE_NAME,
 } from '../graphql/queries';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { UntypedFormGroup } from '@angular/forms';
@@ -33,6 +32,7 @@ import {
   CompositeFilterDescriptor,
   FilterDescriptor,
 } from '@progress/kendo-data-query';
+import { isNil } from 'lodash';
 
 /** Create the list of filter values for resources */
 export const resourcesFilterValues = new BehaviorSubject<
@@ -79,14 +79,6 @@ export const init = (
       },
     });
 
-  const getResourceName = (id: string) =>
-    apollo.query<ResourceQueryResponse>({
-      query: GET_RESOURCE_NAME(GRAPHQL_IDENTIFIER),
-      variables: {
-        id,
-      },
-    });
-
   const mapQuestionChoices = (data: any, question: any) => {
     return (
       data.resource.records?.edges?.map((x: any) => {
@@ -121,6 +113,49 @@ export const init = (
       value: '',
     },
   ];
+
+  /**
+   * Update question filter based on survey data
+   *
+   * @param survey Current survey instance
+   * @param filter question filter
+   * @returns updated filter
+   */
+  const updateFilter = (
+    survey: SurveyModel,
+    filter: CompositeFilterDescriptor | FilterDescriptor
+  ): CompositeFilterDescriptor | FilterDescriptor | null => {
+    if ('filters' in filter) {
+      return {
+        logic: filter.logic,
+        filters: filter.filters
+          .map((x) => updateFilter(survey, x))
+          .filter((x) => !isNil(x)) as (
+          | FilterDescriptor
+          | CompositeFilterDescriptor
+        )[],
+      };
+    } else {
+      // Extract the placeholder (if present)
+      const matches = filter.value.match(/\{([^}]+)\}/);
+      if (matches) {
+        const field = matches[1]; // extract the part between { }
+        console.log(field);
+        const value = survey.runExpression(`{${field}}`);
+        console.log(value);
+        if (isNil(value)) {
+          return null;
+        } else {
+          return {
+            ...filter,
+            value,
+          };
+        }
+      } else {
+        return filter;
+      }
+    }
+  };
 
   // registers icon-resources in the SurveyJS library
   SvgRegistry.registerIconFromSvg(
@@ -543,41 +578,13 @@ export const init = (
      * @param question The current question.
      */
     onLoaded(question: any): void {
+      // Set placeholder
       if (question.placeholder) {
         question.contentQuestion.optionsCaption = question.placeholder;
       }
+      // If question is valid
       if (question.resource) {
-        if (question.selectQuestion) {
-          if (filters.length === 0) {
-            filters = [
-              {
-                field: '',
-                operator: '',
-                value: '',
-              },
-            ];
-          }
-          filters[0].operator = question.filterCondition;
-          filters[0].field = question.filterBy;
-          if (question.displayAsGrid) {
-            resourcesFilterValues.next(filters);
-          }
-          question.registerFunctionOnPropertyValueChanged(
-            'filterCondition',
-            () => {
-              const resourcesFilters = resourcesFilterValues.getValue();
-              resourcesFilters[0].operator = question.filterCondition;
-              resourcesFilterValues.next(resourcesFilters);
-              resourcesFilters.map((i: any) => {
-                i.operator = question.filterCondition;
-              });
-            }
-          );
-          if (!question.filterBy || question.filterBy.length < 1) {
-            this.populateChoices(question);
-          }
-        }
-        getResourceName(question.resource).subscribe(({ data }) => {
+        getResourceById(question.resource).subscribe(({ data }) => {
           // const choices = mapQuestionChoices(data, question);
           // question.contentQuestion.choices = choices;
           if (!question.placeholder) {
@@ -585,58 +592,25 @@ export const init = (
               'Select a record from ' + data.resource.name + '...';
           }
         });
-        if (question.selectQuestion) {
-          if (question.selectQuestion === '#staticValue') {
-            setAdvanceFilter(question.staticValue, question);
-            this.populateChoices(question);
-          } else {
-            question.survey?.onValueChanged.add((_: any, options: any) => {
-              if (options.name === question.selectQuestion) {
-                if (!!options.value || options.question.customQuestion) {
-                  setAdvanceFilter(options.value, question);
-                  if (question.displayAsGrid) {
-                    resourcesFilterValues.next(filters);
-                  } else {
-                    this.populateChoices(question);
-                  }
-                }
-              }
-            });
-          }
-        } else if (
-          !question.selectQuestion &&
-          question.customFilter &&
-          question.customFilter.trim().length > 0
-        ) {
-          const obj = JSON.parse(question.customFilter);
-          if (obj) {
-            for (const objElement of obj) {
-              const value = objElement.value;
-              if (typeof value === 'string' && value.match(/^{*.*}$/)) {
-                const quest = value.substr(1, value.length - 2);
-                objElement.value = '';
-                question.survey?.onValueChanged.add((_: any, options: any) => {
-                  if (options.question.name === quest) {
-                    if (options.value) {
-                      setAdvanceFilter(options.value, objElement.field);
-                      if (question.displayAsGrid) {
-                        resourcesFilterValues.next(filters);
-                      } else {
-                        this.populateChoices(question, objElement.field);
-                      }
-                    }
-                  }
-                });
-              }
-            }
-            filters = obj;
+        if (question.customFilter && question.customFilter.trim().length > 0) {
+          // Subscribe to survey value changes
+          question.survey?.onValueChanged.add(() => {
+            this.getQuestionFilters(question);
+          });
+        } else {
+          // Load question choices
+          if (!question.displayAsGrid) {
             this.populateChoices(question);
           }
-        } else if (!question.customFilter) {
-          filters = [];
         }
       }
     },
+    /**
+     * Populate question choices
+     *
+     * @param question Current question
+     * @param field Optional field to filter by
+     */
     populateChoices: (question: any, field?: string): void => {
       if (question.displayAsGrid) {
         if (question.selectQuestion) {
@@ -678,7 +652,39 @@ export const init = (
         question.prefillWithValues = [];
       }
     },
-    onAfterRender: (question: QuestionResource, el: any): void => {
+    /**
+     * Get question filters
+     *
+     * @param question Current question
+     */
+    getQuestionFilters(question: QuestionResource): void {
+      const customFilter = JSON.parse(question.customFilter);
+      if (Array.isArray(customFilter)) {
+        question.filters = {
+          logic: 'and',
+          filters: customFilter
+            .map((x) => updateFilter(question.survey as SurveyModel, x))
+            .filter((x) => !isNil(x)),
+        };
+      } else {
+        question.filters = updateFilter(
+          question.survey as SurveyModel,
+          customFilter
+        );
+      }
+
+      // Load question choices
+      if (!question.displayAsGrid) {
+        this.populateChoices(question);
+      }
+    },
+    /**
+     * On After render callback
+     *
+     * @param question Current question
+     * @param el Element
+     */
+    onAfterRender(question: QuestionResource, el: any): void {
       // Resource is required
       if (!question.resource) {
         return;
@@ -719,6 +725,11 @@ export const init = (
           }
         }
       }, 500);
+
+      if (question.customFilter && question.customFilter.trim().length > 0) {
+        // Initial load
+        this.getQuestionFilters(question);
+      }
 
       const canDisplayButtons = () =>
         survey.mode !== 'display' && !question.isReadOnly;
@@ -876,29 +887,6 @@ export const init = (
   }
 
   /**
-   * Set an advance filter
-   *
-   * @param value Value of the filter
-   * @param question The question object
-   */
-  const setAdvanceFilter = (value: string, question: string | any) => {
-    const field = typeof question !== 'string' ? question.filterBy : question;
-    if (!filters.some((x: any) => x.field === field)) {
-      filters.push({
-        field: question.filterBy,
-        operator: question.filterCondition,
-        value,
-      });
-    } else {
-      filters.map((x: any) => {
-        if (x.field === field) {
-          x.value = value;
-        }
-      });
-    }
-  };
-
-  /**
    * Build the grid with the records
    *
    * @param question The resources question
@@ -970,9 +958,14 @@ export const init = (
     if (question.displayOnly) {
       const filters: (FilterDescriptor | CompositeFilterDescriptor)[] = [];
       if (question.filters) {
+        console.log('Adding question filters:', question.filters);
         filters.push(question.filters);
       }
       if (question.gridFieldsSettings?.filter) {
+        console.log(
+          'Adding grid fields settings filter:',
+          question.gridFieldsSettings.filter
+        );
         filters.push(question.gridFieldsSettings.filter);
       }
       settings.query.filter = {

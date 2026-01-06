@@ -678,8 +678,8 @@ export class FormBuilderComponent
       // Display-only questions don't require relatedName
       if (isDisplayOnly) return true;
 
-      // Validate relatedName is present
       if (!question.relatedName) {
+        // Throw error if relatedName is missing
         this.snackBar.openSnackBar(
           this.translate.instant(
             'components.formBuilder.errors.missingRelatedName',
@@ -694,9 +694,8 @@ export class FormBuilderComponent
           }
         );
         return false;
-      }
-
-      if (!isDisplayOnly && question.relatedName) {
+      } else {
+        // Throw error if relatedName is duplicated
         question.relatedName = this.formHelpersService.toSnakeCase(
           question.relatedName
         );
@@ -718,7 +717,9 @@ export class FormBuilderComponent
         }
         this.relatedNames.push(question.relatedName);
       }
+
       if (question.addRecord && !question.addTemplate) {
+        // Throw error if addTemplate is missing when addRecord is true
         this.snackBar.openSnackBar(
           this.translate.instant(
             'components.formBuilder.errors.missingTemplate',
