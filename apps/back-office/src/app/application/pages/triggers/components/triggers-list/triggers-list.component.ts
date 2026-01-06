@@ -6,7 +6,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { triggers, Triggers, TriggersType } from '../../triggers.types';
+import { Triggers, TriggersType } from '../../triggers.types';
 import { CustomNotification } from '@oort-front/shared';
 
 type TriggerTableElement = {
@@ -48,16 +48,11 @@ export class TriggersListComponent implements OnChanges {
   @Output() onDelete = new EventEmitter<{
     trigger: CustomNotification;
   }>();
-  /** Event emitter for add new trigger */
-  // eslint-disable-next-line @angular-eslint/no-output-on-prefix
-  @Output() onAdd = new EventEmitter<{ type: TriggersType }>();
   /** Event emitter for opening filter modal */
   @Output() openFilter = new EventEmitter<CustomNotification>();
 
   /** Triggers */
   public triggers = new Array<TriggerTableElement>();
-  /** Triggers types */
-  public TriggersTypes = triggers;
   /** Displayed columns */
   public displayedColumns: string[] = [
     'name',

@@ -1,11 +1,22 @@
 <h1>{{ 'common.trigger.few' | translate }}</h1>
 
-<!-- Filtering -->
-<app-triggers-filter
-  class="block mb-8"
-  (filter)="onFilter($event)"
-  [loading]="filterLoading"
-></app-triggers-filter>
+<div class="flex flex-row flew-wrap gap-8 justify-between items-center mb-8">
+  <!-- Filtering -->
+  <app-triggers-filter
+    (filter)="onFilter($event)"
+    [loading]="filterLoading"
+  ></app-triggers-filter>
+  <!-- Add new trigger -->
+  <ui-button
+    variant="primary"
+    category="secondary"
+    [uiMenuTriggerFor]="triggersOptionsMenu"
+    (click)="$event.stopPropagation()"
+    [disabled]="loading || updating"
+  >
+    {{ 'components.triggers.addTrigger' | translate }}
+  </ui-button>
+</div>
 
 <!-- Triggers list -->
 <div class="overflow-x-hidden shadow-2lg">
@@ -15,7 +26,6 @@
       [disabled]="loading || updating"
       [applicationId]="applicationId"
       [triggersList]="triggers"
-      (onAdd)="onCreateTrigger($event.type)"
       (onEdit)="onEditTrigger($event.trigger, $event.type)"
       (onDuplicate)="onDuplicateTrigger($event.trigger, $event.type)"
       (onDelete)="onDeleteTrigger($event.trigger)"
@@ -31,6 +41,7 @@
   </div>
 </div>
 
+<!-- Paginator for triggers list -->
 <ui-paginator
   [disabled]="loading || updating"
   [pageIndex]="pageInfo.pageIndex"
@@ -41,3 +52,15 @@
   (pageChange)="onPage($event)"
 >
 </ui-paginator>
+
+<!-- Add new trigger menu -->
+<ui-menu #triggersOptionsMenu>
+  <button 
+    uiMenuItem
+    *ngFor="let item of TriggersTypes"
+    (click)="onCreateTrigger(item)"
+  >
+      {{ 'components.triggers.' + item | translate }}
+  </button>
+</ui-menu>
+

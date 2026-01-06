@@ -32,7 +32,6 @@ import { TriggersRoutingModule } from './triggers-routing.module';
 import { TriggersResourceFiltersComponent } from './components/triggers-resource-filters/triggers-resource-filters.component';
 import { ManageTriggerModalComponent } from './components/manage-trigger-modal/manage-trigger-modal.component';
 import { TriggersListComponent } from './components/triggers-list/triggers-list.component';
-import { SelectTriggerResourceModalComponent } from './components/select-trigger-resource-modal/select-trigger-resource-modal.component';
 
 /**
  * Triggers page module.
@@ -44,7 +43,6 @@ import { SelectTriggerResourceModalComponent } from './components/select-trigger
     TriggersResourceFiltersComponent,
     ManageTriggerModalComponent,
     TriggersListComponent,
-    SelectTriggerResourceModalComponent,
   ],
   imports: [
     CommonModule,

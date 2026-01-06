@@ -1,28 +1,3 @@
-<!-- Header -->
-<div class="flex flex-row justify-between items-center">
-  <h2>{{ ('common.trigger.few' | translate) }}</h2>
-
-  <ui-button
-    variant="primary"
-    category="secondary"
-    [uiMenuTriggerFor]="triggersOptionsMenu"
-    (click)="$event.stopPropagation()"
-    [disabled]="disabled"
-  >
-    {{ 'components.triggers.addTrigger' | translate }}
-  </ui-button>
-</div>
-
-<ui-menu #triggersOptionsMenu>
-  <button 
-    uiMenuItem
-    *ngFor="let item of TriggersTypes"
-    (click)="onAdd.emit({ type: item })"
-  >
-      {{ 'components.triggers.' + item | translate }}
-  </button>
-</ui-menu>
-
 <!-- No triggers template -->
 <div *ngIf="triggersList.length === 0" class="flex flex-col p-4 items-center">
   <ui-icon icon="folder_open"></ui-icon>

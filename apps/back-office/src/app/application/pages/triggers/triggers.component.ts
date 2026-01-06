@@ -21,7 +21,7 @@ import { Apollo } from 'apollo-angular';
 import { SnackbarService, UIPageChangeEvent } from '@oort-front/ui';
 import { firstValueFrom, takeUntil } from 'rxjs';
 import { GET_RESOURCE } from './graphql/queries';
-import { Triggers, TriggersType } from './triggers.types';
+import { triggers, Triggers, TriggersType } from './triggers.types';
 import { get, omit } from 'lodash';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
@@ -51,24 +51,16 @@ const DEFAULT_PAGE_SIZE = 10;
 export class TriggersComponent extends UnsubscribeComponent implements OnInit {
   /** Triggers list */
   public triggers: CustomNotification[] = [];
-
-  /** FILTERING */
   /** Filter */
   public filter: any;
   /** Filter loading */
   public filterLoading = false;
-
-  /** SINGLE RESOURCE */
   /** Updating status */
   public updating = false;
-
-  /** TRIGGERS */
   /** Trigger form group */
   public triggerFormGroup!: ReturnType<typeof this.getTriggerForm>;
   /** Triggers enum */
   public TriggersEnum = Triggers;
-
-  /** PAGINATION */
   /** Loading status */
   public loading = true;
   /** Page info */
@@ -77,11 +69,12 @@ export class TriggersComponent extends UnsubscribeComponent implements OnInit {
     pageSize: DEFAULT_PAGE_SIZE,
     length: 0,
   };
-
   /** Current application id */
   public applicationId!: string;
   /** Resource cache */
   private resourcesCache = new Map<string, Resource>();
+  /** Triggers types */
+  public TriggersTypes = triggers;
 
   /**
    * Triggers page component for application.
