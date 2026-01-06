@@ -673,10 +673,29 @@ export class FormBuilderComponent
       });
     }
     if (['resource', 'resources'].includes(question.getType())) {
-      if (question.relatedName) {
-        question.relatedName = this.formHelpersService.toSnakeCase(
-          question.relatedName
+      const isDisplayOnly = question.getPropertyValue('displayOnly') === true;
+
+      // Display-only questions don't require relatedName
+      if (isDisplayOnly) return true;
+
+      if (!question.relatedName) {
+        // Throw error if relatedName is missing
+        this.snackBar.openSnackBar(
+          this.translate.instant(
+            'components.formBuilder.errors.missingRelatedName',
+            {
+              question: question.name,
+              page: page.name,
+            }
+          ),
+          {
+            error: true,
+            duration: 15000,
+          }
         );
+        return false;
+      } else {
+        // Throw error if relatedName is duplicated
         question.relatedName = this.formHelpersService.toSnakeCase(
           question.relatedName
         );
@@ -695,26 +714,12 @@ export class FormBuilderComponent
             }
           );
           return false;
-        } else {
-          this.relatedNames.push(question.relatedName);
         }
-      } else {
-        this.snackBar.openSnackBar(
-          this.translate.instant(
-            'components.formBuilder.errors.missingRelatedName',
-            {
-              question: question.name,
-              page: page.name,
-            }
-          ),
-          {
-            error: true,
-            duration: 15000,
-          }
-        );
-        return false;
+        this.relatedNames.push(question.relatedName);
       }
+
       if (question.addRecord && !question.addTemplate) {
+        // Throw error if addTemplate is missing when addRecord is true
         this.snackBar.openSnackBar(
           this.translate.instant(
             'components.formBuilder.errors.missingTemplate',

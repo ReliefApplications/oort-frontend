@@ -120,6 +120,13 @@ export const transformSurveyData = (survey: SurveyModel) => {
       .getAllQuestions()
       .filter((q) => q.isRequired && !q.readOnly && q.hasInput);
 
+    console.log(
+      'Missing required questions: ',
+      requiredQuestions
+        .filter((question: Question) => question.isEmpty())
+        .map((q) => q.name)
+    );
+
     if (requiredQuestions.length) {
       data._progress =
         (requiredQuestions.filter((question: Question) => !question.isEmpty())
