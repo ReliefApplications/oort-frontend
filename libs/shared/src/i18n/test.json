@@ -1784,6 +1784,17 @@
                 "label": "******"
               }
             },
+            "goToUrl": {
+              "label": "******",
+              "newTab": {
+                "label": "******"
+              },
+              "url": {
+                "label": "******",
+                "placeholder": "******",
+                "tooltip": "******"
+              }
+            },
             "inline": "******",
             "mapSelected": "******",
             "mapView": "******",

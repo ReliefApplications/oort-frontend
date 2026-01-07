@@ -3,7 +3,9 @@ import {
   FormArray,
   FormBuilder,
   FormControl,
+  FormGroup,
   ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { get } from 'lodash';
@@ -27,6 +29,26 @@ const DEFAULT_CONTEXT_FILTER = `{
 const fb = new FormBuilder();
 
 /**
+ * Requires at least one of the specified controls to have a value.
+ *
+ * @param controlNames Name of controls to check
+ * @returns A validator function that checks if at least one control has a value.
+ */
+export const atLeastOneRequired = (controlNames: string[]): ValidatorFn => {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const formGroup = control as FormGroup;
+
+    // Check if at least one of the specified controls has a value
+    const isValid = controlNames.some((name) => {
+      const value = formGroup.get(name)?.value;
+      return value !== null && value !== undefined && value !== '';
+    });
+
+    return isValid ? null : { atLeastOne: true };
+  };
+};
+
+/**
  * Floating button form factory.
  *
  * @param value default value ( if any )
@@ -46,16 +68,25 @@ export const createButtonFormGroup = (value: any) => {
     filterForm: createFilterGroup(value.filterForm),
     goToPage: [value && value.goToPage ? value.goToPage : false],
     targetPage: [value && value.targetPage ? value.targetPage : null],
+    goToUrl: [value && value.goToUrl ? value.goToUrl : false],
+    targetUrl: [value && value.targetUrl ? value.targetUrl : null],
     goToPageFields: fb.array(
       value && value.goToPageFields
         ? value.goToPageFields.map((x: any) =>
-            fb.group({
-              param: [x.param, Validators.required],
-              field: [x.field, Validators.required],
-            })
+            fb.group(
+              {
+                param: [x.param, Validators.required],
+                field: [x.field],
+                value: [x.value],
+              },
+              {
+                validators: [atLeastOneRequired(['field', 'value'])],
+              }
+            )
           )
         : []
     ),
+    openInNewTab: [value && value.openInNewTab ? value.openInNewTab : false],
     selectAll: [value && value.selectAll ? value.selectAll : false],
     selectPage: [value && value.selectPage ? value.selectPage : false],
     goToNextStep: [get(value, 'goToNextStep', false)],

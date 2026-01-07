@@ -1784,6 +1784,17 @@
                 "label": "URL params"
               }
             },
+            "goToUrl": {
+              "label": "Open url",
+              "newTab": {
+                "label": "Open in a new tab"
+              },
+              "url": {
+                "label": "URL",
+                "placeholder": "Enter the URL",
+                "tooltip": "You can use fields in curly braces to inject field values into the URL, for example: https://mydomain.com/user/{userId}"
+              }
+            },
             "inline": "Inline edition",
             "mapSelected": "Map selected rows to state",
             "mapView": "Map visible rows to state",

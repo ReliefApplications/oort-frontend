@@ -1416,14 +1416,14 @@ export class GridComponent
    * @returns boolean indicating if the button should be displayed
    */
   public shouldShowButton = (button: any, data: Record<string, unknown>) => {
-    return applyFilters(
-      data,
-      button.filterForm ?? {
-        logic: 'and',
-        filters: [],
-      }
-    ) && button.onlyIfCanUpdate
-      ? data.canUpdate
-      : true;
+    return (
+      applyFilters(
+        data,
+        button.filterForm ?? {
+          logic: 'and',
+          filters: [],
+        }
+      ) && (button.onlyIfCanUpdate ? data.canUpdate : true)
+    );
   };
 }

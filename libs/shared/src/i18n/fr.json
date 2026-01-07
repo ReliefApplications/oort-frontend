@@ -1797,6 +1797,17 @@
                 "label": "Parametres URL"
               }
             },
+            "goToUrl": {
+              "label": "Ouvrir l'url",
+              "newTab": {
+                "label": "Ouvrir dans un nouvel onglet"
+              },
+              "url": {
+                "label": "URL",
+                "placeholder": "Entrez l'URL",
+                "tooltip": "Vous pouvez utiliser des champs entre accolades pour injecter des valeurs de champ dans l'URL, par exemple : https://mydomain.com/user/{userId}"
+              }
+            },
             "inline": "Modifier par ligne",
             "mapSelected": "Mapper les lignes sélectionnées à l'état",
             "mapView": "Mapper les lignes visibles à l'état",

@@ -583,6 +583,10 @@
                     </ui-select-option>
                   </ui-select-menu>
                 </div>
+                <div uiFormFieldDirective class="flex-1">
+                  <label>Static value</label>
+                  <input formControlName="value" type="text" />
+                </div>
                 <ui-button
                   [isIcon]="true"
                   icon="remove_circle_outline"
@@ -599,6 +603,40 @@
             [title]="'components.widget.form.noMappingsTooltip' | translate"
           ></shared-empty>
         </div>
+      </div>
+
+      <!-- Go to url -->
+      <ui-checkbox formControlName="goToUrl">
+        <ng-container ngProjectAs="label">{{
+          'components.widget.settings.grid.actions.goToUrl.label' | translate
+        }}</ng-container>
+      </ui-checkbox>
+      <div *ngIf="formGroup.value.goToUrl" class="sub-parameters">
+        <div uiFormFieldDirective class="flex-1">
+          <label class="flex"
+            >{{
+              'components.widget.settings.grid.actions.goToUrl.url.label'
+                | translate
+            }}
+            <ui-icon
+              icon="info_outline"
+              variant="grey"
+              [size]="18"
+              [uiTooltip]="
+                'components.widget.settings.grid.actions.goToUrl.url.tooltip'
+                  | translate
+              "
+              class="self-center ml-1 cursor-help"
+            ></ui-icon>
+          </label>
+          <input formControlName="targetUrl" type="string" />
+        </div>
+        <ui-toggle class="my-2" formControlName="openInNewTab">
+          <ng-container ngProjectAs="label">{{
+            'components.widget.settings.grid.actions.goToUrl.newTab.label'
+              | translate
+          }}</ng-container>
+        </ui-toggle>
       </div>
 
       <!-- Workflow actions -->
