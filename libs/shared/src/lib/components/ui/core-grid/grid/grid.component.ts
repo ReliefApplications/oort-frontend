@@ -1422,6 +1422,8 @@ export class GridComponent
         logic: 'and',
         filters: [],
       }
-    );
+    ) && button.onlyIfCanUpdate
+      ? data.canUpdate
+      : true;
   };
 }

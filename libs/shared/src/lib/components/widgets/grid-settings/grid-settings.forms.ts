@@ -40,6 +40,9 @@ export const createButtonFormGroup = (value: any) => {
       Validators.required,
     ],
     inline: [value && value.inline ? value.inline : false],
+    onlyIfCanUpdate: [
+      value && value.onlyIfCanUpdate ? value.onlyIfCanUpdate : false,
+    ],
     filterForm: createFilterGroup(value.filterForm),
     goToPage: [value && value.goToPage ? value.goToPage : false],
     targetPage: [value && value.targetPage ? value.targetPage : null],

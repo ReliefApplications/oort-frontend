@@ -1868,6 +1868,9 @@
                 "title": "Condition d'affichage",
                 "tooltip": "Le bouton ne s'affichera sur la ligne que si la condition est remplie"
               },
+              "onlyIfCanUpdate": {
+                "title": "Afficher uniquement si l'utilisateur peut mettre à jour l'enregistrement"
+              },
               "title": "Inline",
               "tooltip": "Lorsque cette option est activée, le bouton s'affiche sur chaque ligne de la grille au lieu de l'en-tête du widget"
             },

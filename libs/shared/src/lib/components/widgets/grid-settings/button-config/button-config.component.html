@@ -65,6 +65,12 @@
             class="self-center ml-1 cursor-help"
           ></ui-icon>
         </span>
+        <ui-toggle class="flex my-2" formControlName="onlyIfCanUpdate">
+          <ng-container ngProjectAs="label">{{
+            'components.widget.settings.grid.buttons.inline.onlyIfCanUpdate.title'
+              | translate
+          }}</ng-container>
+        </ui-toggle>
         <shared-filter
           [form]="$any(formGroup.controls.filterForm)"
           [fields]="fields"

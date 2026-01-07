@@ -1855,6 +1855,9 @@
                 "title": "Display condition",
                 "tooltip": "The button will be displayed on the row only if the condition is met"
               },
+              "onlyIfCanUpdate": {
+                "title": "Show only if the user can update the record"
+              },
               "title": "Inline",
               "tooltip": "When enabled, the button will be displayed in each row of the grid instead of the widget's header"
             },
