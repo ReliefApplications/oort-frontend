@@ -1099,19 +1099,22 @@
         </ng-container>
       </kendo-grid-column-group>
     </ng-container>
-    <!-- Go to page ( navigateToPage action ) -->
+    <!-- Inline Action buttons -->
     <kendo-grid-column
       *ngIf="inlineActionButtons.length > 0"
       [columnMenu]="false"
       [width]="floatingButtonsWidth"
       [resizable]="true"
-      [title]="''"
+      [title]="widget?.settings?.widgetDisplay?.inlineActionsTitle || ''"
       [sticky]="true"
     >
       <ng-template kendoGridCellTemplate let-dataItem="dataItem">
         <div id="floating-buttons" class="flex flex-row gap-1">
-          <ng-container *ngFor="let button of inlineActionButtons">
+          <ng-container
+            *ngFor="let button of inlineActionButtons; let i = index"
+          >
             <button
+              [id]="'floating-button-' + i"
               class="text-center"
               *ngIf="shouldShowButton(button, dataItem)"
               kendoButton
@@ -1122,6 +1125,7 @@
                   button,
                 })
               "
+              [uiTooltip]="button.name"
             >
               {{ button.name }}
             </button>

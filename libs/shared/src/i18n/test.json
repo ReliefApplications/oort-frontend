@@ -1879,6 +1879,9 @@
               "title": "******",
               "tooltip": "******"
             },
+            "inlineActions": {
+              "title": "******"
+            },
             "showSingleActionAsButton": "******",
             "singleSelection": "******"
           },
