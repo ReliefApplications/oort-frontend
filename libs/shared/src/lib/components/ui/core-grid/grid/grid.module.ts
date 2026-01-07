@@ -26,6 +26,9 @@ import { GridFilterModule } from '../filter/filter.module';
 import { GridFilterMenuModule } from '../filter-menu/filter-menu.module';
 import { StripHtmlPipe } from '../../../../pipes/strip-html/strip-html.pipe';
 import { GridDataFieldAttributeDirective } from '../../../../directives/grid-data-field-attribute/grid-data-field-attribute.directive';
+import { DisplayInlineActionPipe } from '../pipes/display-inline-action/display-inline-action.pipe';
+import { InlineActionsPipe } from '../pipes/inline-actions/inline-actions.pipe';
+import { MeasureInlineActionsColumnWidthDirective } from '../directives/measure-inline-actions-column-width/measure-inline-actions-column-width.directive';
 
 /** Module for the grid component */
 @NgModule({
@@ -64,8 +67,11 @@ import { GridDataFieldAttributeDirective } from '../../../../directives/grid-dat
     uiButtonModule,
     // === Pipes ==
     StripHtmlPipe,
+    DisplayInlineActionPipe,
+    InlineActionsPipe,
     // === Directives ===
     GridDataFieldAttributeDirective,
+    MeasureInlineActionsColumnWidthDirective,
   ],
   exports: [GridComponent],
 })

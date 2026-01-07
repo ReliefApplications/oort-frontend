@@ -195,6 +195,23 @@
             />
           </div>
         </div>
+        <!-- Inline grid actions title -->
+        <div class="flex gap-2 items-center">
+          <!-- Actions title input -->
+          <div class="!mb-0" uiFormFieldDirective>
+            <label class="flex">{{
+              'components.widget.settings.grid.display.inlineActions.title'
+                | translate
+            }}</label>
+            <input
+              type="string"
+              [formControl]="
+                $any(widgetFormGroup.get('widgetDisplay.inlineActionsTitle'))
+              "
+              [placeholder]="'common.title' | translate"
+            />
+          </div>
+        </div>
         <!-- Select field to inject its value a class into the <tr> element -->
         <div uiFormFieldDirective class="w-fit">
           <label class="flex"
