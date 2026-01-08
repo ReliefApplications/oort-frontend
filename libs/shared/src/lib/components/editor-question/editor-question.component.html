@@ -2,5 +2,12 @@
   #editor
   [readonly]="readonly"
   [editorConfig]="config"
-  (editorLoaded)="editorLoaded.emit(true);"
-></shared-editor-control>
+  (editorLoaded)="editorLoaded.emit(true)">
+</shared-editor-control>
+
+<div class="text-sm text-gray-600 mt-1" *ngIf="maxWords > 0">
+  {{ wordCount }} / {{ maxWords }} words
+  <span class="text-red-600 font-semibold" *ngIf="wordCount > maxWords">
+    ({{ wordCount - maxWords }} over limit)
+  </span>
+</div>

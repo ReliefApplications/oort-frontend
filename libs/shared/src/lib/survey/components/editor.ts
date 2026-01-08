@@ -3,6 +3,7 @@ import {
   Serializer,
   SvgRegistry,
   Question,
+  CustomError,
 } from 'survey-core';
 import { DomService } from '../../services/dom/dom.service';
 import { EditorQuestionComponent } from '../../components/editor-question/editor-question.component';
@@ -11,6 +12,29 @@ import { Injector } from '@angular/core';
 import { FIELD_EDITOR_CONFIG } from '../../const/tinymce.const';
 import { EditorService } from '../../services/editor/editor.service';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
+
+/**
+ * Helper function to count words consistently
+ * 1. Replaces Block tags (p, div, br, etc) with SPACE.
+ * 2. Replaces Inline tags (strong, span, etc) with EMPTY STRING.
+ * 3. Handles &nbsp;
+ *
+ * @param html
+ */
+const calculateWordCount = (html: string): number => {
+  if (!html) return 0;
+  let text = html;
+  text = text.replace(
+    /<\/?(div|p|li|ul|ol|br|h[1-6]|table|tr|td|th|pre|blockquote)[^>]*>/gi,
+    ' '
+  );
+  text = text.replace(/<[^>]+>/g, '');
+  text = text.replace(/&nbsp;/g, ' ');
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0).length;
+};
 
 /**
  * Inits the editor component.
@@ -49,6 +73,12 @@ export const init = (
         category: 'Editor configuration',
         visibleIndex: 1,
         default: JSON.stringify(cloneDeep(FIELD_EDITOR_CONFIG)),
+      });
+      Serializer.addProperty('editor', {
+        name: 'maxWords:number',
+        category: 'general',
+        default: -1,
+        visibleIndex: 2,
       });
       return;
     },
@@ -95,6 +125,7 @@ export const init = (
           editable_root: false,
         }),
       };
+      instance.maxWords = question.maxWords || -1;
       instance.cdr.detectChanges();
 
       // Set readonly mode of instance based on readonly & survey mode
@@ -114,6 +145,19 @@ export const init = (
         instance.html.subscribe((html) => {
           if (isNil(html)) {
             return;
+          }
+          if (question.maxWords && question.maxWords > 0) {
+            const wordCount = calculateWordCount(html);
+            if (wordCount > question.maxWords) {
+              question.addError(
+                new CustomError(
+                  `Maximum word limit is ${question.maxWords}. Current: ${wordCount}`,
+                  question
+                )
+              );
+            } else {
+              question.clearErrors();
+            }
           }
           if (question.survey?.isDesignMode) {
             question.defaultValue = html;
