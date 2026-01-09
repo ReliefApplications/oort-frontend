@@ -45,22 +45,18 @@ export class EditorQuestionComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.editor.registerOnChange(() => {
+      this.wordCount = this.getWordCount();
       const content = this.editor.editor.editor.getContent();
       this.html.next(content);
-      if (this.maxWords > 0) {
-        let text = content.replace(
-          /<\/?(div|p|li|ul|ol|br|h[1-6]|table|tr|td|th|pre|blockquote)[^>]*>/gi,
-          ' '
-        );
-        text = text.replace(/<[^>]+>/g, '');
-        text = text.replace(/&nbsp;/g, ' ');
-        this.wordCount = text.trim()
-          ? text
-              .trim()
-              .split(/\s+/)
-              .filter((w) => w.length > 0).length
-          : 0;
-      }
     });
+  }
+
+  /**
+   * Get word count
+   *
+   * @returns number of words
+   */
+  public getWordCount(): number {
+    return this.editor?.editor.editor.plugins.wordcount.getCount() || 0;
   }
 }

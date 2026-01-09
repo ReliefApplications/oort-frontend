@@ -14,29 +14,6 @@ import { EditorService } from '../../services/editor/editor.service';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
 
 /**
- * Helper function to count words consistently
- * 1. Replaces Block tags (p, div, br, etc) with SPACE.
- * 2. Replaces Inline tags (strong, span, etc) with EMPTY STRING.
- * 3. Handles &nbsp;
- *
- * @param html
- */
-const calculateWordCount = (html: string): number => {
-  if (!html) return 0;
-  let text = html;
-  text = text.replace(
-    /<\/?(div|p|li|ul|ol|br|h[1-6]|table|tr|td|th|pre|blockquote)[^>]*>/gi,
-    ' '
-  );
-  text = text.replace(/<[^>]+>/g, '');
-  text = text.replace(/&nbsp;/g, ' ');
-  return text
-    .trim()
-    .split(/\s+/)
-    .filter((w) => w.length > 0).length;
-};
-
-/**
  * Inits the editor component.
  *
  * @param injector Parent instance angular injector containing all needed services and directives
@@ -78,7 +55,7 @@ export const init = (
         name: 'maxWords:number',
         category: 'general',
         default: -1,
-        visibleIndex: 2,
+        visibleIndex: -1,
       });
       return;
     },
@@ -142,22 +119,44 @@ export const init = (
           instance.editor.editor.writeValue(question.value);
         }
 
+        if (!question.wordLimitError) {
+          question.wordLimitError = new CustomError('', question);
+        }
+
+        if (question.maxWords && question.maxWords > 0) {
+          const wordCount = instance.getWordCount();
+          instance.wordCount = wordCount;
+
+          if (wordCount > question.maxWords) {
+            question.wordLimitError.text = `Maximum word limit is ${question.maxWords}. Current: ${wordCount}`;
+            if (!question.errors.includes(question.wordLimitError)) {
+              question.addError(question.wordLimitError);
+            }
+          } else {
+            question.removeError(question.wordLimitError);
+          }
+        } else {
+          question.removeError(question.wordLimitError);
+        }
+
         instance.html.subscribe((html) => {
           if (isNil(html)) {
             return;
           }
           if (question.maxWords && question.maxWords > 0) {
-            const wordCount = calculateWordCount(html);
+            const wordCount = instance.getWordCount();
+
             if (wordCount > question.maxWords) {
-              question.addError(
-                new CustomError(
-                  `Maximum word limit is ${question.maxWords}. Current: ${wordCount}`,
-                  question
-                )
-              );
+              question.wordLimitError.text = `Maximum word limit is ${question.maxWords}. Current: ${wordCount}`;
+
+              if (!question.errors.includes(question.wordLimitError)) {
+                question.addError(question.wordLimitError);
+              }
             } else {
-              question.clearErrors();
+              question.removeError(question.wordLimitError);
             }
+          } else {
+            question.removeError(question.wordLimitError);
           }
           if (question.survey?.isDesignMode) {
             question.defaultValue = html;
