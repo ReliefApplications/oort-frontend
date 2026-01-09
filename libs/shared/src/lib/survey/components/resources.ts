@@ -587,7 +587,7 @@ export const init = (
         getResourceById(question.resource).subscribe(({ data }) => {
           // const choices = mapQuestionChoices(data, question);
           // question.contentQuestion.choices = choices;
-          if (!question.placeholder) {
+          if (!question.placeholder && !question.displayAsGrid) {
             question.contentQuestion.optionsCaption =
               'Select a record from ' + data.resource.name + '...';
           }
