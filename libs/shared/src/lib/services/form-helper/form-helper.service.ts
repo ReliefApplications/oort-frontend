@@ -1028,26 +1028,15 @@ export class FormHelpersService {
           this.downloadService
             .uploadFile('upload/parse/json', file)
             .subscribe((data) => {
-              data.forEach((row: Record<string, unknown>) => {
-                if (question.type === 'paneldynamic') {
-                  const panel = question as QuestionPanelDynamicModel;
-                  const newPanel = panel.addPanel();
-
-                  Object.entries(row).forEach(([key, value]) => {
-                    const nestedQuestion = newPanel.getQuestionByName(key);
-                    if (nestedQuestion) {
-                      nestedQuestion.value = value;
-                    }
-                  });
-                } else {
-                  const matrix = question as QuestionMatrixDynamicModel;
-
-                  const idx = matrix.rowCount;
-                  matrix.addRow();
-                  matrix.setRowValue(idx, row);
-                  matrix.expand();
-                }
-              });
+              if (question.type === 'paneldynamic') {
+                const panel = question as QuestionPanelDynamicModel;
+                const existingValue = panel.value || [];
+                panel.value = [...existingValue, ...data];
+              } else {
+                const matrix = question as QuestionMatrixDynamicModel;
+                const existingValue = matrix.value || [];
+                matrix.value = [...existingValue, ...data];
+              }
               input.removeEventListener('change', inputListener);
               input.remove();
             });
