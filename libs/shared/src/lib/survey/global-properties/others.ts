@@ -465,6 +465,17 @@ export const init = (environment: any): void => {
   };
   serializer.addProperty('paneldynamic', allowImportProp);
   serializer.addProperty('matrixdynamic', allowImportProp);
+  serializer.addProperty('matrixdynamic', {
+    name: 'enableLazyRows:boolean',
+    default: false,
+    category: 'general',
+  });
+  serializer.addProperty('matrixdynamic', {
+    name: 'lazyRowsPageSize:number',
+    default: 20,
+    category: 'general',
+    visibleIf: (obj: any) => obj.enableLazyRows,
+  });
 
   // Add option to omit question from fields
   serializer.addProperty('question', {

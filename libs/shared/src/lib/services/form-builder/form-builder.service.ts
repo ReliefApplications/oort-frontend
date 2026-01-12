@@ -352,6 +352,7 @@ export class FormBuilderService {
           break;
         case 'matrixdynamic':
           this.formHelpersService.addUploadButton(options);
+          this.formHelpersService.setupMatrixDynamicLazyRows(options);
           break;
         case 'file':
           this.formHelpersService.setDownloadListener(options, this.recordId);

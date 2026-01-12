@@ -1034,8 +1034,26 @@ export class FormHelpersService {
                 panel.value = [...existingValue, ...data];
               } else {
                 const matrix = question as QuestionMatrixDynamicModel;
-                const existingValue = matrix.value || [];
-                matrix.value = [...existingValue, ...data];
+                const runtime = matrix as any;
+                const existingAllRows = Array.isArray(runtime.__allRows)
+                  ? runtime.__allRows
+                  : matrix.value || [];
+                runtime.__allRows = [...existingAllRows, ...data];
+                if (matrix.enableLazyRows) {
+                  const pageSize = Math.max(
+                    1,
+                    Number(matrix.lazyRowsPageSize) || 20
+                  );
+                  const loaded = Math.min(
+                    runtime.__lazyLoadedCount ?? pageSize,
+                    runtime.__allRows.length
+                  );
+                  runtime.__lazyLoadedCount = loaded;
+                  runtime.__lazyApplying = true;
+                  matrix.value = runtime.__allRows.slice(0, loaded);
+                } else {
+                  matrix.value = runtime.__allRows;
+                }
               }
               input.removeEventListener('change', inputListener);
               input.remove();
@@ -1079,6 +1097,142 @@ export class FormHelpersService {
         }
       });
     }
+  }
+
+  /**
+   * Setup MatrixDynamic lazy rows
+   *
+   * @param e
+   */
+  public setupMatrixDynamicLazyRows(e: AfterRenderQuestionEvent): void {
+    const { question, htmlElement } = e;
+    if (question.getType() !== 'matrixdynamic' || !question.enableLazyRows) {
+      return;
+    }
+
+    const matrix = question as QuestionMatrixDynamicModel;
+    const runtime = matrix as any;
+    const pageSize = Math.max(1, Number(matrix.lazyRowsPageSize) || 20);
+    runtime.__lazyPageSize = pageSize;
+    runtime.__allRows ||= Array.isArray(matrix.value) ? matrix.value : [];
+
+    const allRows: any[] = runtime.__allRows;
+    runtime.__lazyLoadedCount ??= Math.min(pageSize, allRows.length);
+
+    if (
+      Array.isArray(matrix.value) &&
+      matrix.value.length !== runtime.__lazyLoadedCount &&
+      !runtime.__lazyApplying
+    ) {
+      runtime.__lazyApplying = true;
+      matrix.value = allRows.slice(0, runtime.__lazyLoadedCount);
+    }
+
+    if (!runtime.__lazySyncAttached && matrix.survey) {
+      runtime.__lazySyncAttached = true;
+      const survey = matrix.survey as SurveyModel;
+      const handler = (_: any, options: any) => {
+        if (
+          options?.question !== matrix &&
+          options?.name !== matrix.getValueName()
+        ) {
+          return;
+        }
+        if (runtime.__lazyApplying) {
+          runtime.__lazyApplying = false;
+          runtime.__lazyLoadedCount = Array.isArray(matrix.value)
+            ? matrix.value.length
+            : 0;
+          updateFooter();
+          return;
+        }
+        const loaded = Array.isArray(matrix.value) ? matrix.value : [];
+        const prevLoaded = runtime.__lazyLoadedCount ?? loaded.length;
+        const remainder = Array.isArray(runtime.__allRows)
+          ? runtime.__allRows.slice(prevLoaded)
+          : [];
+        runtime.__allRows = [...loaded, ...remainder];
+        runtime.__lazyLoadedCount = loaded.length;
+        updateFooter();
+      };
+      runtime.__lazySyncHandler = handler;
+      survey.onValueChanged.add(handler);
+      survey.onDispose?.add?.(() => {
+        survey.onValueChanged.remove(handler);
+      });
+    }
+
+    const footerId = `matrix-lazy-footer-${question.id}`;
+    const existingFooter = htmlElement.querySelector(
+      `#${CSS.escape(footerId)}`
+    ) as HTMLElement | null;
+    const footer = existingFooter || document.createElement('div');
+    footer.id = footerId;
+    footer.className = 'flex items-center gap-2 mt-2';
+
+    if (!existingFooter) {
+      const info = document.createElement('span');
+      info.className = 'text-xs text-gray-500';
+      info.setAttribute('data-lazy-info', '');
+
+      const loadMore = document.createElement('button');
+      loadMore.className = 'sd-action';
+      loadMore.textContent = 'Load more';
+      loadMore.onclick = () => {
+        const target = Math.min(
+          (runtime.__lazyLoadedCount ?? 0) + pageSize,
+          allRows.length
+        );
+        renderTo(target);
+      };
+
+      const loadAll = document.createElement('button');
+      loadAll.className = 'sd-action';
+      loadAll.textContent = 'Load all';
+      loadAll.onclick = () => renderTo(allRows.length);
+
+      footer.appendChild(info);
+      footer.appendChild(loadMore);
+      footer.appendChild(loadAll);
+      htmlElement.appendChild(footer);
+
+      matrix.registerFunctionOnPropertyValueChanged('readOnly', () => {
+        updateFooter();
+      });
+    }
+
+    const renderTo = (target: number) => {
+      const batch = 10;
+      const step = () => {
+        const current = runtime.__lazyLoadedCount ?? 0;
+        const next = Math.min(current + batch, target);
+        runtime.__lazyLoadedCount = next;
+        runtime.__lazyApplying = true;
+        matrix.value = allRows.slice(0, next);
+        updateFooter();
+        if (next < target) {
+          requestAnimationFrame(step);
+        }
+      };
+      requestAnimationFrame(step);
+    };
+
+    const updateFooter = () => {
+      const loaded = runtime.__lazyLoadedCount ?? 0;
+      const total = allRows.length;
+      const info = footer.querySelector(
+        '[data-lazy-info]'
+      ) as HTMLElement | null;
+      if (info) {
+        info.textContent = `${loaded}/${total} rendered`;
+      }
+      const buttons = Array.from(footer.querySelectorAll('button'));
+      const done = loaded >= total;
+      const hidden = done || matrix.isReadOnly;
+      buttons.forEach((b) => b.classList.toggle('!hidden', hidden));
+    };
+
+    updateFooter();
   }
 
   /**
