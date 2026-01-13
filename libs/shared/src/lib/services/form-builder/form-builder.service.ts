@@ -712,7 +712,7 @@ export class FormBuilderService {
           error: (error: HttpErrorResponse) => {
             this.snackBar.openSnackBar(error.message, {
               error: true,
-              duration: 15000,
+              duration: 25000,
             });
             options.callback(null, error);
           },
