@@ -78,21 +78,6 @@ export const transformSurveyData = (survey: SurveyModel) => {
     if (!question) {
       delete data[filed];
     } else {
-      const isQuestionVisible = (question: Question | IPanel): boolean => {
-        // If question is not visible, return false
-        if (!question.isVisible || !question) {
-          return false;
-        }
-
-        // If it is, check if its parent is visible
-        if (question.parent) {
-          return isQuestionVisible(question.parent);
-        }
-
-        // If we're in the root and it's visible, return true
-        return true;
-      };
-
       // Removes null values for invisible questions (or pages)
       if (
         (!isQuestionVisible(question) && data[filed] === null) ||
@@ -115,10 +100,12 @@ export const transformSurveyData = (survey: SurveyModel) => {
     }
   });
   if (survey.showPercentageProgressBar) {
-    // Filter only required questions that are not read-only and have input
+    // Filter only required questions that are not read-only, have input, and are visible (including parent visibility)
     const requiredQuestions = survey
       .getAllQuestions()
-      .filter((q) => q.isRequired && !q.readOnly && q.hasInput);
+      .filter(
+        (q) => q.isRequired && !q.readOnly && q.hasInput && isQuestionVisible(q)
+      );
 
     console.log(
       'Missing required questions: ',
@@ -136,6 +123,27 @@ export const transformSurveyData = (survey: SurveyModel) => {
     }
   }
   return data;
+};
+
+/**
+ * Checks if a question is visible, including parent visibility
+ *
+ * @param question Question or panel to check
+ * @returns True if the question and all its parents are visible
+ */
+export const isQuestionVisible = (question: Question | IPanel): boolean => {
+  // If question is not visible, return false
+  if (!question.isVisible || !question) {
+    return false;
+  }
+
+  // If it is, check if its parent is visible
+  if (question.parent) {
+    return isQuestionVisible(question.parent);
+  }
+
+  // If we're in the root and it's visible, return true
+  return true;
 };
 
 /**
