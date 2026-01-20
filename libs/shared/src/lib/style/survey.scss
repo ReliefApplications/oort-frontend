@@ -120,9 +120,9 @@
       w-full
       border-0;
   }
-  .sd-text {
-    min-height: 2.5rem;
-  }
+  // .sd-text {
+  //   min-height: 2.5rem;
+  // }
   .k-multiselect {
     .k-clear-value {
       padding-right: 18px !important;
@@ -302,6 +302,13 @@
 
     .sv_row div {
       min-width: unset;
+    }
+  }
+
+  // Multi text
+  .sd-multipletext {
+    .sd-input {
+      min-height: 2.5rem;
     }
   }
 }
