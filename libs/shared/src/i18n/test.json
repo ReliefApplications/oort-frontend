@@ -2052,7 +2052,8 @@
               "fieldMapping": "******",
               "geoField": "******",
               "latitude": "******",
-              "longitude": "******"
+              "longitude": "******",
+              "requiredFilterFields": "******"
             },
             "edit": "****** {{name}}",
             "online": {

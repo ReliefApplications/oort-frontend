@@ -185,6 +185,7 @@ const createLayerDataSourceForm = (value?: any): FormGroup => {
         },
       ],
       type: [get(value, 'type', 'Point')],
+      requiredFilterFields: [get(value, 'requiredFilterFields', null)],
     },
     {
       validators: [

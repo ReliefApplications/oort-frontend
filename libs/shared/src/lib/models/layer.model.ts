@@ -145,6 +145,7 @@ export interface LayerDatasource {
   latitudeField?: string;
   longitudeField?: string;
   type?: LayerDatasourceType;
+  requiredFilterFields?: string;
 }
 
 /** Model for the timeline configuration of a layer */

@@ -260,6 +260,27 @@
           }}</ui-select-option>
         </ui-select-menu>
       </div>
+
+      <div uiFormFieldDirective>
+        <label>{{ 'components.widget.settings.map.layers.dataSource.requiredFilterFields' | translate }}</label>
+        <input
+          type="text"
+          formControlName="requiredFilterFields"
+          placeholder="e.g., related_biosphere.countries"
+        />
+        <ui-button
+          *ngIf="formGroup.get('requiredFilterFields')?.value"
+          uiSuffix
+          [isIcon]="true"
+          icon="close"
+          variant="danger"
+          (click)="
+            formGroup.get('requiredFilterFields')?.setValue(null);
+            $event.stopPropagation()
+          "
+          [uiTooltip]="'common.remove' | translate"
+        ></ui-button>
+      </div>
     </div>
 
     <!-- Template for field selection -->

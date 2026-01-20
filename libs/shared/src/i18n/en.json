@@ -2052,7 +2052,8 @@
               "fieldMapping": "Field Mapping",
               "geoField": "GeoField",
               "latitude": "Latitude",
-              "longitude": "Longitude"
+              "longitude": "Longitude",
+              "requiredFilterFields": "Required Filter Fields (comma-separated)"
             },
             "edit": "Update layer {{name}}",
             "online": {

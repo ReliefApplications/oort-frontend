@@ -620,12 +620,19 @@ export class MapLayersService {
           ...layer.datasource,
           contextFilters: JSON.stringify(contextFilters),
           graphQLVariables: JSON.stringify(graphQLVariables()),
+          requiredFilterFields: layer.datasource?.requiredFilterFields,
           ...(at && {
             at: at.toString(),
           }),
         },
         isNil
-      ),
+      ) as {
+        [param: string]:
+          | string
+          | number
+          | boolean
+          | ReadonlyArray<string | number | boolean>;
+      },
     });
     // Method to get layer from definition
     // Query is sent to the back-end to fetch correct data

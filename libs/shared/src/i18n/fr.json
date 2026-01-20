@@ -2065,7 +2065,8 @@
               "fieldMapping": "Mapping des Champs",
               "geoField": "GeoField",
               "latitude": "Latitude",
-              "longitude": "Longitude"
+              "longitude": "Longitude",
+              "requiredFilterFields": "Champs de filtre requis (séparés par des virgules)"
             },
             "edit": "Mettre à jour le calque {{name}}",
             "online": {
