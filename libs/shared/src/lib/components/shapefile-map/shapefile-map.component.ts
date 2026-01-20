@@ -25,7 +25,7 @@ export type ErrorType = {
 /** Error messages associated to errors */
 export const ERROR_MESSAGES: { [key in keyof ErrorType]: string } = {
   intersection:
-    'Geometry error: There are one or more self-intersecting polygons (polygons that cross themselves in a figure-eight fashion). Please correct these errors and upload the files again.',
+    'Geometry error: There are one or more overlapping zonation polygons. Please correct these errors and upload the files again.',
   gaps: 'Geometry error: There are one or more gaps (empty spaces) between zonation polygons. Please correct these errors and upload the files again.',
   overlap:
     'Geometry error: There are one or more overlapping zonation polygons. Please correct these errors and upload the files again.',
