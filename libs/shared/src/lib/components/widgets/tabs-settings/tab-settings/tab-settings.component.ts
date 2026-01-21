@@ -44,9 +44,9 @@ export class TabSettingsComponent
   /** Reference to style dialog, when opened */
   private styleDialog?: DialogRef<any, any>;
   /** Timeout to scroll to newly added widget */
-  private addWidgetTimeoutListener!: NodeJS.Timeout;
+  private addWidgetTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to grid options */
-  private gridOptionsTimeoutListener!: NodeJS.Timeout;
+  private gridOptionsTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Edition of a single tab, in tabs widget

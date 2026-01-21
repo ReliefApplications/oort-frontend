@@ -70,7 +70,7 @@ export class CustomWidgetStyleComponent
   /** Save function */
   @Input() save!: (widget: any) => void;
   /** Timeout to init editor */
-  private initEditorTimeoutListener!: NodeJS.Timeout;
+  private initEditorTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Navbar size style */
   public navbarStyle: any = {};
 

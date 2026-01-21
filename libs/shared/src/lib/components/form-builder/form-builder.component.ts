@@ -158,7 +158,7 @@ export class FormBuilderComponent
    */
   private relatedNames!: string[];
   /** Timeout to survey creator */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * The constructor function is a special function that is called when a new instance of the class is

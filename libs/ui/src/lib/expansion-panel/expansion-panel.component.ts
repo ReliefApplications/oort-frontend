@@ -63,7 +63,7 @@ export class ExpansionPanelComponent implements AfterViewInit, OnDestroy {
   /** Reference to the content container. */
   @ViewChild('contentContainer') contentContainer!: ElementRef;
   /** Timeout listener for closing the panel. */
-  private expansionCloseTimeoutListener!: NodeJS.Timeout;
+  private expansionCloseTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * UI Panel Expansion constructor

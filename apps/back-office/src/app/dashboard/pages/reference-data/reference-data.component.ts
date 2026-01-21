@@ -131,11 +131,11 @@ export class ReferenceDataComponent
     fixedOverflowWidgets: true,
   };
   /** Timeout to form */
-  private formTimeoutListener!: NodeJS.Timeout;
+  private formTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to init editor */
-  private initEditorTimeoutListener!: NodeJS.Timeout;
+  private initEditorTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to add an object to the chip list. */
-  private addChipListTimeoutListener!: NodeJS.Timeout;
+  private addChipListTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Outside click listener for inline edition */
   private inlineEditionOutsideClickListener!: any;
   /** size style of editor */

@@ -57,7 +57,7 @@ export class SidenavContainerComponent implements AfterViewInit, OnDestroy {
   /** Should display fixed wrapper at bottom */
   fixedWrapperActionExist = false;
   /** Timeout to transitions */
-  private transitionsTimeoutListener!: NodeJS.Timeout;
+  private transitionsTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /** @returns height of element */
   get height() {

@@ -38,7 +38,7 @@ export class SidenavDirective implements OnInit, OnDestroy, OnChanges {
   /** Event emitter for opened change */
   @Output() openedChange = new EventEmitter<boolean>();
   /** Timeout to toggle */
-  private toggleTimeoutListener!: NodeJS.Timeout;
+  private toggleTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /** Click outside listener */
   private clickOutsideListener!: () => void;

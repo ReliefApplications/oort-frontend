@@ -28,7 +28,7 @@ export class ChipComponent implements OnDestroy {
   /** Event emitter for when the chip is removed. */
   @Output() removed = new EventEmitter<void>();
   /** Timeout to onClick */
-  private onClickTimeoutListener!: NodeJS.Timeout;
+  private onClickTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /** @returns general chip classes and variant */
   get chipClasses(): string[] {

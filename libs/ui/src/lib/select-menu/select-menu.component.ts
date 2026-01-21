@@ -101,9 +101,9 @@ export class SelectMenuComponent
   /** Overlay reference */
   private overlayRef!: OverlayRef;
   /** Timeout listener for the animation */
-  private applyAnimationTimeoutListener!: NodeJS.Timeout;
+  private applyAnimationTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout listener for the closing of the panel */
-  private closePanelTimeoutListener!: NodeJS.Timeout;
+  private closePanelTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /** Control access value functions */
   onChange!: (value: any) => void;

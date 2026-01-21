@@ -84,13 +84,13 @@ export class WidgetGridComponent
   /** Detect structure changes */
   public structureChanges = new Subject<boolean>();
   /** Set grid options timeout, to enable events that can save dashboard */
-  private gridOptionsTimeoutListener!: NodeJS.Timeout;
+  private gridOptionsTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Subscribe to structure changes */
   private changesSubscription?: Subscription;
   /** Determines whether we need to use a minimum height */
   public isMinHeightEnabled?: boolean;
   /** Timeout listener */
-  private setFullscreenTimeoutListener!: NodeJS.Timeout;
+  private setFullscreenTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Indicate if the widget grid can be deactivated or not.

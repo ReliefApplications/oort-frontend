@@ -36,7 +36,7 @@ export class BreadcrumbsComponent implements OnChanges, OnDestroy {
   /** Width of the expanded breadcrumb. */
   expandedWidth = 0;
   /** Timeout to load Breadcrumb */
-  private loadBreadcrumbTimeoutListener!: NodeJS.Timeout;
+  private loadBreadcrumbTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Method to update off limit value when breadcrumbs change. */
 
   ngOnChanges(changes: SimpleChanges): void {

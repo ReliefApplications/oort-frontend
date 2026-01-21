@@ -75,7 +75,7 @@ export class DashboardFilterComponent
   /** Resize observer for the sidenav container */
   private resizeObserver!: ResizeObserver;
   /** Timeout to add debounce time to survey value changes */
-  private debounceTimeout: NodeJS.Timeout | null = null;
+  private debounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Dashboard contextual filter component.

@@ -33,9 +33,9 @@ export class MenuTriggerForDirective implements OnDestroy {
   /** Menu closing actions subscription */
   menuClosingActionsSubscription!: Subscription;
   /** Timeout to open menu */
-  private openMenuTimeoutListener!: NodeJS.Timeout;
+  private openMenuTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to destroy menu */
-  private destroyMenuTimeoutListener!: NodeJS.Timeout;
+  private destroyMenuTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * UI Directive constructor

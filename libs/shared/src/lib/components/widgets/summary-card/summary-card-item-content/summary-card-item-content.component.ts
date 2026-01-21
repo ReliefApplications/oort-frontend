@@ -52,7 +52,7 @@ export class SummaryCardItemContentComponent
   /** Formatted style, to be applied */
   public formattedStyle?: string;
   /** Timeout to init active filter */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Content component of Single Item of Summary Card.

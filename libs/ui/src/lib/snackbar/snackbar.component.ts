@@ -43,9 +43,9 @@ export class SnackbarComponent implements OnDestroy {
   /** Reference to nested component ( if created from one ) */
   public nestedComponent!: ComponentRef<any>;
   /** Timeout to remove snackbar */
-  private snackbarRemovalTimeoutListener!: NodeJS.Timeout;
+  private snackbarRemovalTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to remove snackbar */
-  private durationResolverListener!: NodeJS.Timeout;
+  private durationResolverListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Function to resolve after a certain duration.

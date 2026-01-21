@@ -37,7 +37,7 @@ export class DrawerPositionerDirective
   @Input()
   dashboardSurveyCreatorContainer!: any;
   /** Timeout to display drawer */
-  private displayDrawerTimeoutListener!: NodeJS.Timeout;
+  private displayDrawerTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Class constructor

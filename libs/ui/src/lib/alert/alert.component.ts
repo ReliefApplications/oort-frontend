@@ -32,7 +32,7 @@ export class AlertComponent implements OnDestroy {
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() close = new EventEmitter<Event>();
   /** Timeout to close */
-  private closeTimeoutListener!: NodeJS.Timeout;
+  private closeTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * UI Alert Component

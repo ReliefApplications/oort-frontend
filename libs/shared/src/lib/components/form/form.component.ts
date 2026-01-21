@@ -140,7 +140,7 @@ export class FormComponent
   /** last date saved */
   public latestSaveDate: Date | null = null;
   /** Timeout for reset survey */
-  private resetTimeoutListener!: NodeJS.Timeout;
+  private resetTimeoutListener!: ReturnType<typeof setTimeout>;
   /** As we save the draft record in the db, the local storage is no longer used */
   /** ID for local storage */
   // private storageId = '';

@@ -83,7 +83,7 @@ export class EmailPreviewModalComponent implements OnDestroy {
   public editor: any = EMAIL_EDITOR_CONFIG;
 
   /** Timeout */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /** @returns list of emails */
   get emails(): string[] {

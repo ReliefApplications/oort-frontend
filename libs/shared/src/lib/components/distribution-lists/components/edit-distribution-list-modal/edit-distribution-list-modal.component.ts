@@ -81,7 +81,7 @@ export class EditDistributionListModalComponent implements OnDestroy {
   errorEmailMessages = new BehaviorSubject<string>('');
 
   /** Timeout */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /** @returns list of emails */
   get emails(): string[] {

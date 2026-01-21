@@ -143,7 +143,7 @@ export class SummaryCardComponent
   /** Summary card grid scroll event listener */
   private scrollEventListener!: any;
   /** Timeout listener for summary card scroll bind set on view switch */
-  private scrollEventBindTimeout!: NodeJS.Timeout;
+  private scrollEventBindTimeout!: ReturnType<typeof setTimeout>;
   /** Subject to emit signals for cancelling previous data queries */
   private cancelRefresh$ = new Subject<void>();
 

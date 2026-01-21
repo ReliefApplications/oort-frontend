@@ -70,9 +70,9 @@ export class AutocompleteDirective
   /** Click outside listener */
   private clickOutsideListener!: () => void;
   /** Timeout to autocomplete close */
-  private closeAutoCompleteTimeoutListener!: NodeJS.Timeout;
+  private closeAutoCompleteTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to autocomplete animation */
-  private AutoCompleteAnimationTimeoutListener!: NodeJS.Timeout;
+  private AutoCompleteAnimationTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Get the value from the option to set in the input host element

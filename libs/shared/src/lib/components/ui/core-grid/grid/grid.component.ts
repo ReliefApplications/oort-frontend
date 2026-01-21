@@ -245,9 +245,9 @@ export class GridComponent
   /** Snackbar reference */
   private snackBarRef!: any;
   /** Column change timeout */
-  private columnChangeTimeoutListener!: NodeJS.Timeout;
+  private columnChangeTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Display fullscreen button timeout */
-  private displayFullScreenButtonTimeoutListener!: NodeJS.Timeout;
+  private displayFullScreenButtonTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Listen to click events to determine if editor should be closed */
   private closeEditorListener!: any;
   /** A boolean indicating if actions are enabled */

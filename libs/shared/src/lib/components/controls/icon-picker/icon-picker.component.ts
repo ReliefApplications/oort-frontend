@@ -58,7 +58,7 @@ export class IconPickerComponent
   /** Boolean to control the visibility of the list. */
   public showList = false;
   /** Timeout listener */
-  private setIconTimeoutListener!: NodeJS.Timeout;
+  private setIconTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Gets the value

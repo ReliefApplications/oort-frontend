@@ -39,7 +39,7 @@ export class PayloadModalComponent implements OnInit, OnDestroy {
   /** Form control to see payload */
   public formControl = new FormControl('');
   /** Timeout listener */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Reference data and aggregation payload modal.

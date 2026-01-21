@@ -104,9 +104,9 @@ export class DashboardComponent
   /** Configured dashboard quick actions */
   public buttonActions: ButtonActionT[] = [];
   /** Timeout to scroll to newly added widget */
-  private addTimeoutListener!: NodeJS.Timeout;
+  private addTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to load grid options */
-  private gridOptionsTimeoutListener!: NodeJS.Timeout;
+  private gridOptionsTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Is edition active */
   @HostBinding('class.edit-mode-dashboard')
   public editionActive = true;

@@ -89,7 +89,7 @@ export class TabsComponent implements AfterViewInit, OnDestroy, OnChanges {
   /** Reorder subject */
   reorder$ = new Subject<void>();
   /** Timeout to show content */
-  private showContentTimeoutListener!: NodeJS.Timeout;
+  private showContentTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Ui Sidenav constructor

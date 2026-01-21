@@ -27,7 +27,7 @@ export class ExpandedWidgetComponent implements AfterViewInit, OnDestroy {
   /** CDK portal */
   public portal?: DomPortal;
   /** Timeout listener */
-  private setFullscreenTimeoutListener!: NodeJS.Timeout;
+  private setFullscreenTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Expand widgets in a modal

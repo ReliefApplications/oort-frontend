@@ -79,7 +79,7 @@ export class CustomStyleComponent
   /** Loading state */
   public loading = false;
   /** Timeout to init editor */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
   /** Navbar size style */
   public navbarStyle: any = {};
 

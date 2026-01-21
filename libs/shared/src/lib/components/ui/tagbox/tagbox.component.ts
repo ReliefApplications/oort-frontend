@@ -57,7 +57,7 @@ export class TagboxComponent
   /** Input visibility status */
   public showInput = false;
   /** Timeout to add */
-  private addTimeoutListener!: NodeJS.Timeout;
+  private addTimeoutListener!: ReturnType<typeof setTimeout>;
 
   // === OUTPUT CONTROL ===
   /** Output control */

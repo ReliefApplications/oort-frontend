@@ -28,7 +28,7 @@ export class MapPopupService {
   /** Is the popup outside of the world bounds? */
   private isPopupOutOfBounds = { x: false, y: false };
   /** Timeout to open popup */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Injects DomService and TranslateService instances to the service

@@ -108,7 +108,7 @@ export class DatePickerDirective implements OnInit, OnDestroy {
   ] as const;
 
   /** Timeout to dispatch event */
-  private dispatchEventTimeoutListener!: NodeJS.Timeout;
+  private dispatchEventTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * UI Date picker directive constructor

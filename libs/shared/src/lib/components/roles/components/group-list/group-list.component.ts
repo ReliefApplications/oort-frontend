@@ -45,7 +45,7 @@ export class GroupListComponent
   /** Displayed columns */
   public displayedColumns = ['title', 'usersCount', 'actions'];
   /** Timeout snackbar */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /** Form */
   form = this.fb.group({});

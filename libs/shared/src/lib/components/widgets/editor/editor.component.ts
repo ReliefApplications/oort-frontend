@@ -74,7 +74,7 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
   /** Subject to emit signals for cancelling previous data queries */
   private cancelRefresh$ = new Subject<void>();
   /** Timeout to init active filter */
-  private timeoutListener!: NodeJS.Timeout;
+  private timeoutListener!: ReturnType<typeof setTimeout>;
 
   /** @returns does the card use reference data */
   get useReferenceData() {

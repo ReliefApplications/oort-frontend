@@ -46,9 +46,9 @@ export class DateWrapperDirective implements AfterContentInit, OnDestroy {
   /** Is calendar open */
   isCalendarOpen = false;
   /** Timeout to calendar animation */
-  private calendarAnimationTimeoutListener!: NodeJS.Timeout;
+  private calendarAnimationTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Timeout to close calendar */
-  private closeCalendarTimeoutListener!: NodeJS.Timeout;
+  private closeCalendarTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * UI Date wrapper directive constructor

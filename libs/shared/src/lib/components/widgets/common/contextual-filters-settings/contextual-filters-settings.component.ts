@@ -28,7 +28,7 @@ export class ContextualFiltersSettingsComponent implements OnDestroy {
    */
   @Input() form!: FormGroup;
   /** Timeout to init editor */
-  private initEditorTimeoutListener!: NodeJS.Timeout;
+  private initEditorTimeoutListener!: ReturnType<typeof setTimeout>;
 
   /**
    * Editor options

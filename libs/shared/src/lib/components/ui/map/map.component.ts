@@ -158,7 +158,7 @@ export class MapComponent
   /** Resize observer on map container */
   private resizeObserver?: ResizeObserver;
   /** First load timeout */
-  private firstLoadEmitTimeoutListener!: NodeJS.Timeout;
+  private firstLoadEmitTimeoutListener!: ReturnType<typeof setTimeout>;
   /** Current basemap tree */
   private basemapTree: L.Control.Layers.TreeObject[][] = [];
   /** Current layers tree */
