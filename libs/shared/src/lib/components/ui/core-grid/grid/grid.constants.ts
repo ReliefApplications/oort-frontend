@@ -38,7 +38,7 @@ export const GRADIENT_SETTINGS: GradientSettings = {
 /** Settings for exporting data */
 export const EXPORT_SETTINGS = {
   records: 'all',
-  fields: 'all',
+  fields: 'visible',
   format: 'xlsx',
   email: false,
 };
