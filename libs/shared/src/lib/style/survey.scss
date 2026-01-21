@@ -99,7 +99,7 @@
   .sd-input {
     padding: calc(1 * var(--sjs-base-unit, var(--base-unit, 8px)))
       calc(2 * var(--sjs-base-unit, var(--base-unit, 8px)));
-    font-size: 16px;
+    font-size: 1rem;
   }
   .k-combobox,
   .k-multiselect,
@@ -127,7 +127,7 @@
   .k-datetimepicker,
   .k-datepicker {
     .k-input-inner {
-      font-size: 16px;
+      font-size: 1rem;
     }
   }
   // .sd-text {
@@ -312,6 +312,13 @@
 
     .sv_row div {
       min-width: unset;
+    }
+  }
+
+  // Multi text
+  .sd-multipletext {
+    .sd-input {
+      min-height: 2.5rem;
     }
   }
 }
