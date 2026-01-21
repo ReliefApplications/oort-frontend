@@ -374,7 +374,7 @@ export class SummaryCardComponent
       this.scrollEventListener();
     }
     if (this.scrollEventBindTimeout) {
-      clearTimeout(this.scrollEventListener);
+      clearTimeout(this.scrollEventBindTimeout);
     }
   }
 

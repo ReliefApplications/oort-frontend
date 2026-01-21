@@ -222,7 +222,7 @@ export class CronEditorComponent
    */
   ngOnDestroy() {
     this.destroy$.next(true);
-    this.destroy$.unsubscribe();
+    this.destroy$.complete();
   }
 
   /**
