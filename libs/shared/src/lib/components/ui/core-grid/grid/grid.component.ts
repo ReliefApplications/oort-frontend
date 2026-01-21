@@ -1065,12 +1065,31 @@ export class GridComponent
       totalWidthSticky += 41;
     }
     // Hide the columns that are hidden by default
-    const hiddenFields = this.fields.filter((field) => field.hiddenByDefault);
+    const hiddenFields = this.fields.filter(
+      (field) =>
+        field.hiddenByDefault ||
+        (field.subFields &&
+          field.subFields.some((subField: any) => subField.hiddenByDefault))
+    );
     hiddenFields.forEach((field) => {
-      const column = this.columns.find((column) => column.field === field.name);
-      if (column && !(column as any).init) {
-        column.hidden = true;
-        (column as any).init = true;
+      if (field.subFields) {
+        field.subFields.forEach((subField: any) => {
+          const column = this.columns.find(
+            (column) => column.field === subField.name
+          );
+          if (column && !(column as any).init) {
+            column.hidden = true;
+            (column as any).init = true;
+          }
+        });
+      } else {
+        const column = this.columns.find(
+          (column) => column.field === field.name
+        );
+        if (column && !(column as any).init) {
+          column.hidden = true;
+          (column as any).init = true;
+        }
       }
     });
 
