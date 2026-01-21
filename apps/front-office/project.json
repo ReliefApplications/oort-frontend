@@ -111,7 +111,6 @@
               "maximumError": "14kb"
             }
           ],
-          "baseHref": "/admin/",
           "outputHashing": "all",
           "stylePreprocessorOptions": {
             "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
@@ -153,7 +152,6 @@
               "maximumError": "14kb"
             }
           ],
-          "baseHref": "/admin/",
           "outputHashing": "all",
           "stylePreprocessorOptions": {
             "includePaths": ["libs/styles/src/lib/themes/unesco-mab"]
