@@ -1,5 +1,5 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
-import { theme } from '../themes/default/default.local';
+import { theme } from '../themes/oort/oort.prod';
 import { sharedEnvironment } from './environment.shared';
 import { Environment } from './environment.type';
 
@@ -7,10 +7,10 @@ import { Environment } from './environment.type';
  * Authentication configuration
  */
 const authConfig: AuthConfig = {
-  issuer: 'https://id-dev.oortcloud.tech/realms/oort',
+  issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
   redirectUri: 'http://localhost:4200/',
   postLogoutRedirectUri: 'http://localhost:4200/auth/',
-  clientId: 'oort-client',
+  clientId: 'immt-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
@@ -22,14 +22,15 @@ const authConfig: AuthConfig = {
 export const environment: Environment = {
   ...sharedEnvironment,
   production: false,
-  apiUrl: 'https://oort-dev.oortcloud.tech/api',
-  subscriptionApiUrl: 'wss://oort-dev.oortcloud.tech/api',
+  apiUrl: 'https://dev.pubplanner.oortcloud.tech/api',
+  subscriptionApiUrl: 'wss://dev.pubplanner.oortcloud.tech/api',
   frontOfficeUri: 'http://localhost:4200/',
   backOfficeUri: 'http://localhost:4200/',
-  module: 'backoffice',
-  availableLanguages: ['en', 'fr', 'test'],
+  availableLanguages: ['en', 'fr'],
+  defaultIntlLocale: 'fr',
   authConfig,
   theme,
+  user: { attributes: ['unescoSector', 'unescoMajorProgramme'] },
   availableWidgets: [
     'form',
     'donut-chart',
@@ -37,8 +38,6 @@ export const environment: Environment = {
     'bar-chart',
     'column-chart',
     'pie-chart',
-    'polar-chart',
-    'radar-chart',
     'grid',
     'text',
     'map',

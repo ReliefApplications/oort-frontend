@@ -7,10 +7,10 @@ import { Environment } from './environment.type';
  * Authentication configuration
  */
 const authConfig: AuthConfig = {
-  issuer: 'https://id-tess-mav.oortcloud.tech/auth/realms/oort',
-  redirectUri: 'https://tess-mav.oortcloud.tech/',
-  postLogoutRedirectUri: 'https://tess-mav.oortcloud.tech/auth/',
-  clientId: 'oort-client',
+  issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
+  redirectUri: 'http://localhost:4200/',
+  postLogoutRedirectUri: 'http://localhost:4200/auth/',
+  clientId: 'immt-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
   showDebugInformation: true,
@@ -21,13 +21,14 @@ const authConfig: AuthConfig = {
  */
 export const environment: Environment = {
   ...sharedEnvironment,
-  production: true,
-  apiUrl: 'https://tess-mav.oortcloud.tech/api',
-  subscriptionApiUrl: 'wss://tess-mav.oortcloud.tech/api',
-  frontOfficeUri: 'https://tess-mav.oortcloud.tech',
-  backOfficeUri: 'https://tess-mav.oortcloud.tech/admin/',
+  production: false,
+  apiUrl: 'https://dev.pubplanner.oortcloud.tech/api',
+  subscriptionApiUrl: 'wss://dev.pubplanner.oortcloud.tech/api',
+  frontOfficeUri: 'http://localhost:4200/',
+  backOfficeUri: 'http://localhost:4200/',
   availableLanguages: ['en', 'fr'],
+  defaultIntlLocale: 'fr',
   authConfig,
-  esriApiKey: '',
   theme,
+  user: { attributes: ['unescoSector', 'unescoMajorProgramme'] },
 };
