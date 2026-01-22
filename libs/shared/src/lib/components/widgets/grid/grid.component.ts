@@ -596,14 +596,19 @@ export class GridWidgetComponent
             : `${options.targetPage}?`;
 
         (options.goToPageFields || []).forEach(
-          (mapping: Record<'param' | 'field', string>) => {
-            const { param, field } = mapping;
-            const [id] = this.grid.selectedRows;
-            const idx = this.grid.gridData.data.findIndex((x) => x.id === id);
-            const row = this.grid.gridData.data[idx];
-            const rowData = { ...row._meta.raw, id: row.id };
-            const value = get(rowData, field, null);
-            url = url.concat(`${param}=${value}&`);
+          (mapping: Record<'param' | 'field' | 'value', string>) => {
+            const { param, field, value } = mapping;
+            if (field) {
+              const [id] = this.grid.selectedRows;
+              const idx = this.grid.gridData.data.findIndex((x) => x.id === id);
+              const row = this.grid.gridData.data[idx];
+              const rowData = { ...row._meta.raw, id: row.id };
+              const rowValue = get(rowData, field, null);
+              url = url.concat(`${param}=${rowValue}&`);
+            } else if (value) {
+              url = url.concat(`${param}=${value}&`);
+              return;
+            }
           }
         );
 
@@ -611,6 +616,36 @@ export class GridWidgetComponent
         this.router.navigateByUrl(url.toString());
       }
     }
+
+    // Open target url
+    if (options.goToUrl) {
+      if (options.targetUrl) {
+        const url = options.targetUrl;
+
+        const [id] = this.grid.selectedRows;
+        const idx = this.grid.gridData.data.findIndex((x) => x.id === id);
+        const row = this.grid.gridData.data[idx];
+
+        if (row) {
+          const rowData = { ...row._meta.raw, id: row.id };
+          const processedUrl = url.replace(
+            /{(\w+)}/g,
+            (match: string, key: string) => {
+              // If the key exists in rowData, return it; otherwise, keep the original {key}
+              return get(rowData, key) || match;
+            }
+          );
+          if (options.openInNewTab) {
+            window.open(processedUrl, '_blank');
+            return;
+          } else {
+            window.open(processedUrl, '_self');
+            return;
+          }
+        }
+      }
+    }
+
     this.grid.reloadData();
   }
 

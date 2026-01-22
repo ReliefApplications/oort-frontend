@@ -1784,6 +1784,17 @@
                 "label": "******"
               }
             },
+            "goToUrl": {
+              "label": "******",
+              "newTab": {
+                "label": "******"
+              },
+              "url": {
+                "label": "******",
+                "placeholder": "******",
+                "tooltip": "******"
+              }
+            },
             "inline": "******",
             "mapSelected": "******",
             "mapView": "******",
@@ -1855,6 +1866,9 @@
                 "title": "******",
                 "tooltip": "******"
               },
+              "onlyIfCanUpdate": {
+                "title": "******"
+              },
               "title": "******",
               "tooltip": "******"
             },
@@ -1878,6 +1892,9 @@
             "injectClasses": {
               "title": "******",
               "tooltip": "******"
+            },
+            "inlineActions": {
+              "title": "******"
             },
             "showSingleActionAsButton": "******",
             "singleSelection": "******"

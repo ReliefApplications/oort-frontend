@@ -19,6 +19,7 @@ import { DistributionList } from '../../../../models/distribution-list.model';
 import { ApplicationService } from '../../../../services/application/application.service';
 import { UnsubscribeComponent } from '../../../utils/unsubscribe/unsubscribe.component';
 import { takeUntil } from 'rxjs/operators';
+import { atLeastOneRequired } from '../grid-settings.forms';
 
 /** List fo disabled fields */
 const DISABLED_FIELDS = ['createdAt', 'modifiedAt'];
@@ -526,10 +527,16 @@ export class ButtonConfigComponent
 
   /** Adds new query param mapping */
   public addGoToPageField(): void {
-    const newControl = this.fb.group({
-      param: [null, Validators.required],
-      field: [null, Validators.required],
-    });
+    const newControl = this.fb.group(
+      {
+        param: [null, Validators.required],
+        field: [null],
+        value: [null],
+      },
+      {
+        validators: [atLeastOneRequired(['field', 'value'])],
+      }
+    );
 
     (this.formGroup.get('goToPageFields') as FormArray).push(newControl);
   }
