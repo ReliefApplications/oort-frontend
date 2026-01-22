@@ -60,8 +60,7 @@ export class AppComponent implements OnInit {
 
     this.translate.addLangs(environment.availableLanguages);
     this.translate.setDefaultLang(environment.availableLanguages[0]);
-    (this.kendoIntl as CldrIntlService).localeId =
-      environment.defaultIntlLocale;
+    (this.kendoIntl as CldrIntlService).localeId = 'en-US';
   }
 
   /**

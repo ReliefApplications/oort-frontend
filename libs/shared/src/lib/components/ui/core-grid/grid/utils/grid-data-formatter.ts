@@ -221,7 +221,7 @@ function getFieldText(
       break;
     case 'date':
       finalText = applyFieldFormat(
-        datePipe.transform(getPropertyValue(rowData, field), 'shortDate'),
+        datePipe.transform(getPropertyValue(rowData, field), 'dd/MM/yyyy'),
         field
       );
       break;
