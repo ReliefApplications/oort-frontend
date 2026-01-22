@@ -203,6 +203,11 @@ export class DashboardFilterComponent
     const oldFilterValues = this.contextService.filterValues.getValue();
     this.survey = this.contextService.initSurvey();
 
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.forEach((value, key) => {
+      this.survey.setVariable(`param.${key}`, value);
+    });
+
     if (this.dashboard?.filter?.keepPrevious) {
       Object.keys(oldFilterValues ?? {}).forEach((key) => {
         const question = this.survey.getQuestionByName(key);

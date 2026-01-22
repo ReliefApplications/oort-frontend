@@ -157,6 +157,27 @@ export const init = (
       }
     }
 
+    if (record && question.contentQuestion) {
+      const currentChoices = question.contentQuestion.choices || [];
+      const choiceIndex = currentChoices.findIndex(
+        (c: any) => c.value === recordID
+      );
+      const realName = record.data[question.displayField || 'id'] || recordID;
+
+      if (choiceIndex === -1) {
+        question.contentQuestion.choices = [
+          ...currentChoices,
+          { value: recordID, text: realName },
+        ];
+      } else {
+        if (currentChoices[choiceIndex].text !== realName) {
+          const newChoices = [...currentChoices];
+          newChoices[choiceIndex] = { value: recordID, text: realName };
+          question.contentQuestion.choices = newChoices;
+        }
+      }
+    }
+
     const data = record?.data || {};
 
     // Creates strStruct once if doesn't exist
@@ -165,9 +186,50 @@ export const init = (
     }
 
     for (const field in data) {
-      const varUsed = new RegExp(`{\\s*${question.name}\\.${field}\\s*}`);
-      if (varUsed.test(survey.strStructure)) {
-        survey.setVariable(`${question.name}.${field}`, data[field]);
+      const value = data[field];
+
+      // Set the exact variable (e.g. selected_br.a_06_country)
+      survey.setVariable(`${question.name}.${field}`, value);
+
+      // ALIAS: If it ends in _country, also set it as .country
+      // This allows {selected_br.country} to work even if DB sends a_06_country
+      if (field.endsWith('_country')) {
+        survey.setVariable(`${question.name}.country`, value);
+      }
+    }
+
+    if (question.name === 'selected_br') {
+      const countryQuestion = survey.getQuestionByName('selected_country');
+      if (countryQuestion) {
+        const dataObj = data as { [key: string]: unknown };
+        const directCountryKey = Object.keys(dataObj).find(
+          (key) => key === 'country'
+        );
+        const suffixCountryKey = Object.keys(dataObj).find((key) =>
+          key.endsWith('_country')
+        );
+        const countryKey = directCountryKey || suffixCountryKey;
+        const recordCountry = countryKey ? dataObj[countryKey] : null;
+
+        const surveyAny = survey as SurveyModel & {
+          __selectedCountryAuto?: boolean;
+          __selectedCountryManual?: boolean;
+        };
+
+        const shouldSyncCountry =
+          !surveyAny.__selectedCountryManual ||
+          isNil(countryQuestion.value) ||
+          countryQuestion.value === '';
+
+        if (
+          !isNil(recordCountry) &&
+          recordCountry !== '' &&
+          shouldSyncCountry
+        ) {
+          surveyAny.__selectedCountryAuto = true;
+          countryQuestion.value = recordCountry;
+          surveyAny.__selectedCountryAuto = false;
+        }
       }
     }
   };
@@ -194,7 +256,20 @@ export const init = (
     });
 
   const populateChoices = (question: QuestionResource): void => {
-    const filters = getUpdatedFilter(question);
+    const survey = question.survey as SurveyModel;
+    const surveyAny = survey as SurveyModel & {
+      __selectedCountryManual?: boolean;
+    };
+    const reserveId = survey?.getVariable?.('param.reserve_id');
+    const ignoreReserveId = surveyAny.__selectedCountryManual === true;
+    const effectiveReserveId = ignoreReserveId ? null : reserveId;
+    const filters = effectiveReserveId
+      ? ({
+          logic: 'and',
+          filters: [] as FilterDescriptor[],
+        } satisfies CompositeFilterDescriptor)
+      : getUpdatedFilter(question);
+
     if (
       question.resource &&
       !(question.customFilter && Array.isArray(filters) && filters.length === 0)
@@ -202,23 +277,138 @@ export const init = (
       getResourceRecordsById({ id: question.resource, filters }).subscribe(
         ({ data }) => {
           const choices = mapQuestionChoices(data, question);
+
+          if (question.autoSelectFirstOption || question.autoSelectOnlyOption) {
+            if (question.value && choices.length > 0) {
+              const isValid = choices.some(
+                (c: any) => c.value === question.value
+              );
+              if (!isValid) {
+                question.value = null;
+              }
+            }
+          }
+
+          const shouldIgnoreEffectiveValue =
+            question.name === 'selected_br' &&
+            surveyAny.__selectedCountryManual;
+          const effectiveValue = shouldIgnoreEffectiveValue
+            ? null
+            : question.value || question.defaultValue;
+
+          if (effectiveValue) {
+            const inNewList = choices.some(
+              (c: any) => c.value === effectiveValue
+            );
+
+            // Only preserve missing values if we are NOT in auto-select mode
+            if (
+              !inNewList &&
+              !question.autoSelectFirstOption &&
+              !question.autoSelectOnlyOption
+            ) {
+              const currentChoices = question.contentQuestion.choices || [];
+              const preservedChoice = currentChoices.find(
+                (c: any) => c.value === effectiveValue
+              );
+
+              if (preservedChoice) {
+                choices.push(preservedChoice);
+              } else {
+                choices.push({ value: effectiveValue, text: effectiveValue });
+              }
+            }
+          }
+
           question.contentQuestion.choices = choices;
 
-          // Auto select the first option if the option is set, only applicable if question doesn't have a value yet
           if (
             (question.autoSelectFirstOption && choices.length > 0) ||
             (question.autoSelectOnlyOption && choices.length === 1)
           ) {
-            setTimeout(() => {
-              question.value = question.value ?? choices[0].value;
-            }, 500);
-          }
+            const tryApplyValue = (val: string | null) => {
+              if (!val) return false;
+              const exists = choices.some((c: any) => c.value === val);
+              if (exists) {
+                question.value = val;
+                return true;
+              }
+              return false;
+            };
 
+            const resolveDefaultValue = () => {
+              const urlParams = new URLSearchParams(window.location.search);
+              const urlValue = urlParams.get(question.name);
+
+              if (tryApplyValue(urlValue)) return true;
+
+              const paramValue = survey?.getVariable?.(
+                `param.${question.name}`
+              );
+              if (tryApplyValue(paramValue)) return true;
+
+              if (question.defaultValueExpression) {
+                let expressionValue = survey.runExpression(
+                  question.defaultValueExpression
+                );
+                if (
+                  !expressionValue &&
+                  !question.defaultValueExpression.includes('||')
+                ) {
+                  const rawVar = question.defaultValueExpression
+                    .trim()
+                    .replace(/^\{|\}$/g, '');
+                  expressionValue = survey.getVariable(rawVar);
+                }
+                if (tryApplyValue(expressionValue)) return true;
+              }
+
+              if (question.defaultValue) {
+                if (tryApplyValue(question.defaultValue)) return true;
+              }
+
+              if (question.value) {
+                const isValid = choices.some(
+                  (c: any) => c.value === question.value
+                );
+                if (isValid) return true;
+              }
+
+              return false;
+            };
+
+            setTimeout(() => {
+              const resolved = resolveDefaultValue();
+              if (effectiveReserveId) {
+                return;
+              }
+              // If we couldn't find a valid value from params/url/expression,
+              // AND we have choices available, pick the first one.
+              if (!resolved && choices.length > 0) {
+                question.value = choices[0].value;
+              }
+            }, 5000);
+
+            const recheck = (_: any, options: any) => {
+              if (
+                options.name === question.name ||
+                options.name === `param.${question.name}`
+              ) {
+                return;
+              }
+              const resolved = resolveDefaultValue();
+              if (resolved) {
+                survey.onValueChanged.remove(recheck);
+              }
+            };
+
+            survey.onValueChanged.add(recheck);
+          }
           if (!question.placeholder) {
             question.contentQuestion.optionsCaption =
               'Select a record from ' + data.resource.name + '...';
           }
-          addRecordToSurveyContext(question, question.value);
+          addRecordToSurveyContext(question, question.value || effectiveValue);
         }
       );
     } else {
@@ -761,8 +951,43 @@ export const init = (
     // Display of add button for resource question ans set placeholder, if any
     onAfterRender: (question: QuestionResource, el: HTMLElement): void => {
       const survey: SurveyModel = question.survey as SurveyModel;
+      const surveyAny = survey as SurveyModel & {
+        __selectedCountrySyncInit?: boolean;
+        __selectedCountryAuto?: boolean;
+        __selectedCountryManual?: boolean;
+      };
       loadedRecords.clear();
       survey.loadedRecords = loadedRecords;
+
+      if (!surveyAny.__selectedCountrySyncInit) {
+        const countryQuestion = survey.getQuestionByName('selected_country');
+        if (countryQuestion) {
+          countryQuestion.registerFunctionOnPropertyValueChanged(
+            'value',
+            (value: unknown) => {
+              if (surveyAny.__selectedCountryAuto) {
+                return;
+              }
+              const hasValue = !isNil(value) && value !== '';
+              surveyAny.__selectedCountryManual = hasValue;
+              if (!hasValue) {
+                surveyAny.__selectedCountryManual = false;
+                return;
+              }
+
+              const brQuestion = survey.getQuestionByName('selected_br');
+              if (brQuestion) {
+                brQuestion.value = null;
+              }
+            }
+          );
+          surveyAny.__selectedCountrySyncInit = true;
+        }
+      }
+
+      if (question.value) {
+        addRecordToSurveyContext(question, question.value);
+      }
 
       // If using custom filters, we need to update the filters and populate the choices
       // note: we do this here instead of onLoaded because we need the survey initial values
