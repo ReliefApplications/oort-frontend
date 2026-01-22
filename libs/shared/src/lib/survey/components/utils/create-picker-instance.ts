@@ -57,22 +57,6 @@ export const createPickerInstance = (
   | DateTimePickerComponent
   | TimePickerComponent
   | null => {
-  // const getDataLang = () => {
-  //   // Pick the first available language from the following order:
-  //   const lang = [
-  //     localStorage.getItem('date-lang'),
-  //     translateService.currentLang,
-  //     translateService.defaultLang,
-  //   ].find((l) =>
-  //     languages.includes(l as AvailableLanguages)
-  //   ) as AvailableLanguages;
-
-  //   console.log('Using date language:', lang);
-
-  //   // If no language is found or valid, use 'en'
-  //   return lang ?? 'en';
-  // };
-  // const currentFormatLang = getDataLang();
   const currentFormatLang = 'fr';
 
   let component: ReturnType<typeof createPickerInstance>;
