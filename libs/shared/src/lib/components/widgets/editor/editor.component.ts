@@ -7,6 +7,7 @@ import {
   HostListener,
   Renderer2,
   ElementRef,
+  AfterViewInit,
 } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
 import { Apollo } from 'apollo-angular';
@@ -39,7 +40,10 @@ import { Router } from '@angular/router';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
 })
-export class EditorComponent extends UnsubscribeComponent implements OnInit {
+export class EditorComponent
+  extends UnsubscribeComponent
+  implements OnInit, AfterViewInit
+{
   /** Widget settings */
   @Input() settings: any;
   /** Should show padding */
@@ -130,7 +134,7 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
 
   /** Sanitizes the text. */
   async ngOnInit(): Promise<void> {
-    this.setHtml();
+    // this.setHtml();
 
     // Gather all context filters in a single text value
     const allContextFilters = this.aggregations
@@ -161,6 +165,10 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
           this.htmlContentComponent?.el.nativeElement
         );
       });
+  }
+
+  ngAfterViewInit(): void {
+    this.setHtml();
   }
 
   /**
@@ -227,10 +235,14 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
       }
       // Necessary because ViewChild is not initialized immediately
       this.timeoutListener = setTimeout(() => {
-        this.toggleActiveFilters(
-          this.contextService.filter.getValue(),
-          this.htmlContentComponent.el.nativeElement
-        );
+        if (this.htmlContentComponent) {
+          // When loading, the htmlContentComponent might not be available yet
+          this.toggleActiveFilters(
+            this.contextService.filter.getValue(),
+            this.htmlContentComponent.el.nativeElement
+          );
+        }
+
         const anchorElements = this.el.nativeElement.querySelectorAll('a');
         anchorElements.forEach((anchor: HTMLElement) => {
           this.renderer.listen(anchor, 'click', (event: Event) => {
