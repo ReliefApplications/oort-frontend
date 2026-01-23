@@ -8,6 +8,8 @@ import {
   Renderer2,
   ElementRef,
   AfterViewInit,
+  inject,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
 import { Apollo } from 'apollo-angular';
@@ -79,6 +81,8 @@ export class EditorComponent
   private cancelRefresh$ = new Subject<void>();
   /** Timeout to init active filter */
   private timeoutListener!: NodeJS.Timeout;
+  /** Change detector ref */
+  private cdr = inject(ChangeDetectorRef);
 
   /** @returns does the card use reference data */
   get useReferenceData() {
@@ -261,6 +265,8 @@ export class EditorComponent
             }
           });
         });
+
+        this.cdr.detectChanges(); // Needed to update the view with new content
       }, 500);
     };
     if (this.settings.record && this.settings.resource) {

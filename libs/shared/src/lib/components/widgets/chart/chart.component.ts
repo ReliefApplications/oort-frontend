@@ -8,6 +8,8 @@ import {
   OnInit,
   TemplateRef,
   OnDestroy,
+  inject,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { LineChartComponent } from '../../ui/charts/line-chart/line-chart.component';
 import { PieDonutChartComponent } from '../../ui/charts/pie-donut-chart/pie-donut-chart.component';
@@ -106,6 +108,8 @@ export class ChartComponent
   private cancelRefresh$ = new Subject<void>();
   /** export settings  */
   public exportSettings = EXPORT_SETTINGS;
+  /** Change detector reference */
+  private cdr = inject(ChangeDetectorRef);
 
   /** @returns Context filters array */
   get contextFilters(): CompositeFilterDescriptor {
@@ -456,6 +460,7 @@ export class ChartComponent
             );
           }
           this.loading = loading;
+          this.cdr.detectChanges(); // Needed to update the chart after data change
         }
       });
   }
