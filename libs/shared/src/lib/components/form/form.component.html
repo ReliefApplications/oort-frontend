@@ -125,7 +125,7 @@
           variant="primary"
           category="secondary"
           [disabled]="saving || submitting || autosaving"
-          (click)="survey.completeLastPage()"
+          (click)="onSave()"
         >
           <span class="flex items-center whitespace-nowrap">
             {{ 'common.save' | translate }}
@@ -161,7 +161,7 @@
           variant="primary"
           category="secondary"
           [disabled]="autosaving"
-          (click)="submit()"
+          (click)="onSave()"
         >
           <ng-container *ngIf="!autosaving">
             {{ saveButtonText }}

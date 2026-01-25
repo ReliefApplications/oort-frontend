@@ -156,6 +156,8 @@ export class FormComponent
   private autoSaveInterval?: Subscription;
   /** Stringified version of last saved survey data for autosave comparison */
   private lastSavedDataState?: string;
+  /** Last page index captured for manual save */
+  private manualSavePageIndex?: number;
 
   /**
    * Gets the error questions for current page
@@ -326,6 +328,19 @@ export class FormComponent
   }
 
   /**
+   * Capture current page before saving to preserve location.
+   */
+  public onSave(): void {
+    this.manualSavePageIndex = this.selectedPageIndex.getValue();
+
+    if (this.survey?.enableSaveAndSubmit) {
+      this.survey.completeLastPage();
+    } else {
+      this.submit();
+    }
+  }
+
+  /**
    * Saves the current data as a draft record
    */
   public saveAsDraft(): void {
@@ -356,6 +371,23 @@ export class FormComponent
    * @param autoSave whether the save is automatic or manual
    */
   private async onComplete(autoSave = false) {
+    const previousPageIndex =
+      this.manualSavePageIndex ?? this.selectedPageIndex.getValue();
+    const restorePageIndex = () => {
+      if (this.survey.showCompletedPage) {
+        this.manualSavePageIndex = undefined;
+        return;
+      }
+
+      const maxIndex = Math.max(this.survey.visiblePages.length - 1, 0);
+      const nextIndex = Math.min(previousPageIndex, maxIndex);
+
+      if (this.selectedPageIndex.getValue() !== nextIndex) {
+        this.selectedPageIndex.next(nextIndex);
+      }
+      this.manualSavePageIndex = undefined;
+    };
+
     this.formHelpersService
       .checkUniquePropriety(this.survey)
       .then(async (response: CheckUniqueProprietyReturnT) => {
@@ -413,72 +445,104 @@ export class FormComponent
           }
           mutation
             .pipe(takeUntil(this.destroy$))
-            .subscribe(({ errors, data }: any) => {
-              if (errors) {
-                this.save.emit({ completed: false });
-                this.survey.clear(false, true);
-                this.surveyActive = true;
-                this.snackBar.openSnackBar(errors[0].message, {
-                  error: true,
-                });
-              } else {
-                if (this.lastDraftRecord) {
-                  const callback = () => {
-                    this.lastDraftRecord = undefined;
-                  };
-                  this.formHelpersService.deleteRecordDraft(
-                    this.lastDraftRecord,
-                    callback
-                  );
-                }
-
-                const shouldClearSurvey =
-                  !this.submitting &&
-                  !this.survey.alwaysShowCompletedPage &&
-                  (data.editRecord ||
-                    data.addRecord?.form.uniqueRecord ||
-                    autoSave);
-
-                if (shouldClearSurvey) {
-                  this.survey.clear(false, false);
-                  if (data.addRecord) {
-                    this.record = data.addRecord;
-                    this.modifiedAt = this.record?.modifiedAt || null;
-                  } else {
-                    this.modifiedAt = data.editRecord?.modifiedAt;
-                  }
+            .subscribe({
+              next: ({ errors, data }: any) => {
+                if (errors) {
+                  this.save.emit({ completed: false });
+                  this.survey.clear(false, true);
                   this.surveyActive = true;
-                } else if (this.submitting) {
-                  if (data.addRecord) {
-                    this.record = data.addRecord;
-                    this.modifiedAt = this.record?.modifiedAt || null;
-                  } else if (data.editRecord) {
-                    this.modifiedAt = data.editRecord.modifiedAt;
-                  }
-                  this.survey.showCompletedPage = true; // Show completion message after Save & Submit
-                  this.surveyActive = true;
+                  this.snackBar.openSnackBar(errors[0].message, {
+                    error: true,
+                  });
                 } else {
-                  this.survey.showCompletedPage = true;
+                  if (this.lastDraftRecord) {
+                    const callback = () => {
+                      this.lastDraftRecord = undefined;
+                    };
+                    this.formHelpersService.deleteRecordDraft(
+                      this.lastDraftRecord,
+                      callback
+                    );
+                  }
+
+                  const shouldClearSurvey =
+                    !this.submitting &&
+                    !this.survey.alwaysShowCompletedPage &&
+                    (data.editRecord ||
+                      data.addRecord?.form.uniqueRecord ||
+                      autoSave);
+
+                  if (shouldClearSurvey) {
+                    this.survey.clear(false, false);
+                    if (data.addRecord) {
+                      this.record = data.addRecord;
+                      this.modifiedAt = this.record?.modifiedAt || null;
+                    } else {
+                      this.modifiedAt = data.editRecord?.modifiedAt;
+                    }
+                    this.surveyActive = true;
+                  } else if (this.submitting) {
+                    if (data.addRecord) {
+                      this.record = data.addRecord;
+                      this.modifiedAt = this.record?.modifiedAt || null;
+                    } else if (data.editRecord) {
+                      this.modifiedAt = data.editRecord.modifiedAt;
+                    }
+                    this.survey.showCompletedPage = true; // Show completion message after Save & Submit
+                    this.surveyActive = true;
+                  } else {
+                    this.survey.showCompletedPage = true;
+                  }
+
+                  this.save.emit({
+                    completed: true,
+                    hideNewRecord: true, // Always hide new record button after submission
+                  });
                 }
 
-                this.save.emit({
-                  completed: true,
-                  hideNewRecord: true, // Always hide new record button after submission
-                });
-              }
-
-              this.saving = false;
-              this.autosaving = false;
-              this.submitting = false;
-              this.latestSaveDate = new Date();
-              this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
+                this.saving = false;
+                this.autosaving = false;
+                this.submitting = false;
+                this.latestSaveDate = new Date();
+                this.lastSavedDataState = JSON.stringify(
+                  this.survey.data ?? {}
+                );
+                restorePageIndex();
+              },
+              error: (error: unknown) => {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : this.translate.instant(
+                        'models.form.notifications.savingFailed'
+                      );
+                this.snackBar.openSnackBar(message, { error: true });
+                this.saving = false;
+                this.autosaving = false;
+                this.submitting = false;
+                this.surveyActive = true;
+                restorePageIndex();
+              },
             });
         } else {
           this.snackBar.openSnackBar(
             this.translate.instant('components.form.display.cancelMessage')
           );
           this.survey.clear(false);
+          restorePageIndex();
         }
+      })
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : this.translate.instant('models.form.notifications.savingFailed');
+        this.snackBar.openSnackBar(message, { error: true });
+        this.saving = false;
+        this.autosaving = false;
+        this.submitting = false;
+        this.surveyActive = true;
+        restorePageIndex();
       });
   }
 
