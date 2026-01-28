@@ -637,10 +637,16 @@ export class FormModalComponent
     }
   }
 
+  /**
+   * Captures the current page index for manual save restoration
+   */
   private captureManualSavePageIndex(): void {
     this.manualSavePageIndex = this.selectedPageIndex.getValue();
   }
 
+  /**
+   * Restores the page index after manual save
+   */
   private restoreManualSavePageIndex(): void {
     if (this.manualSavePageIndex === undefined) {
       return;
