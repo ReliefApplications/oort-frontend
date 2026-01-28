@@ -192,6 +192,8 @@ export class FormModalComponent
   private autoSaveInterval?: Subscription;
   /** Stringified version of last saved survey data for autosave comparison */
   private lastSavedDataState?: string;
+  /** Last page index captured for manual save */
+  private manualSavePageIndex?: number;
 
   /**
    * Modal to edit or add a record.
@@ -623,6 +625,39 @@ export class FormModalComponent
   }
 
   /**
+   * Capture current page before saving to preserve location.
+   */
+  public onSave(): void {
+    this.captureManualSavePageIndex();
+
+    if (this.survey?.enableSaveAndSubmit) {
+      this.survey.completeLastPage();
+    } else {
+      this.submit();
+    }
+  }
+
+  private captureManualSavePageIndex(): void {
+    this.manualSavePageIndex = this.selectedPageIndex.getValue();
+  }
+
+  private restoreManualSavePageIndex(): void {
+    if (this.manualSavePageIndex === undefined) {
+      return;
+    }
+
+    this.survey.showCompletedPage = false;
+    const maxIndex = Math.max(this.survey.visiblePages.length - 1, 0);
+    const nextIndex = Math.min(this.manualSavePageIndex, maxIndex);
+
+    if (this.selectedPageIndex.getValue() !== nextIndex) {
+      this.selectedPageIndex.next(nextIndex);
+    }
+
+    this.manualSavePageIndex = undefined;
+  }
+
+  /**
    * Closes the dialog asking for confirmation if needed.
    */
   public close(): void {
@@ -695,6 +730,7 @@ export class FormModalComponent
           } else {
             this.saving = false;
             this.submitting = false;
+            this.restoreManualSavePageIndex();
           }
         });
       // Updates the data directly.
@@ -788,10 +824,12 @@ export class FormModalComponent
                       }
                     });
                     this.data.recordId = data?.addRecord.id;
+                    this.restoreManualSavePageIndex();
                   }
                 },
                 error: (err) => {
                   this.snackBar.openSnackBar(err.message, { error: true });
+                  this.restoreManualSavePageIndex();
                 },
               });
           }
@@ -803,7 +841,20 @@ export class FormModalComponent
           this.survey.clear(false);
           this.autosaving = false;
           this.saving = false;
+          this.restoreManualSavePageIndex();
         }
+      })
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : this.translate.instant('models.form.notifications.savingFailed');
+        this.snackBar.openSnackBar(message, { error: true });
+        this.loading = false;
+        this.autosaving = false;
+        this.saving = false;
+        this.submitting = false;
+        this.restoreManualSavePageIndex();
       });
   }
 
@@ -845,6 +896,7 @@ export class FormModalComponent
           this.submitting = false;
           this.latestSaveDate = new Date();
           this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
+          this.restoreManualSavePageIndex();
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
@@ -852,6 +904,7 @@ export class FormModalComponent
           this.autosaving = false;
           this.saving = false;
           this.submitting = false;
+          this.restoreManualSavePageIndex();
         },
       });
   }
@@ -901,6 +954,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.restoreManualSavePageIndex();
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
@@ -908,6 +962,7 @@ export class FormModalComponent
           this.autosaving = false;
           this.saving = false;
           this.submitting = false;
+          this.restoreManualSavePageIndex();
         },
       });
   }

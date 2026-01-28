@@ -331,13 +331,33 @@ export class FormComponent
    * Capture current page before saving to preserve location.
    */
   public onSave(): void {
-    this.manualSavePageIndex = this.selectedPageIndex.getValue();
+    this.captureManualSavePageIndex();
 
     if (this.survey?.enableSaveAndSubmit) {
       this.survey.completeLastPage();
     } else {
       this.submit();
     }
+  }
+
+  private captureManualSavePageIndex(): void {
+    this.manualSavePageIndex = this.selectedPageIndex.getValue();
+  }
+
+  private restoreManualSavePageIndex(): void {
+    if (this.manualSavePageIndex === undefined) {
+      return;
+    }
+
+    this.survey.showCompletedPage = false;
+    const maxIndex = Math.max(this.survey.visiblePages.length - 1, 0);
+    const nextIndex = Math.min(this.manualSavePageIndex, maxIndex);
+
+    if (this.selectedPageIndex.getValue() !== nextIndex) {
+      this.selectedPageIndex.next(nextIndex);
+    }
+
+    this.manualSavePageIndex = undefined;
   }
 
   /**
@@ -371,23 +391,6 @@ export class FormComponent
    * @param autoSave whether the save is automatic or manual
    */
   private async onComplete(autoSave = false) {
-    const previousPageIndex =
-      this.manualSavePageIndex ?? this.selectedPageIndex.getValue();
-    const restorePageIndex = () => {
-      if (this.survey.showCompletedPage) {
-        this.manualSavePageIndex = undefined;
-        return;
-      }
-
-      const maxIndex = Math.max(this.survey.visiblePages.length - 1, 0);
-      const nextIndex = Math.min(previousPageIndex, maxIndex);
-
-      if (this.selectedPageIndex.getValue() !== nextIndex) {
-        this.selectedPageIndex.next(nextIndex);
-      }
-      this.manualSavePageIndex = undefined;
-    };
-
     this.formHelpersService
       .checkUniquePropriety(this.survey)
       .then(async (response: CheckUniqueProprietyReturnT) => {
@@ -507,7 +510,7 @@ export class FormComponent
                 this.lastSavedDataState = JSON.stringify(
                   this.survey.data ?? {}
                 );
-                restorePageIndex();
+                this.restoreManualSavePageIndex();
               },
               error: (error: unknown) => {
                 const message =
@@ -521,7 +524,7 @@ export class FormComponent
                 this.autosaving = false;
                 this.submitting = false;
                 this.surveyActive = true;
-                restorePageIndex();
+                this.restoreManualSavePageIndex();
               },
             });
         } else {
@@ -529,7 +532,7 @@ export class FormComponent
             this.translate.instant('components.form.display.cancelMessage')
           );
           this.survey.clear(false);
-          restorePageIndex();
+          this.restoreManualSavePageIndex();
         }
       })
       .catch((error: unknown) => {
@@ -542,7 +545,7 @@ export class FormComponent
         this.autosaving = false;
         this.submitting = false;
         this.surveyActive = true;
-        restorePageIndex();
+        this.restoreManualSavePageIndex();
       });
   }
 

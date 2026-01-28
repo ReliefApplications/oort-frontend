@@ -105,7 +105,7 @@
           category="secondary"
           variant="primary"
           [disabled]="saving || submitting || autosaving"
-          (click)="survey.completeLastPage()"
+          (click)="onSave()"
           cdkFocusInitial
         >
           <span class="flex items-center whitespace-nowrap">
@@ -142,7 +142,7 @@
         category="secondary"
         variant="primary"
         [disabled]="saving || autosaving"
-        (click)="submit()"
+        (click)="onSave()"
         cdkFocusInitial
       >
         <ng-container *ngIf="!autosaving">
