@@ -21,7 +21,7 @@ const authConfig: AuthConfig = {
  */
 export const environment: Environment = {
   ...sharedEnvironment,
-  production: true,
+  production: false,
   apiUrl: 'https://oort-dev.oortcloud.tech/api',
   subscriptionApiUrl: 'wss://oort-dev.oortcloud.tech/api',
   frontOfficeUri: 'https://oort-dev.oortcloud.tech',

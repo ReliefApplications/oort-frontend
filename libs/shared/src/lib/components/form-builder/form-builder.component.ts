@@ -422,7 +422,7 @@ export class FormBuilderComponent
    * Add custom actions to the question action items bar
    */
   private addAdorners() {
-    this.surveyCreator.onDefineElementMenuItems.add((_, options) => {
+    this.surveyCreator.onElementGetActions.add((_, options) => {
       const element = options.obj;
 
       // Only display for questions & panels
@@ -439,11 +439,11 @@ export class FormBuilderComponent
       const index = parent.elements.indexOf(element);
       if (index > 0) {
         const moveUpAdorner = moveUpButton(element);
-        options.items.push(moveUpAdorner);
+        options.actions.push(moveUpAdorner);
       }
       if (index < parent.elements.length - 1) {
         const moveDownAdorner = moveDownButton(element);
-        options.items.push(moveDownAdorner);
+        options.actions.push(moveDownAdorner);
       }
     });
 

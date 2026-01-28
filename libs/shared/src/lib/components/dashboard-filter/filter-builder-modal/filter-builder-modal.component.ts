@@ -19,11 +19,10 @@ import { ButtonModule, SnackbarService, TooltipModule } from '@oort-front/ui';
 import { DialogModule, AlertModule } from '@oort-front/ui';
 import { renderGlobalProperties } from '../../../survey/render-global-properties';
 import { FormHelpersService } from '../../../services/form-helper/form-helper.service';
-import 'survey-core/survey.i18n.min.js';
 import { CustomQuestionTypes } from '../../../survey/custom-question-types';
 import { SurveyCustomJSONEditorPlugin } from '../../form-builder/custom-json-editor/custom-json-editor.component';
 import { updateModalChoicesAndValue } from '../../../survey/global-properties/reference-data';
-//import 'survey-creator-core/survey-creator-core.i18n.min.js';
+import 'survey-core/i18n/french';
 
 /**
  * Data passed to initialize the filter builder

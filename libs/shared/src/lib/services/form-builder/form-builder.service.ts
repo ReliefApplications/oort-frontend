@@ -521,7 +521,7 @@ export class FormBuilderService {
       }
       const expr = question.getPropertyValue('allowRemovePanelExpression');
       if (expr) {
-        const canRemove = new ExpressionRunner(expr).run({
+        const canRemove = new ExpressionRunner(expr).runContext({
           ...survey.data,
           panel: options.panel.getValue(),
         });
