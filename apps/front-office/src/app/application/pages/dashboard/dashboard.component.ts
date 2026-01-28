@@ -121,9 +121,15 @@ export class DashboardComponent
           pageContainer.scrollTop = 0;
         }
         /** Extract main dashboard id */
-        const id = this.route.snapshot.paramMap.get('id');
+        let id = this.route.snapshot.paramMap.get('id');
         /** Extract query id to load template */
         const queryId = this.route.snapshot.queryParamMap.get('id');
+
+        if (id) {
+          if (id.includes('#')) {
+            id = id.split('#')[0];
+          }
+        }
 
         // Quick fix, not sure what's causing this two run twice,
         // the second time the id is the old one concatenated with the the context id
