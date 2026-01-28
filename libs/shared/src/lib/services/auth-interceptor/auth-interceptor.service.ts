@@ -5,7 +5,7 @@ import {
   HttpInterceptor,
   HttpRequest,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
@@ -23,10 +23,12 @@ export class AuthInterceptorService implements HttpInterceptor {
    *
    * @param authService Shared authentication service
    * @param restService Shared rest service
+   * @param environment Application environment
    */
   constructor(
     private authService: AuthService,
-    private restService: RestService
+    private restService: RestService,
+    @Inject('environment') private environment: any
   ) {}
 
   /**
@@ -41,7 +43,7 @@ export class AuthInterceptorService implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
     const token = this.authService.getAuthToken();
-    if (request.url.startsWith(this.restService.apiUrl) && token) {
+    if (this.shouldAttachToken(request) && token) {
       // If we have a token, we set it to the header
       request = request.clone({
         setHeaders: {
@@ -67,6 +69,23 @@ export class AuthInterceptorService implements HttpInterceptor {
         }
         return throwError(() => new Error(err.error ?? err.message));
       })
+    );
+  }
+
+  /**
+   * Check if we should attach the token to the request
+   *
+   * @param request http request
+   * @returns boolean indicating if token should be attached
+   */
+  private shouldAttachToken(request: HttpRequest<any>): boolean {
+    if (request.url.startsWith(this.restService.apiUrl)) {
+      return true;
+    }
+
+    const allowedDomains = this.environment.allowedAuthDomains ?? [];
+    return allowedDomains.some((domain: string) =>
+      request.url.startsWith(domain)
     );
   }
 }

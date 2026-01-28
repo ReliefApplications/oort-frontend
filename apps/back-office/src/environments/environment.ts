@@ -42,4 +42,5 @@ export const environment: Environment = {
     'summaryCard',
     'tabs',
   ],
+  allowedAuthDomains: ['https://oort-dev.oortcloud.tech'],
 };
