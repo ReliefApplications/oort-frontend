@@ -92,6 +92,12 @@ $unesco-blue: #0177d5;
       border-0;
   }
 
+
+  .sd-input {
+    padding: 8px 16px;
+    line-height: 20px;
+  }
+
   // ~~~ RADIO ~~~
   .sd-radio-checked {
     .sd-radio__decorator {
@@ -142,6 +148,7 @@ $unesco-blue: #0177d5;
   .sd-matrixdynamic__add-btn {
     padding: 10px 20px;
     border: 1px solid $unesco-blue;
+    background-color: white;
   }
 
   .sd-matrixdynamic__upload-btn {
@@ -159,6 +166,7 @@ $unesco-blue: #0177d5;
   .sd-paneldynamic__add-btn {
     padding: 10px 20px;
     border: 1px solid $unesco-blue;
+    background-color: white;
   }
 
   // ~~~ SELECT BASE ~~~
@@ -290,6 +298,21 @@ $unesco-blue: #0177d5;
     .sd-action {
       padding: 10px 20px;
       border: 1px solid $unesco-blue;
+      background-color: white;
+    }
+  }
+
+  // ~~~ USERS ~~~
+  .sd-users__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+
+    .sd-action {
+      padding: 10px 20px;
+      border: 1px solid $unesco-blue;
+      background-color: white;
     }
   }
 }
