@@ -1,7 +1,7 @@
 import { Meta, StoryFn, moduleMetadata } from '@storybook/angular';
 import { UploadMenuComponent } from './upload-menu.component';
 import { UploadMenuModule } from './upload-menu.module';
-import { StorybookTranslateModule } from '../../../../.storybook/storybook-translate.module';
+import { StorybookTranslateModule } from '../storybook-translate/storybook-translate-module';
 
 type Story = UploadMenuComponent;
 
