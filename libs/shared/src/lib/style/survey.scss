@@ -272,4 +272,24 @@ $unesco-blue: #0177d5;
       @apply rounded-md;
     }
   }
+
+  // ~~~ RESOURCES ~~~
+  .sd-question > * shared-core-grid {
+    // Hide grid when there are no records
+    &:has(.k-grid-norecords) {
+      display: none;
+    }
+  }
+
+  .sd-resources__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+
+    .sd-action {
+      padding: 10px 20px;
+      border: 1px solid $unesco-blue;
+    }
+  }
 }

@@ -56,7 +56,7 @@ export const buildSearchButton = (
     updateButtonText
   );
 
-  searchButton.className = 'sd-btn !px-3 !py-1';
+  searchButton.className = 'sd-action';
 
   if (question.showButtonsInDropdown) {
     searchButton.className += ' !shadow-none';
@@ -142,7 +142,7 @@ export const buildAddButton = (
     updateButtonText
   );
 
-  addButton.className = 'sd-btn !px-3 !py-1';
+  addButton.className = 'sd-action';
   if (question.showButtonsInDropdown) {
     addButton.className += ' !shadow-none';
   }
@@ -298,7 +298,7 @@ export const buildUpdateButton = (
     updateButtonText
   );
 
-  updateButton.className = 'sd-btn !px-3 !py-1';
+  updateButton.className = 'sd-action';
   if (question.showButtonsInDropdown) {
     updateButton.className += ' !shadow-none';
   }
@@ -424,9 +424,6 @@ export const processNewCreatedRecords = (
  */
 export function setUpActionsButtonWrapper() {
   const actionsButtons = document.createElement('div');
-  actionsButtons.id = 'actionsButtons';
-  actionsButtons.style.display = 'flex';
-  actionsButtons.style.flexWrap = 'wrap';
-  actionsButtons.style.gap = '8px';
+  actionsButtons.className = 'sd-resources__actions';
   return actionsButtons;
 }
