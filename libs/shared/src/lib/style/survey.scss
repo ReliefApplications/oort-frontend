@@ -71,7 +71,34 @@ $unesco-blue: #0177d5;
       }
     }
   }
-  /*
-  todo: fix after
-  */
+
+  // ~~~ INPUTS ~~~
+  .sd-input {
+    // Common styles for most inputs
+    @apply focus-within:ring-2
+      focus-within:ring-inset
+      focus-within:ring-primary-600
+      shadow-sm
+      rounded-md
+      border-0
+      ring-1
+      ring-inset
+      ring-gray-300
+      bg-white
+      items-center
+      w-full
+      border-0;
+  }
+
+  // ~~~ RADIO ~~~
+  .sd-radio-checked {
+    .sd-radio__decorator {
+      background-color: $unesco-blue;
+    }
+  }
+
+  .sd-radio__decorator {
+    border: solid 1px #7f888f;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
 }
