@@ -101,4 +101,51 @@ $unesco-blue: #0177d5;
     border: solid 1px #7f888f;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   }
+
+  // ~~~ CHECKBOX ~~~
+  .sd-checkbox {
+    label {
+      .sd-checkbox__decorator {
+        border: solid 1px #7f888f;
+        @apply focus-within:ring-2
+          focus-within:ring-inset
+          focus-within:ring-primary-600
+          shadow-sm
+          rounded-md;
+      }
+    }
+  }
+
+  // ~~~ TABLES ~~~
+  .sd-table,
+  .sd-table__cell {
+    background-color: transparent !important;
+    border-color: transparent !important;
+  }
+
+  .sd-table-wrapper {
+    &:before,
+    &:after {
+      background-color: transparent !important;
+    }
+  }
+
+  .sd-table__cell--actions {
+    .sd-action-bar {
+      background-color: transparent !important;
+    }
+  }
+
+  // ~~~ MATRIX DYNAMIC ~~~
+  .sd-matrixdynamic__add-btn {
+    padding: 10px 20px;
+    border: 1px solid $unesco-blue;
+  }
+
+  .sd-matrixdynamic__upload-btn {
+    padding: 10px 20px;
+    border: 1px solid $unesco-blue;
+    background: $unesco-blue;
+    color: white;
+  }
 }
