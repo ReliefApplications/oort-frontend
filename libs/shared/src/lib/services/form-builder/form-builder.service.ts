@@ -571,7 +571,9 @@ export class FormBuilderService {
     });
     survey.showProgressBar = 'off';
     survey.focusFirstQuestionAutomatic = false;
-    survey.applyTheme({ isPanelless: true });
+    survey.applyTheme({
+      isPanelless: true,
+    });
     return survey;
   }
 

@@ -36,88 +36,13 @@ import {
   updateModalChoicesAndValue,
 } from '../../survey/global-properties/reference-data';
 import { MatrixManager } from '../../survey/controllers/matrixManager';
-
-/**
- * Array containing the different types of questions.
- * Commented types are not yet implemented.
- */
-const QUESTION_TYPES = [
-  'text',
-  'checkbox',
-  'radiogroup',
-  'dropdown',
-  'tagbox',
-  'comment',
-  'rating',
-  // 'ranking',
-  // 'imagepicker',
-  'boolean',
-  'image',
-  'html',
-  // 'signaturepad',
-  'expression',
-  'file',
-  'matrix',
-  'matrixdropdown',
-  'matrixdynamic',
-  'multipletext',
-  'panel',
-  'paneldynamic',
-];
-
-/**
- * Allowed properties for a core question in a child form.
- */
-const CORE_QUESTION_ALLOWED_PROPERTIES = [
-  'width',
-  'maxWidth',
-  'minWidth',
-  'startWithNewLine',
-  'indent',
-  'page',
-  'titleLocation',
-  'descriptionLocation',
-  'state',
-  'defaultValue',
-  'defaultValueExpression',
-  'relatedName',
-  'addRecord',
-  'addTemplate',
-  'Search resource table',
-  'visible',
-  'readOnly',
-  'isRequired',
-  'placeHolder',
-  'enableIf',
-  'visibleIf',
-  'tooltip',
-];
-
-/**
- * Navigation tab properties (will be disabled).
- */
-const NAVIGATION_PROPERTIES = [
-  'showPreviewBeforeComplete',
-  'pagePrevText',
-  'pageNextText',
-  'completeText',
-  'previewText',
-  'editText',
-  'startSurveyText',
-  'showNavigationButtons',
-  'showPrevButton',
-  'firstPageIsStarted',
-  'goNextPageAutomatic',
-  'showProgressBar',
-  'progressBarType',
-  'questionsOnPageMode',
-  'showTOC',
-];
-
-/**
- * Class name to add to core field question.
- */
-const CORE_FIELD_CLASS = 'core-question';
+import {
+  CORE_FIELD_CLASS,
+  CORE_QUESTION_ALLOWED_PROPERTIES,
+  CUSTOM_THEME,
+  NAVIGATION_PROPERTIES,
+  QUESTION_TYPES,
+} from './form-builder.const';
 
 /**
  * Component used to build forms in applications
@@ -255,6 +180,8 @@ export class FormBuilderComponent
     };
 
     this.surveyCreator = new SurveyCreatorModel(creatorOptions);
+
+    this.surveyCreator.applyCreatorTheme(CUSTOM_THEME);
 
     // Fix for matrix columns property-grid
     this.surveyCreator.onSurveyInstanceCreated.add(
