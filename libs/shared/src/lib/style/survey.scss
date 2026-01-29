@@ -92,7 +92,6 @@ $unesco-blue: #0177d5;
       border-0;
   }
 
-
   .sd-input {
     padding: 8px 16px;
     line-height: 20px;
@@ -310,6 +309,15 @@ $unesco-blue: #0177d5;
     margin-top: 8px;
 
     .sd-action {
+      padding: 10px 20px;
+      border: 1px solid $unesco-blue;
+      background-color: white;
+    }
+  }
+
+  // ~~~ FILE ~~~
+  .sd-file__actions-container {
+    .sd-file__choose-btn {
       padding: 10px 20px;
       border: 1px solid $unesco-blue;
       background-color: white;
