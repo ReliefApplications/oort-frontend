@@ -150,6 +150,12 @@ $unesco-blue: #0177d5;
     }
   }
 
+  .sd-table__cell {
+    .sd-checkbox {
+      justify-content: center;
+    }
+  }
+
   // ~~~ MATRIX DYNAMIC ~~~
   .sd-matrixdynamic__add-btn {
     padding: 10px 20px;
