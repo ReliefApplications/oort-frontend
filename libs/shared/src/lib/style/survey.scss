@@ -384,4 +384,9 @@ $unesco-blue: #0177d5;
     margin-bottom: 0;
     min-height: 2.5rem;
   }
+
+  // ~~~ SCROLLBAR ~~~
+  .sv-scroll__wrapper:hover .sv-scroll__scrollbar {
+    visibility: hidden !important;
+  }
 }
