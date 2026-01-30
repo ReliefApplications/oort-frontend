@@ -45,6 +45,20 @@ $unesco-blue: #0177d5;
         background-color: white;
       }
     }
+
+    &:not(.sd-element--expandable) {
+      .sd-panel__header {
+        border-color: #d5dadd;
+        background-color: #ebf5fd;
+        padding: 10px 12px;
+
+        &:after {
+          bottom: -10px;
+          width: calc(100% + 24px);
+          inset-inline-start: -12px;
+        }
+      }
+    }
   }
 
   .sd-panel__content {
@@ -197,7 +211,7 @@ $unesco-blue: #0177d5;
     .sd-paneldynamic__tabs-container {
       &:after {
         inset-inline-start: 0;
-        width: 100%;;
+        width: 100%;
       }
     }
   }
