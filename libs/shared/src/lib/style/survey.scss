@@ -323,4 +323,11 @@ $unesco-blue: #0177d5;
       background-color: white;
     }
   }
+
+  // ~~~ MULTIPLE TEXT ~~~
+  .sd-multipletext__item-container .sd-input {
+    margin-top: 0;
+    margin-bottom: 0;
+    min-height: 2.5rem;
+  }
 }
