@@ -175,6 +175,33 @@ $unesco-blue: #0177d5;
   }
 
   // ~~~ PANEL DYNAMIC ~~~
+  .sd-question--paneldynamic {
+    background-color: white;
+    padding-left: 0;
+    padding-right: 0;
+
+    .sd-paneldynamic__header {
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    .sd-paneldynamic__buttons-container {
+      padding-left: 24px;
+      padding-right: 24px;
+
+      .sd-action-bar {
+        margin: 0;
+      }
+    }
+
+    .sd-paneldynamic__tabs-container {
+      &:after {
+        inset-inline-start: 0;
+        width: 100%;;
+      }
+    }
+  }
+
   .sd-paneldynamic__add-btn {
     padding: 10px 20px;
     border: 1px solid $unesco-blue;
