@@ -39,10 +39,10 @@ import { MatrixManager } from '../../survey/controllers/matrixManager';
 import {
   CORE_FIELD_CLASS,
   CORE_QUESTION_ALLOWED_PROPERTIES,
-  CUSTOM_THEME,
   NAVIGATION_PROPERTIES,
   QUESTION_TYPES,
 } from './form-builder.const';
+import { CUSTOM_THEME } from '../../survey/form-builder.theme';
 
 /**
  * Component used to build forms in applications
