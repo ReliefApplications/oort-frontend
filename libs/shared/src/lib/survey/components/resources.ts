@@ -716,6 +716,14 @@ export const init = (
       const actionsButtons = setUpActionsButtonWrapper();
       const parentElement = el.querySelector('.sd-question__content');
 
+      const checkActionsVisibility = () => {
+        if (actionsButtons.children.length === 0) {
+          actionsButtons.style.display = 'none';
+        } else {
+          actionsButtons.style.display = 'flex';
+        }
+      };
+
       // hide tagbox if grid view is enable
       setTimeout(() => {
         if (question.displayAsGrid) {
@@ -800,6 +808,7 @@ export const init = (
         () => {
           setAddBtn();
           setSearchBtn();
+          checkActionsVisibility();
         }
       );
 
@@ -818,6 +827,7 @@ export const init = (
       } else if (parentElement) {
         parentElement.insertBefore(actionsButtons, parentElement.firstChild);
       }
+      checkActionsVisibility();
 
       question.registerFunctionOnPropertyValueChanged(
         'gridFieldsSettings',

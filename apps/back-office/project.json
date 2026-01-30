@@ -56,8 +56,7 @@
           "libs/styles/src/lib/tailwind/tailwind.scss",
           "libs/styles/src/lib/kendo/theme.scss",
           "libs/styles/src/lib/shared/shared.scss",
-          "node_modules/survey-core/defaultV2.min.css",
-          "node_modules/survey-core/survey.min.css",
+          "node_modules/survey-core/survey-core.min.css",
           "node_modules/survey-creator-core/survey-creator-core.min.css",
           "node_modules/leaflet/dist/leaflet.css",
           "node_modules/leaflet.markercluster/dist/MarkerCluster.css",
@@ -263,8 +262,7 @@
           "libs/styles/src/lib/tailwind/tailwind.scss",
           "libs/styles/src/lib/shared/shared.scss",
           "libs/styles/src/lib/kendo/theme.scss",
-          "node_modules/survey-core/defaultV2.min.css",
-          "node_modules/survey-core/survey.min.css"
+          "node_modules/survey-core/survey-core.min.css"
         ],
         "stylePreprocessorOptions": {
           "includePaths": ["libs/styles/src/lib/themes/default"]

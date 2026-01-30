@@ -498,7 +498,7 @@ export class FormBuilderService {
     });
 
     // Add an array of cells to the matrix obj
-    survey.onMatrixAfterCellRender.add((_, options) => {
+    survey.onAfterRenderMatrixCell.add((_, options) => {
       options.question.cells ||= new Map<string, MatrixDropdownCell>();
       const col = options.column as MatrixDropdownColumn;
       const row = options.row.rowName;
@@ -521,7 +521,7 @@ export class FormBuilderService {
       }
       const expr = question.getPropertyValue('allowRemovePanelExpression');
       if (expr) {
-        const canRemove = new ExpressionRunner(expr).run({
+        const canRemove = new ExpressionRunner(expr).runContext({
           ...survey.data,
           panel: options.panel.getValue(),
         });
@@ -571,7 +571,9 @@ export class FormBuilderService {
     });
     survey.showProgressBar = 'off';
     survey.focusFirstQuestionAutomatic = false;
-    survey.applyTheme({ isPanelless: true });
+    survey.applyTheme({
+      isPanelless: true,
+    });
     return survey;
   }
 
