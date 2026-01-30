@@ -1,6 +1,13 @@
 $unesco-blue: #0177d5;
 
 ::ng-deep {
+  // ~~~ PAGE ~~~
+  .sd-body.sd-body--responsive .sd-page {
+    background-color: white;
+    padding: 24px;
+    border-radius: 8px;
+  }
+
   // ~~~ PANEL ~~~
   .sd-element--collapsed {
     &.sd-element--nested {
