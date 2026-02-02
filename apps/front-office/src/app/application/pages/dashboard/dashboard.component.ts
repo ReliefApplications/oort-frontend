@@ -23,6 +23,10 @@ import {
   DashboardQueryResponse,
   Record,
   DashboardService,
+  handleAnchorNavigation,
+  getFragmentFromHref,
+  normalizeHref,
+  scrollToFragment,
 } from '@oort-front/shared';
 import { TranslateService } from '@ngx-translate/core';
 import { filter, map, startWith, takeUntil } from 'rxjs/operators';
@@ -68,6 +72,19 @@ export class DashboardComponent
   public closable = true;
   /** Dashboard button actions */
   public buttonActions: ButtonActionT[] = [];
+  /** Pending fragment to scroll to */
+  private pendingFragment: string | null = null;
+  /** Fragment scroll attempts */
+  private fragmentScrollAttempts = 0;
+  /** Fragment scroll timeout */
+  private fragmentScrollTimeout?: NodeJS.Timeout;
+  /** Normalize anchors timeout */
+  private normalizeAnchorsTimeout?: NodeJS.Timeout;
+  /** Normalize anchors attempts */
+  private normalizeAnchorsAttempts = 0;
+  /** Anchor click handler reference */
+  private readonly anchorClickHandler = (event: MouseEvent) =>
+    this.handleAnchorClick(event);
 
   /**
    * Dashboard page.
@@ -106,6 +123,7 @@ export class DashboardComponent
    * Subscribes to the route to load the dashboard accordingly.
    */
   ngOnInit(): void {
+    this.document.addEventListener('click', this.anchorClickHandler, true);
     /** Listen to router events navigation end, to get last version of params & queryParams. */
     this.router.events
       .pipe(
@@ -114,6 +132,8 @@ export class DashboardComponent
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
+        this.resetFragmentScrollState();
+        this.pendingFragment = this.getCurrentFragment();
         this.loading = true;
         // Reset scroll when changing page
         const pageContainer = this.document.getElementById('appPageContainer');
@@ -124,12 +144,6 @@ export class DashboardComponent
         let id = this.route.snapshot.paramMap.get('id');
         /** Extract query id to load template */
         const queryId = this.route.snapshot.queryParamMap.get('id');
-
-        if (id) {
-          if (id.includes('#')) {
-            id = id.split('#')[0];
-          }
-        }
 
         // Quick fix, not sure what's causing this two run twice,
         // the second time the id is the old one concatenated with the the context id
@@ -147,11 +161,95 @@ export class DashboardComponent
         }
 
         if (id) {
+          if (id.includes('#')) {
+            id = id.split('#')[0];
+          }
+          if (id.includes('%23')) {
+            id = id.split('%23')[0];
+          }
+        }
+
+        if (id) {
           this.loadDashboard(id, queryId?.trim()).then(
             () => (this.loading = false)
           );
         }
       });
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    if (this.fragmentScrollTimeout) {
+      clearTimeout(this.fragmentScrollTimeout);
+    }
+    if (this.normalizeAnchorsTimeout) {
+      clearTimeout(this.normalizeAnchorsTimeout);
+    }
+    this.document.removeEventListener('click', this.anchorClickHandler, true);
+  }
+
+  private handleAnchorClick(event: MouseEvent): void {
+    if (event.defaultPrevented) {
+      return;
+    }
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    const anchor = target?.closest('a') as HTMLAnchorElement | null;
+    if (!anchor) {
+      return;
+    }
+
+    const rawHref = anchor.getAttribute('href');
+    if (!rawHref) {
+      return;
+    }
+
+    let normalizedHref = normalizeHref(rawHref);
+    const isHashOnly = normalizedHref.startsWith('#');
+    let url: URL;
+    try {
+      url = new URL(normalizedHref, this.document.location.href);
+    } catch {
+      return;
+    }
+
+    const fragment = getFragmentFromHref(normalizedHref, this.document);
+    if (fragment === null) {
+      return;
+    }
+
+    if (anchor.target && anchor.target !== '_self') {
+      return;
+    }
+
+    const current = new URL(this.document.location.href);
+    const sameOrigin = url.origin === current.origin;
+    const samePath = url.pathname === current.pathname;
+    const sameSearch = url.search === current.search;
+    if (!sameOrigin) {
+      return;
+    }
+
+    if (!isHashOnly && url.pathname === '/' && current.pathname !== '/') {
+      normalizedHref = `#${fragment}`;
+    }
+
+    const { handled } = handleAnchorNavigation(normalizedHref, this.document, {
+      behavior: 'smooth',
+    });
+    if (handled || isHashOnly || (samePath && sameSearch)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 
   /** Sets up the widgets from the dashboard structure */
@@ -208,7 +306,7 @@ export class DashboardComponent
       })
     )
       .then(({ data }) => {
-        if (data.dashboard) {
+        if (data?.dashboard) {
           this.id = data.dashboard.id || id;
           this.contextId = contextId ?? undefined;
           this.dashboard = data.dashboard;
@@ -225,6 +323,8 @@ export class DashboardComponent
           this.contextService.setFilter(this.dashboard);
           this.variant = this.dashboard.filter?.variant || 'default';
           this.closable = this.dashboard.filter?.closable ?? false;
+          this.tryScrollToFragment();
+          this.scheduleNormalizeAnchorHrefs();
         } else {
           this.contextService.isFilterEnabled.next(false);
           this.contextService.setFilter();
@@ -286,4 +386,108 @@ export class DashboardComponent
     };
     this.contextService.initContext(this.dashboard as Dashboard, callback);
   }
+
+  private getCurrentFragment(): string | null {
+    const fragment = this.route.snapshot.fragment;
+    if (fragment) {
+      return fragment;
+    }
+    const hash = this.document.location.hash;
+    if (hash && hash.length > 1) {
+      return getFragmentFromHref(hash) ?? hash.slice(1);
+    }
+    return null;
+  }
+
+  private tryScrollToFragment(): void {
+    if (!this.pendingFragment) {
+      return;
+    }
+
+    this.scheduleFragmentScroll();
+  }
+
+  private scheduleFragmentScroll(): void {
+    if (!this.pendingFragment) {
+      return;
+    }
+
+    const scrolled = scrollToFragment(this.pendingFragment, this.document, {
+      behavior: 'auto',
+    });
+
+    if (scrolled) {
+      this.pendingFragment = null;
+      return;
+    }
+
+    if (this.fragmentScrollAttempts >= 20) {
+      return;
+    }
+
+    this.fragmentScrollAttempts += 1;
+    this.fragmentScrollTimeout = setTimeout(() => {
+      this.scheduleFragmentScroll();
+    }, 100);
+  }
+
+  private resetFragmentScrollState(): void {
+    this.fragmentScrollAttempts = 0;
+    this.pendingFragment = null;
+    if (this.fragmentScrollTimeout) {
+      clearTimeout(this.fragmentScrollTimeout);
+    }
+    this.resetNormalizeAnchorState();
+  }
+
+  private resetNormalizeAnchorState(): void {
+    this.normalizeAnchorsAttempts = 0;
+    if (this.normalizeAnchorsTimeout) {
+      clearTimeout(this.normalizeAnchorsTimeout);
+      this.normalizeAnchorsTimeout = undefined;
+    }
+  }
+
+  private scheduleNormalizeAnchorHrefs(): void {
+    if (this.normalizeAnchorsTimeout) {
+      return;
+    }
+    this.normalizeAnchorsTimeout = setTimeout(() => {
+      this.normalizeAnchorsTimeout = undefined;
+      const didNormalize = this.normalizeAnchorHrefs();
+      if (!didNormalize && this.normalizeAnchorsAttempts < 30) {
+        this.normalizeAnchorsAttempts += 1;
+        this.scheduleNormalizeAnchorHrefs();
+      }
+    }, 200);
+  }
+
+  private normalizeAnchorHrefs(): boolean {
+    const container =
+      this.document.getElementById('appPageContainer') || this.document.body;
+    const anchors = container.querySelectorAll(
+      'a[href^="#"], a[href^="%23"], a[href^="/%23"], a[href^="/#"]'
+    );
+    if (!anchors.length) {
+      return false;
+    }
+    const baseUrl = this.router.url.split('#')[0].split('%23')[0];
+    anchors.forEach((anchor) => {
+      const href = anchor.getAttribute('href');
+      if (!href) {
+        return;
+      }
+      const fragment = getFragmentFromHref(href, this.document);
+      if (!fragment) {
+        return;
+      }
+      const encoded = fragment ? `#${encodeURIComponent(fragment)}` : '';
+      const nextHref = `${baseUrl}${encoded}`;
+      if (href !== nextHref) {
+        anchor.setAttribute('href', nextHref);
+      }
+    });
+    return true;
+  }
+
 }

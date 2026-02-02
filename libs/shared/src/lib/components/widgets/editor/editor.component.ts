@@ -7,6 +7,7 @@ import {
   HostListener,
   Renderer2,
   ElementRef,
+  Inject,
 } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
 import { Apollo } from 'apollo-angular';
@@ -30,6 +31,8 @@ import { UnsubscribeComponent } from '../../utils/unsubscribe/unsubscribe.compon
 import { ContextService } from '../../../services/context/context.service';
 import { AggregationService } from '../../../services/aggregation/aggregation.service';
 import { Router } from '@angular/router';
+import { DOCUMENT } from '@angular/common';
+import { handleAnchorNavigation } from '../../../utils/anchor-navigation.util';
 
 /**
  * Text widget component using Tinymce.
@@ -123,7 +126,8 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
     private renderer: Renderer2,
     private aggregationService: AggregationService,
     private el: ElementRef,
-    private router: Router
+    private router: Router,
+    @Inject(DOCUMENT) private document: Document
   ) {
     super();
   }
@@ -239,9 +243,17 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
             // Use the Angular Router to navigate to the desired route
             const href = anchor.getAttribute('href');
             if (href) {
+              const { handled } = handleAnchorNavigation(href, this.document, {
+                behavior: 'smooth',
+              });
+              if (handled) {
+                return;
+              }
               if (href?.startsWith('./')) {
                 // Navigation inside the app builder
-                this.router.navigateByUrl(href.substring(1));
+                this.router.navigateByUrl(href.substring(1)).catch(() => {
+                  window.location.href = href;
+                });
               } else {
                 // Default navigation
                 window.location.href = href;
