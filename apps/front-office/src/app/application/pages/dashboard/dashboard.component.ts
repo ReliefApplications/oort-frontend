@@ -82,7 +82,7 @@ export class DashboardComponent
   private normalizeAnchorsTimeout?: NodeJS.Timeout;
   /** Normalize anchors attempts */
   private normalizeAnchorsAttempts = 0;
-  /** Anchor click handler reference */
+  // Anchor click handler reference.
   private readonly anchorClickHandler = (event: MouseEvent) =>
     this.handleAnchorClick(event);
 
@@ -192,7 +192,6 @@ export class DashboardComponent
    * Handles anchor clicks to avoid full navigation and enable in-page scrolling.
    *
    * @param event Anchor click event
-   * @returns void
    */
   private handleAnchorClick(event: MouseEvent): void {
     if (event.defaultPrevented) {
@@ -412,8 +411,6 @@ export class DashboardComponent
 
   /**
    * Tries to scroll to a pending fragment.
-   *
-   * @returns void
    */
   private tryScrollToFragment(): void {
     if (!this.pendingFragment) {
@@ -425,8 +422,6 @@ export class DashboardComponent
 
   /**
    * Schedules fragment scrolling until the target is found or attempts are exhausted.
-   *
-   * @returns void
    */
   private scheduleFragmentScroll(): void {
     if (!this.pendingFragment) {
@@ -454,8 +449,6 @@ export class DashboardComponent
 
   /**
    * Resets fragment scrolling state between navigations.
-   *
-   * @returns void
    */
   private resetFragmentScrollState(): void {
     this.fragmentScrollAttempts = 0;
@@ -468,8 +461,6 @@ export class DashboardComponent
 
   /**
    * Resets anchor normalization retries.
-   *
-   * @returns void
    */
   private resetNormalizeAnchorState(): void {
     this.normalizeAnchorsAttempts = 0;
@@ -481,8 +472,6 @@ export class DashboardComponent
 
   /**
    * Schedules normalization of anchor hrefs for new-tab behavior.
-   *
-   * @returns void
    */
   private scheduleNormalizeAnchorHrefs(): void {
     if (this.normalizeAnchorsTimeout) {
