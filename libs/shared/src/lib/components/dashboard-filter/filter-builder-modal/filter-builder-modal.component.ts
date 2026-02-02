@@ -19,11 +19,17 @@ import { ButtonModule, SnackbarService, TooltipModule } from '@oort-front/ui';
 import { DialogModule, AlertModule } from '@oort-front/ui';
 import { renderGlobalProperties } from '../../../survey/render-global-properties';
 import { FormHelpersService } from '../../../services/form-helper/form-helper.service';
-import 'survey-core/survey.i18n.min.js';
 import { CustomQuestionTypes } from '../../../survey/custom-question-types';
 import { SurveyCustomJSONEditorPlugin } from '../../form-builder/custom-json-editor/custom-json-editor.component';
 import { updateModalChoicesAndValue } from '../../../survey/global-properties/reference-data';
-//import 'survey-creator-core/survey-creator-core.i18n.min.js';
+import 'survey-core/i18n/french';
+import {
+  CORE_QUESTION_ALLOWED_PROPERTIES,
+  DEFAULT_STRUCTURE,
+  NAVIGATION_PROPERTIES,
+  QUESTION_TYPES,
+} from './filter-builder-modal.const';
+import { CUSTOM_THEME } from '../../../survey/form-builder.theme';
 
 /**
  * Data passed to initialize the filter builder
@@ -31,174 +37,6 @@ import { updateModalChoicesAndValue } from '../../../survey/global-properties/re
 interface DialogData {
   surveyStructure: any;
 }
-
-/** Default filter structure */
-const DEFAULT_STRUCTURE = {
-  showQuestionNumbers: 'off',
-};
-
-/**
- * Array containing the different types of questions.
- * Commented types are not yet implemented.
- */
-const QUESTION_TYPES = [
-  'text',
-  'checkbox',
-  'radiogroup',
-  'dropdown',
-  'tagbox',
-  'comment',
-  // 'rating',
-  // 'ranking',
-  // 'imagepicker',
-  'boolean',
-  // 'image',
-  'html',
-  // 'signaturepad',
-  'expression',
-  // 'matrix',
-  // 'matrixdropdown',
-  // 'matrixdynamic',
-  // 'multipletext',
-  'panel',
-  'paneldynamic',
-];
-
-/**
- * Allowed properties for a core question in a child form.
- */
-const CORE_QUESTION_ALLOWED_PROPERTIES = [
-  'name',
-  'title',
-  'size',
-  'min',
-  'max',
-  'minValueExpression',
-  'maxValueExpression',
-  'minErrorText',
-  'maxErrorText',
-  'step',
-  'maxLength',
-  'placeholder',
-  'dateMin',
-  'dateMax',
-  'description',
-  'hideNumber',
-  'width',
-  'maxWidth',
-  'minWidth',
-  'startWithNewLine',
-  'indent',
-  'page',
-  'titleLocation',
-  'descriptionLocation',
-  'state',
-  'defaultValue',
-  'defaultValueExpression',
-  'relatedName',
-  'addRecord',
-  'updateRecord',
-  'addTemplate',
-  'Search resource table',
-  'visible',
-  'choicesFromQuestion',
-  'choices',
-  'choicesFromQuestionMode',
-  'choicesOrder',
-  'choicesByUrl',
-  'hideIfChoicesEmpty',
-  'choicesVisibleIf',
-  'choicesEnableIf',
-  'readOnly',
-  'isRequired',
-  'placeHolder',
-  'enableIf',
-  'visibleIf',
-  'tooltip',
-  'referenceData',
-  'referenceDataDisplayField',
-  'isPrimitiveValue',
-  'referenceDataFilterFilterFromQuestion',
-  'referenceDataFilterForeignField',
-  'referenceDataFilterFilterCondition',
-  'referenceDataFilterLocalField',
-  'showSelectAllItem',
-  'showNoneItem',
-  'showClearButton',
-  'bindings',
-  'choicesMin',
-  'choicesMax',
-  'allowClear',
-  'autoGrow',
-  'labelTrue',
-  'labelFalse',
-  'valueTrue',
-  'valueFalse',
-  'valueName',
-  'inputType',
-  'html',
-  'resource',
-  'displayField',
-  'test service',
-  'addRecordText',
-  'updateRecordText',
-  'canSearch',
-  'autoSelectFirstOption',
-  'searchButtonText',
-  'canOnlyCreateRecords',
-  'alwaysCreateRecord',
-  'prefillWithCurrentRecord',
-  'selectQuestion',
-  'staticValue',
-  'filterBy',
-  'filterCondition',
-  'selectResourceText',
-  'gridFieldsSettings',
-  'customFilterEl',
-  'customFilter',
-  'newCreatedRecords',
-  'afterRecordCreation',
-  'afterRecordSelection',
-  'afterRecordDeselection',
-  'displayAsGrid',
-  'valueExpression',
-  'canDelete',
-  'history',
-  'convert',
-  'update',
-  'inlineEdition',
-  'export',
-  'canDeselectRecords',
-  'autoSaveChanges',
-  'prefillWithValues',
-  'gqlUrl',
-  'gqlQuery',
-  'gqlPath',
-  'gqlValueName',
-  'gqlTitleName',
-  'gqlVariableMapping',
-];
-
-/**
- * Navigation tab properties (will be disabled).
- */
-const NAVIGATION_PROPERTIES = [
-  'showPreviewBeforeComplete',
-  'pagePrevText',
-  'pageNextText',
-  'completeText',
-  'previewText',
-  'editText',
-  'startSurveyText',
-  'showNavigationButtons',
-  'showPrevButton',
-  'firstPageIsStarted',
-  'goNextPageAutomatic',
-  'showProgressBar',
-  'progressBarType',
-  'questionsOnPageMode',
-  'showTOC',
-];
 
 /**
  * Filter builder component
@@ -274,6 +112,8 @@ export class FilterBuilderModalComponent
       questionTypes: QUESTION_TYPES,
     };
     this.surveyCreator = new SurveyCreatorModel(creatorOptions);
+
+    this.surveyCreator.applyCreatorTheme(CUSTOM_THEME);
 
     new SurveyCustomJSONEditorPlugin(this.surveyCreator);
 

@@ -267,7 +267,7 @@ export const init = (
       if (question.inviteUsers && question.applications?.length === 1) {
         // Create a button to invite users
         const inviteButton = document.createElement('button');
-        inviteButton.classList.add('sd-btn', '!px-3', '!py-1', '!mt-2');
+        inviteButton.classList.add('sd-action');
         inviteButton.innerText = translate.instant(
           'components.users.invite.add'
         );
@@ -282,7 +282,11 @@ export const init = (
           instance.reloadSelectedUsers();
         };
 
-        el.appendChild(inviteButton);
+        const actionsButtons = document.createElement('div');
+        actionsButtons.className = 'sd-users__actions';
+
+        actionsButtons.appendChild(inviteButton);
+        el.appendChild(actionsButtons);
       }
     },
   };

@@ -1017,7 +1017,11 @@ export class FormHelpersService {
     if (!question.allowImport) return;
 
     const uploadButton = document.createElement('button');
-    uploadButton.classList.add('sd-action', 'ml-auto');
+    uploadButton.classList.add(
+      'sd-action',
+      'ml-auto',
+      'sd-matrixdynamic__upload-btn'
+    );
     uploadButton.onclick = () => {
       const input = document.createElement('input');
       input.type = 'file';

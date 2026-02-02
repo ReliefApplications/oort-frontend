@@ -803,6 +803,14 @@ export const init = (
       // Create a div that will hold the buttons
       const actionsButtons = setUpActionsButtonWrapper();
 
+      const checkActionsVisibility = () => {
+        if (actionsButtons.children.length === 0) {
+          actionsButtons.style.display = 'none';
+        } else {
+          actionsButtons.style.display = 'flex';
+        }
+      };
+
       // If configuration is missing, do not add any buttons
       if (!question.resource) {
         return;
@@ -909,6 +917,8 @@ export const init = (
         // append the button to the combobox, as the penultimate child
         combobox.insertBefore(actionsButtons, combobox.lastElementChild);
       }
+
+      checkActionsVisibility();
     },
   };
   componentCollectionInstance.add(component);

@@ -1,4 +1,5 @@
 <ui-dialog size="big">
+  <!-- Header -->
   <ng-container ngProjectAs="header">
     <ng-container *ngIf="!loading">
       <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
@@ -22,6 +23,7 @@
       </div>
     </ng-container>
   </ng-container>
+  <!-- Modal content -->
   <ng-container ngProjectAs="content">
     <div class="flex flex-row">
       <ng-container *ngIf="data.compareTo && surveyNext">
@@ -47,6 +49,7 @@
       <ui-spinner class="m-auto block"></ui-spinner>
     </div>
   </ng-container>
+  <!-- Form footer actions -->
   <ng-container ngProjectAs="actions">
     <ng-container *ngIf="!loading && data.compareTo">
       <ui-button uiDialogClose variant="default">
