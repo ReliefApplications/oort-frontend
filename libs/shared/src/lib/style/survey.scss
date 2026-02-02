@@ -222,6 +222,14 @@ $unesco-blue: #0177d5;
     background-color: white;
   }
 
+  .sd-paneldynamic__panel-wrapper--list {
+    &:before {
+      z-index: 1;
+      left: 24px !important;
+      right: 24px !important;
+    }
+  }
+
   // ~~~ SELECT BASE ~~~
   .sd-selectbase > * kendo-combobox {
     .k-input-inner {
