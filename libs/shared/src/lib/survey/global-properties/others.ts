@@ -285,6 +285,14 @@ export const init = (environment: any): void => {
     choices: yesNoChoices,
     default: false,
   });
+
+  // Conditional expression for autoSave
+  serializer.addProperty('survey', {
+    name: 'autoSaveIf:expression',
+    category: 'general',
+    visibleIf: (obj: SurveyModel) => obj.autoSave === true,
+  });
+
   // Adds a property to the survey settings to have comments
   serializer.addProperty('survey', {
     name: 'canBeCommented',
