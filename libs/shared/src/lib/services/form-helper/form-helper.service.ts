@@ -1022,7 +1022,9 @@ export class FormHelpersService {
       'ml-auto',
       'sd-matrixdynamic__upload-btn'
     );
-    uploadButton.onclick = () => {
+    uploadButton.onclick = ($event) => {
+      $event.preventDefault();
+      $event.stopPropagation();
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.xlsx';
