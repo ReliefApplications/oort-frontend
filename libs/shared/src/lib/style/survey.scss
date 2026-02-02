@@ -32,6 +32,12 @@ $unesco-blue: #0177d5;
 
     &:not(.sd-element--collapsed) {
       padding: 0;
+
+      > .sd-panel__errbox {
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+      }
     }
 
     &.sd-element--nested {
