@@ -50,7 +50,11 @@ import { CUSTOM_THEME } from '../../survey/form-builder.theme';
 @Component({
   selector: 'shared-form-builder',
   templateUrl: './form-builder.component.html',
-  styleUrls: ['../../style/survey.scss', './form-builder.component.scss'],
+  styleUrls: [
+    '../../style/survey.scss',
+    '../../style/survey-creator.scss',
+    './form-builder.component.scss',
+  ],
 })
 export class FormBuilderComponent
   extends UnsubscribeComponent
