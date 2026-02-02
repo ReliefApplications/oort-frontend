@@ -67,6 +67,7 @@ export class SummaryCardItemContentComponent
    * @param renderer Angular renderer2 service
    * @param el Element ref
    * @param router Angular router
+   * @param document Document
    */
   constructor(
     private dataTemplateService: DataTemplateService,

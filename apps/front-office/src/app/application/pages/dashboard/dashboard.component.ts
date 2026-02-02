@@ -188,6 +188,12 @@ export class DashboardComponent
     this.document.removeEventListener('click', this.anchorClickHandler, true);
   }
 
+  /**
+   * Handles anchor clicks to avoid full navigation and enable in-page scrolling.
+   *
+   * @param event Anchor click event
+   * @returns void
+   */
   private handleAnchorClick(event: MouseEvent): void {
     if (event.defaultPrevented) {
       return;
@@ -387,6 +393,11 @@ export class DashboardComponent
     this.contextService.initContext(this.dashboard as Dashboard, callback);
   }
 
+  /**
+   * Gets the current URL fragment from router or document.
+   *
+   * @returns Fragment string or null
+   */
   private getCurrentFragment(): string | null {
     const fragment = this.route.snapshot.fragment;
     if (fragment) {
@@ -399,6 +410,11 @@ export class DashboardComponent
     return null;
   }
 
+  /**
+   * Tries to scroll to a pending fragment.
+   *
+   * @returns void
+   */
   private tryScrollToFragment(): void {
     if (!this.pendingFragment) {
       return;
@@ -407,6 +423,11 @@ export class DashboardComponent
     this.scheduleFragmentScroll();
   }
 
+  /**
+   * Schedules fragment scrolling until the target is found or attempts are exhausted.
+   *
+   * @returns void
+   */
   private scheduleFragmentScroll(): void {
     if (!this.pendingFragment) {
       return;
@@ -431,6 +452,11 @@ export class DashboardComponent
     }, 100);
   }
 
+  /**
+   * Resets fragment scrolling state between navigations.
+   *
+   * @returns void
+   */
   private resetFragmentScrollState(): void {
     this.fragmentScrollAttempts = 0;
     this.pendingFragment = null;
@@ -440,6 +466,11 @@ export class DashboardComponent
     this.resetNormalizeAnchorState();
   }
 
+  /**
+   * Resets anchor normalization retries.
+   *
+   * @returns void
+   */
   private resetNormalizeAnchorState(): void {
     this.normalizeAnchorsAttempts = 0;
     if (this.normalizeAnchorsTimeout) {
@@ -448,6 +479,11 @@ export class DashboardComponent
     }
   }
 
+  /**
+   * Schedules normalization of anchor hrefs for new-tab behavior.
+   *
+   * @returns void
+   */
   private scheduleNormalizeAnchorHrefs(): void {
     if (this.normalizeAnchorsTimeout) {
       return;
@@ -462,6 +498,11 @@ export class DashboardComponent
     }, 200);
   }
 
+  /**
+   * Normalizes hash-only anchors to full URLs for context menu actions.
+   *
+   * @returns True if anchors were found
+   */
   private normalizeAnchorHrefs(): boolean {
     const container =
       this.document.getElementById('appPageContainer') || this.document.body;
@@ -489,5 +530,4 @@ export class DashboardComponent
     });
     return true;
   }
-
 }

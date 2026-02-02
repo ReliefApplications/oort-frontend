@@ -112,6 +112,7 @@ export class EditorComponent extends UnsubscribeComponent implements OnInit {
    * @param aggregationService Shared aggregation service
    * @param el Element ref
    * @param router Angular router
+   * @param document Document
    */
   constructor(
     private apollo: Apollo,

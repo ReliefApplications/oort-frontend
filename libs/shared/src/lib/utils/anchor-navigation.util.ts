@@ -24,9 +24,13 @@ interface AnchorTarget {
   samePage: boolean;
 }
 
+/** Default scroll container id */
 const DEFAULT_CONTAINER_ID = 'appPageContainer';
+/** Schemes that should not be handled as anchors */
 const DISALLOWED_SCHEMES = ['mailto:', 'tel:', 'javascript:'];
+/** Values considered scrollable for overflow detection */
 const SCROLLABLE_OVERFLOW_VALUES = ['auto', 'scroll', 'overlay'];
+/** Attribute used for scroll spacer elements */
 const ANCHOR_SPACER_ATTR = 'data-anchor-scroll-spacer';
 
 /**
