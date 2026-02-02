@@ -105,7 +105,7 @@
           category="secondary"
           variant="primary"
           [disabled]="saving || submitting || autosaving"
-          (click)="survey.completeLastPage()"
+          (click)="survey.tryComplete()"
           cdkFocusInitial
         >
           <span class="flex items-center whitespace-nowrap">
