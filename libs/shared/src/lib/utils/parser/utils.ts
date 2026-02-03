@@ -99,6 +99,17 @@ export const parseHtml = (
       );
       formattedHtml = formattedHtml.replace(link, formattedLink);
     }
+
+    // Format anchor links (e.g., #about) to use the full current URL
+    const anchorMatch = link.match(/href="(#[^"]+)"/);
+    if (anchorMatch) {
+      const anchor = anchorMatch[1];
+      const formattedLink = link.replace(
+        `href="${anchor}"`,
+        `href="javascript:void(0)" onclick="window.location.href = window.location.origin + window.location.pathname + '${anchor}'"`
+      );
+      formattedHtml = formattedHtml.replace(link, formattedLink);
+    }
   });
 
   return formattedHtml;
