@@ -284,13 +284,19 @@ export const init = (environment: any): void => {
     type: 'dropdown',
     choices: yesNoChoices,
     default: false,
+    enableIf: (obj: SurveyModel) => {
+      return !obj.autoSaveExpression;
+    },
   });
 
   // Conditional expression for autoSave
   serializer.addProperty('survey', {
-    name: 'autoSaveIf:expression',
-    category: 'general',
-    visibleIf: (obj: SurveyModel) => obj.autoSave === true,
+    name: 'autoSaveExpression:expression',
+    category: 'logic',
+    visibleIndex: -1,
+    onExecuteExpression: (obj: SurveyModel, res: any) => {
+      obj.autoSave = res;
+    },
   });
 
   // Adds a property to the survey settings to have comments

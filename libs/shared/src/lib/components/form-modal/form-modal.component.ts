@@ -386,14 +386,8 @@ export class FormModalComponent
       this.autoSaveInterval = interval(15000)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
-          // Check autoSaveIf expression if defined
-          const autoSaveIfExpression = this.survey.autoSaveIf;
-          if (autoSaveIfExpression) {
-            const shouldAutoSave =
-              this.survey.runExpression(autoSaveIfExpression);
-            if (!shouldAutoSave) {
-              return; // Skip autosave if condition returns false
-            }
+          if (!this.survey.autoSave) {
+            return;
           }
 
           if (

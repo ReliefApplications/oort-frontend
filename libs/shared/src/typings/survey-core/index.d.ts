@@ -98,7 +98,7 @@ declare module 'survey-core' {
     saveButtonText?: string;
     showDeleteButtonOnModal?: boolean;
     autoSave?: boolean;
-    autoSaveIf?: string;
+    autoSaveExpression?: string;
     canBeCommented?: boolean;
     showPercentageProgressBar?: boolean;
     defaultLanguage?: string;
