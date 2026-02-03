@@ -710,6 +710,10 @@ export class FormComponent
       this.autoSaveInterval = interval(15000)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
+          if (!this.survey.autoSave) {
+            return;
+          }
+
           // Don't autosave if we're submitting or if completed page is showing
           if (
             !this.saving &&

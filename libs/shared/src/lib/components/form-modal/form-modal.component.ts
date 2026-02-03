@@ -386,6 +386,10 @@ export class FormModalComponent
       this.autoSaveInterval = interval(15000)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
+          if (!this.survey.autoSave) {
+            return;
+          }
+
           if (
             !this.saving &&
             !this.autosaving &&
