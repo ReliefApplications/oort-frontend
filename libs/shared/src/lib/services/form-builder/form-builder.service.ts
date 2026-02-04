@@ -498,6 +498,9 @@ export class FormBuilderService {
 
     // Add an array of cells to the matrix obj
     survey.onAfterRenderMatrixCell.add((_, options) => {
+      if (!options.question) {
+        return;
+      }
       options.question.cells ||= new Map<string, MatrixDropdownCell>();
       const col = options.column as MatrixDropdownColumn;
       const row = options.row.rowName;
