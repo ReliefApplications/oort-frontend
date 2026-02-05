@@ -36,6 +36,44 @@ import { firstValueFrom } from 'rxjs';
 /** Identifier for GraphQl requests */
 const GRAPHQL_IDENTIFIER = 'ResourceQuestion';
 
+type ValueSource = 'manual' | 'param' | 'default' | 'expression' | 'auto';
+
+type ResourceQuestionState = {
+  __paramAppliedValue?: string | null;
+  __valueSource?: ValueSource;
+  __settingValue?: boolean;
+  __lastFilterHash?: string;
+};
+
+const PARAM_TOKEN_REGEX = /\{param\.([^}]+)\}/g;
+const VARIABLE_TOKEN_REGEX = /\{([^}]+)\}/g;
+
+const extractParamNamesFromExpression = (expression?: string): string[] => {
+  if (!expression) return [];
+  const names: string[] = [];
+  const matches = expression.matchAll(PARAM_TOKEN_REGEX);
+  for (const match of matches) {
+    const name = match[1]?.trim();
+    if (name) {
+      names.push(name);
+    }
+  }
+  return names;
+};
+
+const extractVariableNamesFromExpression = (expression?: string): string[] => {
+  if (!expression) return [];
+  const names: string[] = [];
+  const matches = expression.matchAll(VARIABLE_TOKEN_REGEX);
+  for (const match of matches) {
+    const name = match[1]?.trim();
+    if (name) {
+      names.push(name);
+    }
+  }
+  return names;
+};
+
 /**
  * Get the updated filter for the question, with values included.
  *
@@ -112,6 +150,161 @@ export const init = (
   const apollo = injector.get(Apollo);
   const dialog = injector.get(Dialog);
 
+  const getQuestionState = (question: Question): ResourceQuestionState => {
+    return question as Question & ResourceQuestionState;
+  };
+
+  const setQuestionValue = (
+    question: Question,
+    value: unknown,
+    source: ValueSource
+  ) => {
+    const state = getQuestionState(question);
+    state.__settingValue = true;
+    question.value = value;
+    state.__valueSource = source;
+    state.__settingValue = false;
+  };
+
+  const getUrlParamValue = (paramName: string): string | null => {
+    if (!paramName) return null;
+    const params = new URLSearchParams(window.location.search);
+    const value = params.get(paramName);
+    if (value === null || value === '') {
+      return null;
+    }
+    return value;
+  };
+
+  const resolveParamValue = (
+    question: QuestionResource,
+    survey?: SurveyModel
+  ): { value: string | null; name?: string } => {
+    const direct = getUrlParamValue(question.name);
+    if (direct) {
+      return { value: direct, name: question.name };
+    }
+
+    const directVariableValue = survey?.getVariable?.(
+      `param.${question.name}`
+    );
+    if (typeof directVariableValue === 'string' && directVariableValue !== '') {
+      return { value: directVariableValue, name: question.name };
+    }
+
+    const paramNames = extractParamNamesFromExpression(
+      question.defaultValueExpression
+    );
+    for (const name of paramNames) {
+      const urlValue = getUrlParamValue(name);
+      if (urlValue) {
+        return { value: urlValue, name };
+      }
+      const variableValue = survey?.getVariable?.(`param.${name}`);
+      if (typeof variableValue === 'string' && variableValue !== '') {
+        return { value: variableValue, name };
+      }
+    }
+
+    return { value: null };
+  };
+
+  const evaluateDefaultExpression = (
+    survey: SurveyModel | null,
+    expression?: string
+  ): unknown => {
+    if (!survey || !expression) {
+      return null;
+    }
+    try {
+      const result = survey.runExpression(expression);
+      if (result !== undefined) {
+        return result;
+      }
+    } catch (error) {
+      console.error('[ResourceQuestion] defaultValueExpression failed', {
+        expression,
+        error,
+      });
+    }
+
+    const tokens = extractVariableNamesFromExpression(expression);
+    if (tokens.length === 1) {
+      const value = survey.getVariable(tokens[0]);
+      return value !== undefined ? value : null;
+    }
+
+    return null;
+  };
+
+  const ensureValueSource = (
+    question: QuestionResource,
+    survey?: SurveyModel,
+    paramValue?: string | null
+  ) => {
+    const state = getQuestionState(question);
+    if (!question.value || state.__valueSource) {
+      return;
+    }
+    const effectiveParamValue =
+      paramValue ?? resolveParamValue(question, survey).value;
+    if (effectiveParamValue && question.value === effectiveParamValue) {
+      state.__valueSource = 'param';
+      return;
+    }
+    const expressionValue = evaluateDefaultExpression(
+      survey ?? (question.survey as SurveyModel),
+      question.defaultValueExpression
+    );
+    if (
+      expressionValue !== null &&
+      expressionValue !== undefined &&
+      expressionValue === question.value
+    ) {
+      state.__valueSource = 'expression';
+      return;
+    }
+    if (
+      question.defaultValue !== undefined &&
+      question.defaultValue === question.value
+    ) {
+      state.__valueSource = 'default';
+      return;
+    }
+    state.__valueSource = 'manual';
+  };
+
+  const applyDependentDefaultExpressions = (
+    survey: SurveyModel,
+    updatedVariables: string[]
+  ) => {
+    if (!updatedVariables.length) return;
+    const updatedSet = new Set(updatedVariables);
+    const questions = survey.getAllQuestions();
+    for (const question of questions) {
+      const expression = question.defaultValueExpression;
+      if (!expression) continue;
+      const referenced = extractVariableNamesFromExpression(expression);
+      if (!referenced.some((name) => updatedSet.has(name))) {
+        continue;
+      }
+      const state = getQuestionState(question);
+      if (state.__valueSource === 'manual' || state.__valueSource === 'param') {
+        continue;
+      }
+      if (!question.isEmpty() && state.__valueSource === undefined) {
+        continue;
+      }
+      const exprValue = evaluateDefaultExpression(survey, expression);
+      if (exprValue !== null && exprValue !== undefined && exprValue !== '') {
+        if (question.value === exprValue) {
+          continue;
+        }
+        setQuestionValue(question, exprValue, 'expression');
+      }
+    }
+  };
+
   /** Cache for loaded records */
   const loadedRecords: Map<string, Record> = new Map();
 
@@ -123,7 +316,7 @@ export const init = (
    */
   const addRecordToSurveyContext = async (
     question: Question,
-    recordID: string
+    recordID: string | null | undefined
   ) => {
     const survey = question.survey as SurveyModel;
     if (!survey) {
@@ -131,29 +324,41 @@ export const init = (
     }
 
     if (!recordID) {
+      const updatedVariables: string[] = [];
       // get survey variables
       survey.getVariableNames().forEach((variable) => {
         // remove variable if starts with question name
-        if (variable.startsWith(`${question.name}.`))
+        if (variable.startsWith(`${question.name}.`)) {
           survey.setVariable(variable, null);
+          updatedVariables.push(variable);
+        }
       });
+      applyDependentDefaultExpressions(survey, updatedVariables);
       return;
     }
     // get record from cache
     let record = loadedRecords.get(recordID);
     if (!record) {
-      const { data } = await firstValueFrom(
-        apollo.query<RecordQueryResponse>({
-          query: GET_RECORD_BY_ID,
-          variables: {
-            id: recordID,
-          },
-        })
-      );
+      try {
+        const { data } = await firstValueFrom(
+          apollo.query<RecordQueryResponse>({
+            query: GET_RECORD_BY_ID,
+            variables: {
+              id: recordID,
+            },
+          })
+        );
 
-      if (data.record) {
-        record = data.record;
-        loadedRecords.set(recordID, record);
+        if (data.record) {
+          record = data.record;
+          loadedRecords.set(recordID, record);
+        }
+      } catch (error) {
+        console.error('[ResourceQuestion] Failed to load record', {
+          recordID,
+          error,
+        });
+        return;
       }
     }
 
@@ -179,6 +384,7 @@ export const init = (
     }
 
     const data = record?.data || {};
+    const updatedVariables: string[] = [];
 
     // Creates strStruct once if doesn't exist
     if (!survey.strStructure) {
@@ -189,49 +395,20 @@ export const init = (
       const value = data[field];
 
       // Set the exact variable (e.g. selected_br.a_06_country)
-      survey.setVariable(`${question.name}.${field}`, value);
+      const variableName = `${question.name}.${field}`;
+      survey.setVariable(variableName, value);
+      updatedVariables.push(variableName);
 
       // ALIAS: If it ends in _country, also set it as .country
       // This allows {selected_br.country} to work even if DB sends a_06_country
       if (field.endsWith('_country')) {
-        survey.setVariable(`${question.name}.country`, value);
+        const aliasName = `${question.name}.country`;
+        survey.setVariable(aliasName, value);
+        updatedVariables.push(aliasName);
       }
     }
 
-    if (question.name === 'selected_br') {
-      const countryQuestion = survey.getQuestionByName('selected_country');
-      if (countryQuestion) {
-        const dataObj = data as { [key: string]: unknown };
-        const directCountryKey = Object.keys(dataObj).find(
-          (key) => key === 'country'
-        );
-        const suffixCountryKey = Object.keys(dataObj).find((key) =>
-          key.endsWith('_country')
-        );
-        const countryKey = directCountryKey || suffixCountryKey;
-        const recordCountry = countryKey ? dataObj[countryKey] : null;
-
-        const surveyAny = survey as SurveyModel & {
-          __selectedCountryAuto?: boolean;
-          __selectedCountryManual?: boolean;
-        };
-
-        const shouldSyncCountry =
-          !surveyAny.__selectedCountryManual ||
-          isNil(countryQuestion.value) ||
-          countryQuestion.value === '';
-
-        if (
-          !isNil(recordCountry) &&
-          recordCountry !== '' &&
-          shouldSyncCountry
-        ) {
-          surveyAny.__selectedCountryAuto = true;
-          countryQuestion.value = recordCountry;
-          surveyAny.__selectedCountryAuto = false;
-        }
-      }
-    }
+    applyDependentDefaultExpressions(survey, updatedVariables);
   };
 
   const getResourceById = (data: { id: string }) =>
@@ -257,160 +434,124 @@ export const init = (
 
   const populateChoices = (question: QuestionResource): void => {
     const survey = question.survey as SurveyModel;
-    const surveyAny = survey as SurveyModel & {
-      __selectedCountryManual?: boolean;
-    };
-    const reserveId = survey?.getVariable?.('param.reserve_id');
-    const ignoreReserveId = surveyAny.__selectedCountryManual === true;
-    const effectiveReserveId = ignoreReserveId ? null : reserveId;
-    const filters = effectiveReserveId
-      ? ({
-          logic: 'and',
-          filters: [] as FilterDescriptor[],
-        } satisfies CompositeFilterDescriptor)
-      : getUpdatedFilter(question);
+    const filters = getUpdatedFilter(question);
+    const state = getQuestionState(question);
+    state.__lastFilterHash = JSON.stringify(filters ?? {});
 
     if (
       question.resource &&
       !(question.customFilter && Array.isArray(filters) && filters.length === 0)
     ) {
-      getResourceRecordsById({ id: question.resource, filters }).subscribe(
-        ({ data }) => {
+      getResourceRecordsById({ id: question.resource, filters }).subscribe({
+        next: ({ data }) => {
           const choices = mapQuestionChoices(data, question);
+          const hasCustomFilter = !!question.customFilter?.trim();
+          const { value: paramValue } = resolveParamValue(question, survey);
 
-          if (question.autoSelectFirstOption || question.autoSelectOnlyOption) {
-            if (question.value && choices.length > 0) {
-              const isValid = choices.some(
-                (c: any) => c.value === question.value
-              );
-              if (!isValid) {
-                question.value = null;
-              }
+          if (paramValue) {
+            if (paramValue !== state.__paramAppliedValue) {
+              setQuestionValue(question, paramValue, 'param');
+            }
+            state.__paramAppliedValue = paramValue;
+          } else {
+            state.__paramAppliedValue = null;
+          }
+
+          ensureValueSource(question, survey, paramValue);
+
+          const isParamValue =
+            state.__valueSource === 'param' &&
+            !!question.value &&
+            question.value === state.__paramAppliedValue;
+
+          let valueInList =
+            !!question.value &&
+            choices.some((c: any) => c.value === question.value);
+
+          if (question.value && !valueInList && hasCustomFilter && !isParamValue) {
+            setQuestionValue(question, null, 'default');
+          }
+
+          if (!question.value && state.__valueSource !== 'manual') {
+            const expressionValue = evaluateDefaultExpression(
+              survey,
+              question.defaultValueExpression
+            );
+            if (
+              expressionValue !== null &&
+              expressionValue !== undefined &&
+              expressionValue !== ''
+            ) {
+              setQuestionValue(question, expressionValue, 'expression');
+            } else if (
+              question.defaultValue !== undefined &&
+              question.defaultValue !== null &&
+              question.defaultValue !== ''
+            ) {
+              setQuestionValue(question, question.defaultValue, 'default');
             }
           }
 
-          const shouldIgnoreEffectiveValue =
-            question.name === 'selected_br' &&
-            surveyAny.__selectedCountryManual;
-          const effectiveValue = shouldIgnoreEffectiveValue
-            ? null
-            : question.value || question.defaultValue;
+          valueInList =
+            !!question.value &&
+            choices.some((c: any) => c.value === question.value);
 
-          if (effectiveValue) {
-            const inNewList = choices.some(
-              (c: any) => c.value === effectiveValue
+          const autoSelectEnabled =
+            question.autoSelectFirstOption || question.autoSelectOnlyOption;
+
+          if (question.value && !valueInList && autoSelectEnabled && !isParamValue) {
+            setQuestionValue(question, null, 'default');
+          }
+
+          if (!question.value) {
+            if (question.autoSelectOnlyOption && choices.length === 1) {
+              setQuestionValue(question, choices[0].value, 'auto');
+            } else if (question.autoSelectFirstOption && choices.length > 0) {
+              setQuestionValue(question, choices[0].value, 'auto');
+            }
+          }
+
+          valueInList =
+            !!question.value &&
+            choices.some((c: any) => c.value === question.value);
+
+          if (
+            question.value &&
+            !valueInList &&
+            (!autoSelectEnabled || isParamValue)
+          ) {
+            const currentChoices = question.contentQuestion.choices || [];
+            const preservedChoice = currentChoices.find(
+              (c: any) => c.value === question.value
             );
-
-            // Only preserve missing values if we are NOT in auto-select mode
-            if (
-              !inNewList &&
-              !question.autoSelectFirstOption &&
-              !question.autoSelectOnlyOption
-            ) {
-              const currentChoices = question.contentQuestion.choices || [];
-              const preservedChoice = currentChoices.find(
-                (c: any) => c.value === effectiveValue
-              );
-
-              if (preservedChoice) {
-                choices.push(preservedChoice);
-              } else {
-                choices.push({ value: effectiveValue, text: effectiveValue });
-              }
+            if (preservedChoice) {
+              choices.push(preservedChoice);
+            } else {
+              choices.push({
+                value: question.value,
+                text: String(question.value),
+              });
             }
           }
 
           question.contentQuestion.choices = choices;
 
-          if (
-            (question.autoSelectFirstOption && choices.length > 0) ||
-            (question.autoSelectOnlyOption && choices.length === 1)
-          ) {
-            const tryApplyValue = (val: string | null) => {
-              if (!val) return false;
-              const exists = choices.some((c: any) => c.value === val);
-              if (exists) {
-                question.value = val;
-                return true;
-              }
-              return false;
-            };
-
-            const resolveDefaultValue = () => {
-              const urlParams = new URLSearchParams(window.location.search);
-              const urlValue = urlParams.get(question.name);
-
-              if (tryApplyValue(urlValue)) return true;
-
-              const paramValue = survey?.getVariable?.(
-                `param.${question.name}`
-              );
-              if (tryApplyValue(paramValue)) return true;
-
-              if (question.defaultValueExpression) {
-                let expressionValue = survey.runExpression(
-                  question.defaultValueExpression
-                );
-                if (
-                  !expressionValue &&
-                  !question.defaultValueExpression.includes('||')
-                ) {
-                  const rawVar = question.defaultValueExpression
-                    .trim()
-                    .replace(/^\{|\}$/g, '');
-                  expressionValue = survey.getVariable(rawVar);
-                }
-                if (tryApplyValue(expressionValue)) return true;
-              }
-
-              if (question.defaultValue) {
-                if (tryApplyValue(question.defaultValue)) return true;
-              }
-
-              if (question.value) {
-                const isValid = choices.some(
-                  (c: any) => c.value === question.value
-                );
-                if (isValid) return true;
-              }
-
-              return false;
-            };
-
-            setTimeout(() => {
-              const resolved = resolveDefaultValue();
-              if (effectiveReserveId) {
-                return;
-              }
-              // If we couldn't find a valid value from params/url/expression,
-              // AND we have choices available, pick the first one.
-              if (!resolved && choices.length > 0) {
-                question.value = choices[0].value;
-              }
-            }, 5000);
-
-            const recheck = (_: any, options: any) => {
-              if (
-                options.name === question.name ||
-                options.name === `param.${question.name}`
-              ) {
-                return;
-              }
-              const resolved = resolveDefaultValue();
-              if (resolved) {
-                survey.onValueChanged.remove(recheck);
-              }
-            };
-
-            survey.onValueChanged.add(recheck);
-          }
           if (!question.placeholder) {
             question.contentQuestion.optionsCaption =
               'Select a record from ' + data.resource.name + '...';
           }
-          addRecordToSurveyContext(question, question.value || effectiveValue);
-        }
-      );
+          const recordId =
+            typeof question.value === 'string' ? question.value : null;
+          addRecordToSurveyContext(question, recordId);
+        },
+        error: (error) => {
+          console.error('[ResourceQuestion] Failed to load choices', {
+            questionName: question.name,
+            error,
+          });
+          question.contentQuestion.choices = [];
+        },
+      });
     } else {
       question.contentQuestion.choices = [];
     }
@@ -500,16 +641,25 @@ export const init = (
         visibleIndex: 2,
         choices: (obj: QuestionResource, choicesCallback: any) => {
           if (obj.resource) {
-            getResourceById({ id: obj.resource }).subscribe(({ data }) => {
-              const choices = (data.resource.fields || [])
-                .filter((item: any) => item.type !== 'matrix')
-                .map((item: any) => {
-                  return {
-                    value: item.name,
-                  };
+            getResourceById({ id: obj.resource }).subscribe({
+              next: ({ data }) => {
+                const choices = (data.resource.fields || [])
+                  .filter((item: any) => item.type !== 'matrix')
+                  .map((item: any) => {
+                    return {
+                      value: item.name,
+                    };
+                  });
+                choices.unshift({ value: null });
+                choicesCallback(choices);
+              },
+              error: (error) => {
+                console.error('[ResourceQuestion] Failed to load fields', {
+                  resourceId: obj.resource,
+                  error,
                 });
-              choices.unshift({ value: null });
-              choicesCallback(choices);
+                choicesCallback([]);
+              },
             });
           }
         },
@@ -602,12 +752,21 @@ export const init = (
         visibleIndex: 10,
         choices: (obj: QuestionResource, choicesCallback: any) => {
           if (obj.resource && obj.addRecord) {
-            getResourceById({ id: obj.resource }).subscribe(({ data }) => {
-              const choices = (data.resource.forms || []).map((item: any) => {
-                return { value: item.id, text: item.name };
-              });
-              choices.unshift({ value: null, text: '' });
-              choicesCallback(choices);
+            getResourceById({ id: obj.resource }).subscribe({
+              next: ({ data }) => {
+                const choices = (data.resource.forms || []).map((item: any) => {
+                  return { value: item.id, text: item.name };
+                });
+                choices.unshift({ value: null, text: '' });
+                choicesCallback(choices);
+              },
+              error: (error) => {
+                console.error('[ResourceQuestion] Failed to load forms', {
+                  resourceId: obj.resource,
+                  error,
+                });
+                choicesCallback([]);
+              },
             });
           }
         },
@@ -752,11 +911,20 @@ export const init = (
           !!obj && !!obj.selectQuestion && !!obj.displayField,
         choices: (obj: QuestionResource, choicesCallback: any) => {
           if (obj.resource) {
-            getResourceById({ id: obj.resource }).subscribe(({ data }) => {
-              const choices = (data.resource.fields || []).map((item: any) => {
-                return { value: item.name };
-              });
-              choicesCallback(choices);
+            getResourceById({ id: obj.resource }).subscribe({
+              next: ({ data }) => {
+                const choices = (data.resource.fields || []).map((item: any) => {
+                  return { value: item.name };
+                });
+                choicesCallback(choices);
+              },
+              error: (error) => {
+                console.error('[ResourceQuestion] Failed to load filters', {
+                  resourceId: obj.resource,
+                  error,
+                });
+                choicesCallback([]);
+              },
             });
           }
         },
@@ -951,42 +1119,15 @@ export const init = (
     // Display of add button for resource question ans set placeholder, if any
     onAfterRender: (question: QuestionResource, el: HTMLElement): void => {
       const survey: SurveyModel = question.survey as SurveyModel;
-      const surveyAny = survey as SurveyModel & {
-        __selectedCountrySyncInit?: boolean;
-        __selectedCountryAuto?: boolean;
-        __selectedCountryManual?: boolean;
-      };
       loadedRecords.clear();
       survey.loadedRecords = loadedRecords;
 
-      if (!surveyAny.__selectedCountrySyncInit) {
-        const countryQuestion = survey.getQuestionByName('selected_country');
-        if (countryQuestion) {
-          countryQuestion.registerFunctionOnPropertyValueChanged(
-            'value',
-            (value: unknown) => {
-              if (surveyAny.__selectedCountryAuto) {
-                return;
-              }
-              const hasValue = !isNil(value) && value !== '';
-              surveyAny.__selectedCountryManual = hasValue;
-              if (!hasValue) {
-                surveyAny.__selectedCountryManual = false;
-                return;
-              }
-
-              const brQuestion = survey.getQuestionByName('selected_br');
-              if (brQuestion) {
-                brQuestion.value = null;
-              }
-            }
-          );
-          surveyAny.__selectedCountrySyncInit = true;
-        }
-      }
+      ensureValueSource(question, survey);
 
       if (question.value) {
-        addRecordToSurveyContext(question, question.value);
+        const recordId =
+          typeof question.value === 'string' ? question.value : null;
+        addRecordToSurveyContext(question, recordId);
       }
 
       // If using custom filters, we need to update the filters and populate the choices
@@ -1021,9 +1162,17 @@ export const init = (
       }
 
       // Listen to value changes in order to add records to the survey context
-      question.registerFunctionOnPropertyValueChanged('value', (value: any) => {
-        addRecordToSurveyContext(question, value);
-      });
+      question.registerFunctionOnPropertyValueChanged(
+        'value',
+        (value: unknown) => {
+          const currentState = getQuestionState(question);
+          if (!currentState.__settingValue) {
+            currentState.__valueSource = 'manual';
+          }
+          const recordId = typeof value === 'string' ? value : null;
+          addRecordToSurveyContext(question, recordId);
+        }
+      );
 
       // Create a div that will hold the buttons
       const actionsButtons = setUpActionsButtonWrapper();
