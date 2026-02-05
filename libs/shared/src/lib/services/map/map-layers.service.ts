@@ -38,6 +38,7 @@ import { DOCUMENT } from '@angular/common';
 import { MapPolygonsService } from './map-polygons.service';
 // import { FeatureCollection } from 'geojson';
 import * as L from 'leaflet';
+import { isFilterEmpty } from '../../utils/filter/is-filter-empty';
 
 /** Reference to worker code (not used) */
 declare const cw: any;
@@ -614,6 +615,15 @@ export class MapLayersService {
         return {};
       }
     };
+
+    if (layer.requireContextFilters && isFilterEmpty(contextFilters)) {
+      // For Shapefile layers, return empty array (array of URLs) instead of FeatureCollection
+      if (layer.datasource?.type === 'Shapefile') {
+        return [];
+      }
+      return EMPTY_FEATURE_COLLECTION;
+    }
+
     const params = new HttpParams({
       fromObject: omitBy(
         {

@@ -29,6 +29,18 @@
         [uiTooltip]="'models.dashboard.tooltip.filter.fields' | translate"
       ></ui-icon>
     </h2>
+    <!-- If require contextual filter is enabled -->
+    <ui-checkbox
+      *ngIf="requireContextFiltersEnabled"
+      (click)="$event.stopPropagation()"
+      class="ml-auto mr-2"
+      [formControl]="$any(form.get('requireContextFilters'))"
+    >
+      <!-- todo: translate -->
+      <ng-container ngProjectAs="label" class="ml-auto">
+        Skip if empty
+      </ng-container>
+    </ui-checkbox>
     <div class="grow overflow-y-auto overflow-x-hidden w-full">
       <ngx-monaco-editor
         class="!h-full min-h-[450px]"

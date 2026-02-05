@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { FormWrapperModule, IconModule, TooltipModule } from '@oort-front/ui';
+import {
+  CheckboxModule,
+  FormWrapperModule,
+  IconModule,
+  TooltipModule,
+} from '@oort-front/ui';
 
 /** Component to define the contextual filters of a widget or a map layer */
 @Component({
@@ -18,15 +23,16 @@ import { FormWrapperModule, IconModule, TooltipModule } from '@oort-front/ui';
     FormWrapperModule,
     IconModule,
     TooltipModule,
+    CheckboxModule,
   ],
   templateUrl: './contextual-filters-settings.component.html',
   styleUrls: ['./contextual-filters-settings.component.scss'],
 })
 export class ContextualFiltersSettingsComponent implements OnDestroy {
-  /**
-   * Form group
-   */
+  /** Form group */
   @Input() form!: FormGroup;
+  /** Use Require Contextual filter argument */
+  @Input() requireContextFiltersEnabled = false;
   /** Timeout to init editor */
   private initEditorTimeoutListener!: NodeJS.Timeout;
 

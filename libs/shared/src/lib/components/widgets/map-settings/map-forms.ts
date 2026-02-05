@@ -99,8 +99,10 @@ export const createLayerForm = (value?: LayerModel) => {
     ...(type === 'GroupLayer' && {
       sublayers: new FormControl(get(value, 'sublayers', [])),
     }),
-
     // TODO: replace when we have a proper UI for this
+    requireContextFilters: new FormControl(
+      get(value, 'requireContextFilters', false)
+    ),
     contextFilters: new FormControl(
       get(value, 'contextFilters', DEFAULT_CONTEXT_FILTER)
     ),
