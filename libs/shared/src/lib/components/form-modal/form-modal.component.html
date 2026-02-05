@@ -17,15 +17,15 @@
     </div>
   </ng-container>
   <ng-container ngProjectAs="content">
-    <div class="h-full">
-      <div *ngIf="loading; else surveyTmpl" class="h-full flex">
+    <div class="flex flex-row">
+      <div *ngIf="loading; else surveyTmpl" class="h-full w-full flex">
         <ui-spinner class="m-auto block"></ui-spinner>
       </div>
       <ng-template #surveyTmpl>
-        <div class="flex h-full">
+        <div class="grow flex max-w-full">
           <shared-form-pages-layout
             *ngIf="!survey.hidePagesTab"
-            class="sticky h-full z-10"
+            class="h-fit sticky top-0 z-10"
             (showPage)="onShowPage($event)"
             [pages]="survey.visiblePages"
             [selectedPageIndex]="(selectedPageIndex$ | async) ?? 0"
@@ -105,7 +105,7 @@
           category="secondary"
           variant="primary"
           [disabled]="saving || submitting || autosaving"
-          (click)="survey.completeLastPage()"
+          (click)="survey.tryComplete()"
           cdkFocusInitial
         >
           <span class="flex items-center whitespace-nowrap">

@@ -1,111 +1,109 @@
-@import 'variables.scss';
+$unesco-blue: #0177d5;
 
-::ng-deep .sv-boolean:not(.sv-boolean--checked) {
-  .sv-boolean__switch {
-    background-color: rgba(64, 64, 64, 0.5) !important;
-  }
-}
-::ng-deep .sv_q {
-  padding-bottom: 0.5em !important;
-}
-
-::ng-deep .sv_q_required_text {
-  color: red;
-}
-
-// === QUESTION CONTENT ===
-::ng-deep .sd-question__content {
-  .sv_q_erbox:not([style*='display: none']):not([style*='display:none']) {
-    background-color: transparent;
-    border: none;
-    order: 2;
-    padding: 0 0 0 8px !important;
-    margin: 8px 0 !important;
+::ng-deep {
+  // ~~~ PAGE ~~~
+  .sd-body.sd-body--responsive .sd-page {
+    background-color: white;
+    padding: 24px;
+    border-radius: 8px;
   }
 
-  // === DATE / TIME INPUTS ===
-  .k-datepicker,
-  .k-timepicker,
-  .k-datetimepicker {
-    width: 100%;
+  // ~~~ PANEL ~~~
+  .sd-element--collapsed {
+    &.sd-element--nested {
+      .sd-panel__header {
+        border-color: #d5dadd;
+        background-color: #f1f4f6;
+        padding: 10px 12px 10px 44px;
+      }
+    }
 
-    .k-dateinput {
-      .k-input-inner {
-        height: 100% !important;
+    &:not(.sd-element--nested) {
+      .sd-panel__header {
+        border-color: #d5dadd;
+        background-color: #ebf5fd;
+        padding: 10px 12px 10px 44px;
       }
     }
   }
-}
 
-::ng-deep svd-property-editor {
-  // === DATE / TIME INPUTS ===
-  .k-datepicker,
-  .k-timepicker,
-  .k-datetimepicker {
-    width: 100%;
+  .sd-panel {
+    border-radius: 8px;
 
-    .k-dateinput {
-      .k-input-inner {
-        height: 100% !important;
+    &:not(.sd-element--collapsed) {
+      padding: 0;
+
+      > .sd-panel__errbox {
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+      }
+    }
+
+    &.sd-element--nested {
+      > .sd-panel__content {
+        background-color: #f1f4f6;
+      }
+    }
+
+    &:not(.sd-element--nested) {
+      > .sd-panel__content {
+        background-color: white;
+      }
+    }
+
+    &:not(.sd-element--expandable) {
+      .sd-panel__header {
+        border-color: #d5dadd;
+        background-color: #ebf5fd;
+        padding: 10px 12px;
+
+        &:after {
+          bottom: -10px;
+          width: calc(100% + 24px);
+          inset-inline-start: -12px;
+        }
       }
     }
   }
-}
 
-::ng-deep .sv_row {
-  div {
-    min-width: 0px !important;
-  }
-}
-
-::ng-deep survey .sv-title-actions {
-  display: block !important;
-}
-
-::ng-deep .survey-title__tooltip {
-  background-color: var(--primary);
-  padding: 0 0.35rem;
-  border-radius: 100%;
-  color: white;
-  margin-left: 0.25rem;
-  font-size: 0.75rem !important;
-  font-weight: bold;
-}
-
-::ng-deep .sd-matrixdropdown.sd-table,
-::ng-deep .sd-table.sd-matrixdynamic {
-  padding: 0.5rem 0 1rem 0;
-}
-
-::ng-deep survey {
-  .sv-radio--allowhover:hover .sv-radio__svg {
-    fill: var(--primary, rgba(64, 64, 64, 0.5)) !important;
+  .sd-panel__content {
+    padding-left: 40px;
+    padding-right: 40px;
+    padding-bottom: 24px;
   }
 
-  .sv-page__title {
-    padding-left: 0 !important;
-    margin-bottom: calc(var(--font-size) / 2) !important;
-    padding-bottom: calc(var(--font-size) / 2);
-    border-bottom: 1px solid var(--primary);
+  .sd-element--expanded {
+    .sd-panel__header {
+      padding: 10px 12px 10px 44px;
+      border-radius: 8px 8px 0 0;
+      border-color: #d5dadd;
+
+      &:after {
+        background: #d5dadd;
+        width: calc(100% + 44px + 12px) !important;
+        inset-inline-start: -44px !important;
+      }
+    }
+
+    &.sd-element--nested {
+      > .sd-panel__header {
+        background-color: #f1f4f6;
+      }
+    }
+
+    &:not(.sd-element--nested) {
+      > .sd-panel__header {
+        background-color: #ebf5fd;
+      }
+    }
   }
 
-  .sv-body__page {
-    margin: 0 !important;
-  }
-}
-
-::ng-deep survey,
-::ng-deep survey-creator {
-  .sd-input {
-    padding: calc(1 * var(--sjs-base-unit, var(--base-unit, 8px)))
-      calc(2 * var(--sjs-base-unit, var(--base-unit, 8px)));
-  }
-  .k-combobox,
-  .k-multiselect,
+  // ~~~ INPUTS ~~~
   .sd-input,
-  .k-timepicker,
-  .k-datetimepicker,
-  .k-datepicker {
+  .sd-selectbase > * kendo-combobox,
+  .sd-selectbase > * kendo-multiselect {
+    // Common styles for most inputs
     @apply focus-within:ring-2
       focus-within:ring-inset
       focus-within:ring-primary-600
@@ -121,7 +119,153 @@
       border-0;
   }
 
-  .k-multiselect {
+  .sd-input {
+    padding: 8px 16px;
+    line-height: 20px;
+  }
+
+  // ~~~ RADIO ~~~
+  .sd-radio-checked {
+    .sd-radio__decorator {
+      background-color: $unesco-blue;
+    }
+  }
+
+  .sd-radio__decorator {
+    border: solid 1px #7f888f;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+
+  // ~~~ CHECKBOX ~~~
+  .sd-checkbox {
+    label {
+      .sd-checkbox__decorator {
+        border: solid 1px #7f888f;
+        @apply focus-within:ring-2
+          focus-within:ring-inset
+          focus-within:ring-primary-600
+          shadow-sm
+          rounded-md;
+      }
+    }
+  }
+
+  // ~~~ TABLES ~~~
+  .sd-table,
+  .sd-table__cell {
+    background-color: transparent !important;
+    border-color: transparent !important;
+  }
+
+  .sd-table-wrapper {
+    &:before,
+    &:after {
+      background-color: transparent !important;
+    }
+  }
+
+  .sd-table__cell--actions {
+    .sd-action-bar {
+      background-color: transparent !important;
+    }
+  }
+
+  .sd-table__cell {
+    .sd-checkbox {
+      justify-content: center;
+    }
+  }
+
+  // ~~~ MATRIX DYNAMIC ~~~
+  .sd-matrixdynamic__add-btn {
+    padding: 10px 20px;
+    border: 1px solid $unesco-blue;
+    background-color: white;
+  }
+
+  .sd-matrixdynamic__upload-btn {
+    padding: 10px 20px;
+    border: 1px solid $unesco-blue;
+    background: $unesco-blue;
+    color: white;
+  }
+
+  .sd-matrixdynamic__footer {
+    padding-top: 48px;
+  }
+
+  // ~~~ PANEL DYNAMIC ~~~
+  .sd-question--paneldynamic {
+    background-color: white;
+    padding-left: 0;
+    padding-right: 0;
+
+    .sd-paneldynamic__header {
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    .sd-paneldynamic__buttons-container {
+      padding-left: 24px;
+      padding-right: 24px;
+
+      .sd-action-bar {
+        margin: 0;
+      }
+    }
+
+    .sd-paneldynamic__tabs-container {
+      &:after {
+        inset-inline-start: 0;
+        width: 100%;
+      }
+    }
+  }
+
+  .sd-paneldynamic__add-btn {
+    padding: 10px 20px;
+    border: 1px solid $unesco-blue;
+    background-color: white;
+  }
+
+  .sd-paneldynamic__panel-wrapper--list {
+    &:before {
+      z-index: 1;
+      left: 24px !important;
+      right: 24px !important;
+    }
+  }
+
+  // ~~~ SELECT BASE ~~~
+  .sd-selectbase > * kendo-combobox {
+    .k-input-inner {
+      padding-left: 16px !important;
+    }
+
+    .k-input-button {
+      width: 20px !important;
+      height: 20px !important;
+      margin-right: 15px !important;
+      background-color: white !important;
+      border: none !important;
+      border-radius: 4px !important;
+      background-image: none !important;
+    }
+
+    .k-input-button {
+      background-image: url('data:image/svg+xml;charset=UTF-8,<svg width="800" height="800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><path d="M9.71 6.29a1 1 0 0 0-1.42 0l-5 5a1 1 0 0 0 0 1.42l5 5a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42L5.41 12l4.3-4.29a1 1 0 0 0 0-1.42Zm11 5-5-5a1 1 0 0 0-1.42 1.42l4.3 4.29-4.3 4.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5-5a1 1 0 0 0 0-1.42Z"/></svg>') !important;
+      background-size: 17px 17px;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.5;
+
+      .k-icon {
+        display: none;
+      }
+    }
+  }
+
+  .sd-selectbase > * kendo-multiselect {
     .k-clear-value {
       padding-right: 18px !important;
     }
@@ -166,38 +310,10 @@
         text-gray-500;
     }
   }
-  .k-timepicker,
-  .k-datetimepicker,
-  .k-datepicker,
-  .k-combobox {
-    .k-input-inner {
-      padding-left: 16px !important;
-    }
-    .k-input-button {
-      width: 20px !important;
-      height: 20px !important;
-      margin-right: 15px !important;
-      background-color: white !important;
-      border: none !important;
-      border-radius: 4px !important;
-      background-image: none !important;
-    }
-  }
-  .k-combobox {
-    .k-input-button {
-      background-image: url('data:image/svg+xml;charset=UTF-8,<svg width="800" height="800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><path d="M9.71 6.29a1 1 0 0 0-1.42 0l-5 5a1 1 0 0 0 0 1.42l5 5a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42L5.41 12l4.3-4.29a1 1 0 0 0 0-1.42Zm11 5-5-5a1 1 0 0 0-1.42 1.42l4.3 4.29-4.3 4.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5-5a1 1 0 0 0 0-1.42Z"/></svg>') !important;
-      background-size: 17px 17px;
-      background-repeat: no-repeat;
-      background-position: center;
-      opacity: 0.5;
 
-      .k-icon {
-        display: none;
-      }
-    }
-  }
-  .k-list-ul {
-    @apply shadow-lg
+  .sd-selectbase {
+    .k-list-ul {
+      @apply shadow-lg
       ring-black
       ring-opacity-5
       focus:outline-none
@@ -211,10 +327,10 @@
       text-base
       max-h-36
       py-1;
-  }
-  // dropdown/tagbox item
-  .k-list-item {
-    @apply px-2
+    }
+
+    .k-list-item {
+      @apply px-2
       w-full
       justify-between
       cursor-pointer
@@ -224,110 +340,67 @@
       text-gray-900
       py-[5px]
       text-sm;
-  }
-  .k-popup,
-  .k-list {
-    @apply rounded-md;
+    }
+
+    .k-popup,
+    .k-list {
+      @apply rounded-md;
+    }
   }
 
-  .sd-root-modern {
-    --sd-base-vertical-padding: 10px !important; //Reduces space between questions
+  // ~~~ RESOURCES ~~~
+  .sd-question > * shared-core-grid {
+    // Hide grid when there are no records
+    &:has(.k-grid-norecords) {
+      display: none;
+    }
   }
 
-  // File upload file wrapper
-  .sd-file__wrapper {
-    // File upload choose button
+  .sd-resources__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+
+    .sd-action {
+      padding: 10px 20px;
+      border: 1px solid $unesco-blue;
+      background-color: white;
+    }
+  }
+
+  // ~~~ USERS ~~~
+  .sd-users__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+
+    .sd-action {
+      padding: 10px 20px;
+      border: 1px solid $unesco-blue;
+      background-color: white;
+    }
+  }
+
+  // ~~~ FILE ~~~
+  .sd-file__actions-container {
     .sd-file__choose-btn {
-      @apply hover:bg-primary-500
-        bg-primary-400
-        focus-visible:outline
-        focus-visible:outline-2
-        focus-visible:outline-offset-2
-        focus-visible:outline-indigo-600
-        rounded-md
-        shadow-sm
-        text-sm
-        font-semibold
-        text-white;
+      padding: 10px 20px;
+      border: 1px solid $unesco-blue;
+      background-color: white;
     }
   }
 
-  // Checkbox
-  .sd-checkbox {
-    padding: 12px 0 !important;
-
-    label {
-      display: flex;
-      align-items: center;
-
-      .sd-checkbox__decorator {
-        margin-top: unset !important;
-        border: solid 1px lightgray !important;
-        @apply h-6
-          w-6
-          focus-within:ring-2
-          focus-within:ring-inset
-          focus-within:ring-primary-600
-          shadow-sm
-          rounded-md;
-      }
-    }
-  }
-  // Submit button in preview
-  .sd-navigation__complete-btn {
-    @apply hover:bg-primary-600;
+  // ~~~ MULTIPLE TEXT ~~~
+  .sd-multipletext__item-container .sd-input {
+    margin-top: 0;
+    margin-bottom: 0;
+    min-height: 2.5rem;
   }
 
-  // Radio
-  .sd-item--checked .sd-item__decorator {
-    @apply bg-primary-400;
+  // ~~~ SCROLLBAR ~~~
+  .sv-scroll__wrapper:hover .sv-scroll__scrollbar {
+    visibility: hidden !important;
   }
-  .sd-radio__decorator {
-    border: solid 1px lightgray !important;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  }
-  // Boolean
-  .sd-boolean {
-    @apply bg-gray-200 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2;
-  }
-  // Left question
-  .sd-question__content--left {
-    max-width: 100%;
-  }
-  // Grid
-  shared-core-grid {
-    display: block;
-
-    .sv_row div {
-      min-width: unset;
-    }
-  }
-
-  // Multi text
-  .sd-multipletext {
-    .sd-input {
-      min-height: 2.5rem;
-    }
-  }
-}
-
-// On hover geospatial form field on survey creator, the actions are displayed over the map, which are not legible
-// The background white would solve this
-::ng-deep survey-creator {
-  .svc-question__content-actions {
-    background-color: white !important;
-    bottom: 0 !important;
-  }
-}
-::ng-deep .sv_custom_header {
-  display: none;
-}
-
-::ng-deep .sd-body .sd-body__page {
-  min-width: 0 !important;
-}
-
-::ng-deep .sd-body.sd-body--static {
-  max-width: unset;
-  padding: 20px 0;
 }

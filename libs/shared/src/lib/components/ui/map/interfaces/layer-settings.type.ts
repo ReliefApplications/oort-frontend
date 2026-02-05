@@ -70,6 +70,7 @@ export interface LayerFormData {
     type?: GeometryType;
   };
   sublayers?: string[];
+  requireContextFilters: boolean;
   contextFilters: string;
   at: string;
 }

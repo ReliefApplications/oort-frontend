@@ -115,6 +115,7 @@ export const GET_LAYER_BY_ID = gql`
         dateFormat
       }
       sublayers
+      requireContextFilters
       contextFilters
       at
     }

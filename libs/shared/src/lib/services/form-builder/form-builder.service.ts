@@ -16,7 +16,6 @@ import {
   Event,
   PageModel,
   QuestionSelectBase,
-  ExpressionRunner,
 } from 'survey-core';
 import { renderGlobalProperties } from '../../survey/render-global-properties';
 import { Apollo } from 'apollo-angular';
@@ -498,7 +497,10 @@ export class FormBuilderService {
     });
 
     // Add an array of cells to the matrix obj
-    survey.onMatrixAfterCellRender.add((_, options) => {
+    survey.onAfterRenderMatrixCell.add((_, options) => {
+      if (!options.question) {
+        return;
+      }
       options.question.cells ||= new Map<string, MatrixDropdownCell>();
       const col = options.column as MatrixDropdownColumn;
       const row = options.row.rowName;
@@ -510,27 +512,6 @@ export class FormBuilderService {
       const htmlClass = options.panel.getPropertyValue('elementClasses');
       if (htmlClass) {
         options.htmlElement.classList.add(...htmlClass.split(' '));
-      }
-    });
-
-    // When adding panel actions, check if panel can be removed or not by current user
-    survey.onGetPanelFooterActions.add((survey, options) => {
-      const question = options.question;
-      if (!question || question.getType() !== 'paneldynamic') {
-        return;
-      }
-      const expr = question.getPropertyValue('allowRemovePanelExpression');
-      if (expr) {
-        const canRemove = new ExpressionRunner(expr).run({
-          ...survey.data,
-          panel: options.panel.getValue(),
-        });
-        const removeAction = options.actions.find((a) =>
-          a.id?.startsWith('remove-panel')
-        );
-        if (removeAction) {
-          removeAction.visible = canRemove;
-        }
       }
     });
 
@@ -571,7 +552,9 @@ export class FormBuilderService {
     });
     survey.showProgressBar = 'off';
     survey.focusFirstQuestionAutomatic = false;
-    survey.applyTheme({ isPanelless: true });
+    survey.applyTheme({
+      isPanelless: true,
+    });
     return survey;
   }
 

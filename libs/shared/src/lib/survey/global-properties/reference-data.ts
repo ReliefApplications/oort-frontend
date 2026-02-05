@@ -433,12 +433,15 @@ const initChoices = (
     const foreignColName =
       targetElement.referenceDataFilterFilterFromQuestion.substring(4);
 
-    // Attach listener to the survey, but specific to this matrixInstance and column dependency
-    // Use a flag on the survey or matrix to prevent duplicate listeners if initChoices is called multiple times
-    // for the same matrix/column pair (though the Set below for columns should mostly prevent this specific case)
-    const listenerKey = `_refDataListener_${question.name}_${column.name}_to_${foreignColName}`;
+    // Attach listener to the survey for this specific matrix question instance
+    // We track initialized matrices using an object ID to ensure each panel instance in a paneldynamic
+    // gets its own listener, since question.name is the same across all panels
+    const questionId =
+      (question as any).id || (question as any)._id || question.name;
+    const listenerKey = `_refDataListener_${questionId}_${column.name}_to_${foreignColName}`;
     if (survey && !(survey as any)[listenerKey]) {
       survey.onMatrixCellValueChanged.add((_, options) => {
+        // Use strict reference comparison to match only this specific matrix instance
         if (
           options.question === question &&
           options.columnName === foreignColName

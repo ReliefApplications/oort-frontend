@@ -36,88 +36,13 @@ import {
   updateModalChoicesAndValue,
 } from '../../survey/global-properties/reference-data';
 import { MatrixManager } from '../../survey/controllers/matrixManager';
-
-/**
- * Array containing the different types of questions.
- * Commented types are not yet implemented.
- */
-const QUESTION_TYPES = [
-  'text',
-  'checkbox',
-  'radiogroup',
-  'dropdown',
-  'tagbox',
-  'comment',
-  'rating',
-  // 'ranking',
-  // 'imagepicker',
-  'boolean',
-  'image',
-  'html',
-  // 'signaturepad',
-  'expression',
-  'file',
-  'matrix',
-  'matrixdropdown',
-  'matrixdynamic',
-  'multipletext',
-  'panel',
-  'paneldynamic',
-];
-
-/**
- * Allowed properties for a core question in a child form.
- */
-const CORE_QUESTION_ALLOWED_PROPERTIES = [
-  'width',
-  'maxWidth',
-  'minWidth',
-  'startWithNewLine',
-  'indent',
-  'page',
-  'titleLocation',
-  'descriptionLocation',
-  'state',
-  'defaultValue',
-  'defaultValueExpression',
-  'relatedName',
-  'addRecord',
-  'addTemplate',
-  'Search resource table',
-  'visible',
-  'readOnly',
-  'isRequired',
-  'placeHolder',
-  'enableIf',
-  'visibleIf',
-  'tooltip',
-];
-
-/**
- * Navigation tab properties (will be disabled).
- */
-const NAVIGATION_PROPERTIES = [
-  'showPreviewBeforeComplete',
-  'pagePrevText',
-  'pageNextText',
-  'completeText',
-  'previewText',
-  'editText',
-  'startSurveyText',
-  'showNavigationButtons',
-  'showPrevButton',
-  'firstPageIsStarted',
-  'goNextPageAutomatic',
-  'showProgressBar',
-  'progressBarType',
-  'questionsOnPageMode',
-  'showTOC',
-];
-
-/**
- * Class name to add to core field question.
- */
-const CORE_FIELD_CLASS = 'core-question';
+import {
+  CORE_FIELD_CLASS,
+  CORE_QUESTION_ALLOWED_PROPERTIES,
+  NAVIGATION_PROPERTIES,
+  QUESTION_TYPES,
+} from './form-builder.const';
+import { CUSTOM_THEME } from '../../survey/form-builder.theme';
 
 /**
  * Component used to build forms in applications
@@ -125,7 +50,11 @@ const CORE_FIELD_CLASS = 'core-question';
 @Component({
   selector: 'shared-form-builder',
   templateUrl: './form-builder.component.html',
-  styleUrls: ['../../style/survey.scss', './form-builder.component.scss'],
+  styleUrls: [
+    '../../style/survey.scss',
+    '../../style/survey-creator.scss',
+    './form-builder.component.scss',
+  ],
 })
 export class FormBuilderComponent
   extends UnsubscribeComponent
@@ -255,6 +184,8 @@ export class FormBuilderComponent
     };
 
     this.surveyCreator = new SurveyCreatorModel(creatorOptions);
+
+    this.surveyCreator.applyCreatorTheme(CUSTOM_THEME);
 
     // Fix for matrix columns property-grid
     this.surveyCreator.onSurveyInstanceCreated.add(
@@ -422,7 +353,7 @@ export class FormBuilderComponent
    * Add custom actions to the question action items bar
    */
   private addAdorners() {
-    this.surveyCreator.onDefineElementMenuItems.add((_, options) => {
+    this.surveyCreator.onElementGetActions.add((_, options) => {
       const element = options.obj;
 
       // Only display for questions & panels
@@ -439,11 +370,11 @@ export class FormBuilderComponent
       const index = parent.elements.indexOf(element);
       if (index > 0) {
         const moveUpAdorner = moveUpButton(element);
-        options.items.push(moveUpAdorner);
+        options.actions.push(moveUpAdorner);
       }
       if (index < parent.elements.length - 1) {
         const moveDownAdorner = moveDownButton(element);
-        options.items.push(moveDownAdorner);
+        options.actions.push(moveDownAdorner);
       }
     });
 

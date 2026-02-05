@@ -386,6 +386,10 @@ export class FormModalComponent
       this.autoSaveInterval = interval(15000)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
+          if (!this.survey.autoSave) {
+            return;
+          }
+
           if (
             !this.saving &&
             !this.autosaving &&
@@ -664,7 +668,7 @@ export class FormModalComponent
    * Creates the record, or update it if provided.
    */
   public onComplete = () => {
-    this.survey?.clear(false);
+    this.survey?.clear(false, false);
 
     const rowsSelected = Array.isArray(this.data.recordId)
       ? this.data.recordId.length
@@ -717,9 +721,12 @@ export class FormModalComponent
       .checkUniquePropriety(this.survey)
       .then(async (response: CheckUniqueProprietyReturnT) => {
         if (response.verified) {
-          this.loading = !autoSave;
+          // this.loading = !autoSave;
           this.autosaving = autoSave;
           this.saving = true;
+          if (!this.autosaving) {
+            this.survey.readOnly = true;
+          }
           await this.formHelpersService.uploadFiles(
             this.temporaryFilesStorage,
             this.form?.id
@@ -842,6 +849,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.survey.readOnly = false;
           this.submitting = false;
           this.latestSaveDate = new Date();
           this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
@@ -851,6 +859,7 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.survey.readOnly = false;
           this.submitting = false;
         },
       });
@@ -901,12 +910,14 @@ export class FormModalComponent
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.survey.readOnly = false;
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
           this.loading = false;
           this.autosaving = false;
           this.saving = false;
+          this.survey.readOnly = false;
           this.submitting = false;
         },
       });

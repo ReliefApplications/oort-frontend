@@ -1017,8 +1017,14 @@ export class FormHelpersService {
     if (!question.allowImport) return;
 
     const uploadButton = document.createElement('button');
-    uploadButton.classList.add('sd-action', 'ml-auto');
-    uploadButton.onclick = () => {
+    uploadButton.classList.add(
+      'sd-action',
+      'ml-auto',
+      'sd-matrixdynamic__upload-btn'
+    );
+    uploadButton.onclick = ($event) => {
+      $event.preventDefault();
+      $event.stopPropagation();
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.xlsx';
@@ -1028,9 +1034,18 @@ export class FormHelpersService {
           this.downloadService
             .uploadFile('upload/parse/json', file)
             .subscribe((data) => {
+              let panel: QuestionPanelDynamicModel | undefined = undefined;
+              let matrix: QuestionMatrixDynamicModel | undefined = undefined;
+
+              if (question.type === 'paneldynamic') {
+                panel = question as QuestionPanelDynamicModel;
+              } else {
+                matrix = question as QuestionMatrixDynamicModel;
+              }
+
+              // Loop through records
               data.forEach((row: Record<string, unknown>) => {
-                if (question.type === 'paneldynamic') {
-                  const panel = question as QuestionPanelDynamicModel;
+                if (panel) {
                   const newPanel = panel.addPanel();
 
                   Object.entries(row).forEach(([key, value]) => {
@@ -1039,15 +1054,18 @@ export class FormHelpersService {
                       nestedQuestion.value = value;
                     }
                   });
-                } else {
-                  const matrix = question as QuestionMatrixDynamicModel;
-
+                }
+                if (matrix) {
                   const idx = matrix.rowCount;
                   matrix.addRow();
                   matrix.setRowValue(idx, row);
-                  matrix.expand();
                 }
               });
+
+              if (matrix) {
+                matrix.expand();
+              }
+
               input.removeEventListener('change', inputListener);
               input.remove();
             });

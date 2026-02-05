@@ -125,7 +125,7 @@
           variant="primary"
           category="secondary"
           [disabled]="saving || submitting || autosaving"
-          (click)="survey.completeLastPage()"
+          (click)="survey.tryComplete()"
         >
           <span class="flex items-center whitespace-nowrap">
             {{ 'common.save' | translate }}
