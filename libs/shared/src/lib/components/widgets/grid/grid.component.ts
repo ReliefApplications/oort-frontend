@@ -53,6 +53,7 @@ import { AggregationGridComponent } from '../../aggregation/aggregation-grid/agg
 import { ReferenceDataGridComponent } from '../../ui/reference-data-grid/reference-data-grid.component';
 import { DashboardService } from '../../../services/dashboard/dashboard.service';
 import { Router } from '@angular/router';
+import { RefreshService } from '../../../services/refresh/refresh.service';
 
 /** Component for the grid widget */
 @Component({
@@ -163,6 +164,7 @@ export class GridWidgetComponent
    * @param aggregationService Shared aggregation service
    * @param dashboardService Shared dashboard service
    * @param router Angular router
+   * @param refreshService
    */
   constructor(
     @Inject('environment') environment: any,
@@ -178,7 +180,8 @@ export class GridWidgetComponent
     private translate: TranslateService,
     private aggregationService: AggregationService,
     private dashboardService: DashboardService,
-    private router: Router
+    private router: Router,
+    private refreshService: RefreshService
   ) {
     super();
     this.environment = environment;
@@ -187,6 +190,30 @@ export class GridWidgetComponent
   ngOnInit() {
     this.gridSettings = { ...this.settings };
     delete this.gridSettings.query;
+    this.refreshService.refresh$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (
+          event.type === 'record-updated' ||
+          event.type === 'record-created' ||
+          event.type === 'widget-refresh'
+        ) {
+          if (
+            !event.data?.resourceId ||
+            event.data.resourceId === this.settings.resource
+          ) {
+            if (this.coreGridComponent) {
+              this.coreGridComponent.reloadData();
+            }
+            if (this.aggregationGridComponent) {
+              this.aggregationGridComponent.reloadData();
+            }
+            if (this.referenceDataGridComponent) {
+              this.referenceDataGridComponent.reloadData();
+            }
+          }
+        }
+      });
     let buildSortFields = false;
     if (this.settings.resource) {
       this.useReferenceData = false;

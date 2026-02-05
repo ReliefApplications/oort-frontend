@@ -83,6 +83,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { FormPagesLayoutComponent } from '../form-pages-layout/form-pages-layout.component';
 import { DateModule } from '../../pipes/date/date.module';
+import { RefreshService } from '../../services/refresh/refresh.service';
 
 /** Question type which should not display the add comment button when hovered */
 const UNCOMMENTABLE_TYPES = ['html'];
@@ -210,6 +211,7 @@ export class FormModalComponent
    * @param contextService Shared context service
    * @param overlay cdk overlay
    * @param viewContainerRef View container ref
+   * @param refreshService This is the service that allows triggering a data refresh
    */
   constructor(
     @Inject(DIALOG_DATA) public data: DialogData,
@@ -225,7 +227,8 @@ export class FormModalComponent
     protected ngZone: NgZone,
     protected contextService: ContextService,
     private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef
+    private viewContainerRef: ViewContainerRef,
+    private refreshService: RefreshService
   ) {
     super();
   }
@@ -795,6 +798,11 @@ export class FormModalComponent
                       }
                     });
                     this.data.recordId = data?.addRecord.id;
+                    this.refreshService.triggerRecordCreated(
+                      this.form?.id,
+                      data?.addRecord.id,
+                      this.form?.resource?.id
+                    );
                   }
                 },
                 error: (err) => {
@@ -853,6 +861,11 @@ export class FormModalComponent
           this.submitting = false;
           this.latestSaveDate = new Date();
           this.lastSavedDataState = JSON.stringify(this.survey.data ?? {});
+          this.refreshService.triggerRecordUpdate(
+            this.form?.id,
+            id,
+            this.form?.resource?.id
+          );
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });
@@ -911,6 +924,11 @@ export class FormModalComponent
           this.autosaving = false;
           this.saving = false;
           this.survey.readOnly = false;
+          this.refreshService.triggerRecordUpdate(
+            this.form?.id,
+            ids,
+            this.form?.resource?.id
+          );
         },
         error: (err) => {
           this.snackBar.openSnackBar(err.message, { error: true });

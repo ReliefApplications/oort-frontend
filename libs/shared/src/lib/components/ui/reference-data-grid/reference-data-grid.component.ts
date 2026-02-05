@@ -69,6 +69,16 @@ export class ReferenceDataGridComponent implements OnInit {
   }
 
   /**
+   * Reload the grid data
+   */
+  public reloadData(): void {
+    if (this.settings && this.settings.refDataCards) {
+      this.cards = this.settings.refDataCards;
+      this.setGridData();
+    }
+  }
+
+  /**
    * Get meta type for grid based on json type
    *
    * @param type json type

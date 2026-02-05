@@ -263,6 +263,13 @@ export class AggregationGridComponent
   }
 
   /**
+   * Reload the aggregation data
+   */
+  public reloadData(): void {
+    this.getAggregationData();
+  }
+
+  /**
    * Detects sort events and update the items loaded.
    *
    * @param sort Sort event.
