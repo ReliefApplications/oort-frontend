@@ -62,6 +62,7 @@ export const GET_RESOURCE_AGGREGATION_DATA = gql`
     $mapping: JSON
     $first: Int
     $skip: Int
+    $requireContextFilters: Boolean
     $contextFilters: JSON
     $at: Date
     $sortOrder: String
@@ -73,6 +74,7 @@ export const GET_RESOURCE_AGGREGATION_DATA = gql`
       mapping: $mapping
       first: $first
       skip: $skip
+      requireContextFilters: $requireContextFilters
       contextFilters: $contextFilters
       at: $at
       sortOrder: $sortOrder

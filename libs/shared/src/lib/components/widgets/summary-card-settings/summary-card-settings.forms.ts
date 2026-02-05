@@ -28,6 +28,11 @@ export const createSummaryCardForm = (id: string, configuration: any) => {
       title: get<string>(configuration, 'title', ''),
       card: createCardForm(get(configuration, 'card', null)),
       sortFields: new FormArray<any>([]),
+      requireContextFilters: get<boolean>(
+        configuration,
+        'requireContextFilters',
+        false
+      ),
       contextFilters: get<string>(
         configuration,
         'contextFilters',

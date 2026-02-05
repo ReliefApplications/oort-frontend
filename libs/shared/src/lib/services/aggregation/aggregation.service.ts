@@ -176,29 +176,31 @@ export class AggregationService {
    *
    * @param resource Resource Id
    * @param aggregation Aggregation definition
-   * @param first size of the page
-   * @param skip index of the page
-   * @param contextFilters context filters, if any
-   * @param at 'at' argument value, if any
+   * @param options Aggregation options
+   * @param options.first size of the page
+   * @param options.skip index of the page
+   * @param options.requireContextFilters Requires context filters
+   * @param options.contextFilters context filters, if any
+   * @param options.at 'at' argument value, if any
    * @returns Aggregation query
    */
   aggregationDataWatchQuery(
     resource: string,
     aggregation: string,
-    first: number,
-    skip: number,
-    contextFilters?: CompositeFilterDescriptor,
-    at?: Date
+    options: {
+      first: number;
+      skip: number;
+      requireContextFilters?: boolean | null;
+      contextFilters?: CompositeFilterDescriptor;
+      at?: Date;
+    }
   ): QueryRef<AggregationDataQueryResponse> {
     return this.apollo.watchQuery<AggregationDataQueryResponse>({
       query: GET_RESOURCE_AGGREGATION_DATA,
       variables: {
         resource,
         aggregation,
-        first,
-        skip,
-        contextFilters,
-        at,
+        ...options,
       },
     });
   }

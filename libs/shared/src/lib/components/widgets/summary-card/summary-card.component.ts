@@ -975,12 +975,15 @@ export class SummaryCardComponent
     this.dataQuery = this.aggregationService.aggregationDataWatchQuery(
       card.resource as string,
       card.aggregation as string,
-      this.pageInfo.pageSize,
-      0,
-      this.contextService.injectContext(this.contextFilters),
-      this.widget.settings.at
-        ? this.contextService.atArgumentValue(this.widget.settings.at)
-        : undefined
+      {
+        first: this.pageInfo.pageSize,
+        skip: 0,
+        requireContextFilters: this.settings.requireContextFilters,
+        contextFilters: this.contextService.injectContext(this.contextFilters),
+        at: this.widget.settings.at
+          ? this.contextService.atArgumentValue(this.widget.settings.at)
+          : undefined,
+      }
     );
 
     this.dataQuery.valueChanges

@@ -164,12 +164,14 @@ export class AggregationGridComponent
     this.dataQuery = this.aggregationService.aggregationDataWatchQuery(
       this.resourceId,
       this.aggregation.id as string,
-      this.pageSize,
-      this.skip,
-      this.contextFilters
-        ? this.contextService.injectContext(JSON.parse(this.contextFilters))
-        : undefined,
-      this.at ? this.contextService.atArgumentValue(this.at) : undefined
+      {
+        first: this.pageSize,
+        skip: this.skip,
+        contextFilters: this.contextFilters
+          ? this.contextService.injectContext(JSON.parse(this.contextFilters))
+          : undefined,
+        at: this.at ? this.contextService.atArgumentValue(this.at) : undefined,
+      }
     );
     this.dataQuery.valueChanges
       .pipe(takeUntil(merge(this.cancelRefresh$, this.destroy$)))
