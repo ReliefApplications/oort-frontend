@@ -45,9 +45,21 @@ type ResourceQuestionState = {
   __lastFilterHash?: string;
 };
 
+/**
+ * Regex used to extract param placeholders.
+ */
 const PARAM_TOKEN_REGEX = /\{param\.([^}]+)\}/g;
+/**
+ * Regex used to extract generic placeholders.
+ */
 const VARIABLE_TOKEN_REGEX = /\{([^}]+)\}/g;
 
+/**
+ * Extracts param names referenced in an expression
+ *
+ * @param expression Expression string
+ * @returns param names found
+ */
 const extractParamNamesFromExpression = (expression?: string): string[] => {
   if (!expression) return [];
   const names: string[] = [];
@@ -61,6 +73,12 @@ const extractParamNamesFromExpression = (expression?: string): string[] => {
   return names;
 };
 
+/**
+ * Extracts variable names referenced in an expression
+ *
+ * @param expression Expression string
+ * @returns variable names found
+ */
 const extractVariableNamesFromExpression = (expression?: string): string[] => {
   if (!expression) return [];
   const names: string[] = [];
@@ -150,10 +168,23 @@ export const init = (
   const apollo = injector.get(Apollo);
   const dialog = injector.get(Dialog);
 
+  /**
+   * Casts a question to include internal state flags.
+   *
+   * @param question Survey question
+   * @returns question with state flags
+   */
   const getQuestionState = (question: Question): ResourceQuestionState => {
     return question as Question & ResourceQuestionState;
   };
 
+  /**
+   * Sets a question value while tagging its source.
+   *
+   * @param question Survey question
+   * @param value Value to set
+   * @param source Source tag
+   */
   const setQuestionValue = (
     question: Question,
     value: unknown,
@@ -166,6 +197,12 @@ export const init = (
     state.__settingValue = false;
   };
 
+  /**
+   * Reads a URL query param value.
+   *
+   * @param paramName Param name
+   * @returns value or null
+   */
   const getUrlParamValue = (paramName: string): string | null => {
     if (!paramName) return null;
     const params = new URLSearchParams(window.location.search);
@@ -176,6 +213,13 @@ export const init = (
     return value;
   };
 
+  /**
+   * Resolves the effective param value for a question.
+   *
+   * @param question Resource question
+   * @param survey Survey instance
+   * @returns resolved value and name
+   */
   const resolveParamValue = (
     question: QuestionResource,
     survey?: SurveyModel
@@ -185,9 +229,7 @@ export const init = (
       return { value: direct, name: question.name };
     }
 
-    const directVariableValue = survey?.getVariable?.(
-      `param.${question.name}`
-    );
+    const directVariableValue = survey?.getVariable?.(`param.${question.name}`);
     if (typeof directVariableValue === 'string' && directVariableValue !== '') {
       return { value: directVariableValue, name: question.name };
     }
@@ -209,6 +251,13 @@ export const init = (
     return { value: null };
   };
 
+  /**
+   * Evaluates a default value expression with safe fallback.
+   *
+   * @param survey Survey instance
+   * @param expression Expression string
+   * @returns evaluated value or null
+   */
   const evaluateDefaultExpression = (
     survey: SurveyModel | null,
     expression?: string
@@ -237,6 +286,13 @@ export const init = (
     return null;
   };
 
+  /**
+   * Infers the current value source if not already set.
+   *
+   * @param question Resource question
+   * @param survey Survey instance
+   * @param paramValue Optional param value
+   */
   const ensureValueSource = (
     question: QuestionResource,
     survey?: SurveyModel,
@@ -274,6 +330,12 @@ export const init = (
     state.__valueSource = 'manual';
   };
 
+  /**
+   * Applies default expressions that reference updated variables.
+   *
+   * @param survey Survey instance
+   * @param updatedVariables Variables updated by a record change
+   */
   const applyDependentDefaultExpressions = (
     survey: SurveyModel,
     updatedVariables: string[]
@@ -468,7 +530,12 @@ export const init = (
             !!question.value &&
             choices.some((c: any) => c.value === question.value);
 
-          if (question.value && !valueInList && hasCustomFilter && !isParamValue) {
+          if (
+            question.value &&
+            !valueInList &&
+            hasCustomFilter &&
+            !isParamValue
+          ) {
             setQuestionValue(question, null, 'default');
           }
 
@@ -499,7 +566,12 @@ export const init = (
           const autoSelectEnabled =
             question.autoSelectFirstOption || question.autoSelectOnlyOption;
 
-          if (question.value && !valueInList && autoSelectEnabled && !isParamValue) {
+          if (
+            question.value &&
+            !valueInList &&
+            autoSelectEnabled &&
+            !isParamValue
+          ) {
             setQuestionValue(question, null, 'default');
           }
 
@@ -913,9 +985,11 @@ export const init = (
           if (obj.resource) {
             getResourceById({ id: obj.resource }).subscribe({
               next: ({ data }) => {
-                const choices = (data.resource.fields || []).map((item: any) => {
-                  return { value: item.name };
-                });
+                const choices = (data.resource.fields || []).map(
+                  (item: any) => {
+                    return { value: item.name };
+                  }
+                );
                 choicesCallback(choices);
               },
               error: (error) => {
