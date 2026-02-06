@@ -92,6 +92,81 @@
 
   <div
     class="flex flex-wrap items-start"
+    formGroupName="completionPopup"
+    *ngIf="form"
+  >
+    <div class="flex-1 mr-4 min-w-max">
+      <ui-toggle formControlName="enabled">
+        <ng-container ngProjectAs="label">
+          {{ 'components.widget.form.completionPopup.label' | translate }}
+          <ui-icon
+            class="ml-1 cursor-help self-center"
+            icon="info_outline"
+            variant="grey"
+            [size]="18"
+            [uiTooltip]="
+              'components.widget.form.completionPopup.tooltip' | translate
+            "
+          ></ui-icon>
+        </ng-container>
+      </ui-toggle>
+    </div>
+
+    <div
+      uiFormFieldDirective
+      class="flex-1"
+      *ngIf="formGroup.get('completionPopup.enabled')?.value === true"
+    >
+      <label class="flex items-center">
+        {{ 'components.widget.form.completionPopup.titleField.label' | translate }}
+        <ui-icon
+          class="ml-1 cursor-help self-center"
+          icon="info_outline"
+          variant="grey"
+          [size]="18"
+          [uiTooltip]="
+            'components.widget.form.completionPopup.titleField.tooltip' | translate
+          "
+        ></ui-icon>
+      </label>
+      <input
+        formControlName="title"
+        type="text"
+        [placeholder]="
+          'components.widget.form.completionPopup.titleField.placeholder'
+            | translate
+        "
+      />
+    </div>
+
+    <div
+      uiFormFieldDirective
+      class="flex-1"
+      *ngIf="formGroup.get('completionPopup.enabled')?.value === true"
+    >
+      <label class="flex items-center">
+        {{ 'components.widget.form.completionPopup.text.label' | translate }}
+        <ui-icon
+          class="ml-1 cursor-help self-center"
+          icon="info_outline"
+          variant="grey"
+          [size]="18"
+          [uiTooltip]="
+            'components.widget.form.completionPopup.text.tooltip' | translate
+          "
+        ></ui-icon>
+      </label>
+      <ui-textarea
+        formControlName="text"
+        [placeholder]="
+          'components.widget.form.completionPopup.text.placeholder' | translate
+        "
+      ></ui-textarea>
+    </div>
+  </div>
+
+  <div
+    class="flex flex-wrap items-start"
     formGroupName="loadRecord"
     *ngIf="form"
   >

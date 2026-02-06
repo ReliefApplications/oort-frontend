@@ -5,6 +5,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import { Apollo } from 'apollo-angular';
 import { Form, FormQueryResponse } from '../../../models/form.model';
 import { Record, RecordQueryResponse } from '../../../models/record.model';
@@ -22,6 +23,38 @@ import {
 import { DashboardService } from '../../../services/dashboard/dashboard.service';
 import { isNil, omit } from 'lodash';
 
+/** Completion popup settings. */
+interface CompletionPopupSettings {
+  enabled?: boolean;
+  title?: string;
+  text?: string;
+}
+
+/** Mapping rule between a question and a dashboard state. */
+interface MapQuestionToState {
+  question: string;
+  state: string;
+  direction: 'questionToState' | 'stateToQuestion' | 'both';
+}
+
+/** Form widget settings. */
+interface FormWidgetSettings {
+  title?: string;
+  form?: string;
+  floatingActions?: boolean;
+  mapQuestionState?: MapQuestionToState[];
+  autoPopulateOnSubmit?: boolean;
+  autoPopulateOmitQuestions?: string[];
+  completionPopup?: CompletionPopupSettings;
+  loadRecord?: {
+    enabled?: boolean;
+    canUpdate?: boolean;
+    update?: boolean;
+    state?: string | null;
+  };
+  contextFilters?: string;
+}
+
 /**
  * Form widget component.
  */
@@ -35,11 +68,17 @@ export class FormWidgetComponent
   implements OnInit
 {
   /** Widget settings */
-  @Input() settings: any;
+  @Input() settings: FormWidgetSettings = {};
   /** Should show padding */
   @Input() usePadding = true;
   /** Widget header template reference */
   @ViewChild('headerTemplate') headerTemplate!: TemplateRef<any>;
+  /** Completion popup template reference */
+  @ViewChild('completionPopupTemplate')
+  private completionPopupTemplate!: TemplateRef<{
+    text: string;
+    title: string;
+  }>;
   /** Loaded form */
   public form!: Form;
   /** Loaded record, if any */
@@ -62,6 +101,22 @@ export class FormWidgetComponent
   @ViewChild(FormComponent)
   private formComponent?: FormComponent;
 
+  /** Completion popup dialog reference */
+  private completionPopupRef?: DialogRef<
+    unknown,
+    { text: string; title: string }
+  >;
+
+  /** @returns map question state settings */
+  get mapQuestionState(): MapQuestionToState[] {
+    return this.settings.mapQuestionState || [];
+  }
+
+  /** @returns floating actions setting */
+  get floatingActions(): boolean {
+    return this.settings.floatingActions ?? false;
+  }
+
   /**
    * Form widget component.
    *
@@ -70,38 +125,41 @@ export class FormWidgetComponent
    * @param translate This is the service that allows us to translate the text in our application.
    * @param contextService Shared context service
    * @param dashboardService Shared dashboard service
+   * @param dialog Dialog service
    */
   constructor(
     private apollo: Apollo,
     protected snackBar: SnackbarService,
     protected translate: TranslateService,
     private contextService: ContextService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private dialog: Dialog
   ) {
     super();
   }
 
   async ngOnInit(): Promise<void> {
-    const promises: Promise<FormQueryResponse | RecordQueryResponse | void>[] =
-      [];
-
     // Fetch template
     if (this.settings.form) {
-      promises.push(
-        firstValueFrom(
+      try {
+        const { data, loading } = await firstValueFrom(
           this.apollo.query<FormQueryResponse>({
             query: GET_SHORT_FORM_BY_ID,
             variables: {
               id: this.settings.form,
             },
           })
-        ).then(({ data, loading }) => {
-          this.form = data.form;
-          this.loading = loading;
-        })
-      );
-
-      await Promise.all(promises);
+        );
+        this.form = data.form;
+        this.loading = loading;
+      } catch (err) {
+        this.loading = false;
+        const message =
+          err instanceof Error
+            ? err.message
+            : this.translate.instant('common.notifications.dataNotRecovered');
+        this.snackBar.openSnackBar(message, { error: true });
+      }
     }
 
     // Load record from loadRecord state
@@ -124,19 +182,31 @@ export class FormWidgetComponent
                 },
               })
               .pipe(takeUntil(this.destroy$))
-              .subscribe(({ data }) => {
-                this.loading = false;
-                if (data) {
-                  this.record =
-                    !this.settings.loadRecord.canUpdate ||
-                    this.settings.loadRecord.update
-                      ? data.record
-                      : omit(data.record, 'id');
-                }
+              .subscribe({
+                next: ({ data }) => {
+                  this.loading = false;
+                  if (data) {
+                    this.record =
+                      !this.settings.loadRecord?.canUpdate ||
+                      this.settings.loadRecord?.update
+                        ? data.record
+                        : omit(data.record, 'id');
+                  }
+                },
+                error: (err) => {
+                  this.loading = false;
+                  const message =
+                    err instanceof Error
+                      ? err.message
+                      : this.translate.instant(
+                          'common.notifications.dataNotRecovered'
+                        );
+                  this.snackBar.openSnackBar(message, { error: true });
+                },
               });
           }
         });
-      if (this.settings.loadRecord.canUpdate) {
+      if (this.settings.loadRecord?.canUpdate) {
         this.mode = 'edit';
       }
     } else {
@@ -151,16 +221,15 @@ export class FormWidgetComponent
     this.contextService.filter$
       .pipe(debounceTime(500), takeUntil(this.destroy$))
       .subscribe(({ previous, current }) => {
-        if (
-          this.contextService.filterRegex.test(this.settings.contextFilters)
-        ) {
+        const contextFilters = this.settings.contextFilters ?? '';
+        if (this.contextService.filterRegex.test(contextFilters)) {
           if (
             this.contextService.shouldRefresh(this.settings, previous, current)
           ) {
-            const contextFilters = this.contextService.injectContext(
+            const resolvedFilters = this.contextService.injectContext(
               this.contextFilters
             );
-            this.getRecordFromFilters(contextFilters);
+            this.getRecordFromFilters(resolvedFilters);
           }
         }
       });
@@ -177,15 +246,21 @@ export class FormWidgetComponent
     this.completed = e.completed;
     this.hideNewRecord = this.hideNewRecord || e.hideNewRecord || false;
 
+    if (e.completed === true) {
+      this.openCompletionPopup();
+    }
+
     if (this.settings.autoPopulateOnSubmit && e.completed === true) {
       // Reset the form
       setTimeout(() => {
         const data = structuredClone(
           this.formComponent?.survey.getParsedData?.() || {}
         );
-        this.settings.autoPopulateOmitQuestions.forEach((question: string) => {
-          delete data[question];
-        });
+        (this.settings.autoPopulateOmitQuestions || []).forEach(
+          (question: string) => {
+            delete data[question];
+          }
+        );
         this.clearForm();
         if (this.formComponent) {
           this.formComponent.survey.data = data;
@@ -224,12 +299,55 @@ export class FormWidgetComponent
               id: recordId,
             },
           })
-          .subscribe(({ data }) => {
-            if (data) {
-              this.record = data.record;
-            }
+          .subscribe({
+            next: ({ data }) => {
+              if (data) {
+                this.record = data.record;
+              }
+            },
+            error: (err) => {
+              const message =
+                err instanceof Error
+                  ? err.message
+                  : this.translate.instant(
+                      'common.notifications.dataNotRecovered'
+                    );
+              this.snackBar.openSnackBar(message, { error: true });
+            },
           });
       }
     }
+  }
+
+  /**
+   * Opens the completion popup if enabled.
+   */
+  private openCompletionPopup(): void {
+    if (!this.settings.completionPopup?.enabled) {
+      return;
+    }
+    if (!this.completionPopupTemplate) {
+      return;
+    }
+
+    const text =
+      this.settings.completionPopup.text?.trim() ||
+      this.translate.instant('components.form.display.submissionMessage');
+    const title =
+      this.settings.completionPopup?.title?.trim() ||
+      this.translate.instant('components.widget.form.completionPopup.title');
+
+    if (!text) {
+      return;
+    }
+
+    if (this.completionPopupRef) {
+      this.completionPopupRef.close();
+    }
+
+    this.completionPopupRef = this.dialog.open(this.completionPopupTemplate, {
+      data: { text, title },
+      autoFocus: false,
+    });
   }
 }

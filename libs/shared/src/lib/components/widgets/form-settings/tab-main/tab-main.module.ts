@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   GraphQLSelectModule,
   SelectMenuModule,
+  TextareaModule,
   ToggleModule,
 } from '@oort-front/ui';
 import { IconModule } from '@oort-front/ui';
@@ -30,6 +31,7 @@ import { ButtonModule, FormWrapperModule, TooltipModule } from '@oort-front/ui';
     TooltipModule,
     ToggleModule,
     SelectMenuModule,
+    TextareaModule,
   ],
   exports: [TabMainComponent],
 })

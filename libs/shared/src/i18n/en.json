@@ -1557,6 +1557,21 @@
           },
           "tooltip": "When submitting a record from the widget, the form will be automatically populated with the record's data after the submission"
         },
+        "completionPopup": {
+          "label": "Completion popup",
+          "text": {
+            "label": "Popup message",
+            "placeholder": "Enter the message to show after submission",
+            "tooltip": "Custom text displayed after submission"
+          },
+          "title": "Completion message",
+          "titleField": {
+            "label": "Popup title",
+            "placeholder": "Enter the popup title",
+            "tooltip": "Custom title displayed in the popup"
+          },
+          "tooltip": "Show a popup after the form is submitted"
+        },
         "directions": {
           "both": "Both changes on the state or the question will be reflected on the other",
           "questionToState": "Changes on the question will be reflected on the state",
