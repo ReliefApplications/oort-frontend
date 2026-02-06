@@ -360,6 +360,10 @@ $unesco-blue: #0177d5;
     &:has(.k-grid-norecords) {
       display: none;
     }
+
+    kendo-grid-toolbar {
+      display: none;
+    }
   }
 
   .sd-resources__actions {
