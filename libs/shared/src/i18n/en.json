@@ -2845,7 +2845,7 @@
       "password": {
         "change": "Change password"
       },
-      "title": "Your profile"
+      "title": "My profile"
     },
     "pullJobs": {
       "create": "Create a pull job"
