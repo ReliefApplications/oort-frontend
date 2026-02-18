@@ -77,6 +77,8 @@ export class DashboardFilterComponent
   private resizeObserver!: ResizeObserver;
   /** Timeout to add debounce time to survey value changes */
   private debounceTimeout: NodeJS.Timeout | null = null;
+  /** Max retries when waiting for pending context loads */
+  private readonly CONTEXT_READY_MAX_RETRIES = 15;
   /** Injector */
   private injector = inject(Injector);
 
@@ -165,7 +167,7 @@ export class DashboardFilterComponent
   /**
    * Set the drawer height and width on resize
    */
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.setFilterContainerDimensions();
   }
@@ -173,7 +175,7 @@ export class DashboardFilterComponent
   /**
    * Event to close drawer on esc
    */
-  @HostListener('document:keydown.escape', ['$event'])
+  @HostListener('document:keydown.escape')
   onEsc() {
     if (this.variant === 'default') {
       this.opened = false;
@@ -201,12 +203,14 @@ export class DashboardFilterComponent
   /** Render the survey using the saved structure */
   private initSurvey(): void {
     const oldFilterValues = this.contextService.filterValues.getValue();
-    this.survey = this.contextService.initSurvey();
 
+    const initialVariables: Record<string, string> = {};
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.forEach((value, key) => {
-      this.survey.setVariable(`param.${key}`, value);
+      initialVariables[`param.${key}`] = value;
     });
+
+    this.survey = this.contextService.initSurvey(initialVariables);
 
     if (this.dashboard?.filter?.keepPrevious) {
       Object.keys(oldFilterValues ?? {}).forEach((key) => {
@@ -225,7 +229,7 @@ export class DashboardFilterComponent
         clearTimeout(this.debounceTimeout);
       }
       this.debounceTimeout = setTimeout(() => {
-        this.onValueChange();
+        this.emitWhenContextReady();
       }, 500);
     });
 
@@ -308,6 +312,24 @@ export class DashboardFilterComponent
       };
       return acc;
     }, {});
+  }
+
+  /**
+   * Waits for any pending async context loads (record fetches from
+   * resource questions) to finish before emitting the filter update.
+   * Falls back after a bounded number of retries.
+   *
+   * @param retries current retry count
+   */
+  private emitWhenContextReady(retries = 0) {
+    const pending =
+      (this.survey as Model & { __pendingContextLoads?: number })
+        .__pendingContextLoads || 0;
+    if (pending > 0 && retries < this.CONTEXT_READY_MAX_RETRIES) {
+      setTimeout(() => this.emitWhenContextReady(retries + 1), 100);
+      return;
+    }
+    this.onValueChange();
   }
 
   /**

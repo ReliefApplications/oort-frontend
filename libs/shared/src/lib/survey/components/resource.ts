@@ -43,7 +43,17 @@ type ResourceQuestionState = {
   __valueSource?: ValueSource;
   __settingValue?: boolean;
   __lastFilterHash?: string;
+  __populateRequestId?: number;
+  __paramInitialLoadDone?: boolean;
 };
+
+/**
+ * Extension on SurveyModel to track in-flight record context loads.
+ * Used to coordinate filter emission with async data loading.
+ */
+interface SurveyWithPendingLoads extends SurveyModel {
+  __pendingContextLoads?: number;
+}
 
 /**
  * Regex used to extract param placeholders.
@@ -148,6 +158,45 @@ const getUpdatedFilter = (
     }) as CompositeFilterDescriptor;
   } else {
     return replaceFilterValue(parsed) as CompositeFilterDescriptor;
+  }
+};
+
+/**
+ * Extracts question-to-field mappings from a customFilter JSON string.
+ *
+ * @param customFilter raw JSON filter string
+ * @returns mappings found
+ */
+const extractCustomFilterDependencies = (
+  customFilter?: string
+): { questionName: string; resourceField: string }[] => {
+  if (!customFilter?.trim()) return [];
+  try {
+    const parsed = JSON.parse(customFilter);
+    const entries = Array.isArray(parsed) ? parsed : parsed.filters ?? [parsed];
+    const result: { questionName: string; resourceField: string }[] = [];
+    const walk = (items: (FilterDescriptor | CompositeFilterDescriptor)[]) => {
+      for (const item of items) {
+        if ('filters' in item && item.filters) {
+          walk(item.filters);
+        } else if (
+          'value' in item &&
+          typeof item.value === 'string' &&
+          item.value.match(/^\{[^}]+\}$/) &&
+          'field' in item &&
+          item.field
+        ) {
+          result.push({
+            questionName: item.value.slice(1, -1),
+            resourceField: String(item.field),
+          });
+        }
+      }
+    };
+    walk(entries);
+    return result;
+  } catch {
+    return [];
   }
 };
 
@@ -367,6 +416,41 @@ export const init = (
     }
   };
 
+  /**
+   * When a param-sourced resource question loads its record, updates any
+   * questions referenced in its customFilter with values from the record
+   * data so that the filter context stays consistent.
+   *
+   * @param question The resource question whose record was loaded
+   * @param recordData The record's data object
+   */
+  const syncDependentQuestionsFromRecord = (
+    question: QuestionResource,
+    recordData: { [key: string]: unknown }
+  ) => {
+    const survey = question.survey as SurveyModel;
+    if (!survey) return;
+
+    const deps = extractCustomFilterDependencies(question.customFilter);
+    for (const { questionName, resourceField } of deps) {
+      const depQuestion = survey.getQuestionByName(questionName);
+      if (!depQuestion) continue;
+      const depState = getQuestionState(depQuestion);
+      if (depState.__valueSource === 'manual') continue;
+
+      const recordValue = recordData[resourceField];
+      if (
+        recordValue !== null &&
+        recordValue !== undefined &&
+        recordValue !== ''
+      ) {
+        if (depQuestion.value !== recordValue) {
+          setQuestionValue(depQuestion, recordValue, 'expression');
+        }
+      }
+    }
+  };
+
   /** Cache for loaded records */
   const loadedRecords: Map<string, Record> = new Map();
 
@@ -387,9 +471,7 @@ export const init = (
 
     if (!recordID) {
       const updatedVariables: string[] = [];
-      // get survey variables
       survey.getVariableNames().forEach((variable) => {
-        // remove variable if starts with question name
         if (variable.startsWith(`${question.name}.`)) {
           survey.setVariable(variable, null);
           updatedVariables.push(variable);
@@ -398,79 +480,88 @@ export const init = (
       applyDependentDefaultExpressions(survey, updatedVariables);
       return;
     }
-    // get record from cache
-    let record = loadedRecords.get(recordID);
-    if (!record) {
-      try {
-        const { data } = await firstValueFrom(
-          apollo.query<RecordQueryResponse>({
-            query: GET_RECORD_BY_ID,
-            variables: {
-              id: recordID,
-            },
-          })
+
+    const surveyExt = survey as SurveyWithPendingLoads;
+    surveyExt.__pendingContextLoads =
+      (surveyExt.__pendingContextLoads || 0) + 1;
+
+    try {
+      let record = loadedRecords.get(recordID);
+      if (!record) {
+        try {
+          const { data } = await firstValueFrom(
+            apollo.query<RecordQueryResponse>({
+              query: GET_RECORD_BY_ID,
+              variables: {
+                id: recordID,
+              },
+            })
+          );
+
+          if (data.record) {
+            record = data.record;
+            loadedRecords.set(recordID, record);
+          }
+        } catch (error) {
+          console.error('[ResourceQuestion] Failed to load record', {
+            recordID,
+            error,
+          });
+          return;
+        }
+      }
+
+      if (record && question.contentQuestion) {
+        const currentChoices = question.contentQuestion.choices || [];
+        const choiceIndex = currentChoices.findIndex(
+          (c: any) => c.value === recordID
         );
+        const realName = record.data[question.displayField || 'id'] || recordID;
 
-        if (data.record) {
-          record = data.record;
-          loadedRecords.set(recordID, record);
+        if (choiceIndex === -1) {
+          question.contentQuestion.choices = [
+            ...currentChoices,
+            { value: recordID, text: realName },
+          ];
+        } else {
+          if (currentChoices[choiceIndex].text !== realName) {
+            const newChoices = [...currentChoices];
+            newChoices[choiceIndex] = { value: recordID, text: realName };
+            question.contentQuestion.choices = newChoices;
+          }
         }
-      } catch (error) {
-        console.error('[ResourceQuestion] Failed to load record', {
-          recordID,
-          error,
-        });
-        return;
       }
-    }
 
-    if (record && question.contentQuestion) {
-      const currentChoices = question.contentQuestion.choices || [];
-      const choiceIndex = currentChoices.findIndex(
-        (c: any) => c.value === recordID
+      const data = record?.data || {};
+      const updatedVariables: string[] = [];
+
+      if (!survey.strStructure) {
+        survey.strStructure = JSON.stringify(survey.toJSON());
+      }
+
+      for (const field in data) {
+        const value = data[field];
+
+        // e.g. selected_br.a_06_country
+        const variableName = `${question.name}.${field}`;
+        survey.setVariable(variableName, value);
+        updatedVariables.push(variableName);
+
+        // Alias: {selected_br.country} works even when DB field is a_06_country
+        if (field.endsWith('_country')) {
+          const aliasName = `${question.name}.country`;
+          survey.setVariable(aliasName, value);
+          updatedVariables.push(aliasName);
+        }
+      }
+
+      applyDependentDefaultExpressions(survey, updatedVariables);
+    } finally {
+      surveyExt.__pendingContextLoads = Math.max(
+        0,
+        (surveyExt.__pendingContextLoads || 1) - 1
       );
-      const realName = record.data[question.displayField || 'id'] || recordID;
-
-      if (choiceIndex === -1) {
-        question.contentQuestion.choices = [
-          ...currentChoices,
-          { value: recordID, text: realName },
-        ];
-      } else {
-        if (currentChoices[choiceIndex].text !== realName) {
-          const newChoices = [...currentChoices];
-          newChoices[choiceIndex] = { value: recordID, text: realName };
-          question.contentQuestion.choices = newChoices;
-        }
-      }
     }
-
-    const data = record?.data || {};
-    const updatedVariables: string[] = [];
-
-    // Creates strStruct once if doesn't exist
-    if (!survey.strStructure) {
-      survey.strStructure = JSON.stringify(survey.toJSON());
-    }
-
-    for (const field in data) {
-      const value = data[field];
-
-      // Set the exact variable (e.g. selected_br.a_06_country)
-      const variableName = `${question.name}.${field}`;
-      survey.setVariable(variableName, value);
-      updatedVariables.push(variableName);
-
-      // ALIAS: If it ends in _country, also set it as .country
-      // This allows {selected_br.country} to work even if DB sends a_06_country
-      if (field.endsWith('_country')) {
-        const aliasName = `${question.name}.country`;
-        survey.setVariable(aliasName, value);
-        updatedVariables.push(aliasName);
-      }
-    }
-
-    applyDependentDefaultExpressions(survey, updatedVariables);
   };
 
   const getResourceById = (data: { id: string }) =>
@@ -494,11 +585,25 @@ export const init = (
       fetchPolicy: 'no-cache',
     });
 
+  let populateRequestCounter = 0;
+
   const populateChoices = (question: QuestionResource): void => {
     const survey = question.survey as SurveyModel;
-    const filters = getUpdatedFilter(question);
     const state = getQuestionState(question);
+
+    const hasCustomFilter = !!question.customFilter?.trim();
+    const { value: earlyParamValue } = resolveParamValue(question, survey);
+    const isInitialParamLoad =
+      hasCustomFilter && !!earlyParamValue && !state.__paramInitialLoadDone;
+
+    const filters = isInitialParamLoad
+      ? ({ logic: 'and', filters: [] } as CompositeFilterDescriptor)
+      : getUpdatedFilter(question);
+
     state.__lastFilterHash = JSON.stringify(filters ?? {});
+
+    const requestId = ++populateRequestCounter;
+    state.__populateRequestId = requestId;
 
     if (
       question.resource &&
@@ -506,8 +611,10 @@ export const init = (
     ) {
       getResourceRecordsById({ id: question.resource, filters }).subscribe({
         next: ({ data }) => {
+          if (state.__populateRequestId !== requestId) {
+            return;
+          }
           const choices = mapQuestionChoices(data, question);
-          const hasCustomFilter = !!question.customFilter?.trim();
           const { value: paramValue } = resolveParamValue(question, survey);
 
           if (paramValue) {
@@ -515,6 +622,7 @@ export const init = (
               setQuestionValue(question, paramValue, 'param');
             }
             state.__paramAppliedValue = paramValue;
+            state.__paramInitialLoadDone = true;
           } else {
             state.__paramAppliedValue = null;
           }
@@ -614,7 +722,26 @@ export const init = (
           }
           const recordId =
             typeof question.value === 'string' ? question.value : null;
-          addRecordToSurveyContext(question, recordId);
+          const contextPromise = addRecordToSurveyContext(question, recordId);
+
+          if (isParamValue && recordId) {
+            contextPromise
+              .then(() => {
+                const cached = loadedRecords.get(recordId);
+                if (cached?.data) {
+                  syncDependentQuestionsFromRecord(
+                    question,
+                    cached.data as { [key: string]: unknown }
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error(
+                  '[ResourceQuestion] Failed to sync dependent questions',
+                  { questionName: question.name, error }
+                );
+              });
+          }
         },
         error: (error) => {
           console.error('[ResourceQuestion] Failed to load choices', {
@@ -1112,7 +1239,15 @@ export const init = (
         // TODO: Recreate logic that was here in the populate choices function
       }
 
-      if (!question.filterBy || question.filterBy.length < 1) {
+      const hasCustomFilter =
+        !question.selectQuestion &&
+        question.customFilter &&
+        question.customFilter.trim().length > 0;
+
+      if (
+        !hasCustomFilter &&
+        (!question.filterBy || question.filterBy.length < 1)
+      ) {
         populateChoices(question);
       }
 

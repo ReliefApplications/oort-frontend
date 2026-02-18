@@ -236,7 +236,6 @@ export class MapComponent
 
   /** Initialize filters */
   private initFilters() {
-    // Gather all context filters in a single text value
     const allContextFilters = this.layers
       .map((layer: any) => JSON.stringify(layer.contextFilters))
       .join('');
@@ -247,7 +246,6 @@ export class MapComponent
       )
       .join('');
 
-    // Listen to dashboard filters changes to apply layers filter, if it is necessary
     if (
       this.contextService.filterRegex.test(
         allContextFilters + allGraphQLVariables
@@ -277,7 +275,6 @@ export class MapComponent
         allContextFilters + allGraphQLVariables
       )
     ) {
-      // Listen to dashboard states changes
       this.dashboardService.states$
         .pipe(
           debounceTime(500),
@@ -510,13 +507,10 @@ export class MapComponent
     this.setMapControls(controls, initMap);
     this.map.attributionControl.setPrefix('');
 
-    // To zoom on getGeographicExtentValue, if necessary
-    // Check if has initial getGeographicExtentValue to zoom on country
     const fieldValue = JSON.stringify(geographicExtents).match(
       this.contextService.filterRegex
     );
     if (fieldValue) {
-      // Listen to dashboard filters changes to apply getGeographicExtentValue values changes
       this.contextService.filter$
         .pipe(debounceTime(500), takeUntil(this.destroy$))
         .subscribe(() => {

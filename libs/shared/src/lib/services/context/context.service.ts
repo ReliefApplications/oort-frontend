@@ -479,11 +479,19 @@ export class ContextService {
   /**
    * Render the survey using the saved structure
    *
+   * @param initialVariables Optional variables to set on the survey
+   * immediately after creation (before any rendering occurs).
    * @returns survey model created from the structure
    */
-  public initSurvey(): SurveyModel {
+  public initSurvey(initialVariables?: Record<string, string>): SurveyModel {
     const surveyStructure = this.filterStructure.getValue();
     const survey = this.formBuilderService.createSurvey(surveyStructure);
+
+    if (initialVariables) {
+      for (const [key, value] of Object.entries(initialVariables)) {
+        survey.setVariable(key, value);
+      }
+    }
 
     // set each question value manually otherwise the defaultValueExpression is not loaded
     // commented this out because was causing an error when navigating between dashboards
