@@ -164,6 +164,51 @@ $unesco-blue: #0177d5;
     }
   }
 
+  .sd-question--table,
+  .oort-horizontal-scrollbar {
+    scrollbar-width: auto;
+    scrollbar-color: rgba(1, 119, 213, 0.55) transparent;
+
+    &::-webkit-scrollbar {
+      height: 14px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      background-clip: padding-box;
+      border-radius: 999px;
+      background-color: rgba(1, 119, 213, 0.45);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      border-width: 2px;
+      background-color: rgba(1, 119, 213, 0.6);
+    }
+  }
+
+  .oort-horizontal-scrollbar {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: 14px;
+    margin-top: -20px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: transparent;
+
+    &__inner {
+      height: 1px;
+    }
+
+    &--hidden {
+      display: none;
+    }
+  }
+
   .sd-table__cell--actions {
     .sd-action-bar {
       background-color: transparent !important;

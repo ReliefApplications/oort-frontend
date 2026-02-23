@@ -348,6 +348,7 @@ export class FormBuilderService {
 
       //Add tooltips to questions if exist
       addQuestionTooltips(survey, options);
+      this.formHelpersService.addMirroredTopHorizontalScrollbar(options);
 
       const questionType = options.question.getType();
       switch (questionType) {
