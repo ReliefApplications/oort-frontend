@@ -3,6 +3,7 @@ import {
   Serializer,
   SvgRegistry,
   QuestionUsers,
+  SurveyModel,
 } from 'survey-core';
 import { registerCustomPropertyEditor } from './utils/component-register';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
@@ -197,6 +198,7 @@ export const init = (
       });
     },
     onAfterRender: async (question: QuestionUsers, el: HTMLElement) => {
+      console.log(JSON.stringify((question.survey as SurveyModel).data));
       // Hides the tagbox element
       const element =
         el.getElementsByTagName('kendo-multiselect')[0].parentElement;
@@ -205,9 +207,24 @@ export const init = (
       }
 
       // Users that are already selected
-      const selectedUserIDs: string[] = Array.isArray(question.value)
+      // Read from survey.data as source of truth, because for composite
+      // questions, question.value can be stale when defaultValueExpression
+      // overrides the internal content question value after data loading.
+      const valueName = question.getValueName();
+      const surveyDataValue = (question.survey as SurveyModel).data[valueName];
+      const selectedUserIDs: string[] = Array.isArray(surveyDataValue)
+        ? surveyDataValue
+        : Array.isArray(question.value)
         ? question.value
         : [];
+
+      // Fix the desync between question.value and survey.data
+      if (
+        surveyDataValue !== undefined &&
+        JSON.stringify(question.value) !== JSON.stringify(surveyDataValue)
+      ) {
+        question.value = surveyDataValue;
+      }
 
       // Appends users dropdown to the question html element
       const userDropdown = domService.appendComponentToBody(
@@ -227,6 +244,7 @@ export const init = (
 
       // Updates the question value when the selection changes
       instance.selectionChange.subscribe((value: string[]) => {
+        console.log(`Selection changed to ${value}`);
         question.value = value;
       });
 
