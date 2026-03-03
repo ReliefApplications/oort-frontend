@@ -198,7 +198,6 @@ export const init = (
       });
     },
     onAfterRender: async (question: QuestionUsers, el: HTMLElement) => {
-      console.log(JSON.stringify((question.survey as SurveyModel).data));
       // Hides the tagbox element
       const element =
         el.getElementsByTagName('kendo-multiselect')[0].parentElement;
