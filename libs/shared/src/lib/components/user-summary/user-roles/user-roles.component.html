@@ -1,5 +1,5 @@
 <shared-user-groups
-  *ngIf="canSeeGroups"
+  *ngIf="canSeeGroups && !application"
   [canEdit]="!application"
   [user]="user"
   (edit)="edit.emit($event)"

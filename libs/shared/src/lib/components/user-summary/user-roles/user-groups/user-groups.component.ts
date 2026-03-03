@@ -19,6 +19,8 @@ import { SnackbarService } from '@oort-front/ui';
 export class UserGroupsComponent implements OnInit {
   /** Groups */
   public groups: Group[] = [];
+  /** Groups that can be rendered in the dropdown */
+  public availableGroups: Group[] = [];
   /** User */
   @Input() user!: User;
   /** Selected groups */
@@ -65,7 +67,19 @@ export class UserGroupsComponent implements OnInit {
       .subscribe({
         next: ({ data, loading }) => {
           if (data) {
-            this.groups = data.groups;
+            this.groups = data.groups || [];
+            this.availableGroups = this.groups.filter(
+              (group) => !!group?.id && !!group?.title
+            );
+
+            const selectedGroupIds = (this.selectedGroups?.value || []).filter(
+              (groupId: string | undefined) =>
+                typeof groupId === 'string' &&
+                this.availableGroups.some((group) => group.id === groupId)
+            );
+            this.selectedGroups?.setValue(selectedGroupIds, {
+              emitEvent: false,
+            });
           }
           this.loading = loading;
         },
