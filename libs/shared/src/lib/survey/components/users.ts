@@ -243,7 +243,6 @@ export const init = (
 
       // Updates the question value when the selection changes
       instance.selectionChange.subscribe((value: string[]) => {
-        console.log(`Selection changed to ${value}`);
         question.value = value;
       });
 
