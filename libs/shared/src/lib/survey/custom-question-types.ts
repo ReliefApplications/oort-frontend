@@ -1,17 +1,25 @@
 import { Injector, NgZone } from '@angular/core';
 import { DomService } from '../services/dom/dom.service';
-import { ComponentCollection } from 'survey-core';
+import { ComponentCollection, RendererFactory } from 'survey-core';
 import * as ResourceComponent from './components/resource';
 import * as ResourcesComponent from './components/resources';
 import * as OwnerComponent from './components/owner';
-import * as UsersComponent from './components/users';
 import * as GeospatialComponent from './components/geospatial';
 import * as EditorComponent from './components/editor';
 import * as ShapeFileComponent from './components/shapefile-picker';
 import { Apollo } from 'apollo-angular';
-import { Dialog } from '@angular/cdk/dialog';
-import { SnackbarService } from '@oort-front/ui';
-import { TranslateService } from '@ngx-translate/core';
+
+// Import the model to trigger Serializer + ElementFactory registration
+import './components/users';
+import { AngularComponentFactory } from 'survey-angular-ui';
+import { UsersDropdownComponent } from './components/users-dropdown/users-dropdown.component';
+
+AngularComponentFactory.Instance.registerComponent(
+  'users-question',
+  UsersDropdownComponent
+);
+
+RendererFactory.Instance.registerRenderer('users', 'default', 'users-question');
 
 /**
  * Custom question types for the survey creator toolbox
@@ -53,23 +61,23 @@ export const InitCustomQuestionComponent: {
     const apollo = injector.get(Apollo);
     OwnerComponent.init(apollo, instance);
   },
-  users: (options) => {
-    const { injector, instance } = options;
-    const domService = injector.get(DomService);
-    const dialog = injector.get(Dialog);
-    const apollo = injector.get(Apollo);
-    const snackBar = injector.get(SnackbarService);
-    const translate = injector.get(TranslateService);
+  // users: (options) => {
+  //   const { injector, instance } = options;
+  //   const domService = injector.get(DomService);
+  //   const dialog = injector.get(Dialog);
+  //   const apollo = injector.get(Apollo);
+  //   const snackBar = injector.get(SnackbarService);
+  //   const translate = injector.get(TranslateService);
 
-    UsersComponent.init(
-      instance,
-      domService,
-      dialog,
-      apollo,
-      snackBar,
-      translate
-    );
-  },
+  //   UsersComponent.init(
+  //     instance,
+  //     domService,
+  //     dialog,
+  //     apollo,
+  //     snackBar,
+  //     translate
+  //   );
+  // },
   geoSpatial: (options) => {
     const { injector, instance } = options;
     const domService = injector.get(DomService);
