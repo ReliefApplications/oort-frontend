@@ -29,6 +29,7 @@ export const environment: Environment = {
   availableLanguages: ['en', 'fr', 'test'],
   authConfig,
   theme,
+  user: { attributes: ['country'] },
   availableWidgets: [
     'form',
     'donut-chart',

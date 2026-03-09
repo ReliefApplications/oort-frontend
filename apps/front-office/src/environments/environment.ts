@@ -25,5 +25,6 @@ export const environment: Environment = {
   availableLanguages: ['en', 'fr', 'test'],
   authConfig,
   theme,
+  user: { attributes: ['country'] },
   allowedAuthDomains: ['https://oort-dev.oortcloud.tech'],
 };

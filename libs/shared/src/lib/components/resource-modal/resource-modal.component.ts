@@ -70,7 +70,8 @@ export class ResourceModalComponent extends FormModalComponent {
         .checkUniquePropriety(this.survey)
         .then(async (response: CheckUniqueProprietyReturnT) => {
           if (response.verified) {
-            this.loading = true;
+            this.saving = true;
+            this.survey.readOnly = true;
             await this.formHelpersService.uploadFiles(
               this.temporaryFilesStorage,
               this.form?.id
