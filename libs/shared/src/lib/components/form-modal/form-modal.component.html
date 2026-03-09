@@ -138,11 +138,29 @@
 
       <!-- Regular save button when feature is disabled -->
       <ui-button
+        *ngIf="!survey.enableSaveAndSubmit && data.recordId"
+        category="secondary"
+        variant="primary"
+        [disabled]="saving || autosaving"
+        (click)="save()"
+      >
+        <span class="flex items-center whitespace-nowrap">
+          {{ 'common.save' | translate }}
+          <ui-spinner
+            *ngIf="saving && !autosaving"
+            [size]="'small'"
+            class="mr-1"
+          />
+        </span>
+      </ui-button>
+
+      <!-- Regular save & close button when feature is disabled -->
+      <ui-button
         *ngIf="!survey.enableSaveAndSubmit"
         category="secondary"
         variant="primary"
         [disabled]="saving || autosaving"
-        (click)="submit()"
+        (click)="submit(true)"
         cdkFocusInitial
       >
         <ng-container *ngIf="!autosaving">
