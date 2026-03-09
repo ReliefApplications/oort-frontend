@@ -167,7 +167,7 @@ $unesco-blue: #0177d5;
   .sd-question--table,
   .oort-horizontal-scrollbar {
     scrollbar-width: auto;
-    scrollbar-color: rgba(1, 119, 213, 0.55) transparent;
+    scrollbar-color: #d4d4d9 white;
 
     &::-webkit-scrollbar {
       height: 14px;
@@ -177,12 +177,12 @@ $unesco-blue: #0177d5;
       border: 3px solid transparent;
       background-clip: padding-box;
       border-radius: 999px;
-      background-color: rgba(1, 119, 213, 0.45);
+      background-color: #d4d4d9;
     }
 
     &::-webkit-scrollbar-thumb:hover {
       border-width: 2px;
-      background-color: rgba(1, 119, 213, 0.6);
+      background-color: #d4d4d9;
     }
   }
 
