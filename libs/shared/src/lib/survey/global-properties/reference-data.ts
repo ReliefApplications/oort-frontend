@@ -447,11 +447,7 @@ const initChoices = (
           options.columnName === foreignColName
         ) {
           const targetColName = column.name;
-          if (
-            options.row &&
-            options.row.value[targetColName] !== undefined &&
-            options.row.value[targetColName] !== null
-          ) {
+          if (options.row && !isNil(options.row.value[targetColName])) {
             options.row.value[targetColName] = null;
 
             // Update the cell question if it exists
