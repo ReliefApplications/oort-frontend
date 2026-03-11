@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormWidgetComponent } from './form-widget.component';
 import { FormModule } from '../../form/form.module';
-import { ButtonModule, SpinnerModule } from '@oort-front/ui';
+import { ButtonModule, DialogModule, SpinnerModule } from '@oort-front/ui';
 import { TranslateModule } from '@ngx-translate/core';
 
 /** Module for the form widget component */
@@ -12,6 +12,7 @@ import { TranslateModule } from '@ngx-translate/core';
     CommonModule,
     FormModule,
     ButtonModule,
+    DialogModule,
     TranslateModule,
     SpinnerModule,
   ],

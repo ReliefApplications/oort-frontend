@@ -14,9 +14,9 @@
   <!-- Embedded form -->
   <shared-form
     [form]="form"
-    [floatingActions]="settings?.floatingActions"
+    [floatingActions]="floatingActions"
     [record]="record"
-    [mapQuestionState]="settings?.mapQuestionState"
+    [mapQuestionState]="mapQuestionState"
     [mode]="mode"
     (save)="onComplete($event)"
   ></shared-form>
@@ -27,3 +27,14 @@
     }}</ui-button>
   </ng-container>
 </ng-container>
+
+<ng-template #completionPopupTemplate let-data>
+  <ui-dialog size="medium">
+    <ng-container ngProjectAs="header">
+      <h3 *ngIf="data?.title" class="font-semibold">{{ data.title }}</h3>
+    </ng-container>
+    <ng-container ngProjectAs="content">
+      <p class="text-sm text-gray-500">{{ data?.text }}</p>
+    </ng-container>
+  </ui-dialog>
+</ng-template>

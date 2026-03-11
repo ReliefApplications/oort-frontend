@@ -1557,6 +1557,21 @@
           },
           "tooltip": "******"
         },
+        "completionPopup": {
+          "label": "******",
+          "text": {
+            "label": "******",
+            "placeholder": "******",
+            "tooltip": "******"
+          },
+          "title": "******",
+          "titleField": {
+            "label": "******",
+            "placeholder": "******",
+            "tooltip": "******"
+          },
+          "tooltip": "******"
+        },
         "directions": {
           "both": "******",
           "questionToState": "******",
