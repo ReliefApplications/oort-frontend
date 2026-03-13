@@ -269,31 +269,6 @@ export class GridComponent
     );
   }
 
-  // /** @returns an array with the settings for buttons to be displayed on rows */
-  // get inlineActionButtons(): any[] {
-  //   const buttons = get(this.widget, 'settings.floatingButtons', []).filter(
-  //     (b: any) =>
-  //       b.show &&
-  //       b.inline &&
-  //       this.data.data.some((row) => this.shouldShowButton(b, row))
-  //   );
-
-  //   const chars = buttons.reduce(
-  //     (acc: number, button: any) => acc + button.name,
-  //     ''
-  //   );
-
-  //   // calculate the width of the buttons using measureText
-  //   const canvas = document.createElement('canvas');
-  //   const context = canvas.getContext('2d');
-  //   if (context) {
-  //     context.font = '14px system-ui';
-  //     const width = context.measureText(chars).width;
-  //     this.floatingButtonsWidth = width * 0.95 + buttons.length * 20 + 20;
-  //   }
-  //   return buttons;
-  // }
-
   /** Width of the floating clickable buttons */
   public floatingButtonsWidth = 120;
 

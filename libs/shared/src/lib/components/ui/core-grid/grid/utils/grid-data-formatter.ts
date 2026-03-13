@@ -99,6 +99,23 @@ export function formatGridRowData(
         if (field.subFields && field.meta.type === 'referenceData') {
           iterateFields(field.subFields, field);
         } else {
+          // Super hotfix for export
+          if (
+            field.name ===
+            'id_prod_please_name_potential_co_publishing_partners'
+          ) {
+            const rawValue = getPropertyValue(rowData, field) || [];
+            const displayValue = rawValue
+              .map((x: any) => get(x, 'co_publishing_partners'))
+              .join(', ');
+            Object.assign(textObj.text, {
+              [field.name]: displayValue,
+            });
+            Object.assign(valueObj.valueValue, {
+              [field.name]: displayValue,
+            });
+            return;
+          }
           // Format styling for each field
           Object.assign(styleObj.style, {
             [field.name]: getStyle(rowData, field.name),

@@ -89,6 +89,29 @@ export class GridService {
           (!isNil(canSee) && !canSee) || options.hidden || false;
         const disabled: boolean = options.disabled || !canUpdate;
 
+        // Super hotfix for export
+        if (f.name === 'id_prod_please_name_potential_co_publishing_partners') {
+          const cachedField = get(layoutFields, fullName);
+          const title = f.label ? f.label : prettifyLabel(f.name);
+          return {
+            name: fullName,
+            title,
+            type: 'String',
+            layoutFormat: f.format,
+            format: '',
+            editor: 'text',
+            filter: '',
+            meta: { type: 'text' },
+            disabled: true,
+            hidden: hidden || cachedField?.hidden || false,
+            width: cachedField?.width || title.length * 7 + 50,
+            fixedWidth: f.width, // width used to overwrite auto calculation
+            hiddenByDefault: f.hiddenByDefault,
+            order: cachedField?.order,
+            canSee,
+          };
+        }
+
         switch (f.kind) {
           case 'OBJECT': {
             if (f.type.endsWith(REFERENCE_DATA_END)) {
