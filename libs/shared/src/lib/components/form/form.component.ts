@@ -674,6 +674,15 @@ export class FormComponent
       this.modifiedAt = this.record.modifiedAt || null;
     }
 
+    // Force duplication triggers to re-fire after data has been loaded.
+    // Triggers only fire on false→true transitions of should_clean,
+    // but should_clean is already true from createSurvey (before data load),
+    // so we reset it to force the transition.
+    if (this.survey.getVariable('param.duplicate')) {
+      this.survey.setValue('should_clean', false);
+      this.survey.setValue('should_clean', true);
+    }
+
     // if (this.survey.getUsedLocales().length > 1) {
     //   this.survey.getUsedLocales().forEach((lang) => {
     //     const nativeName = (LANGUAGES as any)[lang].nativeName.split(',')[0];
