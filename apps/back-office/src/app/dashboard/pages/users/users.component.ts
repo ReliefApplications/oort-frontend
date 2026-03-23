@@ -59,6 +59,8 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
   public attributes: any[] = [];
   /** Attribute choices for reference data */
   public attributeChoices: Map<string, any[]> = new Map();
+  /** Country choices for filter dropdown */
+  public countryChoices: { value: string; text: string }[] = [];
   /** Table columns */
   public displayedColumns = [...DEFAULT_COLUMNS, 'actions'];
   /** Users selection */
@@ -468,6 +470,9 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
           .pipe(takeUntil(this.destroy$))
           .subscribe((choices: any) => {
             this.attributeChoices.set(attribute.value, choices);
+            if (attribute.value === 'country') {
+              this.countryChoices = choices;
+            }
           });
       }
     }
