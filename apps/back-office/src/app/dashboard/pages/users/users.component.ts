@@ -1,9 +1,10 @@
 import { Apollo, QueryRef } from 'apollo-angular';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { GET_USERS, GET_ROLES } from './graphql/queries';
+import { GET_USERS, GET_ROLES, GET_ASSIGNABLE_ROLES } from './graphql/queries';
 import { ADD_USERS, DELETE_USERS } from './graphql/mutations';
 import {
   AddUsersMutationResponse,
+  AssignableRolesQueryResponse,
   ConfirmService,
   DeleteUsersMutationResponse,
   DownloadService,
@@ -55,6 +56,8 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
   public users = new Array<User>();
   /** Back-office roles */
   public roles: Role[] = [];
+  /** Roles the current user can assign when inviting */
+  public assignableRoles: Role[] = [];
   /** User attributes */
   public attributes: any[] = [];
   /** Attribute choices for reference data */
@@ -127,6 +130,13 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
         this.roles = data.roles;
         this.loading = loading;
       });
+    this.apollo
+      .watchQuery<AssignableRolesQueryResponse>({
+        query: GET_ASSIGNABLE_ROLES,
+      })
+      .valueChanges.subscribe(({ data }) => {
+        this.assignableRoles = data.assignableRoles;
+      });
 
     // Fetch user attributes configuration
     this.restService
@@ -169,7 +179,7 @@ export class UsersComponent extends UnsubscribeComponent implements OnInit {
     const { InviteUsersModalComponent } = await import('@oort-front/shared');
     const dialogRef = this.dialog.open(InviteUsersModalComponent, {
       data: {
-        roles: this.roles,
+        roles: this.assignableRoles,
         users: this.users,
         downloadPath: 'download/invite',
         uploadPath: 'upload/invite',

@@ -124,6 +124,11 @@ export interface RolesQueryResponse {
   roles: Role[];
 }
 
+/** Model for assignable roles graphql query response */
+export interface AssignableRolesQueryResponse {
+  assignableRoles: Role[];
+}
+
 /** Model for roles from applications graphql query response */
 export interface RolesFromApplicationsQueryResponse {
   rolesFromApplications: Role[];
