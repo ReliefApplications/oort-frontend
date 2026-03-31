@@ -11,6 +11,7 @@ import { GET_APPLICATIONS, GET_ROLES } from '../../graphql/queries';
 import { UnsubscribeComponent } from '../../../utils/unsubscribe/unsubscribe.component';
 import { takeUntil } from 'rxjs/operators';
 import { SnackbarService } from '@oort-front/ui';
+import { ApplicationService } from '../../../../services/application/application.service';
 
 /** Roles tab for the user summary */
 @Component({
@@ -55,11 +56,13 @@ export class UserAppRolesComponent
    * @param fb Angular form builder
    * @param apollo Apollo client
    * @param snackBar Shared snackbar service
+   * @param applicationService Shared application service
    */
   constructor(
     private fb: FormBuilder,
     private apollo: Apollo,
-    private snackBar: SnackbarService
+    private snackBar: SnackbarService,
+    private applicationService: ApplicationService
   ) {
     super();
   }
@@ -145,6 +148,8 @@ export class UserAppRolesComponent
         query: GET_ROLES,
         variables: {
           application,
+          forUserAssignment: true,
+          asRole: this.applicationService.asRole || null,
         },
       })
       .pipe(takeUntil(this.destroy$))

@@ -125,6 +125,9 @@ import { GraphQLError } from 'graphql';
   providedIn: 'root',
 })
 export class ApplicationService {
+  /** Role used to load application in preview mode */
+  public asRole = '';
+
   /** Current application */
   public application = new BehaviorSubject<Application | null>(null);
 
@@ -247,6 +250,7 @@ export class ApplicationService {
     if (this.application.getValue()) {
       this.leaveApplication();
     }
+    this.asRole = asRole || '';
     // Then, open the new application
     this.applicationSubscription = this.apollo
       .query<ApplicationQueryResponse>({
@@ -337,6 +341,7 @@ export class ApplicationService {
     }
     const application = this.application.getValue();
     this.application.next(null);
+    this.asRole = '';
     this.applicationSubscription?.unsubscribe();
     this.notificationSubscription?.unsubscribe();
     this.lockSubscription?.unsubscribe();

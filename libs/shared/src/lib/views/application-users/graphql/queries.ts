@@ -39,3 +39,25 @@ export const GET_APPLICATION_USERS = gql`
     }
   }
 `;
+
+/** Query to fetch roles visible for user assignment in an application */
+export const GET_ASSIGNABLE_ROLES = gql`
+  query GetAssignableRoles(
+    $application: ID!
+    $forUserAssignment: Boolean
+    $asRole: ID
+  ) {
+    roles(
+      application: $application
+      forUserAssignment: $forUserAssignment
+      asRole: $asRole
+    ) {
+      id
+      title
+      application {
+        id
+        name
+      }
+    }
+  }
+`;

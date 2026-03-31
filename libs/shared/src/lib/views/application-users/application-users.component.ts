@@ -5,10 +5,15 @@ import { Apollo } from 'apollo-angular';
 import { Subject, takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../../components/utils/unsubscribe/unsubscribe.component';
 import { PositionAttributeCategory } from '../../models/position-attribute-category.model';
-import { AddUsersMutationResponse, Role } from '../../models/user.model';
+import {
+  AddUsersMutationResponse,
+  Role,
+  RolesQueryResponse,
+} from '../../models/user.model';
 import { ApplicationService } from '../../services/application/application.service';
 import { UserListComponent } from './components/user-list/user-list.component';
 import { ADD_USERS } from './graphql/mutations';
+import { GET_ASSIGNABLE_ROLES } from './graphql/queries';
 import { SnackbarService } from '@oort-front/ui';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
 import { RestService } from '../../services/rest/rest.service';
@@ -66,9 +71,9 @@ export class ApplicationUsersComponent
       .pipe(takeUntil(this.destroy$))
       .subscribe((application) => {
         if (application) {
-          this.roles = application.roles || [];
           this.positionAttributeCategories =
             application.positionAttributeCategories || [];
+          this.fetchAssignableRoles(application.id || '');
         }
       });
 
@@ -160,5 +165,36 @@ export class ApplicationUsersComponent
         .map((x) => x.id || '')
         .filter((x) => x !== '') || []
     );
+  }
+
+  /**
+   * Fetches roles that can be assigned by the current user.
+   *
+   * @param applicationId The application id
+   */
+  private fetchAssignableRoles(applicationId: string): void {
+    if (!applicationId) {
+      this.roles = [];
+      return;
+    }
+
+    this.apollo
+      .query<RolesQueryResponse>({
+        query: GET_ASSIGNABLE_ROLES,
+        variables: {
+          application: applicationId,
+          forUserAssignment: true,
+          asRole: this.applicationService.asRole || null,
+        },
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ data }) => {
+          this.roles = data?.roles || [];
+        },
+        error: (err) => {
+          this.snackBar.openSnackBar(err.message, { error: true });
+        },
+      });
   }
 }

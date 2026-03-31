@@ -31,6 +31,7 @@
         icon="send"
         category="secondary"
         variant="primary"
+        [disabled]="roles.length === 0"
         (click)="onInvite()"
       >
         {{ 'components.users.invite.confirm' | translate }}

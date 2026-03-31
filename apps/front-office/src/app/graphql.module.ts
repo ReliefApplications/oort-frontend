@@ -38,8 +38,9 @@ export const createApollo = (httpLink: HttpLink): ApolloClientOptions<any> => {
   const ws = new GraphQLWsLink(
     createClient({
       url: `${environment.subscriptionApiUrl}/graphql`,
-      connectionParams: {
-        authToken: localStorage.getItem('idtoken'),
+      connectionParams: () => {
+        const authToken = localStorage.getItem('idtoken');
+        return authToken ? { authToken } : {};
       },
       on: {
         error: (err) => console.error('WebSocket Error', err),

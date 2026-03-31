@@ -394,7 +394,12 @@ export class ApplicationsComponent
     });
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
       if (value) {
-        this.previewService.setRole(value.role);
+        const roleId =
+          typeof value.role === 'string' ? value.role : value.role?.id || '';
+        if (!roleId) {
+          return;
+        }
+        this.previewService.setRole(roleId);
         this.router.navigate(['./app-preview', element.id]);
       }
     });

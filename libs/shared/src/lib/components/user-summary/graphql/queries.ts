@@ -37,8 +37,12 @@ export const GET_APPLICATIONS = gql`
 
 /** Get Roles query */
 export const GET_ROLES = gql`
-  query GetRoles($application: ID) {
-    roles(application: $application) {
+  query GetRoles($application: ID, $forUserAssignment: Boolean, $asRole: ID) {
+    roles(
+      application: $application
+      forUserAssignment: $forUserAssignment
+      asRole: $asRole
+    ) {
       id
       title
     }
