@@ -455,7 +455,7 @@ $unesco-blue: #0177d5;
   }
 
   // ~~~ SCROLLBAR ~~~
-  .sv-scroll__wrapper:hover .sv-scroll__scrollbar {
-    visibility: hidden !important;
+  .sv-scroll__scrollbar {
+    visibility: visible !important;
   }
 }
