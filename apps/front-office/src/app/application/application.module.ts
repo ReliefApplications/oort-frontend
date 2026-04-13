@@ -6,7 +6,6 @@ import {
   LayoutModule,
   EmptyModule,
   NavbarModule,
-  DashboardFilterIconComponent,
 } from '@oort-front/shared';
 import { TranslateModule } from '@ngx-translate/core';
 import {
@@ -35,7 +34,6 @@ import {
     ButtonModule,
     SpinnerModule,
     TooltipModule,
-    DashboardFilterIconComponent,
   ],
 })
 export class ApplicationModule {}
