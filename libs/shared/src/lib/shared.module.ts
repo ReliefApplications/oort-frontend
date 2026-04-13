@@ -100,10 +100,6 @@ import { FormSettingsModule } from './components/widgets/form-settings/form-sett
     // === VIEWS ===
     ViewsModule,
   ],
-  imports: [
-    ListFilterComponent,
-    StatusOptionsComponent,
-    PayloadModalComponent,
-  ],
+  imports: [ListFilterComponent, StatusOptionsComponent, PayloadModalComponent],
 })
 export class Module {}
