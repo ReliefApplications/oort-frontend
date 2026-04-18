@@ -26,7 +26,7 @@ export const environment: Environment = {
   subscriptionApiUrl: 'wss://mab.unesco.oortcloud.tech/api',
   frontOfficeUri: 'https://mab.unesco.oortcloud.tech',
   backOfficeUri: 'https://mab.unesco.oortcloud.tech/admin/',
-  availableLanguages: ['en', 'fr'],
+  availableLanguages: ['en', 'fr', 'es'],
   authConfig,
   theme,
   user: { attributes: ['country'] },
