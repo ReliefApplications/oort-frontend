@@ -99,26 +99,18 @@ export const transformSurveyData = (survey: SurveyModel) => {
     }
   });
   if (survey.showPercentageProgressBar) {
-    // Filter only required questions that are not read-only, have input, and are visible (including parent visibility)
-    const requiredQuestions = survey
+    // Count every answerable question that's not read-only and visible (parents included),
+    // so sections without required questions (e.g. Section I of the PR form) still contribute.
+    const progressQuestions = survey
       .getAllQuestions()
-      .filter(
-        (q) => q.isRequired && !q.readOnly && q.hasInput && isQuestionVisible(q)
-      );
+      .filter((q) => !q.readOnly && q.hasInput && isQuestionVisible(q));
 
-    console.log(
-      'Missing required questions: ',
-      requiredQuestions
-        .filter((question: Question) => question.isEmpty())
-        .map((q) => q.name)
-    );
-
-    if (requiredQuestions.length) {
+    if (progressQuestions.length) {
       data._progress =
-        (requiredQuestions.filter((question: Question) => !question.isEmpty())
+        (progressQuestions.filter((question: Question) => !question.isEmpty())
           .length *
           100) /
-        requiredQuestions.length;
+        progressQuestions.length;
     }
   }
   return data;

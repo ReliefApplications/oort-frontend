@@ -15,8 +15,8 @@ import { getVisibleQuestions } from '../../services/form-builder/form-builder.se
 export class ProgressBarComponent implements OnInit {
   /** Current survey model */
   @Input() model!: SurveyModel;
-  /** Current page required questions */
-  public currentPageRequiredQuestions: Question[] = [];
+  /** Current page questions considered for progress */
+  public currentPageProgressQuestions: Question[] = [];
   /** Progress bar percentage value */
   public value = 0;
   /** Title shown above percentage */
@@ -32,9 +32,9 @@ export class ProgressBarComponent implements OnInit {
   ngOnInit() {
     this.title = this.model.data.form_and_br;
     const updateCurrentPageQuestions = () => {
-      this.currentPageRequiredQuestions = getVisibleQuestions(
+      this.currentPageProgressQuestions = getVisibleQuestions(
         this.model.currentPage.questions
-      ).filter((q) => q.isRequired && q.hasInput);
+      ).filter((q) => q.hasInput);
       this.updateValue();
     };
     updateCurrentPageQuestions();
@@ -51,12 +51,13 @@ export class ProgressBarComponent implements OnInit {
    * Updates percentage value
    */
   private updateValue() {
-    this.value =
-      (this.currentPageRequiredQuestions.filter(
-        (question: Question) => !question.isEmpty()
-      ).length *
-        100) /
-      this.currentPageRequiredQuestions.length;
+    this.value = this.currentPageProgressQuestions.length
+      ? (this.currentPageProgressQuestions.filter(
+          (question: Question) => !question.isEmpty()
+        ).length *
+          100) /
+        this.currentPageProgressQuestions.length
+      : 0;
 
     this.cdr.detectChanges();
   }
