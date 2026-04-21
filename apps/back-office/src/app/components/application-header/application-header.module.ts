@@ -9,7 +9,6 @@ import {
   ButtonModule,
 } from '@oort-front/ui';
 import { RouterModule } from '@angular/router';
-import { DashboardFilterIconComponent } from '@oort-front/shared';
 
 /**
  * Application toolbar module.
@@ -24,7 +23,6 @@ import { DashboardFilterIconComponent } from '@oort-front/shared';
     RouterModule,
     ButtonModule,
     TooltipModule,
-    DashboardFilterIconComponent,
   ],
   exports: [ApplicationHeaderComponent],
 })

@@ -115,7 +115,10 @@
       </ng-container>
 
       <!-- Dynamic attribute columns -->
-      <ng-container *ngFor="let attribute of attributes" [cdkColumnDef]="'attr_' + attribute.value">
+      <ng-container
+        *ngFor="let attribute of attributes"
+        [cdkColumnDef]="'attr_' + attribute.value"
+      >
         <th uiCellHeader *cdkHeaderCellDef scope="col">
           <span class="headerTitle">
             {{ attribute.text }}

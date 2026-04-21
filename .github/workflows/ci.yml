@@ -7,7 +7,7 @@ on:
         type: choice
         description: Select project ( leave blank to run on all projects )
         options:
-          - 
+          -
           - front-office
           - back-office
           - ui

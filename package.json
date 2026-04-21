@@ -7,7 +7,9 @@
     "semantic-release": "semantic-release",
     "prepare": "husky install",
     "lint": "npx nx run-many --target=lint --verbose --projects=shared,front-office,back-office,ui",
-    "test": "npx nx run-many --target=test --projects=shared,front-office,back-office,ui --configuration=ci"
+    "test": "npx nx run-many --target=test --projects=shared,front-office,back-office,ui --configuration=ci",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "private": true,
   "dependencies": {

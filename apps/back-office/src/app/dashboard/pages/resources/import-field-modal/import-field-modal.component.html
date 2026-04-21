@@ -9,10 +9,7 @@
     <ng-container *ngIf="!loading && importFieldForm">
       <div uiFormFieldDirective class="p-0">
         <ui-select-menu [formControl]="importFieldForm">
-          <ui-select-option
-            *ngFor="let field of fields"
-            [value]="field"
-          >
+          <ui-select-option *ngFor="let field of fields" [value]="field">
             {{ field }}
           </ui-select-option>
         </ui-select-menu>

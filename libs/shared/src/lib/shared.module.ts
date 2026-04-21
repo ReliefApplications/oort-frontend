@@ -43,7 +43,6 @@ import { ApplicationsArchiveModule } from './components/applications-archive/app
 import { ReferenceDataDropdownModule } from './survey/components/reference-data-dropdown/reference-data-dropdown.module';
 import { ListFilterComponent } from './components/list-filter/list-filter.component';
 import { StatusOptionsComponent } from './components/status-options/status-options.component';
-import { DashboardFilterIconComponent } from './components/dashboard-filter-icon/dashboard-filter-icon.component';
 import { PayloadModalComponent } from './components/payload-modal/payload-modal.component';
 import { FormSettingsModule } from './components/widgets/form-settings/form-settings.module';
 
@@ -78,7 +77,6 @@ import { FormSettingsModule } from './components/widgets/form-settings/form-sett
     CronExpressionControlModule,
     MapModule,
     DashboardFilterModule,
-    DashboardFilterIconComponent,
     ButtonActionModule,
     WidgetChoiceModule,
     TabsSettingsModule,
@@ -102,11 +100,6 @@ import { FormSettingsModule } from './components/widgets/form-settings/form-sett
     // === VIEWS ===
     ViewsModule,
   ],
-  imports: [
-    ListFilterComponent,
-    StatusOptionsComponent,
-    DashboardFilterIconComponent,
-    PayloadModalComponent,
-  ],
+  imports: [ListFilterComponent, StatusOptionsComponent, PayloadModalComponent],
 })
 export class Module {}
