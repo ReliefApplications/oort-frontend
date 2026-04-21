@@ -13,6 +13,7 @@ export type DateInputFormat = 'date' | 'datetime' | 'datetime-local' | 'time';
 export const DateTimeFormat = {
   en: 'MM/dd/yyyy hh:mm a',
   fr: 'dd/MM/yyyy HH:mm',
+  es: 'dd/MM/yyyy HH:mm',
 };
 
 /**
@@ -21,6 +22,7 @@ export const DateTimeFormat = {
 export const DateFormat = {
   en: 'MM/dd/yyyy',
   fr: 'dd/MM/yyyy',
+  es: 'dd/MM/yyyy',
 };
 
 /**
@@ -29,12 +31,13 @@ export const DateFormat = {
 export const TimeFormat = {
   en: 'hh:mm a',
   fr: 'HH:mm',
+  es: 'HH:mm',
 };
 
 /**
  * Available languages for date/time formats.
  */
-export const languages = ['en', 'fr'] as const;
+export const languages = ['en', 'fr', 'es'] as const;
 export type AvailableLanguages = (typeof languages)[number];
 
 /**
