@@ -1,3 +1,6 @@
+# Dependencies
+/node_modules
+
 # Test
 /coverage
 
@@ -9,3 +12,15 @@
 
 # Dist
 /dist
+
+# Cache
+/.angular
+
+# Static assets
+/assets
+
+# Generated / lock files
+/package-lock.json
+/CHANGELOG
+/CHANGELOG.md
+*.log

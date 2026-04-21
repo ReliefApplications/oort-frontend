@@ -55,12 +55,11 @@
 
 <!-- Add new trigger menu -->
 <ui-menu #triggersOptionsMenu>
-  <button 
+  <button
     uiMenuItem
     *ngFor="let item of TriggersTypes"
     (click)="onCreateTrigger(item)"
   >
-      {{ 'components.triggers.' + item | translate }}
+    {{ 'components.triggers.' + item | translate }}
   </button>
 </ui-menu>
-

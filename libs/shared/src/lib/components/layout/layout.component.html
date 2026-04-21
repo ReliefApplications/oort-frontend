@@ -75,7 +75,13 @@
       </button>
     </ng-container>
     <!-- Application switch, hidden in front-office -->
-    <ng-container *ngIf="applications && applications.length > 0 && environment.module === 'backoffice'">
+    <ng-container
+      *ngIf="
+        applications &&
+        applications.length > 0 &&
+        environment.module === 'backoffice'
+      "
+    >
       <ui-divider class="py-1"></ui-divider>
       <button
         uiMenuItem
