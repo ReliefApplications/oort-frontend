@@ -8,7 +8,9 @@ import { SurveyCreatorModule } from 'survey-creator-angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { CustomJSONEditorComponent } from './custom-json-editor/custom-json-editor.component';
+// Add new languages
 import 'survey-core/i18n/french';
+import 'survey-core/i18n/spanish';
 
 /**
  * FormBuilderModule is a class used to manage all the modules and components
