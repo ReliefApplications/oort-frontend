@@ -48,6 +48,8 @@ export class UsersFilterComponent
   @Input() loading = false;
   /** Roles list */
   @Input() roles: Role[] = [];
+  /** Country choices list */
+  @Input() countries: { value: string; text: string }[] = [];
   /** Event emitted when the user clicks on the filter button */
   @Output() filter = new EventEmitter<any>();
   /** Reference to expanded filter template */
@@ -57,6 +59,7 @@ export class UsersFilterComponent
   /** Form */
   public form = this.fb.group({
     role: [null],
+    country: [null],
   });
   /** Show expanded filter */
   public show = false;
@@ -103,6 +106,13 @@ export class UsersFilterComponent
         field: 'roles',
         operator: 'contains',
         value: [value.role],
+      });
+    }
+    if (value.country) {
+      filters.push({
+        field: 'attributes.country',
+        operator: 'eq',
+        value: value.country,
       });
     }
     const filter = {

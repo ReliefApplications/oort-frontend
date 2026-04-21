@@ -29,15 +29,15 @@ describe('ContextDatasourceComponent', () => {
         TranslateService,
         {
           provide: DIALOG_DATA,
-          useValue: {}
+          useValue: {},
         },
         {
           provide: DialogRef,
           useValue: {
             updateSize: jest.fn(),
-          }
-        }
-      ]
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ContextDatasourceComponent);

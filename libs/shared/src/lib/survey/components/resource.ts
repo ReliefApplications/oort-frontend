@@ -210,7 +210,26 @@ export const init = (
             (question.autoSelectOnlyOption && choices.length === 1)
           ) {
             setTimeout(() => {
-              question.value = question.value ?? choices[0].value;
+              if (!question.value) {
+                // If the question has a defaultValueExpression, try to use it
+                // This handles the case where a trigger cleared the value
+                // (e.g. country change trigger) but the default expression
+                // still points to a valid choice (e.g. from URL params)
+                if (question.defaultValueExpression) {
+                  const survey = question.survey as SurveyModel;
+                  const defaultValue = survey.runExpression(
+                    question.defaultValueExpression
+                  );
+                  if (
+                    defaultValue &&
+                    choices.some((c: any) => c.value === defaultValue)
+                  ) {
+                    question.value = defaultValue;
+                    return;
+                  }
+                }
+                question.value = choices[0].value;
+              }
             }, 500);
           }
 

@@ -188,6 +188,8 @@ export class FormModalComponent
   protected commentsLoaded = new EventEmitter();
   /** isSaveAndSubmitEnabled state */
   public isSaveAndSubmitEnabled = false;
+  /** Controls whether a successful regular save should close the modal */
+  private closeAfterRegularSave = true;
   /** Auto save interval */
   private autoSaveInterval?: Subscription;
   /** Stringified version of last saved survey data for autosave comparison */
@@ -608,9 +610,24 @@ export class FormModalComponent
   }
 
   /**
-   * Calls the complete method of the survey if no error (original submit for backward compatibility)
+   * Saves the form while keeping the modal open when using the regular save flow.
    */
-  public submit(): void {
+  public save(): void {
+    if (this.survey.enableSaveAndSubmit) {
+      this.survey.tryComplete();
+      return;
+    }
+
+    this.submit(false);
+  }
+
+  /**
+   * Calls the complete method of the survey if no error (original submit for backward compatibility)
+   *
+   * @param closeAfterSave whether the modal should close after a successful regular save
+   */
+  public submit(closeAfterSave = true): void {
+    this.closeAfterRegularSave = closeAfterSave;
     this.formHelpersService.validateAndSubmit(
       this.survey,
       {
@@ -969,7 +986,7 @@ export class FormModalComponent
             })
           );
           // Form doesn't use Save and Submit feature, close the dialog
-          if (!this.survey.enableSaveAndSubmit) {
+          if (!this.survey.enableSaveAndSubmit && this.closeAfterRegularSave) {
             this.closeDialog({
               template: this.form?.id,
               data: data[responseType],

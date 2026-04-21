@@ -446,6 +446,17 @@ const initChoices = (
           options.question === question &&
           options.columnName === foreignColName
         ) {
+          const targetColName = column.name;
+          if (options.row && !isNil(options.row.value[targetColName])) {
+            options.row.value[targetColName] = null;
+
+            // Update the cell question if it exists
+            const cellKey = `${options.row.rowName}:${targetColName}`;
+            const matrixCell = question.cells?.get(cellKey);
+            if (matrixCell && matrixCell.question) {
+              matrixCell.question.value = null;
+            }
+          }
           updateChoices(referenceDataService, question, column);
         }
       });

@@ -1,6 +1,7 @@
 {
+  "endOfLine": "auto",
+  "plugins": ["prettier-plugin-sort-json"],
   "singleQuote": true,
-  "useTabs": false,
   "tabWidth": 2,
-  "endOfLine": "auto"
+  "useTabs": false
 }

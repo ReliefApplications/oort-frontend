@@ -1,8 +1,10 @@
 {
-  "name": "back-office-e2e",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/back-office-e2e/src",
+  "implicitDependencies": ["back-office"],
+  "name": "back-office-e2e",
   "projectType": "application",
+  "sourceRoot": "apps/back-office-e2e/src",
+  "tags": [],
   "targets": {
     "e2e": {
       "executor": "@nrwl/cypress:cypress",
@@ -24,7 +26,5 @@
         "lintFilePatterns": ["apps/back-office-e2e/**/*.{js,ts}"]
       }
     }
-  },
-  "tags": [],
-  "implicitDependencies": ["back-office"]
+  }
 }

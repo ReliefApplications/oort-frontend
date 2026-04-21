@@ -40,11 +40,7 @@
       "none": "No archived items",
       "restore": "Restore"
     },
-    "ariaLabel": {
-      "search": {
-        "clear": "Clear search"
-      }
-    },
+    "ariaLabel": { "search": { "clear": "Clear search" } },
     "asc": "Ascending",
     "attribute": {
       "few": "Attributes",
@@ -60,23 +56,12 @@
       "one": "calculated Field"
     },
     "cancel": "Cancel",
-    "channel": {
-      "few": "Channels",
-      "none": "No channel",
-      "one": "Channel"
-    },
-    "child": {
-      "edit": "Edit child",
-      "one": "Child"
-    },
+    "channel": { "few": "Channels", "none": "No channel", "one": "Channel" },
+    "child": { "edit": "Edit child", "one": "Child" },
     "clear": "Clear",
     "close": "Close",
     "collaboration": "Comments",
-    "column": {
-      "few": "Columns",
-      "none": "No column",
-      "one": "Column"
-    },
+    "column": { "few": "Columns", "none": "No column", "one": "Column" },
     "comma": "comma",
     "copy": "Copy",
     "create": "Create",
@@ -87,10 +72,7 @@
       "daily": "Daily",
       "day": "Day",
       "days": "Day(s)",
-      "every": {
-        "feminine": "Every",
-        "masculine": "Every"
-      },
+      "every": { "feminine": "Every", "masculine": "Every" },
       "firstWeekDay": "First week day",
       "hourly": "Hourly",
       "hours": "Hour(s)",
@@ -116,13 +98,8 @@
       },
       "of": "of",
       "ofEvery": "of every",
-      "onThe": {
-        "feminine": "On the",
-        "masculine": "On the"
-      },
-      "question": {
-        "one": "Question"
-      },
+      "onThe": { "feminine": "On the", "masculine": "On the" },
+      "question": { "one": "Question" },
       "seconds": "Second(s)",
       "week": "Week",
       "weekDay": "Week Day (MON-FRI)",
@@ -229,11 +206,7 @@
     "downloadTemplate": "Get template",
     "duplicate": "Duplicate",
     "edit": "Edit",
-    "email": {
-      "few": "Emails",
-      "none": "No email",
-      "one": "Email"
-    },
+    "email": { "few": "Emails", "none": "No email", "one": "Email" },
     "errors": {
       "few": "Errors",
       "invalidJson": "Please provide a valid JSON",
@@ -243,11 +216,7 @@
     "export": "Export",
     "exportObject": "Export {{name}}",
     "false": "False",
-    "field": {
-      "few": "Fields",
-      "none": "No field",
-      "one": "Field"
-    },
+    "field": { "few": "Fields", "none": "No field", "one": "Field" },
     "filter": {
       "apply": "Apply",
       "clear": "Clear Filter",
@@ -258,17 +227,9 @@
       "one": "Filter",
       "show": "Show Filter"
     },
-    "form": {
-      "few": "Forms",
-      "none": "No form",
-      "one": "Form"
-    },
+    "form": { "few": "Forms", "none": "No form", "one": "Form" },
     "general": "General",
-    "group": {
-      "few": "Groups",
-      "none": "No groups",
-      "one": "Group"
-    },
+    "group": { "few": "Groups", "none": "No groups", "one": "Group" },
     "hide": "Hide",
     "history": "History",
     "id": "Id",
@@ -278,15 +239,8 @@
       "rawJson": "Raw JSON"
     },
     "label": "Label",
-    "layers": {
-      "few": "Layers",
-      "none": "No layer"
-    },
-    "layout": {
-      "few": "Layouts",
-      "none": "No layout",
-      "one": "Layout"
-    },
+    "layers": { "few": "Layers", "none": "No layer" },
+    "layout": { "few": "Layouts", "none": "No layout", "one": "Layout" },
     "loading": "Loading",
     "modifiedOn": "Modified On",
     "name": "Name",
@@ -364,11 +318,7 @@
     "openFullScreen": "Open in Full Screen",
     "options": "Options",
     "or": "Or",
-    "page": {
-      "few": "Pages",
-      "none": "No page",
-      "one": "Page"
-    },
+    "page": { "few": "Pages", "none": "No page", "one": "Page" },
     "pagination": {
       "empty": "No result",
       "itemsPerPage": "Items per page",
@@ -382,9 +332,7 @@
       "search": "Search...",
       "title": "Enter a title"
     },
-    "platform": {
-      "backOffice": "Back-Office"
-    },
+    "platform": { "backOffice": "Back-Office" },
     "position": {
       "bottomleft": "Bottom left",
       "bottomright": "Bottom right",
@@ -404,16 +352,8 @@
     "preview": "Preview",
     "previous": "Previous",
     "publish": "Publish",
-    "pullJob": {
-      "few": "Pull jobs",
-      "none": "No pull job",
-      "one": "Pull job"
-    },
-    "record": {
-      "few": "Records",
-      "none": "No record",
-      "one": "Record"
-    },
+    "pullJob": { "few": "Pull jobs", "none": "No pull job", "one": "Pull job" },
+    "record": { "few": "Records", "none": "No record", "one": "Record" },
     "referenceData": {
       "few": "Reference Data",
       "none": "No Reference Data",
@@ -425,11 +365,7 @@
       "none": "No resource",
       "one": "Resource"
     },
-    "role": {
-      "few": "Roles",
-      "none": "No role",
-      "one": "Role"
-    },
+    "role": { "few": "Roles", "none": "No role", "one": "Role" },
     "row": {
       "few": "Rows",
       "none": "No row",
@@ -459,11 +395,7 @@
     "status_active": "Active",
     "status_archived": "Archived",
     "status_pending": "Pending",
-    "step": {
-      "few": "Steps",
-      "none": "No step",
-      "one": "Step"
-    },
+    "step": { "few": "Steps", "none": "No step", "one": "Step" },
     "subscription": {
       "few": "Subscriptions",
       "none": "No subscription",
@@ -478,41 +410,19 @@
     "title": "Title",
     "tooltip": {
       "dragDrop": "Drag and drop to reorder",
-      "editor": {
-        "insert": "Type '{' to inject expressions and variables"
-      }
+      "editor": { "insert": "Type '{' to inject expressions and variables" }
     },
-    "trigger": {
-      "few": "Triggers",
-      "none": "No triggers",
-      "one": "Trigger"
-    },
+    "trigger": { "few": "Triggers", "none": "No triggers", "one": "Trigger" },
     "true": "True",
-    "type": {
-      "few": "Types",
-      "none": "No type",
-      "one": "Type"
-    },
+    "type": { "few": "Types", "none": "No type", "one": "Type" },
     "update": "Update",
     "updateObject": "Update {{name}}",
     "uploadObject": "Upload {{name}}",
-    "user": {
-      "few": "Users",
-      "none": "No user",
-      "one": "User"
-    },
-    "value": {
-      "few": "Values",
-      "none": "No value",
-      "one": "Value"
-    },
+    "user": { "few": "Users", "none": "No user", "one": "User" },
+    "value": { "few": "Values", "none": "No value", "one": "Value" },
     "viewFullscreen": "View Fullscreen",
     "viewObject": "View {{name}}",
-    "workflow": {
-      "few": "Workflows",
-      "none": "No workflow",
-      "one": "Workflow"
-    }
+    "workflow": { "few": "Workflows", "none": "No workflow", "one": "Workflow" }
   },
   "components": {
     "access": {
@@ -531,9 +441,7 @@
         "select": "Select an aggregation",
         "title": "Add new aggregation"
       },
-      "edit": {
-        "title": "Aggregation configuration"
-      }
+      "edit": { "title": "Aggregation configuration" }
     },
     "aggregationBuilder": {
       "accumulators": "Accumulators",
@@ -541,9 +449,7 @@
       "addRule": "Add rule",
       "addStage": "Add stage",
       "copyFrom": "Copy labels from",
-      "dataset": {
-        "select": "Select the data source"
-      },
+      "dataset": { "select": "Select the data source" },
       "fieldName": "Field name",
       "groupBy": "Group by",
       "groupingRules": "Grouping rules",
@@ -568,10 +474,7 @@
         "week": "Week",
         "year": "Year"
       },
-      "preview": {
-        "hide": "Hide preview",
-        "show": "Show preview"
-      },
+      "preview": { "hide": "Hide preview", "show": "Show preview" },
       "sourceFields": "Select fields",
       "stages": {
         "addFields": "Add fields",
@@ -608,9 +511,7 @@
         "confirmationMessage": "Do you confirm the deletion of the API Configuration {{name}}?",
         "title": "Delete API configuration"
       },
-      "paginator": {
-        "ariaLabel": "Select page of API configurations"
-      }
+      "paginator": { "ariaLabel": "Select page of API configurations" }
     },
     "application": {
       "archive": {
@@ -687,9 +588,7 @@
           "actions": "Actions",
           "goNextStepOnSave": "Go to next step on save",
           "selectIcon": "Select an icon",
-          "tooltip": {
-            "autoSave": "Changes are automatically saved"
-          }
+          "tooltip": { "autoSave": "Changes are automatically saved" }
         },
         "show": "Make page visible in nav bar for end-users"
       },
@@ -705,18 +604,10 @@
       },
       "subscription": {
         "modal": {
-          "hint": {
-            "listenTo": "Message broker routing key"
-          },
+          "hint": { "listenTo": "Message broker routing key" },
           "listenTo": "Listen to",
-          "placeholder": {
-            "listenTo": "Select a routing key"
-          },
-          "routingKey": {
-            "clear": {
-              "ariaLabel": "Clear routing key"
-            }
-          }
+          "placeholder": { "listenTo": "Select a routing key" },
+          "routingKey": { "clear": { "ariaLabel": "Clear routing key" } }
         }
       },
       "unlock": {
@@ -740,12 +631,8 @@
       }
     },
     "applications": {
-      "dropdown": {
-        "select": "From applications"
-      },
-      "paginator": {
-        "ariaLabel": "Select page of applications"
-      }
+      "dropdown": { "select": "From applications" },
+      "paginator": { "ariaLabel": "Select page of applications" }
     },
     "calculatedFields": {
       "add": "Create a new Calculated field",
@@ -762,9 +649,7 @@
       "delete": {
         "confirmationMessage": "Do you confirm the deletion of the channel {{name}}?"
       },
-      "dropdown": {
-        "select": "Notify on"
-      },
+      "dropdown": { "select": "Notify on" },
       "selectChannel": "Select a channel"
     },
     "confirmModal": {
@@ -791,9 +676,7 @@
         "email": "Please input a valid email address",
         "schedule": "Enter a valid cron expression"
       },
-      "hint": {
-        "schedule": "Enter schedule for notification sending"
-      }
+      "hint": { "schedule": "Enter schedule for notification sending" }
     },
     "distributionLists": {
       "delete": {
@@ -809,9 +692,7 @@
           "pattern": "Please only provide valid emails",
           "required": "Please provide one or more emails"
         },
-        "name": {
-          "required": "Please provide a name"
-        }
+        "name": { "required": "Please provide a name" }
       }
     },
     "emailBuilder": {
@@ -850,9 +731,7 @@
           "template": "Start from existing template"
         },
         "kobo": {
-          "apiConfiguration": {
-            "placeholder": "Select an api configuration"
-          },
+          "apiConfiguration": { "placeholder": "Select an api configuration" },
           "data": {
             "fromFormWithVersion": "Form \"{{formName}}\" was imported with version ID <i>{{versionID}}</i>.<br>Specify the frequency entries should be fetched from KoboToolbox below or press the button to import now.",
             "nothingToFetch": "No new entries found",
@@ -918,9 +797,7 @@
         "delete": {
           "confirmationMessage": "Do you confirm the deletion of the layout {{name}}?"
         },
-        "errors": {
-          "invalid": "The form is not valid"
-        },
+        "errors": { "invalid": "The form is not valid" },
         "update": {
           "preview": {
             "description": "Reorder, sort, filter and hide columns to edit default display of the layout"
@@ -938,10 +815,7 @@
         "openRecordTooltip": "Open record"
       },
       "summary": {
-        "cache": {
-          "clear": "Clear cache",
-          "load": "Load from cache {{date}}"
-        },
+        "cache": { "clear": "Clear cache", "load": "Load from cache {{date}}" },
         "createdBy": "Created by {{user}} at {{date}}",
         "modifiedBy": "Last modified by {{user}} on {{date}}"
       },
@@ -980,15 +854,11 @@
     },
     "forms": {
       "isCore": "Is core",
-      "paginator": {
-        "ariaLabel": "Select page of forms"
-      },
+      "paginator": { "ariaLabel": "Select page of forms" },
       "parent": "Parent form"
     },
     "group": {
-      "add": {
-        "title": "Add new group"
-      },
+      "add": { "title": "Add new group" },
       "delete": {
         "confirmationMessage": "Do you confirm the deletion of the group {{name}}?",
         "title": "Delete group"
@@ -998,10 +868,7 @@
       "goToApp": "Go to application",
       "goToPlatform": "Navigate to",
       "logout": "Logout",
-      "sidenav": {
-        "collapse": "Collapse sidebar",
-        "show": "Show sidebar"
-      }
+      "sidenav": { "collapse": "Collapse sidebar", "show": "Show sidebar" }
     },
     "history": {
       "changes": {
@@ -1023,22 +890,12 @@
       },
       "download": "Download history",
       "empty": "No activity detected",
-      "field": {
-        "all": "All fields",
-        "select": "Select fields"
-      },
+      "field": { "all": "All fields", "select": "Select fields" },
       "preview": "Preview and revert",
-      "range": {
-        "clear": "Clear range"
-      },
+      "range": { "clear": "Clear range" },
       "useTableMode": "Use table mode"
     },
-    "icon": {
-      "modal": {
-        "select": "Select an icon",
-        "use": "Use icon"
-      }
-    },
+    "icon": { "modal": { "select": "Select an icon", "use": "Use icon" } },
     "logout": {
       "confirmationMessage": "There are unsaved changes on your form. Are you sure you want to logout?",
       "title": "Exit without saving changes"
@@ -1053,10 +910,7 @@
           },
           "output": "Select an output format",
           "selectLayers": "Select layers",
-          "view": {
-            "all": "Map",
-            "current": "Current view"
-          }
+          "view": { "all": "Map", "current": "Current view" }
         },
         "timeline": {
           "show": "Show timeline",
@@ -1081,9 +935,7 @@
       "markAsRead": "Mark as read",
       "noRecord": "No record to be redirected",
       "noRedirect": "Can't redirect. Missing information.",
-      "paginator": {
-        "ariaLabel": "Select page of notifications"
-      },
+      "paginator": { "ariaLabel": "Select page of notifications" },
       "readAll": "Mark all as read",
       "title": "Notifications"
     },
@@ -1105,9 +957,7 @@
       },
       "modal": {
         "addMappingField": "add a mapping field",
-        "errors": {
-          "schedule": "Enter a valid cron expression"
-        },
+        "errors": { "schedule": "Enter a valid cron expression" },
         "hint": {
           "path": "Enter the path to extract data from response",
           "schedule": "Enter the schedule time for this Pull job",
@@ -1122,18 +972,12 @@
         },
         "switch": "Switch mode"
       },
-      "paginator": {
-        "ariaLabel": "Select page of pull jobs"
-      }
+      "paginator": { "ariaLabel": "Select page of pull jobs" }
     },
     "queryBuilder": {
-      "dataset": {
-        "select": "Select a dataset"
-      },
+      "dataset": { "select": "Select a dataset" },
       "errors": {
-        "field": {
-          "invalid": "Invalid field. Please click to remove."
-        }
+        "field": { "invalid": "Invalid field. Please click to remove." }
       },
       "fields": {
         "available": "Available fields",
@@ -1164,13 +1008,8 @@
         "sortingDisabled": "Sorting fields is disabled when search is active",
         "style": "Styling rules make records with important information stand out. When a record matches more than one rule, the first rule is used."
       },
-      "label": {
-        "field": "Field"
-      },
-      "pagination": {
-        "first": "Limit",
-        "title": "Pagination"
-      },
+      "label": { "field": "Field" },
+      "pagination": { "first": "Limit", "title": "Pagination" },
       "sort": {
         "ascending": "Ascending",
         "descending": "Descending",
@@ -1186,17 +1025,12 @@
         "and": "And",
         "edit": {
           "appliesTo": "Apply style to",
-          "background": {
-            "color": "Background color"
-          },
+          "background": { "color": "Background color" },
           "criteria": "Rule criteria",
           "fields": "Fields",
           "name": "Rule name",
           "selectedColumns": "Only selected columns",
-          "text": {
-            "color": "Text color",
-            "style": "Text style"
-          },
+          "text": { "color": "Text color", "style": "Text style" },
           "wholeRow": "Whole row"
         },
         "logic": "Style filter",
@@ -1237,15 +1071,10 @@
         "confirmationMessage": "Do you confirm the deletion of the record {{name}}?",
         "permanently": "Delete permanently"
       },
-      "dropdown": {
-        "select": "Select record"
-      },
+      "dropdown": { "select": "Select record" },
       "history": {
         "revert": "Revert to past record",
-        "version": {
-          "current": "Current version",
-          "old": "Past version"
-        }
+        "version": { "current": "Current version", "old": "Past version" }
       },
       "modal": {
         "closeConfirmation": "Close without saving changes?",
@@ -1267,9 +1096,7 @@
       "active": "Active records",
       "archived": "Archived records",
       "editAs": "Edit as",
-      "paginator": {
-        "ariaLabel": "Select page of records"
-      },
+      "paginator": { "ariaLabel": "Select page of records" },
       "showActive": "Show active records",
       "showArchived": "Show archived records",
       "upload": {
@@ -1277,32 +1104,24 @@
       }
     },
     "referenceData": {
-      "create": {
-        "title": "New Reference Data"
-      },
+      "create": { "title": "New Reference Data" },
       "delete": {
         "confirmationMessage": "Do you confirm the deletion of Reference Data {{name}}?",
         "title": "Delete Reference Data"
       },
-      "dropdown": {
-        "select": "From Reference data"
-      },
+      "dropdown": { "select": "From Reference data" },
       "fields": {
         "add": "Add field",
         "ariaLabel": "Input available fields of reference data",
         "new": "New field"
       },
-      "paginator": {
-        "ariaLabel": "Select page of reference data"
-      }
+      "paginator": { "ariaLabel": "Select page of reference data" }
     },
     "resource": {
       "delete": {
         "confirmationMessage": "Do you confirm the deletion of the resource {{name}}?"
       },
-      "dropdown": {
-        "select": "From resource"
-      },
+      "dropdown": { "select": "From resource" },
       "empty": {
         "aggregations": "No aggregation detected",
         "calculatedFields": "No calculated fields detected",
@@ -1323,21 +1142,15 @@
         "updateError": "Error updating resource incremental id shape: {{error}}",
         "updateSuccess": "Incremental id shape of resource '{{resource}}' updated successfully!"
       },
-      "paginator": {
-        "ariaLabel": "Select page of resources"
-      }
+      "paginator": { "ariaLabel": "Select page of resources" }
     },
     "role": {
-      "add": {
-        "title": "Add new role"
-      },
+      "add": { "title": "Add new role" },
       "delete": {
         "confirmationMessage": "Do you confirm the deletion of the role {{name}}?",
         "title": "Delete role"
       },
-      "impersonate": {
-        "title": "Choose role to simulate"
-      },
+      "impersonate": { "title": "Choose role to simulate" },
       "summary": {
         "addFilter": "Add filter",
         "autoAssignment": {
@@ -1408,10 +1221,7 @@
       }
     },
     "share": {
-      "modal": {
-        "copy": "Copy to clipboard",
-        "title": "Share dashboard url"
-      }
+      "modal": { "copy": "Copy to clipboard", "title": "Share dashboard url" }
     },
     "templates": {
       "available": "Available email templates",
@@ -1425,12 +1235,8 @@
         "subject": "Subject",
         "update": "Edit notification template"
       },
-      "errors": {
-        "empty": "Please select one or more templates"
-      },
-      "select": {
-        "email": "Select an email template"
-      },
+      "errors": { "empty": "Please select one or more templates" },
+      "select": { "email": "Select an email template" },
       "type": {
         "email": "Email",
         "notification": "Notification",
@@ -1499,9 +1305,7 @@
         },
         "title": "Summary"
       },
-      "update": {
-        "title": "Update user"
-      }
+      "update": { "title": "Update user" }
     },
     "users": {
       "invite": {
@@ -1525,27 +1329,15 @@
         "plural": "Users were not invited. {{error}}",
         "singular": "User was not invited. {{error}}"
       },
-      "paginator": {
-        "ariaLabel": "Select page of users"
-      }
+      "paginator": { "ariaLabel": "Select page of users" }
     },
     "widget": {
       "chart": {
-        "errors": {
-          "aggregation": {
-            "invalid": "Invalid aggregation"
-          }
-        },
-        "filters": {
-          "select": "Select a filter..."
-        },
+        "errors": { "aggregation": { "invalid": "Invalid aggregation" } },
+        "filters": { "select": "Select a filter..." },
         "other": "Other"
       },
-      "display": {
-        "tooltip": {
-          "placeholder": "Enter a value for tooltip"
-        }
-      },
+      "display": { "tooltip": { "placeholder": "Enter a value for tooltip" } },
       "expand": "Expand",
       "form": {
         "addNewMapping": "Add mapping",
@@ -1622,13 +1414,9 @@
             "title": "Send me the file by email",
             "tooltip": "If checked, instead of waiting for the export to be fully built before downloading it, you will receive an email with the export attached once it's ready."
           },
-          "format": {
-            "title": "Select export format"
-          }
+          "format": { "title": "Select export format" }
         },
-        "filter": {
-          "toggle": "Toggle visibility of filter"
-        },
+        "filter": { "toggle": "Toggle visibility of filter" },
         "item": {
           "few": "{{count}} items",
           "none": "No item",
@@ -1685,12 +1473,8 @@
               }
             },
             "title": "Gridlines",
-            "x": {
-              "display": "Display horizontal gridlines"
-            },
-            "y": {
-              "display": "Display vertical gridlines"
-            }
+            "x": { "display": "Display horizontal gridlines" },
+            "y": { "display": "Display vertical gridlines" }
           },
           "hideLegend": "Hide legend",
           "labels": {
@@ -1731,10 +1515,7 @@
           "stepSize": "Step size",
           "style": "Style",
           "text": "Text",
-          "title": {
-            "color": "Title color",
-            "format": "Title format"
-          },
+          "title": { "color": "Title color", "format": "Title format" },
           "tooltip": {
             "palette": "Palette provides default colors to chart elements if not manually set.",
             "stepSize": "Interval between each tick mark on the chart's axis, when possible"
@@ -1746,10 +1527,7 @@
         "close": {
           "confirmationMessage": "Some changes will be lost when closing edition. Do you want to continue?"
         },
-        "editor": {
-          "recordSelection": "Record selection",
-          "title": "Editor"
-        },
+        "editor": { "recordSelection": "Record selection", "title": "Editor" },
         "grid": {
           "actions": {
             "actionsAsIcons": "Display actions as icons",
@@ -1769,10 +1547,7 @@
               "label": "Delete button label",
               "text": "Delete records"
             },
-            "details": {
-              "label": "Details button label",
-              "text": "Details"
-            },
+            "details": { "label": "Details button label", "text": "Details" },
             "export": "Export records",
             "goTo": {
               "column": {
@@ -1796,9 +1571,7 @@
                 "label": "Target page",
                 "placeholder": "Select a page"
               },
-              "urlParams": {
-                "label": "URL params"
-              }
+              "urlParams": { "label": "URL params" }
             },
             "inline": "Inline edition",
             "mapSelected": "Map selected rows to state",
@@ -1827,11 +1600,7 @@
             "useRecordId": "Pass id as query parameter"
           },
           "aggregations": {
-            "add": {
-              "choice": {
-                "create": "Create a new aggregation"
-              }
-            },
+            "add": { "choice": { "create": "Create a new aggregation" } },
             "title": "Grid aggregations"
           },
           "buttons": {
@@ -1842,9 +1611,7 @@
               "modify": "Auto-modify selected rows",
               "modifyField": "Field to update",
               "modifyValue": "Value to attribute",
-              "notify": {
-                "message": "Notification message"
-              },
+              "notify": { "message": "Notification message" },
               "prefill": "Pre-fill form with selected data",
               "save": "Auto-save",
               "selectAllRecords": "Select all records",
@@ -1874,9 +1641,7 @@
               "title": "Inline",
               "tooltip": "When enabled, the button will be displayed in each row of the grid instead of the widget's header"
             },
-            "placeholder": {
-              "modifyValue": "Set as null"
-            },
+            "placeholder": { "modifyValue": "Set as null" },
             "requireConfirmation": "Require confirmation",
             "title": "Quick action buttons",
             "tooltip": {
@@ -1933,9 +1698,7 @@
               },
               "title": "Add new layout"
             },
-            "edit": {
-              "title": "Layout configuration"
-            },
+            "edit": { "title": "Layout configuration" },
             "select": "Select a layout",
             "title": "Grid layouts"
           },
@@ -1978,9 +1741,7 @@
               "sizeRange": "Size range",
               "symbol": "Symbol style"
             },
-            "datasource": {
-              "origin": "Origin"
-            },
+            "datasource": { "origin": "Origin" },
             "fields": "Fields",
             "filter": "Filter",
             "groupLayers": "Group layers",
@@ -2089,9 +1850,7 @@
             },
             "remove": "Remove layer",
             "selectLayer": "Select existing layer",
-            "styling": {
-              "style": "Style"
-            },
+            "styling": { "style": "Style" },
             "types": {
               "cluster": "cluster",
               "heatmap": "heatmap",
@@ -2100,11 +1859,7 @@
               "shapefile": "Shapefile"
             }
           },
-          "legend": {
-            "high": "High",
-            "low": "Low",
-            "title": "Legend"
-          },
+          "legend": { "high": "High", "low": "Low", "title": "Legend" },
           "popup": {
             "label": "Fields displayed in the popup",
             "location": "Location",
@@ -2161,9 +1916,7 @@
             "geographicExtent": "You can input a static value, or use {{context}} or {{filter}} notation to dynamically inject a value"
           }
         },
-        "style": {
-          "customStyling": "Custom Styling"
-        },
+        "style": { "customStyling": "Custom Styling" },
         "summaryCard": {
           "add": "Add new card",
           "card": {
@@ -2199,17 +1952,13 @@
               "title": "Grid actions",
               "tooltip": "Enabled grid actions"
             },
-            "preview": {
-              "title": "Preview"
-            },
+            "preview": { "title": "Preview" },
             "textEditor": {
               "alert": "You can add variables e.g: {{data.variable}} and calculate e.g: {{calc.round( value ; precision )}}",
               "title": "Text editor"
             },
             "title": "Card settings",
-            "valueSelector": {
-              "title": "Value selector"
-            }
+            "valueSelector": { "title": "Value selector" }
           },
           "create": {
             "choice": {
@@ -2228,15 +1977,10 @@
             "pagination": "Use pagination",
             "title": "Trigger for loading more data"
           },
-          "options": {
-            "ariaLabel": "Select an option"
-          },
+          "options": { "ariaLabel": "Select an option" },
           "static": "Static"
         },
-        "tabs": {
-          "addNewTab": "Add a new tab",
-          "deleteTab": "Delete tab"
-        }
+        "tabs": { "addNewTab": "Add a new tab", "deleteTab": "Delete tab" }
       },
       "styling": "Edit styling",
       "summaryCard": {
@@ -2463,9 +2207,7 @@
     "application": {
       "description": "Description",
       "errors": {
-        "style": {
-          "notFound": "Unable to load application's style"
-        }
+        "style": { "notFound": "Unable to load application's style" }
       },
       "id": "Application ID",
       "new": "New application",
@@ -2475,18 +2217,14 @@
         "updated": "Application updated."
       },
       "setAsFavorite": "Set as favorite",
-      "subscription": {
-        "create": "Create a subscription"
-      }
+      "subscription": { "create": "Create a subscription" }
     },
     "channel": {
       "create": "Create a channel",
       "edit": "Edit channel",
       "new": "New channel"
     },
-    "comment": {
-      "write": "Write a comment..."
-    },
+    "comment": { "write": "Write a comment..." },
     "customNotification": {
       "lastExecution": "Last execution",
       "schedule": "Schedule",
@@ -2528,9 +2266,7 @@
           "templateCreated": "New template created"
         },
         "origin": "Context origin",
-        "refData": {
-          "element": "Element"
-        },
+        "refData": { "element": "Element" },
         "selectDisplayField": "Select display field",
         "selectOrigin": "Select context origin",
         "title": "Context",
@@ -2603,10 +2339,7 @@
       "fetch": "Fetch groups from service",
       "title": "Title"
     },
-    "mapping": {
-      "add": "Add a Mapping",
-      "edit": "Edit a Mapping"
-    },
+    "mapping": { "add": "Add a Mapping", "edit": "Edit a Mapping" },
     "page": {
       "add": "Add a Page",
       "tooltip": {
@@ -2652,13 +2385,8 @@
       "description": "Description",
       "title": "Title"
     },
-    "step": {
-      "new": "New step"
-    },
-    "subscription": {
-      "edit": "Edit subscription",
-      "new": "New subscription"
-    },
+    "step": { "new": "New step" },
+    "subscription": { "edit": "Edit subscription", "new": "New subscription" },
     "user": {
       "firstName": "First name",
       "lastName": "Last name",
@@ -2670,9 +2398,7 @@
     },
     "widget": {
       "add": "Add a Widget",
-      "chart": {
-        "defaultTitle": "Chart Widget"
-      },
+      "chart": { "defaultTitle": "Chart Widget" },
       "delete": {
         "confirmationMessage": "Do you confirm the deletion of the widget?",
         "title": "Delete Widget"
@@ -2731,9 +2457,7 @@
     }
   },
   "pages": {
-    "administration": {
-      "title": "Administration"
-    },
+    "administration": { "title": "Administration" },
     "aggregation": {
       "preview": {
         "label": "Aggregation data preview",
@@ -2773,17 +2497,11 @@
       "tokenPrefix": "Token prefix",
       "tokenUrl": "Access token URL"
     },
-    "apiConfigurations": {
-      "create": "Create an API Configuration"
-    },
-    "appBuilder": {
-      "title": "Site builder"
-    },
+    "apiConfigurations": { "create": "Create an API Configuration" },
+    "appBuilder": { "title": "Site builder" },
     "application": {
       "addPage": {
-        "form": {
-          "title": "Available forms"
-        },
+        "form": { "title": "Available forms" },
         "selectType": "Select which type of page you want to create",
         "startFromWidget": "Start from a widget"
       },
@@ -2796,9 +2514,7 @@
         "create": "Create a position category",
         "title": "Attributes"
       },
-      "settings": {
-        "actions": "Actions"
-      }
+      "settings": { "actions": "Actions" }
     },
     "applications": {
       "all": "All applications",
@@ -2825,31 +2541,20 @@
         "selectApplication": "Missing value application for an element on page {{page}}. Please select at least one application in properties of {{question}} to save the form.",
         "snakecase": "The value name {{name}} on page {{page}} is invalid. Please conform to snake_case."
       },
-      "move": {
-        "down": "Move down",
-        "up": "Move up"
-      },
-      "questionsCategories": {
-        "core": "Question Library"
-      },
+      "move": { "down": "Move down", "up": "Move up" },
+      "questionsCategories": { "core": "Question Library" },
       "title": "Advanced settings"
     },
-    "forms": {
-      "title": "Available forms"
-    },
+    "forms": { "title": "Available forms" },
     "profile": {
       "notifications": {
         "notUpdated": "Error on saving preferences.",
         "updated": "Preferences saved."
       },
-      "password": {
-        "change": "Change password"
-      },
+      "password": { "change": "Change password" },
       "title": "My profile"
     },
-    "pullJobs": {
-      "create": "Create a pull job"
-    },
+    "pullJobs": { "create": "Create a pull job" },
     "referenceData": {
       "csv": "CSV input",
       "fields": {
@@ -2873,14 +2578,8 @@
           "text": "Use pagination"
         }
       },
-      "path": {
-        "placeholder": "Enter a valid JSONPath",
-        "title": "Data path"
-      },
-      "payload": {
-        "label": "Payload",
-        "show": "Show payload"
-      },
+      "path": { "placeholder": "Enter a valid JSONPath", "title": "Data path" },
+      "payload": { "label": "Payload", "show": "Show payload" },
       "placeholder": {
         "csv": "Insert CSV here",
         "graphQLFilter": "Enter a filter to be used once choices are already cached"
@@ -2911,10 +2610,7 @@
     "customFunctions": {
       "getFollowupSummary": {
         "comment": "Comment",
-        "followUp": {
-          "numbered": "Follow-up #{{number}}",
-          "one": "Follow-up"
-        },
+        "followUp": { "numbered": "Follow-up #{{number}}", "one": "Follow-up" },
         "initialInspection": "Initial inspection",
         "inspectionAction": "Inspection action"
       }

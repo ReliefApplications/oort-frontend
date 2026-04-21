@@ -65,6 +65,14 @@ export interface SubmissionStateCallbacks {
   setSubmitting: (isSubmitting: boolean) => void;
 }
 
+type TopHorizontalScrollbarMirror = {
+  update: () => void;
+};
+
+type TopHorizontalScrollbarHost = HTMLElement & {
+  __oortTopHorizontalScrollbarMirror?: TopHorizontalScrollbarMirror;
+};
+
 /**
  * Applies custom logic to survey data values.
  *
@@ -156,6 +164,258 @@ export class FormHelpersService {
     private overlay: Overlay,
     private overlayPositionBuilder: OverlayPositionBuilder
   ) {}
+
+  /**
+   * The tolerance for the horizontal scrollbar.
+   */
+  private readonly horizontalScrollTolerance = 2;
+
+  /**
+   * Adds a native mirrored top horizontal scrollbar for SurveyJS table questions.
+   * The top scrollbar is synced with the existing bottom scrollbar so it looks
+   * and behaves the same across browsers/OSes.
+   *
+   * @param e Event raised after rendering a question
+   */
+  public addMirroredTopHorizontalScrollbar(e: AfterRenderQuestionEvent): void {
+    const questionElement = e.htmlElement as TopHorizontalScrollbarHost;
+    if (!questionElement.classList.contains('sd-question--table')) {
+      return;
+    }
+
+    // SurveyJS mobile layout is stacked and should not get a mirrored bar.
+    if (questionElement.classList.contains('sd-question--mobile')) {
+      return;
+    }
+
+    const tableWrapper = questionElement.querySelector(
+      '.sd-table-wrapper'
+    ) as HTMLElement | null;
+    if (!tableWrapper) {
+      return;
+    }
+
+    const questionContent = Array.from(questionElement.children).find(
+      (child): child is HTMLElement =>
+        child instanceof HTMLElement &&
+        child.classList.contains('sd-question__content')
+    );
+    if (!questionContent) {
+      return;
+    }
+
+    if (questionElement.__oortTopHorizontalScrollbarMirror) {
+      questionElement.__oortTopHorizontalScrollbarMirror.update();
+      return;
+    }
+
+    const topScrollbar = document.createElement('div');
+    topScrollbar.classList.add('oort-horizontal-scrollbar');
+    topScrollbar.setAttribute('aria-hidden', 'true');
+
+    const topScrollbarInner = document.createElement('div');
+    topScrollbarInner.classList.add('oort-horizontal-scrollbar__inner');
+    topScrollbar.appendChild(topScrollbarInner);
+    questionElement.insertBefore(topScrollbar, questionContent);
+
+    let destroyed = false;
+    let syncingFromTop = false;
+    let syncingFromBottom = false;
+
+    const hostWindow = questionElement.ownerDocument.defaultView;
+    let resizeObserver: ResizeObserver | null = null;
+
+    const bottomScrollTargets = new Map<HTMLElement, EventListener>();
+
+    const isHorizontalScrollable = (element: HTMLElement): boolean => {
+      const style = hostWindow?.getComputedStyle(element);
+      const overflowX = style?.overflowX ?? '';
+      const canOverflow =
+        overflowX === 'auto' ||
+        overflowX === 'scroll' ||
+        overflowX === 'overlay';
+      return (
+        canOverflow &&
+        element.scrollWidth - element.clientWidth >
+          this.horizontalScrollTolerance
+      );
+    };
+
+    const getCandidateTargets = (): HTMLElement[] => {
+      const candidates = [
+        questionElement,
+        questionContent,
+        tableWrapper.parentElement,
+      ].filter(
+        (element): element is HTMLElement => element instanceof HTMLElement
+      );
+
+      return Array.from(new Set(candidates));
+    };
+
+    const getScrollableTargets = (): HTMLElement[] =>
+      getCandidateTargets().filter((element) =>
+        isHorizontalScrollable(element)
+      );
+
+    const resolveActiveScrollTarget = (): HTMLElement | null => {
+      const targets = getScrollableTargets();
+      if (!targets.length) {
+        return null;
+      }
+
+      const scrolledTarget = targets.find(
+        (target) => target.scrollLeft > this.horizontalScrollTolerance
+      );
+      if (scrolledTarget) {
+        return scrolledTarget;
+      }
+
+      return (
+        targets.sort(
+          (a, b) =>
+            b.scrollWidth - b.clientWidth - (a.scrollWidth - a.clientWidth)
+        )[0] ?? null
+      );
+    };
+
+    const alignTopScrollbarToTarget = (target: HTMLElement) => {
+      const parent = topScrollbar.parentElement ?? questionElement;
+      const parentRect = parent.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const leftOffset = targetRect.left - parentRect.left;
+
+      topScrollbar.style.width = `${target.clientWidth}px`;
+      topScrollbar.style.marginLeft = `${leftOffset}px`;
+    };
+
+    const onBottomScroll = (event: Event) => {
+      if (destroyed || syncingFromTop) {
+        return;
+      }
+      const target = event.currentTarget;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+      if (!isHorizontalScrollable(target)) {
+        return;
+      }
+
+      syncingFromBottom = true;
+      alignTopScrollbarToTarget(target);
+      if (
+        Math.abs(topScrollbar.scrollLeft - target.scrollLeft) >
+        this.horizontalScrollTolerance
+      ) {
+        topScrollbar.scrollLeft = target.scrollLeft;
+      }
+      syncingFromBottom = false;
+    };
+
+    const refreshObservedBottomTargets = () => {
+      const nextTargets = new Set(getScrollableTargets());
+
+      bottomScrollTargets.forEach((listener, target) => {
+        if (nextTargets.has(target)) {
+          return;
+        }
+        target.removeEventListener('scroll', listener);
+        bottomScrollTargets.delete(target);
+      });
+
+      nextTargets.forEach((target) => {
+        if (bottomScrollTargets.has(target)) {
+          return;
+        }
+        const listener: EventListener = (event) => onBottomScroll(event);
+        bottomScrollTargets.set(target, listener);
+        target.addEventListener('scroll', listener, { passive: true });
+      });
+    };
+
+    const update = () => {
+      if (destroyed || !questionElement.isConnected) {
+        return;
+      }
+
+      refreshObservedBottomTargets();
+      const scrollTarget = resolveActiveScrollTarget();
+      topScrollbar.classList.toggle(
+        'oort-horizontal-scrollbar--hidden',
+        !scrollTarget
+      );
+
+      if (!scrollTarget) {
+        topScrollbar.scrollLeft = 0;
+        topScrollbarInner.style.width = '0px';
+        topScrollbar.style.width = '';
+        topScrollbar.style.marginLeft = '';
+        return;
+      }
+
+      alignTopScrollbarToTarget(scrollTarget);
+      topScrollbarInner.style.width = `${scrollTarget.scrollWidth}px`;
+
+      if (
+        Math.abs(topScrollbar.scrollLeft - scrollTarget.scrollLeft) >
+        this.horizontalScrollTolerance
+      ) {
+        topScrollbar.scrollLeft = scrollTarget.scrollLeft;
+      }
+    };
+
+    const onTopScroll = () => {
+      if (destroyed || syncingFromBottom) {
+        return;
+      }
+      syncingFromTop = true;
+      getScrollableTargets().forEach((target) => {
+        target.scrollLeft = topScrollbar.scrollLeft;
+      });
+      syncingFromTop = false;
+    };
+
+    const onWindowResize = () => update();
+
+    topScrollbar.addEventListener('scroll', onTopScroll, { passive: true });
+    hostWindow?.addEventListener('resize', onWindowResize, { passive: true });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => update());
+      resizeObserver.observe(questionElement);
+      resizeObserver.observe(questionContent);
+      resizeObserver.observe(tableWrapper);
+    }
+
+    const cleanup = () => {
+      if (destroyed) {
+        return;
+      }
+      destroyed = true;
+      topScrollbar.removeEventListener('scroll', onTopScroll);
+      bottomScrollTargets.forEach((listener, target) => {
+        target.removeEventListener('scroll', listener);
+      });
+      bottomScrollTargets.clear();
+      hostWindow?.removeEventListener('resize', onWindowResize);
+      resizeObserver?.disconnect();
+      if (topScrollbar.isConnected) {
+        topScrollbar.remove();
+      }
+      delete questionElement.__oortTopHorizontalScrollbarMirror;
+    };
+
+    const surveyModel = e.question.survey as SurveyModel | undefined;
+    surveyModel?.onDispose?.add?.(cleanup);
+
+    questionElement.__oortTopHorizontalScrollbarMirror = {
+      update,
+    };
+
+    update();
+    hostWindow?.requestAnimationFrame(() => update());
+    hostWindow?.setTimeout(() => update(), 0);
+  }
 
   /**
    * Create a dialog modal to confirm the recovery of survey data

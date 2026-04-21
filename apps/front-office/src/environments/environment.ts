@@ -22,8 +22,9 @@ export const environment: Environment = {
   subscriptionApiUrl: 'ws://localhost:3000',
   frontOfficeUri: 'http://localhost:4200/',
   backOfficeUri: 'http://localhost:4200/',
-  availableLanguages: ['en', 'fr', 'test'],
+  availableLanguages: ['en', 'fr', 'es', 'test'],
   authConfig,
   theme,
+  user: { attributes: ['country'] },
   allowedAuthDomains: ['https://oort-dev.oortcloud.tech'],
 };

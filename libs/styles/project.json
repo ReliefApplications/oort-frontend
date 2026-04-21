@@ -1,9 +1,10 @@
 {
-  "name": "styles",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "styles",
+  "prefix": "styles",
   "projectType": "library",
   "sourceRoot": "libs/styles/src",
-  "prefix": "styles",
+  "tags": [],
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
@@ -26,6 +27,5 @@
         "lintFilePatterns": ["libs/styles/**/*.ts", "libs/styles/**/*.html"]
       }
     }
-  },
-  "tags": []
+  }
 }

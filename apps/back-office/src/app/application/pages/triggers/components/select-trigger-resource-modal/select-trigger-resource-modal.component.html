@@ -9,7 +9,9 @@
     <form [formGroup]="form">
       <div uiFormFieldDirective class="w-full">
         <label>{{ 'common.resource.one' | translate }}</label>
-        <shared-resource-select formControlName="resource"></shared-resource-select>
+        <shared-resource-select
+          formControlName="resource"
+        ></shared-resource-select>
       </div>
     </form>
   </ng-container>
@@ -28,4 +30,3 @@
     </ui-button>
   </ng-container>
 </ui-dialog>
-

@@ -1,9 +1,10 @@
 {
-  "name": "front-office",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "front-office",
+  "prefix": "app",
   "projectType": "application",
   "sourceRoot": "apps/front-office/src",
-  "prefix": "app",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:browser",
@@ -294,6 +295,5 @@
         "command": "node tools/scripts/set-build-version.js apps/front-office/src/environments/build-version.ts"
       }
     }
-  },
-  "tags": []
+  }
 }
