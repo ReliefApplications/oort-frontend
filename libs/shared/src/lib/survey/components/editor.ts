@@ -12,6 +12,31 @@ import { Injector } from '@angular/core';
 import { FIELD_EDITOR_CONFIG } from '../../const/tinymce.const';
 import { EditorService } from '../../services/editor/editor.service';
 import { CustomPropertyGridComponentTypes } from './utils/components.enum';
+import { RawEditorOptions } from 'tinymce';
+
+/**
+ * Parses the persisted TinyMCE config stored on a survey question.
+ *
+ * @param question SurveyJS question instance
+ * @returns TinyMCE configuration for the question
+ */
+const parseQuestionTinymceConfig = (question: Question): RawEditorOptions => {
+  const rawTinymceConfig = (question as Question & { tinymceConfig?: string })
+    .tinymceConfig;
+
+  if (!rawTinymceConfig) {
+    return cloneDeep(FIELD_EDITOR_CONFIG);
+  }
+
+  try {
+    return {
+      ...cloneDeep(FIELD_EDITOR_CONFIG),
+      ...JSON.parse(rawTinymceConfig),
+    };
+  } catch {
+    return cloneDeep(FIELD_EDITOR_CONFIG);
+  }
+};
 
 /**
  * Inits the editor component.
@@ -90,13 +115,19 @@ export const init = (
         question.survey.isDesignMode ||
         question.survey.isDisplayMode;
 
+      const isDesignMode = question.survey.isDesignMode;
+      const tinymceConfig = parseQuestionTinymceConfig(question);
+
       instance.config = {
-        ...JSON.parse(question.tinymceConfig),
+        ...tinymceConfig,
         base_url: editorService.url,
         language: editorService.language,
         ...(question.survey.isDisplayMode && {
           toolbar: false,
           menubar: false,
+        }),
+        ...(!isDesignMode && {
+          quickbars_insert_toolbar: '',
         }),
         ...(readonly && {
           editable_root: false,

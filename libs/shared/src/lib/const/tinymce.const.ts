@@ -297,7 +297,7 @@ export const FIELD_EDITOR_CONFIG: RawEditorOptions = {
     'undo redo | bold italic underline strikethrough | fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | charmap emoticons | fullscreen  preview save | insertfile media link avatar recordeditor',
   importcss_append: true,
   height: 300,
-  quickbars_insert_toolbar: 'quicktable',
+  quickbars_insert_toolbar: '',
   quickbars_selection_toolbar:
     'bold italic | quicklink h2 h3 blockquote quicktable',
   toolbar_mode: 'sliding',
