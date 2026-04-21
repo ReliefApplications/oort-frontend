@@ -33,6 +33,8 @@ export class ApplicationUsersComponent
   public positionAttributeCategories: PositionAttributeCategory[] = [];
   /** User attributes */
   public attributes: any[] = [];
+  /** Country choices for filter dropdown */
+  public countryChoices: { value: string; text: string }[] = [];
   /** Prefetch subject */
   refetch$: Subject<boolean> = new Subject<boolean>();
   /** User list component */
@@ -78,6 +80,7 @@ export class ApplicationUsersComponent
       .pipe(takeUntil(this.destroy$))
       .subscribe((data: any) => {
         this.attributes = (data || []).filter((x: any) => x.showInList);
+        this.loadAttributeChoices();
       });
   }
 
@@ -160,5 +163,21 @@ export class ApplicationUsersComponent
         .map((x) => x.id || '')
         .filter((x) => x !== '') || []
     );
+  }
+
+  /**
+   * Load reference data choices for attributes
+   */
+  private loadAttributeChoices(): void {
+    for (const attribute of this.attributes) {
+      if (attribute.value === 'country') {
+        this.restService
+          .get(`/permissions/attributes/${attribute.value}/choices`)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((choices: any) => {
+            this.countryChoices = choices;
+          });
+      }
+    }
   }
 }
