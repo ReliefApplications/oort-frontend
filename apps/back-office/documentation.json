@@ -1,100 +1,5 @@
 {
-  "pipes": [],
-  "interfaces": [
-    {
-      "name": "DialogData",
-      "id": "interface-DialogData-ed4eeca411967200b24510efc92ea27e614e23f7b6fdb91153a85cd4e5ac67f1a0717b7f6ee528321e813f4afedf8a156ec190069200bda94eeb663eb3c45eae",
-      "file": "apps/back-office/src/app/components/view-settings-modal/view-settings-modal.component.ts",
-      "deprecated": false,
-      "deprecationMessage": "",
-      "type": "interface",
-      "sourceCode": "import { Component, EventEmitter, Inject, OnInit } from '@angular/core';\nimport { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';\nimport { FormBuilder } from '@angular/forms';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule, ReactiveFormsModule } from '@angular/forms';\nimport {\n  TabsModule,\n  DialogModule,\n  ButtonModule,\n  TooltipModule,\n  SelectMenuModule,\n  FormWrapperModule,\n  IconModule,\n  ToggleModule,\n  AlertModule,\n} from '@oort-front/ui';\nimport { OverlayModule } from '@angular/cdk/overlay';\nimport { TranslateModule } from '@ngx-translate/core';\nimport { ViewIconSelectorComponent } from '../view-icon-selector/view-icon-selector.component';\nimport {\n  AccessModule,\n  ApplicationService,\n  Page,\n  Step,\n  UnsubscribeComponent,\n  WorkflowService,\n  AccessData,\n  SearchMenuModule,\n  AuthService,\n  Application,\n} from '@oort-front/shared';\nimport { takeUntil } from 'rxjs';\nimport { isNil } from 'lodash';\nimport { AbilityModule } from '@casl/angular';\n\n/** Settings Dialog Data */\ninterface DialogData {\n  type: 'page' | 'step';\n  applicationId: string;\n  page?: Page;\n  step?: Step;\n  icon?: string;\n  visible?: boolean;\n  accessData: AccessData;\n  canUpdate: boolean;\n}\n\n/**\n * Application page and step settings component.\n * Available settings: icon, access, visibility and duplicate page.\n */\n@Component({\n  selector: 'app-view-settings',\n  standalone: true,\n  imports: [\n    CommonModule,\n    FormsModule,\n    ReactiveFormsModule,\n    TabsModule,\n    DialogModule,\n    IconModule,\n    ButtonModule,\n    TooltipModule,\n    SelectMenuModule,\n    FormWrapperModule,\n    TranslateModule,\n    ViewIconSelectorComponent,\n    AccessModule,\n    ToggleModule,\n    OverlayModule,\n    SearchMenuModule,\n    AlertModule,\n    AbilityModule,\n  ],\n  templateUrl: './view-settings-modal.component.html',\n  styleUrls: ['./view-settings-modal.component.scss'],\n})\nexport class ViewSettingsModalComponent\n  extends UnsubscribeComponent\n  implements OnInit\n{\n  /** Reactive Form */\n  public settingsForm!: ReturnType<typeof this.createSettingsForm>;\n  /** Event to parent subscribe and update its own object after changes */\n  public onUpdate = new EventEmitter();\n  /** Show duplicate menu */\n  public showDuplicateMenu = false;\n  /** List of available applications */\n  public applications: Application[] = [];\n  /** Step object */\n  private step?: Step;\n  /** Page object */\n  private page?: Page;\n\n  /**\n   * Common settings of pages / steps.\n   *\n   * @param dialogRef Dialog ref\n   * @param data Data that will be passed to the dialog\n   * @param fb This is the service that will be used to build forms.\n   * @param workflowService Shared workflow service\n   * @param applicationService Shared application service\n   * @param authService Shared authentication service\n   */\n  constructor(\n    public dialogRef: DialogRef<ViewSettingsModalComponent>,\n    @Inject(DIALOG_DATA) public data: DialogData,\n    private fb: FormBuilder,\n    private workflowService: WorkflowService,\n    private applicationService: ApplicationService,\n    private authService: AuthService\n  ) {\n    super();\n    if (this.data) {\n      this.page = this.data?.page;\n      this.step = this.data?.step;\n    }\n  }\n\n  ngOnInit(): void {\n    this.settingsForm = this.createSettingsForm();\n    if (!this.data.canUpdate) {\n      this.settingsForm.disable();\n    }\n\n    // Listen to icon updates\n    this.settingsForm?.controls.icon.valueChanges\n      .pipe(takeUntil(this.destroy$))\n      .subscribe((value: string | null) => {\n        if (value) {\n          this.onUpdateIcon(value);\n        }\n      });\n\n    // Listen to visibility updates (only for pages)\n    if (this.data.type === 'page') {\n      this.settingsForm?.controls.visible.valueChanges\n        .pipe(takeUntil(this.destroy$))\n        .subscribe((value: boolean | null) => {\n          if (!isNil(value)) {\n            this.onUpdateVisibility(value);\n          }\n        });\n    }\n  }\n\n  /**\n   * Save changes when access is updated.\n   *\n   * @param event new permissions object\n   */\n  public onUpdateAccess(event: any): void {\n    if (this.data.type === 'step' && this.step) {\n      const callback = (permissions: any) => {\n        // Updates parent component\n        const updates = { permissions };\n        this.onUpdate.emit(updates);\n      };\n      this.workflowService.updateStepPermissions(\n        this.step as Step,\n        event,\n        callback\n      );\n    } else {\n      const callback = (permissions: any) => {\n        this.page = {\n          ...this.page,\n          canDelete: permissions.canDelete,\n          canUpdate: permissions.canUpdate,\n          canSee: permissions.canSee,\n        };\n        // Updates parent component\n        const updates = { permissions };\n        this.onUpdate.emit(updates);\n      };\n      this.page &&\n        this.applicationService.updatePagePermissions(\n          this.page as Page,\n          event,\n          callback\n        );\n    }\n  }\n\n  /**\n   * Duplicate page, in a new (or same) application\n   *\n   * @param event duplication event\n   */\n  public onDuplicate(event: any): void {\n    const callback = () => {\n      this.dialogRef.close();\n    };\n    this.applicationService.duplicatePage(\n      event.id,\n      {\n        pageId: this.page?.id,\n        stepId: this.step?.id,\n      },\n      callback\n    );\n  }\n\n  /**\n   * Toggle visibility of application menu.\n   * Get applications to use duplicate setting.\n   */\n  public onAppSelection(): void {\n    this.showDuplicateMenu = !this.showDuplicateMenu;\n    const authSubscription = this.authService.user$.subscribe(\n      (user: any | null) => {\n        if (user) {\n          this.applications = user.applications;\n        }\n      }\n    );\n    authSubscription.unsubscribe();\n  }\n\n  /**\n   * Create the settings form\n   *\n   * @returns Form group\n   */\n  private createSettingsForm() {\n    return this.fb.group({\n      // initializes icon field with data info\n      icon: this.fb.control(this.data.icon ?? ''),\n      visible: this.fb.control(this.data.visible ?? true),\n    });\n  }\n\n  /**\n   * Save changes when icon is updated.\n   *\n   * @param icon new icon name\n   */\n  private onUpdateIcon(icon: string): void {\n    if (this.data.type === 'step' && this.step) {\n      const callback = () => {\n        this.step = {\n          ...this.step,\n          icon,\n        };\n        // Updates parent component\n        const updates = { icon };\n        this.onUpdate.emit(updates);\n      };\n      this.workflowService.updateStepIcon(this.step as Step, icon, callback);\n    } else {\n      const callback = () => {\n        this.page = {\n          ...this.page,\n          icon,\n        };\n        // Updates parent component\n        const updates = { icon };\n        this.onUpdate.emit(updates);\n      };\n      this.page &&\n        this.applicationService.changePageIcon(\n          this.page as Page,\n          icon,\n          callback\n        );\n    }\n  }\n\n  /**\n   * Save page visibility on change.\n   *\n   * @param visible boolean\n   */\n  private onUpdateVisibility(visible: boolean): void {\n    const callback = () => {\n      this.page = {\n        ...this.page,\n        visible,\n      };\n      // Updates parent component\n      const updates = { visible };\n      this.onUpdate.emit(updates);\n    };\n    this.applicationService.togglePageVisibility(\n      {\n        id: this.page?.id,\n        visible,\n      },\n      callback\n    );\n  }\n}\n",
-      "properties": [
-        {
-          "name": "accessData",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "AccessData",
-          "optional": false,
-          "description": "",
-          "line": 44
-        },
-        {
-          "name": "applicationId",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "string",
-          "optional": false,
-          "description": "",
-          "line": 39
-        },
-        {
-          "name": "canUpdate",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "boolean",
-          "optional": false,
-          "description": "",
-          "line": 45
-        },
-        {
-          "name": "icon",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "string",
-          "optional": true,
-          "description": "",
-          "line": 42
-        },
-        {
-          "name": "page",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "Page",
-          "optional": true,
-          "description": "",
-          "line": 40
-        },
-        {
-          "name": "step",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "Step",
-          "optional": true,
-          "description": "",
-          "line": 41
-        },
-        {
-          "name": "type",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "\"page\" | \"step\"",
-          "optional": false,
-          "description": "",
-          "line": 38
-        },
-        {
-          "name": "visible",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "boolean",
-          "optional": true,
-          "description": "",
-          "line": 43
-        }
-      ],
-      "indexSignatures": [],
-      "kind": 168,
-      "description": "<p>Settings Dialog Data</p>\n",
-      "rawdescription": "\nSettings Dialog Data",
-      "methods": []
-    }
-  ],
-  "injectables": [],
-  "guards": [],
-  "interceptors": [],
   "classes": [],
-  "directives": [],
   "components": [
     {
       "name": "AddApiConfigurationComponent",
@@ -29784,908 +29689,6 @@
       "templateData": "<!-- Skeleton when loading -->\n<ng-container\n  *sharedSkeleton=\"\n    loading;\n    repeat: 1;\n    height: '32px';\n    width: '120px';\n    shape: 'rectangle'\n  \"\n>\n  <ng-container *ngIf=\"workflow\">\n    <div class=\"flex flex-wrap items-center justify-between mb-6 gap-4\">\n      <!-- Editable Title -->\n      <div class=\"flex items-center gap-1\">\n        <shared-editable-text\n          [text]=\"workflow.name\"\n          [canEdit]=\"canEditName\"\n          (onChange)=\"saveName($event)\"\n          (formActiveEvent)=\"formActive = $event\"\n        >\n          <h1 class=\"!m-0 overflow-hidden text-ellipsis\">\n            {{ workflow.name }}\n          </h1>\n        </shared-editable-text>\n        <ui-button\n          *ngIf=\"!formActive\"\n          variant=\"grey\"\n          (click)=\"onOpenSettings()\"\n          [isIcon]=\"true\"\n          icon=\"settings\"\n          [uiTooltip]=\"'common.settings' | translate\"\n        ></ui-button>\n      </div>\n      <ui-button *ngIf=\"canUpdate\" icon=\"add\" (click)=\"onAddStep()\">{{\n        'models.step.new' | translate\n      }}</ui-button>\n    </div>\n  </ng-container>\n</ng-container>\n<!-- STEPS -->\n<shared-workflow-stepper\n  class=\"-mx-6 block\"\n  [loading]=\"loading\"\n  [steps]=\"steps\"\n  [canUpdate]=\"canUpdate\"\n  (openStep)=\"onOpenStep($event)\"\n  (delete)=\"onDeleteStep($event)\"\n  (reorderSteps)=\"onReorderSteps($event)\"\n  [activeStep]=\"activeStep\"\n>\n</shared-workflow-stepper>\n<router-outlet (activate)=\"onActivate($event)\"></router-outlet>\n"
     }
   ],
-  "modules": [],
-  "miscellaneous": {
-    "variables": [
-      {
-        "name": "createButtonActionForm",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/edit-button-action/edit-button-action.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "",
-        "defaultValue": "(data?: ButtonActionT) => {\n  return new FormGroup({\n    text: new FormControl(get(data, 'text', ''), Validators.required),\n    href: new FormControl(get(data, 'href', ''), Validators.required),\n    variant: new FormControl(get(data, 'variant', 'primary')),\n    category: new FormControl(get(data, 'category', 'secondary')),\n    openInNewTab: new FormControl(get(data, 'openInNewTab', true)),\n  });\n}",
-        "rawdescription": "Create a form group for the button action",
-        "description": "<p>Create a form group for the button action</p>\n"
-      },
-      {
-        "name": "createContextDatasourceForm",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "",
-        "defaultValue": "(data?: PageContextT) => {\n  const origin =\n    data && 'resource' in data ? 'resource' : data ? 'refData' : 'resource';\n\n  return new FormGroup({\n    origin: new FormControl<typeof origin>(origin, [Validators.required]),\n    resource: new FormControl(\n      data && 'resource' in data ? data.resource : null\n    ),\n    refData: new FormControl(data && 'refData' in data ? data.refData : null),\n    displayField: new FormControl(\n      data && data.displayField ? data.displayField : null,\n      [Validators.required]\n    ),\n  });\n}",
-        "rawdescription": "Create a form group for the page context datasource selection",
-        "description": "<p>Create a form group for the page context datasource selection</p>\n"
-      },
-      {
-        "name": "Default",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "StoryFn<Story>",
-        "defaultValue": "() => {\n  return {\n    props: {},\n  };\n}",
-        "rawdescription": "Default story",
-        "description": "<p>Default story</p>\n"
-      },
-      {
-        "name": "Default",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "StoryFn<Story>",
-        "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl(),\n    },\n  };\n}",
-        "rawdescription": "Default story",
-        "description": "<p>Default story</p>\n"
-      },
-      {
-        "name": "DEFAULT_COLUMNS",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "[]",
-        "defaultValue": "['_incrementalId', '_actions']",
-        "rawdescription": "Static columns ( appear whatever the form )",
-        "description": "<p>Static columns ( appear whatever the form )</p>\n"
-      },
-      {
-        "name": "DEFAULT_FIELDS",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "[]",
-        "defaultValue": "['createdBy']",
-        "rawdescription": "Default fields",
-        "description": "<p>Default fields</p>\n"
-      },
-      {
-        "name": "DEFAULT_PAGE_SIZE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/applications/applications.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default number of items per request for pagination",
-        "description": "<p>Default number of items per request for pagination</p>\n"
-      },
-      {
-        "name": "DEFAULT_PAGE_SIZE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/forms/forms.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default number of items for pagination",
-        "description": "<p>Default number of items for pagination</p>\n"
-      },
-      {
-        "name": "DEFAULT_PAGE_SIZE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/resources/resources.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default number of resources that will be shown at once.",
-        "description": "<p>Default number of resources that will be shown at once.</p>\n"
-      },
-      {
-        "name": "DEFAULT_QUERY",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "",
-        "defaultValue": "`query {\\n  \\n}`",
-        "rawdescription": "Default graphql query",
-        "description": "<p>Default graphql query</p>\n"
-      },
-      {
-        "name": "DEFAULT_STYLE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/components/custom-style/custom-style.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "string",
-        "defaultValue": "''",
-        "rawdescription": "Default css style example to initialize the form and editor",
-        "description": "<p>Default css style example to initialize the form and editor</p>\n"
-      },
-      {
-        "name": "ENCRYPTED_VALUE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/api-configuration/api-configuration.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "string",
-        "defaultValue": "'●●●●●●●●●●●●●'",
-        "rawdescription": "Default value shown for private settings fields",
-        "description": "<p>Default value shown for private settings fields</p>\n"
-      },
-      {
-        "name": "environment",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "object",
-        "defaultValue": "{\n  theme: {\n    primary: '#6f51ae',\n  },\n}",
-        "rawdescription": "Provided environment",
-        "description": "<p>Provided environment</p>\n"
-      },
-      {
-        "name": "getAbilityForAppPreview",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/app-preview/app-preview.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "",
-        "defaultValue": "(app: Application, role: string) => {\n  const { can, rules } = new AbilityBuilder(AppAbility);\n  const permissions =\n    app.roles?.find((x) => x.id === role)?.permissions?.map((p) => p.type) ||\n    [];\n  // === Role ===\n  if (permissions.includes('can_see_roles')) {\n    can(['create', 'read', 'update', 'delete'], ['Role', 'Channel']);\n  }\n\n  // === User ===\n  if (permissions.includes('can_see_users')) {\n    can(['create', 'read', 'update', 'delete'], 'User');\n  }\n\n  // === Template ===\n  if (permissions.includes('can_manage_templates')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'Template');\n  }\n\n  // === Distribution list ===\n  if (permissions.includes('can_manage_distribution_lists')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'DistributionList');\n  }\n\n  // === Custom notifications===\n  if (permissions.includes('can_manage_custom_notifications')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'CustomNotification');\n  }\n\n  return new AppAbility(rules);\n}",
-        "rawdescription": "Creates a ability object the app preview\ngiven the application and the role to preview with",
-        "description": "<p>Creates a ability object the app preview\ngiven the application and the role to preview with</p>\n"
-      },
-      {
-        "name": "initializeApp",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "",
-        "defaultValue": "(): any => () => {\n  // Add fa icon font to check in the application\n  library.add(fas, fab);\n}",
-        "rawdescription": "App initializer",
-        "description": "<p>App initializer</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/components/add-form-modal/add-form-modal.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default items per query, for pagination",
-        "description": "<p>Default items per query, for pagination</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Number of items per page",
-        "description": "<p>Number of items per page</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/api-configurations/api-configurations.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default items per page for pagination.",
-        "description": "<p>Default items per page for pagination.</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/dashboard/dashboard.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default number of records fetched per page",
-        "description": "<p>Default number of records fetched per page</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default items per query, for pagination",
-        "description": "<p>Default items per query, for pagination</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/pull-jobs.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Limit of pull jobs shown at once.",
-        "description": "<p>Limit of pull jobs shown at once.</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default pagination parameter.",
-        "description": "<p>Default pagination parameter.</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/reference-datas/reference-datas.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default pagination settings.",
-        "description": "<p>Default pagination settings.</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Quantity of resource that will be loaded at once.",
-        "description": "<p>Quantity of resource that will be loaded at once.</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/application/pages/subscriptions/components/subscription-modal/subscription-modal.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Items per query for pagination",
-        "description": "<p>Items per query for pagination</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/application/pages/workflow/components/add-step/add-step.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default items per query for pagination",
-        "description": "<p>Default items per query for pagination</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Default items per resources query, for pagination",
-        "description": "<p>Default items per resources query, for pagination</p>\n"
-      },
-      {
-        "name": "ITEMS_PER_PAGE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "number",
-        "defaultValue": "10",
-        "rawdescription": "Items per page for pagination",
-        "description": "<p>Items per page for pagination</p>\n"
-      },
-      {
-        "name": "RECORDS_DEFAULT_COLUMNS",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "[]",
-        "defaultValue": "['_incrementalId', '_actions']",
-        "rawdescription": "Default fields for the records.",
-        "description": "<p>Default fields for the records.</p>\n"
-      },
-      {
-        "name": "ROUTE_TABS",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/resource/resource.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "string[]",
-        "defaultValue": "[\n  'forms',\n  'layouts',\n  'aggregations',\n  'calculated-fields',\n  'records',\n]",
-        "rawdescription": "Array of tab names sorted by position index.",
-        "description": "<p>Array of tab names sorted by position index.</p>\n"
-      },
-      {
-        "name": "SEPARATOR_KEYS_CODE",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "[]",
-        "defaultValue": "[ENTER, COMMA, TAB, SPACE]",
-        "rawdescription": "Available separator for csv",
-        "description": "<p>Available separator for csv</p>\n"
-      },
-      {
-        "name": "SINGLE_WIDGET_PAGE_TYPES",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "[]",
-        "defaultValue": "['grid', 'map', 'summaryCard', 'tabs']",
-        "rawdescription": "Widget types that can be used as single widget page",
-        "description": "<p>Widget types that can be used as single widget page</p>\n"
-      },
-      {
-        "name": "WithValue",
-        "ctype": "miscellaneous",
-        "subtype": "variable",
-        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "type": "StoryFn<Story>",
-        "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl('people-group'),\n    },\n  };\n}",
-        "rawdescription": "Story with default value",
-        "description": "<p>Story with default value</p>\n"
-      }
-    ],
-    "functions": [],
-    "typealiases": [
-      {
-        "name": "Story",
-        "ctype": "miscellaneous",
-        "subtype": "typealias",
-        "rawtype": "UploadMenuComponent",
-        "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "description": "",
-        "kind": 180
-      },
-      {
-        "name": "Story",
-        "ctype": "miscellaneous",
-        "subtype": "typealias",
-        "rawtype": "ViewIconSelectorComponent",
-        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-        "deprecated": false,
-        "deprecationMessage": "",
-        "description": "",
-        "kind": 180
-      }
-    ],
-    "enumerations": [],
-    "groupedVariables": {
-      "apps/back-office/src/app/dashboard/pages/dashboard/components/edit-button-action/edit-button-action.component.ts": [
-        {
-          "name": "createButtonActionForm",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/edit-button-action/edit-button-action.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "",
-          "defaultValue": "(data?: ButtonActionT) => {\n  return new FormGroup({\n    text: new FormControl(get(data, 'text', ''), Validators.required),\n    href: new FormControl(get(data, 'href', ''), Validators.required),\n    variant: new FormControl(get(data, 'variant', 'primary')),\n    category: new FormControl(get(data, 'category', 'secondary')),\n    openInNewTab: new FormControl(get(data, 'openInNewTab', true)),\n  });\n}",
-          "rawdescription": "Create a form group for the button action",
-          "description": "<p>Create a form group for the button action</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts": [
-        {
-          "name": "createContextDatasourceForm",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "",
-          "defaultValue": "(data?: PageContextT) => {\n  const origin =\n    data && 'resource' in data ? 'resource' : data ? 'refData' : 'resource';\n\n  return new FormGroup({\n    origin: new FormControl<typeof origin>(origin, [Validators.required]),\n    resource: new FormControl(\n      data && 'resource' in data ? data.resource : null\n    ),\n    refData: new FormControl(data && 'refData' in data ? data.refData : null),\n    displayField: new FormControl(\n      data && data.displayField ? data.displayField : null,\n      [Validators.required]\n    ),\n  });\n}",
-          "rawdescription": "Create a form group for the page context datasource selection",
-          "description": "<p>Create a form group for the page context datasource selection</p>\n"
-        },
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default items per resources query, for pagination",
-          "description": "<p>Default items per resources query, for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts": [
-        {
-          "name": "Default",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "StoryFn<Story>",
-          "defaultValue": "() => {\n  return {\n    props: {},\n  };\n}",
-          "rawdescription": "Default story",
-          "description": "<p>Default story</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts": [
-        {
-          "name": "Default",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "StoryFn<Story>",
-          "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl(),\n    },\n  };\n}",
-          "rawdescription": "Default story",
-          "description": "<p>Default story</p>\n"
-        },
-        {
-          "name": "environment",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "object",
-          "defaultValue": "{\n  theme: {\n    primary: '#6f51ae',\n  },\n}",
-          "rawdescription": "Provided environment",
-          "description": "<p>Provided environment</p>\n"
-        },
-        {
-          "name": "initializeApp",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "",
-          "defaultValue": "(): any => () => {\n  // Add fa icon font to check in the application\n  library.add(fas, fab);\n}",
-          "rawdescription": "App initializer",
-          "description": "<p>App initializer</p>\n"
-        },
-        {
-          "name": "WithValue",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "StoryFn<Story>",
-          "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl('people-group'),\n    },\n  };\n}",
-          "rawdescription": "Story with default value",
-          "description": "<p>Story with default value</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts": [
-        {
-          "name": "DEFAULT_COLUMNS",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "[]",
-          "defaultValue": "['_incrementalId', '_actions']",
-          "rawdescription": "Static columns ( appear whatever the form )",
-          "description": "<p>Static columns ( appear whatever the form )</p>\n"
-        },
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default items per query, for pagination",
-          "description": "<p>Default items per query, for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts": [
-        {
-          "name": "DEFAULT_FIELDS",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "[]",
-          "defaultValue": "['createdBy']",
-          "rawdescription": "Default fields",
-          "description": "<p>Default fields</p>\n"
-        },
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Items per page for pagination",
-          "description": "<p>Items per page for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/applications/applications.component.ts": [
-        {
-          "name": "DEFAULT_PAGE_SIZE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/applications/applications.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default number of items per request for pagination",
-          "description": "<p>Default number of items per request for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/forms/forms.component.ts": [
-        {
-          "name": "DEFAULT_PAGE_SIZE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/forms/forms.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default number of items for pagination",
-          "description": "<p>Default number of items for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/resources/resources.component.ts": [
-        {
-          "name": "DEFAULT_PAGE_SIZE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/resources/resources.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default number of resources that will be shown at once.",
-          "description": "<p>Default number of resources that will be shown at once.</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts": [
-        {
-          "name": "DEFAULT_QUERY",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "",
-          "defaultValue": "`query {\\n  \\n}`",
-          "rawdescription": "Default graphql query",
-          "description": "<p>Default graphql query</p>\n"
-        },
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default pagination parameter.",
-          "description": "<p>Default pagination parameter.</p>\n"
-        },
-        {
-          "name": "SEPARATOR_KEYS_CODE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "[]",
-          "defaultValue": "[ENTER, COMMA, TAB, SPACE]",
-          "rawdescription": "Available separator for csv",
-          "description": "<p>Available separator for csv</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/components/custom-style/custom-style.component.ts": [
-        {
-          "name": "DEFAULT_STYLE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/components/custom-style/custom-style.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "string",
-          "defaultValue": "''",
-          "rawdescription": "Default css style example to initialize the form and editor",
-          "description": "<p>Default css style example to initialize the form and editor</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/api-configuration/api-configuration.component.ts": [
-        {
-          "name": "ENCRYPTED_VALUE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/api-configuration/api-configuration.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "string",
-          "defaultValue": "'●●●●●●●●●●●●●'",
-          "rawdescription": "Default value shown for private settings fields",
-          "description": "<p>Default value shown for private settings fields</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/app-preview/app-preview.component.ts": [
-        {
-          "name": "getAbilityForAppPreview",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/app-preview/app-preview.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "",
-          "defaultValue": "(app: Application, role: string) => {\n  const { can, rules } = new AbilityBuilder(AppAbility);\n  const permissions =\n    app.roles?.find((x) => x.id === role)?.permissions?.map((p) => p.type) ||\n    [];\n  // === Role ===\n  if (permissions.includes('can_see_roles')) {\n    can(['create', 'read', 'update', 'delete'], ['Role', 'Channel']);\n  }\n\n  // === User ===\n  if (permissions.includes('can_see_users')) {\n    can(['create', 'read', 'update', 'delete'], 'User');\n  }\n\n  // === Template ===\n  if (permissions.includes('can_manage_templates')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'Template');\n  }\n\n  // === Distribution list ===\n  if (permissions.includes('can_manage_distribution_lists')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'DistributionList');\n  }\n\n  // === Custom notifications===\n  if (permissions.includes('can_manage_custom_notifications')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'CustomNotification');\n  }\n\n  return new AppAbility(rules);\n}",
-          "rawdescription": "Creates a ability object the app preview\ngiven the application and the role to preview with",
-          "description": "<p>Creates a ability object the app preview\ngiven the application and the role to preview with</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/components/add-form-modal/add-form-modal.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/components/add-form-modal/add-form-modal.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default items per query, for pagination",
-          "description": "<p>Default items per query, for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/application/pages/add-page/add-page.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Number of items per page",
-          "description": "<p>Number of items per page</p>\n"
-        },
-        {
-          "name": "SINGLE_WIDGET_PAGE_TYPES",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "[]",
-          "defaultValue": "['grid', 'map', 'summaryCard', 'tabs']",
-          "rawdescription": "Widget types that can be used as single widget page",
-          "description": "<p>Widget types that can be used as single widget page</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/api-configurations/api-configurations.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/api-configurations/api-configurations.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default items per page for pagination.",
-          "description": "<p>Default items per page for pagination.</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/dashboard/dashboard.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/dashboard/dashboard.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default number of records fetched per page",
-          "description": "<p>Default number of records fetched per page</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/pull-jobs/pull-jobs.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/pull-jobs.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Limit of pull jobs shown at once.",
-          "description": "<p>Limit of pull jobs shown at once.</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/reference-datas/reference-datas.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/reference-datas/reference-datas.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default pagination settings.",
-          "description": "<p>Default pagination settings.</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Quantity of resource that will be loaded at once.",
-          "description": "<p>Quantity of resource that will be loaded at once.</p>\n"
-        },
-        {
-          "name": "RECORDS_DEFAULT_COLUMNS",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "[]",
-          "defaultValue": "['_incrementalId', '_actions']",
-          "rawdescription": "Default fields for the records.",
-          "description": "<p>Default fields for the records.</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/application/pages/subscriptions/components/subscription-modal/subscription-modal.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/application/pages/subscriptions/components/subscription-modal/subscription-modal.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Items per query for pagination",
-          "description": "<p>Items per query for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/application/pages/workflow/components/add-step/add-step.component.ts": [
-        {
-          "name": "ITEMS_PER_PAGE",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/application/pages/workflow/components/add-step/add-step.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "number",
-          "defaultValue": "10",
-          "rawdescription": "Default items per query for pagination",
-          "description": "<p>Default items per query for pagination</p>\n"
-        }
-      ],
-      "apps/back-office/src/app/dashboard/pages/resource/resource.component.ts": [
-        {
-          "name": "ROUTE_TABS",
-          "ctype": "miscellaneous",
-          "subtype": "variable",
-          "file": "apps/back-office/src/app/dashboard/pages/resource/resource.component.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "type": "string[]",
-          "defaultValue": "[\n  'forms',\n  'layouts',\n  'aggregations',\n  'calculated-fields',\n  'records',\n]",
-          "rawdescription": "Array of tab names sorted by position index.",
-          "description": "<p>Array of tab names sorted by position index.</p>\n"
-        }
-      ]
-    },
-    "groupedFunctions": {},
-    "groupedEnumerations": {},
-    "groupedTypeAliases": {
-      "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts": [
-        {
-          "name": "Story",
-          "ctype": "miscellaneous",
-          "subtype": "typealias",
-          "rawtype": "UploadMenuComponent",
-          "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "description": "",
-          "kind": 180
-        }
-      ],
-      "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts": [
-        {
-          "name": "Story",
-          "ctype": "miscellaneous",
-          "subtype": "typealias",
-          "rawtype": "ViewIconSelectorComponent",
-          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
-          "deprecated": false,
-          "deprecationMessage": "",
-          "description": "",
-          "kind": 180
-        }
-      ]
-    }
-  },
-  "routes": [],
   "coverage": {
     "count": 78,
     "status": "very-good",
@@ -31642,5 +30645,1002 @@
         "status": "medium"
       }
     ]
-  }
+  },
+  "directives": [],
+  "guards": [],
+  "injectables": [],
+  "interceptors": [],
+  "interfaces": [
+    {
+      "name": "DialogData",
+      "id": "interface-DialogData-ed4eeca411967200b24510efc92ea27e614e23f7b6fdb91153a85cd4e5ac67f1a0717b7f6ee528321e813f4afedf8a156ec190069200bda94eeb663eb3c45eae",
+      "file": "apps/back-office/src/app/components/view-settings-modal/view-settings-modal.component.ts",
+      "deprecated": false,
+      "deprecationMessage": "",
+      "type": "interface",
+      "sourceCode": "import { Component, EventEmitter, Inject, OnInit } from '@angular/core';\nimport { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';\nimport { FormBuilder } from '@angular/forms';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule, ReactiveFormsModule } from '@angular/forms';\nimport {\n  TabsModule,\n  DialogModule,\n  ButtonModule,\n  TooltipModule,\n  SelectMenuModule,\n  FormWrapperModule,\n  IconModule,\n  ToggleModule,\n  AlertModule,\n} from '@oort-front/ui';\nimport { OverlayModule } from '@angular/cdk/overlay';\nimport { TranslateModule } from '@ngx-translate/core';\nimport { ViewIconSelectorComponent } from '../view-icon-selector/view-icon-selector.component';\nimport {\n  AccessModule,\n  ApplicationService,\n  Page,\n  Step,\n  UnsubscribeComponent,\n  WorkflowService,\n  AccessData,\n  SearchMenuModule,\n  AuthService,\n  Application,\n} from '@oort-front/shared';\nimport { takeUntil } from 'rxjs';\nimport { isNil } from 'lodash';\nimport { AbilityModule } from '@casl/angular';\n\n/** Settings Dialog Data */\ninterface DialogData {\n  type: 'page' | 'step';\n  applicationId: string;\n  page?: Page;\n  step?: Step;\n  icon?: string;\n  visible?: boolean;\n  accessData: AccessData;\n  canUpdate: boolean;\n}\n\n/**\n * Application page and step settings component.\n * Available settings: icon, access, visibility and duplicate page.\n */\n@Component({\n  selector: 'app-view-settings',\n  standalone: true,\n  imports: [\n    CommonModule,\n    FormsModule,\n    ReactiveFormsModule,\n    TabsModule,\n    DialogModule,\n    IconModule,\n    ButtonModule,\n    TooltipModule,\n    SelectMenuModule,\n    FormWrapperModule,\n    TranslateModule,\n    ViewIconSelectorComponent,\n    AccessModule,\n    ToggleModule,\n    OverlayModule,\n    SearchMenuModule,\n    AlertModule,\n    AbilityModule,\n  ],\n  templateUrl: './view-settings-modal.component.html',\n  styleUrls: ['./view-settings-modal.component.scss'],\n})\nexport class ViewSettingsModalComponent\n  extends UnsubscribeComponent\n  implements OnInit\n{\n  /** Reactive Form */\n  public settingsForm!: ReturnType<typeof this.createSettingsForm>;\n  /** Event to parent subscribe and update its own object after changes */\n  public onUpdate = new EventEmitter();\n  /** Show duplicate menu */\n  public showDuplicateMenu = false;\n  /** List of available applications */\n  public applications: Application[] = [];\n  /** Step object */\n  private step?: Step;\n  /** Page object */\n  private page?: Page;\n\n  /**\n   * Common settings of pages / steps.\n   *\n   * @param dialogRef Dialog ref\n   * @param data Data that will be passed to the dialog\n   * @param fb This is the service that will be used to build forms.\n   * @param workflowService Shared workflow service\n   * @param applicationService Shared application service\n   * @param authService Shared authentication service\n   */\n  constructor(\n    public dialogRef: DialogRef<ViewSettingsModalComponent>,\n    @Inject(DIALOG_DATA) public data: DialogData,\n    private fb: FormBuilder,\n    private workflowService: WorkflowService,\n    private applicationService: ApplicationService,\n    private authService: AuthService\n  ) {\n    super();\n    if (this.data) {\n      this.page = this.data?.page;\n      this.step = this.data?.step;\n    }\n  }\n\n  ngOnInit(): void {\n    this.settingsForm = this.createSettingsForm();\n    if (!this.data.canUpdate) {\n      this.settingsForm.disable();\n    }\n\n    // Listen to icon updates\n    this.settingsForm?.controls.icon.valueChanges\n      .pipe(takeUntil(this.destroy$))\n      .subscribe((value: string | null) => {\n        if (value) {\n          this.onUpdateIcon(value);\n        }\n      });\n\n    // Listen to visibility updates (only for pages)\n    if (this.data.type === 'page') {\n      this.settingsForm?.controls.visible.valueChanges\n        .pipe(takeUntil(this.destroy$))\n        .subscribe((value: boolean | null) => {\n          if (!isNil(value)) {\n            this.onUpdateVisibility(value);\n          }\n        });\n    }\n  }\n\n  /**\n   * Save changes when access is updated.\n   *\n   * @param event new permissions object\n   */\n  public onUpdateAccess(event: any): void {\n    if (this.data.type === 'step' && this.step) {\n      const callback = (permissions: any) => {\n        // Updates parent component\n        const updates = { permissions };\n        this.onUpdate.emit(updates);\n      };\n      this.workflowService.updateStepPermissions(\n        this.step as Step,\n        event,\n        callback\n      );\n    } else {\n      const callback = (permissions: any) => {\n        this.page = {\n          ...this.page,\n          canDelete: permissions.canDelete,\n          canUpdate: permissions.canUpdate,\n          canSee: permissions.canSee,\n        };\n        // Updates parent component\n        const updates = { permissions };\n        this.onUpdate.emit(updates);\n      };\n      this.page &&\n        this.applicationService.updatePagePermissions(\n          this.page as Page,\n          event,\n          callback\n        );\n    }\n  }\n\n  /**\n   * Duplicate page, in a new (or same) application\n   *\n   * @param event duplication event\n   */\n  public onDuplicate(event: any): void {\n    const callback = () => {\n      this.dialogRef.close();\n    };\n    this.applicationService.duplicatePage(\n      event.id,\n      {\n        pageId: this.page?.id,\n        stepId: this.step?.id,\n      },\n      callback\n    );\n  }\n\n  /**\n   * Toggle visibility of application menu.\n   * Get applications to use duplicate setting.\n   */\n  public onAppSelection(): void {\n    this.showDuplicateMenu = !this.showDuplicateMenu;\n    const authSubscription = this.authService.user$.subscribe(\n      (user: any | null) => {\n        if (user) {\n          this.applications = user.applications;\n        }\n      }\n    );\n    authSubscription.unsubscribe();\n  }\n\n  /**\n   * Create the settings form\n   *\n   * @returns Form group\n   */\n  private createSettingsForm() {\n    return this.fb.group({\n      // initializes icon field with data info\n      icon: this.fb.control(this.data.icon ?? ''),\n      visible: this.fb.control(this.data.visible ?? true),\n    });\n  }\n\n  /**\n   * Save changes when icon is updated.\n   *\n   * @param icon new icon name\n   */\n  private onUpdateIcon(icon: string): void {\n    if (this.data.type === 'step' && this.step) {\n      const callback = () => {\n        this.step = {\n          ...this.step,\n          icon,\n        };\n        // Updates parent component\n        const updates = { icon };\n        this.onUpdate.emit(updates);\n      };\n      this.workflowService.updateStepIcon(this.step as Step, icon, callback);\n    } else {\n      const callback = () => {\n        this.page = {\n          ...this.page,\n          icon,\n        };\n        // Updates parent component\n        const updates = { icon };\n        this.onUpdate.emit(updates);\n      };\n      this.page &&\n        this.applicationService.changePageIcon(\n          this.page as Page,\n          icon,\n          callback\n        );\n    }\n  }\n\n  /**\n   * Save page visibility on change.\n   *\n   * @param visible boolean\n   */\n  private onUpdateVisibility(visible: boolean): void {\n    const callback = () => {\n      this.page = {\n        ...this.page,\n        visible,\n      };\n      // Updates parent component\n      const updates = { visible };\n      this.onUpdate.emit(updates);\n    };\n    this.applicationService.togglePageVisibility(\n      {\n        id: this.page?.id,\n        visible,\n      },\n      callback\n    );\n  }\n}\n",
+      "properties": [
+        {
+          "name": "accessData",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "AccessData",
+          "optional": false,
+          "description": "",
+          "line": 44
+        },
+        {
+          "name": "applicationId",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "string",
+          "optional": false,
+          "description": "",
+          "line": 39
+        },
+        {
+          "name": "canUpdate",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "boolean",
+          "optional": false,
+          "description": "",
+          "line": 45
+        },
+        {
+          "name": "icon",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "string",
+          "optional": true,
+          "description": "",
+          "line": 42
+        },
+        {
+          "name": "page",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "Page",
+          "optional": true,
+          "description": "",
+          "line": 40
+        },
+        {
+          "name": "step",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "Step",
+          "optional": true,
+          "description": "",
+          "line": 41
+        },
+        {
+          "name": "type",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "\"page\" | \"step\"",
+          "optional": false,
+          "description": "",
+          "line": 38
+        },
+        {
+          "name": "visible",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "boolean",
+          "optional": true,
+          "description": "",
+          "line": 43
+        }
+      ],
+      "indexSignatures": [],
+      "kind": 168,
+      "description": "<p>Settings Dialog Data</p>\n",
+      "rawdescription": "\nSettings Dialog Data",
+      "methods": []
+    }
+  ],
+  "miscellaneous": {
+    "variables": [
+      {
+        "name": "createButtonActionForm",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/edit-button-action/edit-button-action.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "",
+        "defaultValue": "(data?: ButtonActionT) => {\n  return new FormGroup({\n    text: new FormControl(get(data, 'text', ''), Validators.required),\n    href: new FormControl(get(data, 'href', ''), Validators.required),\n    variant: new FormControl(get(data, 'variant', 'primary')),\n    category: new FormControl(get(data, 'category', 'secondary')),\n    openInNewTab: new FormControl(get(data, 'openInNewTab', true)),\n  });\n}",
+        "rawdescription": "Create a form group for the button action",
+        "description": "<p>Create a form group for the button action</p>\n"
+      },
+      {
+        "name": "createContextDatasourceForm",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "",
+        "defaultValue": "(data?: PageContextT) => {\n  const origin =\n    data && 'resource' in data ? 'resource' : data ? 'refData' : 'resource';\n\n  return new FormGroup({\n    origin: new FormControl<typeof origin>(origin, [Validators.required]),\n    resource: new FormControl(\n      data && 'resource' in data ? data.resource : null\n    ),\n    refData: new FormControl(data && 'refData' in data ? data.refData : null),\n    displayField: new FormControl(\n      data && data.displayField ? data.displayField : null,\n      [Validators.required]\n    ),\n  });\n}",
+        "rawdescription": "Create a form group for the page context datasource selection",
+        "description": "<p>Create a form group for the page context datasource selection</p>\n"
+      },
+      {
+        "name": "Default",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "StoryFn<Story>",
+        "defaultValue": "() => {\n  return {\n    props: {},\n  };\n}",
+        "rawdescription": "Default story",
+        "description": "<p>Default story</p>\n"
+      },
+      {
+        "name": "Default",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "StoryFn<Story>",
+        "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl(),\n    },\n  };\n}",
+        "rawdescription": "Default story",
+        "description": "<p>Default story</p>\n"
+      },
+      {
+        "name": "DEFAULT_COLUMNS",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "[]",
+        "defaultValue": "['_incrementalId', '_actions']",
+        "rawdescription": "Static columns ( appear whatever the form )",
+        "description": "<p>Static columns ( appear whatever the form )</p>\n"
+      },
+      {
+        "name": "DEFAULT_FIELDS",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "[]",
+        "defaultValue": "['createdBy']",
+        "rawdescription": "Default fields",
+        "description": "<p>Default fields</p>\n"
+      },
+      {
+        "name": "DEFAULT_PAGE_SIZE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/applications/applications.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default number of items per request for pagination",
+        "description": "<p>Default number of items per request for pagination</p>\n"
+      },
+      {
+        "name": "DEFAULT_PAGE_SIZE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/forms/forms.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default number of items for pagination",
+        "description": "<p>Default number of items for pagination</p>\n"
+      },
+      {
+        "name": "DEFAULT_PAGE_SIZE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/resources/resources.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default number of resources that will be shown at once.",
+        "description": "<p>Default number of resources that will be shown at once.</p>\n"
+      },
+      {
+        "name": "DEFAULT_QUERY",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "",
+        "defaultValue": "`query {\\n  \\n}`",
+        "rawdescription": "Default graphql query",
+        "description": "<p>Default graphql query</p>\n"
+      },
+      {
+        "name": "DEFAULT_STYLE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/components/custom-style/custom-style.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "string",
+        "defaultValue": "''",
+        "rawdescription": "Default css style example to initialize the form and editor",
+        "description": "<p>Default css style example to initialize the form and editor</p>\n"
+      },
+      {
+        "name": "ENCRYPTED_VALUE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/api-configuration/api-configuration.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "string",
+        "defaultValue": "'●●●●●●●●●●●●●'",
+        "rawdescription": "Default value shown for private settings fields",
+        "description": "<p>Default value shown for private settings fields</p>\n"
+      },
+      {
+        "name": "environment",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "object",
+        "defaultValue": "{\n  theme: {\n    primary: '#6f51ae',\n  },\n}",
+        "rawdescription": "Provided environment",
+        "description": "<p>Provided environment</p>\n"
+      },
+      {
+        "name": "getAbilityForAppPreview",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/app-preview/app-preview.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "",
+        "defaultValue": "(app: Application, role: string) => {\n  const { can, rules } = new AbilityBuilder(AppAbility);\n  const permissions =\n    app.roles?.find((x) => x.id === role)?.permissions?.map((p) => p.type) ||\n    [];\n  // === Role ===\n  if (permissions.includes('can_see_roles')) {\n    can(['create', 'read', 'update', 'delete'], ['Role', 'Channel']);\n  }\n\n  // === User ===\n  if (permissions.includes('can_see_users')) {\n    can(['create', 'read', 'update', 'delete'], 'User');\n  }\n\n  // === Template ===\n  if (permissions.includes('can_manage_templates')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'Template');\n  }\n\n  // === Distribution list ===\n  if (permissions.includes('can_manage_distribution_lists')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'DistributionList');\n  }\n\n  // === Custom notifications===\n  if (permissions.includes('can_manage_custom_notifications')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'CustomNotification');\n  }\n\n  return new AppAbility(rules);\n}",
+        "rawdescription": "Creates a ability object the app preview\ngiven the application and the role to preview with",
+        "description": "<p>Creates a ability object the app preview\ngiven the application and the role to preview with</p>\n"
+      },
+      {
+        "name": "initializeApp",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "",
+        "defaultValue": "(): any => () => {\n  // Add fa icon font to check in the application\n  library.add(fas, fab);\n}",
+        "rawdescription": "App initializer",
+        "description": "<p>App initializer</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/components/add-form-modal/add-form-modal.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default items per query, for pagination",
+        "description": "<p>Default items per query, for pagination</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Number of items per page",
+        "description": "<p>Number of items per page</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/api-configurations/api-configurations.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default items per page for pagination.",
+        "description": "<p>Default items per page for pagination.</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/dashboard/dashboard.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default number of records fetched per page",
+        "description": "<p>Default number of records fetched per page</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default items per query, for pagination",
+        "description": "<p>Default items per query, for pagination</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/pull-jobs.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Limit of pull jobs shown at once.",
+        "description": "<p>Limit of pull jobs shown at once.</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default pagination parameter.",
+        "description": "<p>Default pagination parameter.</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/reference-datas/reference-datas.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default pagination settings.",
+        "description": "<p>Default pagination settings.</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Quantity of resource that will be loaded at once.",
+        "description": "<p>Quantity of resource that will be loaded at once.</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/application/pages/subscriptions/components/subscription-modal/subscription-modal.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Items per query for pagination",
+        "description": "<p>Items per query for pagination</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/application/pages/workflow/components/add-step/add-step.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default items per query for pagination",
+        "description": "<p>Default items per query for pagination</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Default items per resources query, for pagination",
+        "description": "<p>Default items per resources query, for pagination</p>\n"
+      },
+      {
+        "name": "ITEMS_PER_PAGE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "number",
+        "defaultValue": "10",
+        "rawdescription": "Items per page for pagination",
+        "description": "<p>Items per page for pagination</p>\n"
+      },
+      {
+        "name": "RECORDS_DEFAULT_COLUMNS",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "[]",
+        "defaultValue": "['_incrementalId', '_actions']",
+        "rawdescription": "Default fields for the records.",
+        "description": "<p>Default fields for the records.</p>\n"
+      },
+      {
+        "name": "ROUTE_TABS",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/resource/resource.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "string[]",
+        "defaultValue": "[\n  'forms',\n  'layouts',\n  'aggregations',\n  'calculated-fields',\n  'records',\n]",
+        "rawdescription": "Array of tab names sorted by position index.",
+        "description": "<p>Array of tab names sorted by position index.</p>\n"
+      },
+      {
+        "name": "SEPARATOR_KEYS_CODE",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "[]",
+        "defaultValue": "[ENTER, COMMA, TAB, SPACE]",
+        "rawdescription": "Available separator for csv",
+        "description": "<p>Available separator for csv</p>\n"
+      },
+      {
+        "name": "SINGLE_WIDGET_PAGE_TYPES",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "[]",
+        "defaultValue": "['grid', 'map', 'summaryCard', 'tabs']",
+        "rawdescription": "Widget types that can be used as single widget page",
+        "description": "<p>Widget types that can be used as single widget page</p>\n"
+      },
+      {
+        "name": "WithValue",
+        "ctype": "miscellaneous",
+        "subtype": "variable",
+        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "type": "StoryFn<Story>",
+        "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl('people-group'),\n    },\n  };\n}",
+        "rawdescription": "Story with default value",
+        "description": "<p>Story with default value</p>\n"
+      }
+    ],
+    "functions": [],
+    "typealiases": [
+      {
+        "name": "Story",
+        "ctype": "miscellaneous",
+        "subtype": "typealias",
+        "rawtype": "UploadMenuComponent",
+        "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "description": "",
+        "kind": 180
+      },
+      {
+        "name": "Story",
+        "ctype": "miscellaneous",
+        "subtype": "typealias",
+        "rawtype": "ViewIconSelectorComponent",
+        "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+        "deprecated": false,
+        "deprecationMessage": "",
+        "description": "",
+        "kind": 180
+      }
+    ],
+    "enumerations": [],
+    "groupedVariables": {
+      "apps/back-office/src/app/dashboard/pages/dashboard/components/edit-button-action/edit-button-action.component.ts": [
+        {
+          "name": "createButtonActionForm",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/edit-button-action/edit-button-action.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "",
+          "defaultValue": "(data?: ButtonActionT) => {\n  return new FormGroup({\n    text: new FormControl(get(data, 'text', ''), Validators.required),\n    href: new FormControl(get(data, 'href', ''), Validators.required),\n    variant: new FormControl(get(data, 'variant', 'primary')),\n    category: new FormControl(get(data, 'category', 'secondary')),\n    openInNewTab: new FormControl(get(data, 'openInNewTab', true)),\n  });\n}",
+          "rawdescription": "Create a form group for the button action",
+          "description": "<p>Create a form group for the button action</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts": [
+        {
+          "name": "createContextDatasourceForm",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "",
+          "defaultValue": "(data?: PageContextT) => {\n  const origin =\n    data && 'resource' in data ? 'resource' : data ? 'refData' : 'resource';\n\n  return new FormGroup({\n    origin: new FormControl<typeof origin>(origin, [Validators.required]),\n    resource: new FormControl(\n      data && 'resource' in data ? data.resource : null\n    ),\n    refData: new FormControl(data && 'refData' in data ? data.refData : null),\n    displayField: new FormControl(\n      data && data.displayField ? data.displayField : null,\n      [Validators.required]\n    ),\n  });\n}",
+          "rawdescription": "Create a form group for the page context datasource selection",
+          "description": "<p>Create a form group for the page context datasource selection</p>\n"
+        },
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/dashboard/components/context-datasource/context-datasource.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default items per resources query, for pagination",
+          "description": "<p>Default items per resources query, for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts": [
+        {
+          "name": "Default",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "StoryFn<Story>",
+          "defaultValue": "() => {\n  return {\n    props: {},\n  };\n}",
+          "rawdescription": "Default story",
+          "description": "<p>Default story</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts": [
+        {
+          "name": "Default",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "StoryFn<Story>",
+          "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl(),\n    },\n  };\n}",
+          "rawdescription": "Default story",
+          "description": "<p>Default story</p>\n"
+        },
+        {
+          "name": "environment",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "object",
+          "defaultValue": "{\n  theme: {\n    primary: '#6f51ae',\n  },\n}",
+          "rawdescription": "Provided environment",
+          "description": "<p>Provided environment</p>\n"
+        },
+        {
+          "name": "initializeApp",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "",
+          "defaultValue": "(): any => () => {\n  // Add fa icon font to check in the application\n  library.add(fas, fab);\n}",
+          "rawdescription": "App initializer",
+          "description": "<p>App initializer</p>\n"
+        },
+        {
+          "name": "WithValue",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "StoryFn<Story>",
+          "defaultValue": "() => {\n  return {\n    props: {\n      iconControl: new FormControl('people-group'),\n    },\n  };\n}",
+          "rawdescription": "Story with default value",
+          "description": "<p>Story with default value</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts": [
+        {
+          "name": "DEFAULT_COLUMNS",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "[]",
+          "defaultValue": "['_incrementalId', '_actions']",
+          "rawdescription": "Static columns ( appear whatever the form )",
+          "description": "<p>Static columns ( appear whatever the form )</p>\n"
+        },
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/form-records/form-records.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default items per query, for pagination",
+          "description": "<p>Default items per query, for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts": [
+        {
+          "name": "DEFAULT_FIELDS",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "[]",
+          "defaultValue": "['createdBy']",
+          "rawdescription": "Default fields",
+          "description": "<p>Default fields</p>\n"
+        },
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/components/edit-pull-job-modal/edit-pull-job-modal.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Items per page for pagination",
+          "description": "<p>Items per page for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/applications/applications.component.ts": [
+        {
+          "name": "DEFAULT_PAGE_SIZE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/applications/applications.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default number of items per request for pagination",
+          "description": "<p>Default number of items per request for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/forms/forms.component.ts": [
+        {
+          "name": "DEFAULT_PAGE_SIZE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/forms/forms.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default number of items for pagination",
+          "description": "<p>Default number of items for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/resources/resources.component.ts": [
+        {
+          "name": "DEFAULT_PAGE_SIZE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/resources/resources.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default number of resources that will be shown at once.",
+          "description": "<p>Default number of resources that will be shown at once.</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts": [
+        {
+          "name": "DEFAULT_QUERY",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "",
+          "defaultValue": "`query {\\n  \\n}`",
+          "rawdescription": "Default graphql query",
+          "description": "<p>Default graphql query</p>\n"
+        },
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default pagination parameter.",
+          "description": "<p>Default pagination parameter.</p>\n"
+        },
+        {
+          "name": "SEPARATOR_KEYS_CODE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/reference-data/reference-data.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "[]",
+          "defaultValue": "[ENTER, COMMA, TAB, SPACE]",
+          "rawdescription": "Available separator for csv",
+          "description": "<p>Available separator for csv</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/components/custom-style/custom-style.component.ts": [
+        {
+          "name": "DEFAULT_STYLE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/components/custom-style/custom-style.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "string",
+          "defaultValue": "''",
+          "rawdescription": "Default css style example to initialize the form and editor",
+          "description": "<p>Default css style example to initialize the form and editor</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/api-configuration/api-configuration.component.ts": [
+        {
+          "name": "ENCRYPTED_VALUE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/api-configuration/api-configuration.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "string",
+          "defaultValue": "'●●●●●●●●●●●●●'",
+          "rawdescription": "Default value shown for private settings fields",
+          "description": "<p>Default value shown for private settings fields</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/app-preview/app-preview.component.ts": [
+        {
+          "name": "getAbilityForAppPreview",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/app-preview/app-preview.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "",
+          "defaultValue": "(app: Application, role: string) => {\n  const { can, rules } = new AbilityBuilder(AppAbility);\n  const permissions =\n    app.roles?.find((x) => x.id === role)?.permissions?.map((p) => p.type) ||\n    [];\n  // === Role ===\n  if (permissions.includes('can_see_roles')) {\n    can(['create', 'read', 'update', 'delete'], ['Role', 'Channel']);\n  }\n\n  // === User ===\n  if (permissions.includes('can_see_users')) {\n    can(['create', 'read', 'update', 'delete'], 'User');\n  }\n\n  // === Template ===\n  if (permissions.includes('can_manage_templates')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'Template');\n  }\n\n  // === Distribution list ===\n  if (permissions.includes('can_manage_distribution_lists')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'DistributionList');\n  }\n\n  // === Custom notifications===\n  if (permissions.includes('can_manage_custom_notifications')) {\n    can(['create', 'read', 'update', 'delete', 'manage'], 'CustomNotification');\n  }\n\n  return new AppAbility(rules);\n}",
+          "rawdescription": "Creates a ability object the app preview\ngiven the application and the role to preview with",
+          "description": "<p>Creates a ability object the app preview\ngiven the application and the role to preview with</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/components/add-form-modal/add-form-modal.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/components/add-form-modal/add-form-modal.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default items per query, for pagination",
+          "description": "<p>Default items per query, for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/application/pages/add-page/add-page.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Number of items per page",
+          "description": "<p>Number of items per page</p>\n"
+        },
+        {
+          "name": "SINGLE_WIDGET_PAGE_TYPES",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/application/pages/add-page/add-page.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "[]",
+          "defaultValue": "['grid', 'map', 'summaryCard', 'tabs']",
+          "rawdescription": "Widget types that can be used as single widget page",
+          "description": "<p>Widget types that can be used as single widget page</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/api-configurations/api-configurations.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/api-configurations/api-configurations.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default items per page for pagination.",
+          "description": "<p>Default items per page for pagination.</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/dashboard/dashboard.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/dashboard/dashboard.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default number of records fetched per page",
+          "description": "<p>Default number of records fetched per page</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/pull-jobs/pull-jobs.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/pull-jobs/pull-jobs.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Limit of pull jobs shown at once.",
+          "description": "<p>Limit of pull jobs shown at once.</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/reference-datas/reference-datas.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/reference-datas/reference-datas.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default pagination settings.",
+          "description": "<p>Default pagination settings.</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Quantity of resource that will be loaded at once.",
+          "description": "<p>Quantity of resource that will be loaded at once.</p>\n"
+        },
+        {
+          "name": "RECORDS_DEFAULT_COLUMNS",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/resource/records-tab/records-tab.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "[]",
+          "defaultValue": "['_incrementalId', '_actions']",
+          "rawdescription": "Default fields for the records.",
+          "description": "<p>Default fields for the records.</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/application/pages/subscriptions/components/subscription-modal/subscription-modal.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/application/pages/subscriptions/components/subscription-modal/subscription-modal.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Items per query for pagination",
+          "description": "<p>Items per query for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/application/pages/workflow/components/add-step/add-step.component.ts": [
+        {
+          "name": "ITEMS_PER_PAGE",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/application/pages/workflow/components/add-step/add-step.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "number",
+          "defaultValue": "10",
+          "rawdescription": "Default items per query for pagination",
+          "description": "<p>Default items per query for pagination</p>\n"
+        }
+      ],
+      "apps/back-office/src/app/dashboard/pages/resource/resource.component.ts": [
+        {
+          "name": "ROUTE_TABS",
+          "ctype": "miscellaneous",
+          "subtype": "variable",
+          "file": "apps/back-office/src/app/dashboard/pages/resource/resource.component.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "type": "string[]",
+          "defaultValue": "[\n  'forms',\n  'layouts',\n  'aggregations',\n  'calculated-fields',\n  'records',\n]",
+          "rawdescription": "Array of tab names sorted by position index.",
+          "description": "<p>Array of tab names sorted by position index.</p>\n"
+        }
+      ]
+    },
+    "groupedFunctions": {},
+    "groupedEnumerations": {},
+    "groupedTypeAliases": {
+      "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts": [
+        {
+          "name": "Story",
+          "ctype": "miscellaneous",
+          "subtype": "typealias",
+          "rawtype": "UploadMenuComponent",
+          "file": "apps/back-office/src/app/components/upload-menu/upload-menu.stories.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "description": "",
+          "kind": 180
+        }
+      ],
+      "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts": [
+        {
+          "name": "Story",
+          "ctype": "miscellaneous",
+          "subtype": "typealias",
+          "rawtype": "ViewIconSelectorComponent",
+          "file": "apps/back-office/src/app/components/view-icon-selector/view-icon-selector.stories.ts",
+          "deprecated": false,
+          "deprecationMessage": "",
+          "description": "",
+          "kind": 180
+        }
+      ]
+    }
+  },
+  "modules": [],
+  "pipes": [],
+  "routes": []
 }

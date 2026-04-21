@@ -1,11 +1,5 @@
 {
-  "pipes": [],
-  "interfaces": [],
-  "injectables": [],
-  "guards": [],
-  "interceptors": [],
   "classes": [],
-  "directives": [],
   "components": [
     {
       "name": "AppComponent",
@@ -3429,9 +3423,6 @@
       "templateData": "<!-- Skeleton when loading -->\n<ng-container\n  *sharedSkeleton=\"\n    loading;\n    repeat: 1;\n    height: '32px';\n    width: '120px';\n    shape: 'rectangle'\n  \"\n>\n  <ng-container *ngIf=\"workflow\">\n    <div class=\"flex flex-wrap items-center justify-between mb-3 gap-4\">\n      <!-- Title -->\n      <div class=\"flex items-center gap-1\">\n        <h1 class=\"!m-0 overflow-hidden text-ellipsis\">\n          {{ workflow.name }}\n        </h1>\n      </div>\n    </div>\n  </ng-container>\n</ng-container>\n<!-- STEPS -->\n<shared-workflow-stepper\n  [loading]=\"loading\"\n  [steps]=\"steps\"\n  (openStep)=\"onOpenStep($event)\"\n  [activeStep]=\"activeStep\"\n  class=\"block\"\n>\n</shared-workflow-stepper>\n<router-outlet (activate)=\"onActivate($event)\"></router-outlet>\n"
     }
   ],
-  "modules": [],
-  "miscellaneous": [],
-  "routes": [],
   "coverage": {
     "count": 85,
     "status": "very-good",
@@ -3545,5 +3536,14 @@
         "status": "good"
       }
     ]
-  }
+  },
+  "directives": [],
+  "guards": [],
+  "injectables": [],
+  "interceptors": [],
+  "interfaces": [],
+  "miscellaneous": [],
+  "modules": [],
+  "pipes": [],
+  "routes": []
 }

@@ -1,9 +1,10 @@
 {
-  "name": "shared",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "shared",
+  "prefix": "shared",
   "projectType": "library",
   "sourceRoot": "libs/shared/src",
-  "prefix": "shared",
+  "tags": [],
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
@@ -74,6 +75,5 @@
         }
       }
     }
-  },
-  "tags": []
+  }
 }
