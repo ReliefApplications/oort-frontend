@@ -22,7 +22,9 @@ import { FormHelpersService } from '../../../services/form-helper/form-helper.se
 import { CustomQuestionTypes } from '../../../survey/custom-question-types';
 import { SurveyCustomJSONEditorPlugin } from '../../form-builder/custom-json-editor/custom-json-editor.component';
 import { updateModalChoicesAndValue } from '../../../survey/global-properties/reference-data';
+// Add new languages
 import 'survey-core/i18n/french';
+import 'survey-core/i18n/spanish';
 import {
   CORE_QUESTION_ALLOWED_PROPERTIES,
   DEFAULT_STRUCTURE,

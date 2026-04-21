@@ -26,7 +26,7 @@ export const environment: Environment = {
   subscriptionApiUrl: 'wss://oort-dev.oortcloud.tech/api',
   frontOfficeUri: 'https://oort-dev.oortcloud.tech',
   backOfficeUri: 'https://oort-dev.oortcloud.tech/admin/',
-  availableLanguages: ['en', 'fr'],
+  availableLanguages: ['en', 'fr', 'es'],
   authConfig,
   theme,
   user: {

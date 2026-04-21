@@ -38,6 +38,7 @@ import {
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeEn from '@angular/common/locales/en';
+import localeEs from '@angular/common/locales/es';
 
 /** CASL */
 import { PureAbility } from '@casl/ability';
@@ -45,6 +46,7 @@ import { PureAbility } from '@casl/ability';
 // Register local translations for dates
 registerLocaleData(localeFr);
 registerLocaleData(localeEn);
+registerLocaleData(localeEs);
 
 import { PopupService } from '@progress/kendo-angular-popup';
 import { ResizeBatchService } from '@progress/kendo-angular-common';
@@ -70,6 +72,7 @@ import { fab } from '@fortawesome/free-brands-svg-icons';
 // Imports to translate datepickers
 import '@progress/kendo-angular-intl/locales/en/all';
 import '@progress/kendo-angular-intl/locales/fr/all';
+import '@progress/kendo-angular-intl/locales/es/all';
 
 /**
  * Initialize application.
