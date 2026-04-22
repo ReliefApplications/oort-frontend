@@ -34,6 +34,7 @@ export const createFormWidgetFormGroup = (id: string, configuration: any) => {
       canUpdate: [get(configuration, 'loadRecord.canUpdate', false)],
       update: [get(configuration, 'loadRecord.update', false)],
       state: [get(configuration, 'loadRecord.state', null)],
+      loadTemplate: [get(configuration, 'loadRecord.loadTemplate', false)],
     }),
   });
 

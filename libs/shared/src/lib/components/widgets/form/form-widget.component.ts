@@ -82,40 +82,42 @@ export class FormWidgetComponent
   }
 
   async ngOnInit(): Promise<void> {
-    const promises: Promise<FormQueryResponse | RecordQueryResponse | void>[] =
-      [];
+    this.loading = true;
 
-    // Fetch template
-    if (this.settings.form) {
-      promises.push(
-        firstValueFrom(
-          this.apollo.query<FormQueryResponse>({
-            query: GET_SHORT_FORM_BY_ID,
-            variables: {
-              id: this.settings.form,
-            },
-          })
-        ).then(({ data, loading }) => {
-          this.form = data.form;
-          this.loading = loading;
-        })
-      );
+    const loadRecord = this.settings.loadRecord;
+    const loadRecordEnabled = !!loadRecord?.enabled;
+    const loadTemplate = loadRecordEnabled && !!loadRecord.loadTemplate;
 
-      await Promise.all(promises);
+    if (loadRecordEnabled) {
+      this.hideNewRecord = true;
+      if (loadRecord.canUpdate) {
+        this.mode = 'edit';
+      }
+    } else {
+      this.mode = 'edit';
     }
 
-    // Load record from loadRecord state
-    if (this.settings.loadRecord?.enabled) {
-      this.hideNewRecord = true;
-      const stateID = this.settings.loadRecord.state;
+    // Subscribe to state changes to load record from dashboard state.
+    // The returned promise resolves on the first successful record fetch so
+    // the loading indicator can wait for both the record and the form.
+    let initialRecordLoaded: Promise<void> = Promise.resolve();
+    if (loadRecordEnabled) {
+      const stateID = loadRecord.state;
+      let resolveInitial!: () => void;
+      let initialResolved = false;
+      initialRecordLoaded = new Promise<void>((resolve) => {
+        resolveInitial = resolve;
+      });
+
       this.dashboardService.states$
         .pipe(takeUntil(this.destroy$))
         .subscribe((states) => {
-          // Subscribe to state changes to load record from dashboard state
           const state = states.find((s) => s.id === stateID);
           const value = state?.value;
           if (!isNil(value) && value !== this.record?.id) {
-            this.loading = true;
+            if (initialResolved) {
+              this.loading = true;
+            }
             this.apollo
               .query<RecordQueryResponse>({
                 query: GET_RECORD_BY_ID,
@@ -125,22 +127,48 @@ export class FormWidgetComponent
               })
               .pipe(takeUntil(this.destroy$))
               .subscribe(({ data }) => {
-                this.loading = false;
                 if (data) {
                   this.record =
-                    !this.settings.loadRecord.canUpdate ||
-                    this.settings.loadRecord.update
+                    !loadRecord.canUpdate || loadRecord.update
                       ? data.record
                       : omit(data.record, 'id');
+                }
+                if (initialResolved) {
+                  this.loading = false;
+                } else {
+                  initialResolved = true;
+                  resolveInitial();
                 }
               });
           }
         });
-      if (this.settings.loadRecord.canUpdate) {
-        this.mode = 'edit';
+    }
+
+    const fetchForm = async (id: string) => {
+      const { data } = await firstValueFrom(
+        this.apollo.query<FormQueryResponse>({
+          query: GET_SHORT_FORM_BY_ID,
+          variables: { id },
+        })
+      );
+      this.form = data.form;
+    };
+
+    try {
+      if (loadTemplate) {
+        // Form id depends on the loaded record — sequence record then form.
+        await initialRecordLoaded;
+        if (this.record?.form?.id) {
+          await fetchForm(this.record.form.id);
+        }
+      } else if (this.settings.form) {
+        // Form id is known upfront — load form and record in parallel.
+        await Promise.all([fetchForm(this.settings.form), initialRecordLoaded]);
+      } else {
+        await initialRecordLoaded;
       }
-    } else {
-      this.mode = 'edit';
+    } finally {
+      this.loading = false;
     }
 
     this.contextFilters = this.settings.contextFilters

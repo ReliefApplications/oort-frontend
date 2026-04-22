@@ -113,6 +113,25 @@
       </ui-toggle>
     </div>
 
+    <!-- Load correct template -->
+    <div
+      class="flex-1 mr-4 min-w-max"
+      *ngIf="form && formGroup.get('loadRecord.enabled')?.value === true"
+    >
+      <ui-toggle formControlName="loadTemplate">
+        <ng-container ngProjectAs="label">
+          Load using template associated with record
+          <ui-icon
+            class="ml-1 cursor-help self-center"
+            icon="info_outline"
+            variant="grey"
+            [size]="18"
+            [uiTooltip]="'Load using template associated with record'"
+          ></ui-icon>
+        </ng-container>
+      </ui-toggle>
+    </div>
+
     <!-- todo: translate -->
     <div
       class="flex-1 mr-4 min-w-max"
