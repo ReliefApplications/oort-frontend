@@ -772,5 +772,23 @@ export class FormComponent
     // } else {
     //   this.survey.locale = this.translate.currentLang;
     // }
+
+    this.survey.onAfterRenderQuestion.add((survey, options) => {
+      const questionElement = options.htmlElement;
+      questionElement.addEventListener('click', () => {
+        console.log('cliiiick');
+        if (survey.mode === 'edit') {
+          survey.focusQuestion(options.question.name);
+        } else {
+          const { title: rootTitle, name: rootName } = getRootParent(
+            options.question
+          );
+          survey.setVariable('__FOCUSED__.name', options.question.name);
+          survey.setVariable('__FOCUSED__.title', options.question.title);
+          survey.setVariable('__FOCUSED__.root.name', rootName);
+          survey.setVariable('__FOCUSED__.root.title', rootTitle);
+        }
+      });
+    });
   }
 }
