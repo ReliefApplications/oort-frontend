@@ -18,6 +18,19 @@ export const GET_ROLES = gql`
   }
 `;
 
+/** Graphql query for getting roles the current user can assign */
+export const GET_ASSIGNABLE_ROLES = gql`
+  query GetAssignableRoles($application: ID) {
+    assignableRoles(application: $application) {
+      id
+      title
+      application {
+        name
+      }
+    }
+  }
+`;
+
 /** Graphql query for getting users */
 export const GET_USERS = gql`
   query GetUsers($first: Int, $afterCursor: ID, $filter: JSON) {

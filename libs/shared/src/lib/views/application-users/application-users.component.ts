@@ -5,10 +5,15 @@ import { Apollo } from 'apollo-angular';
 import { Subject, takeUntil } from 'rxjs';
 import { UnsubscribeComponent } from '../../components/utils/unsubscribe/unsubscribe.component';
 import { PositionAttributeCategory } from '../../models/position-attribute-category.model';
-import { AddUsersMutationResponse, Role } from '../../models/user.model';
+import {
+  AddUsersMutationResponse,
+  AssignableRolesQueryResponse,
+  Role,
+} from '../../models/user.model';
 import { ApplicationService } from '../../services/application/application.service';
 import { UserListComponent } from './components/user-list/user-list.component';
 import { ADD_USERS } from './graphql/mutations';
+import { GET_ASSIGNABLE_ROLES } from './graphql/queries';
 import { SnackbarService } from '@oort-front/ui';
 import { CompositeFilterDescriptor } from '@progress/kendo-data-query';
 import { RestService } from '../../services/rest/rest.service';
@@ -29,6 +34,8 @@ export class ApplicationUsersComponent
   public loading = true;
   /** Roles */
   public roles: Role[] = [];
+  /** Roles the current user can assign when inviting */
+  public assignableRoles: Role[] = [];
   /** Position attribute categories */
   public positionAttributeCategories: PositionAttributeCategory[] = [];
   /** User attributes */
@@ -71,6 +78,16 @@ export class ApplicationUsersComponent
           this.roles = application.roles || [];
           this.positionAttributeCategories =
             application.positionAttributeCategories || [];
+          // Fetch roles the current user can assign for this application
+          this.apollo
+            .watchQuery<AssignableRolesQueryResponse>({
+              query: GET_ASSIGNABLE_ROLES,
+              variables: { application: application.id },
+            })
+            .valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe(({ data }) => {
+              this.assignableRoles = data.assignableRoles;
+            });
         }
       });
 
@@ -93,7 +110,7 @@ export class ApplicationUsersComponent
     );
     const dialogRef = this.dialog.open(InviteUsersModalComponent, {
       data: {
-        roles: this.roles,
+        roles: this.assignableRoles,
         downloadPath: this.applicationService
           ? this.applicationService.usersDownloadPath
           : 'download/invite',

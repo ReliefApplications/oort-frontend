@@ -1,5 +1,15 @@
 import { gql } from 'apollo-angular';
 
+/** Graphql query for getting roles the current user can assign */
+export const GET_ASSIGNABLE_ROLES = gql`
+  query GetAssignableRoles($application: ID) {
+    assignableRoles(application: $application) {
+      id
+      title
+    }
+  }
+`;
+
 /** Application users query */
 export const GET_APPLICATION_USERS = gql`
   query GetApplicationUsers(

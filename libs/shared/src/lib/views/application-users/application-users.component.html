@@ -29,6 +29,7 @@
         <button uiMenuItem (click)="onExport('xlsx')">.xlsx</button>
       </ui-menu>
       <ui-button
+        *ngIf="assignableRoles.length > 0"
         icon="send"
         category="secondary"
         variant="primary"
