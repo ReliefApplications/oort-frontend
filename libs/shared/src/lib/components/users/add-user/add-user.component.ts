@@ -6,10 +6,19 @@ import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { TranslateService } from '@ngx-translate/core';
 import { UnsubscribeComponent } from '../../utils/unsubscribe/unsubscribe.component';
 
+/** User attribute configuration for the invite form */
+interface UserAttribute {
+  text: string;
+  value: string;
+  choices?: { value: string; text: string }[];
+  type?: string;
+}
+
 /** Model for the input  */
 interface DialogData {
   roles: Role[];
   positionAttributeCategories?: PositionAttributeCategory[];
+  attributes?: UserAttribute[];
 }
 
 /** Component for adding a user */
@@ -36,6 +45,18 @@ export class AddUserComponent extends UnsubscribeComponent {
         )
       ),
     }),
+    ...(this.data.attributes &&
+      this.data.attributes.length > 0 && {
+        attributes: this.fb.group(
+          this.data.attributes.reduce(
+            (group: Record<string, any>, attr) => ({
+              ...group,
+              [attr.value]: [null],
+            }),
+            {}
+          )
+        ),
+      }),
   });
 
   /** @returns The position attributes available */

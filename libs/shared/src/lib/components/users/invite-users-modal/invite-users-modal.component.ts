@@ -21,10 +21,19 @@ import { UploadsModule } from '@progress/kendo-angular-upload';
 import { ButtonModule as uiButtonModule, TextareaModule } from '@oort-front/ui';
 import { DialogModule } from '@oort-front/ui';
 
+/** User attribute configuration for the invite form */
+interface UserAttribute {
+  text: string;
+  value: string;
+  choices?: { value: string; text: string }[];
+  type?: string;
+}
+
 /** Model fot the input data */
 interface DialogData {
   roles: Role[];
   positionAttributeCategories?: PositionAttributeCategory[];
+  attributes?: UserAttribute[];
   uploadPath: string;
   downloadPath: string;
   showTemplate?: boolean;
@@ -116,6 +125,9 @@ export class InviteUsersModalComponent extends UnsubscribeComponent {
         roles: this.data.roles,
         ...(this.data.positionAttributeCategories && {
           positionAttributeCategories: this.data.positionAttributeCategories,
+        }),
+        ...(this.data.attributes && {
+          attributes: this.data.attributes,
         }),
       },
       autoFocus: false,

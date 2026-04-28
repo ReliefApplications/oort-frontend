@@ -103,6 +103,10 @@ export class ApplicationUsersComponent
         ...(this.positionAttributeCategories && {
           positionAttributeCategories: this.positionAttributeCategories,
         }),
+        ...(this.attributes &&
+          this.attributes.length > 0 && {
+            attributes: this.attributes,
+          }),
       },
     });
     dialogRef.closed.pipe(takeUntil(this.destroy$)).subscribe((value: any) => {
@@ -170,12 +174,15 @@ export class ApplicationUsersComponent
    */
   private loadAttributeChoices(): void {
     for (const attribute of this.attributes) {
-      if (attribute.value === 'country') {
+      if (attribute.referenceData || attribute.resource) {
         this.restService
           .get(`/permissions/attributes/${attribute.value}/choices`)
           .pipe(takeUntil(this.destroy$))
           .subscribe((choices: any) => {
-            this.countryChoices = choices;
+            attribute.choices = choices;
+            if (attribute.value === 'country') {
+              this.countryChoices = choices;
+            }
           });
       }
     }

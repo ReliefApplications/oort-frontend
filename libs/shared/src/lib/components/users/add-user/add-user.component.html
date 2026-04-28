@@ -26,6 +26,36 @@
           </ui-select-menu>
         </div>
         <ng-container
+          *ngIf="data.attributes && data.attributes.length > 0"
+          formGroupName="attributes"
+        >
+          <ng-container *ngFor="let attribute of data.attributes">
+            <div uiFormFieldDirective *ngIf="attribute.choices">
+              <label>{{ attribute.text }}</label>
+              <ui-select-menu
+                [formControlName]="attribute.value"
+                [filterable]="true"
+                [multiselect]="attribute.type === 'array'"
+              >
+                <ui-select-option
+                  *ngFor="let choice of attribute.choices"
+                  [value]="choice.value"
+                >
+                  {{ choice.text }}
+                </ui-select-option>
+              </ui-select-menu>
+            </div>
+            <div uiFormFieldDirective *ngIf="!attribute.choices">
+              <label>{{ attribute.text }}</label>
+              <input
+                [formControlName]="attribute.value"
+                type="text"
+                [placeholder]="attribute.text"
+              />
+            </div>
+          </ng-container>
+        </ng-container>
+        <ng-container
           *ngIf="
             data.positionAttributeCategories &&
             positionAttributes &&
