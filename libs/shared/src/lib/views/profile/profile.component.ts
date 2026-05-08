@@ -22,6 +22,7 @@ import { get } from 'lodash';
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent extends UnsubscribeComponent implements OnInit {
+  private readonly restrictedSelfManagedAttributes = new Set(['country']);
   /** Current user */
   public user: any;
   /** Form to edit the user */
@@ -42,6 +43,8 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
     choices?: any[];
     valueField?: string;
     textField?: string;
+    referenceData?: string;
+    resource?: string;
   }[] = [];
 
   /**
@@ -192,42 +195,62 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
    * Get attributes from back-end, and set controls if any
    */
   private getAttributes(): void {
-    this.restService.get('/permissions/configuration').subscribe((config) => {
-      // can user edit attributes
-      const manualCreation = get(config, 'attributes.local', true);
-      this.restService
-        .get('/permissions/attributes')
-        .subscribe((attributes: any) => {
-          this.userForm.addControl(
-            'attributes',
-            this.fb.group(
-              attributes.reduce(
-                (group: any, attribute: any) => ({
-                  ...group,
-                  [attribute.value]: this.fb.control({
-                    value: get(
-                      this.user,
-                      `attributes.${attribute.value}`,
-                      null
-                    ),
-                    disabled: !manualCreation,
-                  }),
-                }),
-                {}
-              )
-            )
-          );
-          this.attributes = attributes.filter((x: any) => x.userCanEdit);
-          for (const attribute of attributes.filter(
-            (x: any) => x.userCanEdit
-          )) {
-            // Fetch reference data from attribute field
-            if (attribute.referenceData || attribute.resource) {
-              this.fetchAttributeChoices(attribute);
-            }
-          }
-        });
-    });
+    this.restService
+      .get('/permissions/configuration')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (config) => {
+          // can user edit attributes
+          const manualCreation = get(config, 'attributes.local', true);
+          this.restService
+            .get('/permissions/attributes')
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (attributes: any) => {
+                this.userForm.addControl(
+                  'attributes',
+                  this.fb.group(
+                    attributes.reduce(
+                      (group: any, attribute: any) => ({
+                        ...group,
+                        [attribute.value]: this.fb.control({
+                          value: get(
+                            this.user,
+                            `attributes.${attribute.value}`,
+                            null
+                          ),
+                          disabled:
+                            !manualCreation ||
+                            this.restrictedSelfManagedAttributes.has(
+                              attribute.value
+                            ),
+                        }),
+                      }),
+                      {}
+                    )
+                  )
+                );
+                this.attributes = attributes.filter(
+                  (x: any) =>
+                    x.userCanEdit &&
+                    !this.restrictedSelfManagedAttributes.has(x.value)
+                );
+                for (const attribute of this.attributes) {
+                  // Fetch reference data from attribute field
+                  if (attribute.referenceData || attribute.resource) {
+                    this.fetchAttributeChoices(attribute);
+                  }
+                }
+              },
+              error: (err) => {
+                this.snackBar.openSnackBar(err.message, { error: true });
+              },
+            });
+        },
+        error: (err) => {
+          this.snackBar.openSnackBar(err.message, { error: true });
+        },
+      });
   }
 
   /**
@@ -239,8 +262,13 @@ export class ProfileComponent extends UnsubscribeComponent implements OnInit {
     this.restService
       .get(`/permissions/attributes/${attribute.value}/choices`)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((choices: any) => {
-        attribute.choices = choices;
+      .subscribe({
+        next: (choices: any) => {
+          attribute.choices = choices;
+        },
+        error: (err) => {
+          this.snackBar.openSnackBar(err.message, { error: true });
+        },
       });
   }
 }
