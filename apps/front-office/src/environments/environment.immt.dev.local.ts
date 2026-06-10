@@ -22,8 +22,8 @@ const authConfig: AuthConfig = {
 export const environment: Environment = {
   ...sharedEnvironment,
   production: false,
-  apiUrl: 'https://dev.pubplanner.oortcloud.tech/api',
-  subscriptionApiUrl: 'wss://dev.pubplanner.oortcloud.tech/api',
+  apiUrl: 'https://v1.pubplanner.oortcloud.tech/api',
+  subscriptionApiUrl: 'wss://v1.pubplanner.oortcloud.tech/api',
   frontOfficeUri: 'http://localhost:4200/',
   backOfficeUri: 'http://localhost:4200/',
   availableLanguages: ['en', 'fr'],

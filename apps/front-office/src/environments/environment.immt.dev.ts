@@ -8,8 +8,8 @@ import { Environment } from './environment.type';
  */
 const authConfig: AuthConfig = {
   issuer: 'https://id-mab.unesco.oortcloud.tech/realms/oort',
-  redirectUri: 'https://dev.pubplanner.oortcloud.tech/',
-  postLogoutRedirectUri: 'https://dev.pubplanner.oortcloud.tech/auth/',
+  redirectUri: 'https://v1.pubplanner.oortcloud.tech/',
+  postLogoutRedirectUri: 'https://v1.pubplanner.oortcloud.tech/auth/',
   clientId: 'immt-client',
   scope: 'openid profile email offline_access',
   responseType: 'code',
@@ -22,10 +22,10 @@ const authConfig: AuthConfig = {
 export const environment: Environment = {
   ...sharedEnvironment,
   production: true,
-  apiUrl: 'https://dev.pubplanner.oortcloud.tech/api',
-  subscriptionApiUrl: 'wss://dev.pubplanner.oortcloud.tech/api',
-  frontOfficeUri: 'https://dev.pubplanner.oortcloud.tech',
-  backOfficeUri: 'https://dev.pubplanner.oortcloud.tech/admin/',
+  apiUrl: 'https://v1.pubplanner.oortcloud.tech/api',
+  subscriptionApiUrl: 'wss://v1.pubplanner.oortcloud.tech/api',
+  frontOfficeUri: 'https://v1.pubplanner.oortcloud.tech',
+  backOfficeUri: 'https://v1.pubplanner.oortcloud.tech/admin/',
   availableLanguages: ['en', 'fr'],
   defaultIntlLocale: 'fr',
   authConfig,
