@@ -148,17 +148,6 @@ export class FormComponent
   // public storageDate?: Date;
 
   /**
-   * Gets the error questions for current page
-   *
-   * @returns the error questions for current page
-   */
-  get errorQuestions() {
-    return this.formBuilderService.errorsSummary.filter(
-      (error) => error.page === this.selectedPageIndex.value
-    );
-  }
-
-  /**
    * Returns a list of the panel and dynamic panel questions from current page
    *
    * @returns a list of the panel and dynamic panel questions from current page
@@ -218,7 +207,10 @@ export class FormComponent
   }
 
   ngOnInit(): void {
-    this.initSurvey();
+    // Prevent initializing survey multiple times
+    if (!this.record) {
+      this.initSurvey();
+    }
   }
 
   /** Sets up listeners to keep mapped fields updated */
@@ -505,6 +497,18 @@ export class FormComponent
       setTimeout(() => {
         question._focus?.();
       }, 100);
+    } else {
+      const panel = this.survey.getPanelByName(questionName);
+      if (panel) {
+        panel.expand();
+        const firstQuestion = panel.questions[0];
+        if (firstQuestion) {
+          firstQuestion.focus(false, true);
+          setTimeout(() => {
+            firstQuestion._focus?.();
+          }, 100);
+        }
+      }
     }
   }
 
@@ -594,6 +598,7 @@ export class FormComponent
       )}</h3>`;
     }
 
+    console.log('Initializing survey with structure...');
     this.survey = this.formBuilderService.createSurvey(
       JSON.stringify(structure),
       this.form.metadata,
